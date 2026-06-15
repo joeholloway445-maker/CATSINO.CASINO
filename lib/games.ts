@@ -38,7 +38,7 @@ export const GAMES: GameDef[] = [
     tagline: 'Chase the golden paw jackpot.',
     emoji: '🐾',
     color: 'pink',
-    playable: false,
+    playable: true,
   },
   {
     slug: 'catnip-cash',
