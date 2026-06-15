@@ -1,9 +1,8 @@
-import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import Navbar from '@/components/Navbar'
 import DailyBonusButton from '@/components/DailyBonusButton'
-import { GAMES, COLOR_CLASSES } from '@/lib/games'
+import LobbyGrid from '@/components/LobbyGrid'
 
 function isDailyBonusAvailable(lastClaim: string | null): boolean {
   if (!lastClaim) return true
@@ -50,38 +49,8 @@ export default async function DashboardPage() {
         </div>
 
         <h2 className="font-display text-lg tracking-widest text-neon-cyan neon-text mb-4">GAME LOBBY</h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 mb-10">
-          {GAMES.map((game) => {
-            const c = COLOR_CLASSES[game.color]
-            const content = (
-              <div
-                className={`rounded-xl border ${c.border} bg-[#0a0813]/80 p-5 flex flex-col gap-2 h-full ${game.playable ? `${c.glow} hover:scale-[1.02] transition-transform cursor-pointer` : 'opacity-60'}`}
-              >
-                <div className="flex items-center justify-between">
-                  <span className="text-3xl">{game.emoji}</span>
-                  {game.playable ? (
-                    <span className={`text-[10px] tracking-widest px-2 py-1 rounded border ${c.border} ${c.text}`}>
-                      PLAY
-                    </span>
-                  ) : (
-                    <span className="text-[10px] tracking-widest px-2 py-1 rounded border border-slate-700 text-slate-500">
-                      SOON
-                    </span>
-                  )}
-                </div>
-                <h3 className={`font-display text-sm tracking-wide ${c.text}`}>{game.name}</h3>
-                <p className="text-xs text-slate-400">{game.tagline}</p>
-              </div>
-            )
-
-            return game.playable ? (
-              <Link key={game.slug} href={`/games/${game.slug}`}>
-                {content}
-              </Link>
-            ) : (
-              <div key={game.slug}>{content}</div>
-            )
-          })}
+        <div className="mb-10">
+          <LobbyGrid linkPlayable />
         </div>
 
         <h2 className="font-display text-lg tracking-widest text-neon-pink neon-text mb-4">RECENT SPINS</h2>
