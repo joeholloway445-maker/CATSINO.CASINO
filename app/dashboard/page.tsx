@@ -54,12 +54,30 @@ export default async function DashboardPage() {
           <LobbyGrid linkPlayable />
         </div>
 
-        <div className="mb-10">
+        <div className="mb-10 flex gap-3 flex-wrap">
           <Link
             href="/leaderboard"
             className="inline-block px-6 py-2.5 rounded-xl border border-neon-purple/50 text-neon-purple text-xs font-display tracking-widest hover:bg-neon-purple/10 hover:shadow-[0_0_16px_rgba(176,38,255,0.3)] transition-all"
           >
             🏆 LEADERBOARD
+          </Link>
+          <Link
+            href="/shop"
+            className="inline-block px-6 py-2.5 rounded-xl border border-neon-pink/50 text-neon-pink text-xs font-display tracking-widest hover:bg-neon-pink/10 hover:shadow-[0_0_16px_rgba(255,43,214,0.3)] transition-all"
+          >
+            🛒 SHOP
+          </Link>
+          <Link
+            href="/achievements"
+            className="inline-block px-6 py-2.5 rounded-xl border border-yellow-500/50 text-yellow-400 text-xs font-display tracking-widest hover:bg-yellow-500/10 hover:shadow-[0_0_16px_rgba(234,179,8,0.3)] transition-all"
+          >
+            🏅 ACHIEVEMENTS
+          </Link>
+          <Link
+            href="/profile"
+            className="inline-block px-6 py-2.5 rounded-xl border border-neon-cyan/50 text-neon-cyan text-xs font-display tracking-widest hover:bg-neon-cyan/10 hover:shadow-[0_0_16px_rgba(0,246,255,0.3)] transition-all"
+          >
+            🐱 PROFILE
           </Link>
         </div>
 
