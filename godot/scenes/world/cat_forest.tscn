@@ -1,0 +1,18 @@
+[gd_scene load_steps=2 format=3 uid="uid://cat_forest"]
+
+[ext_resource type="Script" path="res://src/world/cat_forest_scene.gd" id="1_forest"]
+
+[node name="CatForest" type="Node3D"]
+script = ExtResource("1_forest")
+
+[node name="TreeCluster" type="Node3D" parent="."]
+
+[node name="QuestNPCs" type="Node3D" parent="."]
+
+[node name="CompanionClearings" type="Node3D" parent="."]
+
+[node name="UILayer" type="CanvasLayer" parent="."]
+
+[node name="ForestHUD" type="Control" parent="UILayer"]
+anchor_right = 1.0
+anchor_bottom = 1.0

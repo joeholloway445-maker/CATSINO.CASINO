@@ -1,0 +1,27 @@
+[gd_scene load_steps=2 format=3 uid="uid://main_world"]
+
+[ext_resource type="Script" path="res://src/world/paw_vegas_scene.gd" id="1_main"]
+
+[node name="MainWorld" type="Node3D"]
+script = ExtResource("1_main")
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
+transform = Transform3D(0.866025, -0.433013, 0.25, 0, 0.5, 0.866025, -0.5, -0.75, 0.433013, 0, 10, 0)
+light_color = Color(1, 0.95, 0.8, 1)
+light_energy = 1.5
+shadow_enabled = true
+
+[node name="Camera3D" type="Camera3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 0.866025, 0.5, 0, -0.5, 0.866025, 0, 5, 10)
+
+[node name="NPCContainer" type="Node3D" parent="."]
+
+[node name="DistrictTransitionZones" type="Node3D" parent="."]
+
+[node name="UILayer" type="CanvasLayer" parent="."]
+
+[node name="HUD" type="Control" parent="UILayer"]
+anchor_right = 1.0
+anchor_bottom = 1.0

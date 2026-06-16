@@ -1,0 +1,20 @@
+[gd_scene load_steps=2 format=3 uid="uid://neon_alley"]
+
+[ext_resource type="Script" path="res://src/world/neon_alley_scene.gd" id="1_alley"]
+
+[node name="NeonAlley" type="Node3D"]
+script = ExtResource("1_alley")
+
+[node name="RaceTrack" type="Node3D" parent="."]
+
+[node name="StartLine" type="Node3D" parent="RaceTrack"]
+
+[node name="FinishLine" type="Node3D" parent="RaceTrack"]
+
+[node name="RacerSpawns" type="Node3D" parent="."]
+
+[node name="UILayer" type="CanvasLayer" parent="."]
+
+[node name="RaceHUD" type="Control" parent="UILayer"]
+anchor_right = 1.0
+anchor_bottom = 1.0

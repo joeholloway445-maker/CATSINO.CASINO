@@ -1,0 +1,22 @@
+[gd_scene load_steps=2 format=3 uid="uid://arcade_galaxy"]
+
+[ext_resource type="Script" path="res://src/world/arcade_galaxy_scene.gd" id="1_arcade"]
+
+[node name="ArcadeGalaxy" type="Node3D"]
+script = ExtResource("1_arcade")
+
+[node name="MachineGrid" type="Node3D" parent="."]
+
+[node name="CoinPusherStation" type="Node3D" parent="MachineGrid"]
+
+[node name="WheelStation" type="Node3D" parent="MachineGrid"]
+
+[node name="ScratchStation" type="Node3D" parent="MachineGrid"]
+
+[node name="CoinFlipStation" type="Node3D" parent="MachineGrid"]
+
+[node name="UILayer" type="CanvasLayer" parent="."]
+
+[node name="ArcadeHUD" type="Control" parent="UILayer"]
+anchor_right = 1.0
+anchor_bottom = 1.0

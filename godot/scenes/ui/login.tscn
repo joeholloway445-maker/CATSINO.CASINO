@@ -1,0 +1,48 @@
+[gd_scene format=3 uid="uid://login_scene"]
+
+[node name="LoginScreen" type="Control"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+
+[node name="Background" type="ColorRect" parent="."]
+anchor_right = 1.0
+anchor_bottom = 1.0
+color = Color(0.02, 0.01, 0.05, 1)
+
+[node name="CenterContainer" type="CenterContainer" parent="."]
+anchor_right = 1.0
+anchor_bottom = 1.0
+
+[node name="VBox" type="VBoxContainer" parent="CenterContainer"]
+custom_minimum_size = Vector2(400, 0)
+
+[node name="Title" type="Label" parent="CenterContainer/VBox"]
+text = "🐱 CATSINO"
+horizontal_alignment = 1
+
+[node name="Spacer" type="Control" parent="CenterContainer/VBox"]
+custom_minimum_size = Vector2(0, 24)
+
+[node name="EmailField" type="LineEdit" parent="CenterContainer/VBox"]
+placeholder_text = "Email"
+custom_minimum_size = Vector2(0, 48)
+
+[node name="PasswordField" type="LineEdit" parent="CenterContainer/VBox"]
+placeholder_text = "Password"
+secret = true
+custom_minimum_size = Vector2(0, 48)
+
+[node name="Spacer2" type="Control" parent="CenterContainer/VBox"]
+custom_minimum_size = Vector2(0, 8)
+
+[node name="LoginButton" type="Button" parent="CenterContainer/VBox"]
+text = "LOGIN"
+custom_minimum_size = Vector2(0, 48)
+
+[node name="RegisterButton" type="Button" parent="CenterContainer/VBox"]
+text = "REGISTER"
+custom_minimum_size = Vector2(0, 48)
+
+[node name="StatusLabel" type="Label" parent="CenterContainer/VBox"]
+horizontal_alignment = 1
+autowrap_mode = 3

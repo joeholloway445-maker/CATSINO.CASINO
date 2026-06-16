@@ -51,10 +51,10 @@ export const GAMES: GameDef[] = [
   {
     slug: 'whisker-wins',
     name: 'Whisker Wins',
-    tagline: 'Spin the neon wheel of whiskers.',
-    emoji: '🎡',
+    tagline: '5-card draw poker — Jacks or Better.',
+    emoji: '🎴',
     color: 'cyan',
-    playable: false,
+    playable: true,
   },
   {
     slug: 'feline-fortune',
