@@ -18,6 +18,9 @@ export default function Navbar({ username, coins }: { username: string; coins: n
         <Link href="/achievements" className="text-xs text-slate-500 hidden md:block hover:text-yellow-400 transition-colors">
           🏆
         </Link>
+        <Link href="/social" className="text-xs text-slate-500 hidden md:block hover:text-purple-400 transition-colors">
+          👥
+        </Link>
         <div className="px-3 py-1.5 rounded-lg border border-neon-green/40 text-neon-green text-sm font-display tracking-wide">
           {coins.toLocaleString()} 🪙
         </div>
