@@ -11,10 +11,13 @@ export default function Navbar({ username, coins }: { username: string; coins: n
         CATSINO<span className="text-neon-cyan">.CASINO</span>
       </Link>
 
-      <div className="flex items-center gap-4">
-        <div className="text-xs font-mono text-slate-400 hidden sm:block">
+      <div className="flex items-center gap-3">
+        <Link href="/profile" className="text-xs font-mono text-slate-400 hidden sm:block hover:text-slate-200 transition-colors">
           🐈 <span className="text-slate-200">{username}</span>
-        </div>
+        </Link>
+        <Link href="/achievements" className="text-xs text-slate-500 hidden md:block hover:text-yellow-400 transition-colors">
+          🏆
+        </Link>
         <div className="px-3 py-1.5 rounded-lg border border-neon-green/40 text-neon-green text-sm font-display tracking-wide">
           {coins.toLocaleString()} 🪙
         </div>
