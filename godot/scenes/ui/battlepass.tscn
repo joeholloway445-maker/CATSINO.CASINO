@@ -1,0 +1,50 @@
+[gd_scene load_steps=2 format=3 uid="uid://battlepass_scene"]
+
+[ext_resource type="Script" path="res://src/ui/battlepass_ui.gd" id="1"]
+
+[node name="BattlePassUI" type="Control"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+script = ExtResource("1")
+
+[node name="Panel" type="PanelContainer" parent="."]
+anchor_right = 1.0
+anchor_bottom = 1.0
+
+[node name="VBox" type="VBoxContainer" parent="Panel"]
+theme_override_constants/separation = 12
+
+[node name="Title" type="Label" parent="Panel/VBox"]
+text = "⚡ BATTLE PASS"
+horizontal_alignment = 1
+add_theme_font_size_override("font_size", 24)
+
+[node name="TierLabel" type="Label" parent="Panel/VBox"]
+name = "TierLabel"
+text = "Tier 0 / 10 — 0 XP"
+horizontal_alignment = 1
+
+[node name="XPBar" type="ProgressBar" parent="Panel/VBox"]
+name = "XPBar"
+max_value = 1000.0
+value = 0.0
+
+[node name="FreeTracks" type="VBoxContainer" parent="Panel/VBox"]
+
+[node name="FreeLabel" type="Label" parent="Panel/VBox/FreeTracks"]
+text = "FREE TRACK"
+
+[node name="FreeTrack" type="HBoxContainer" parent="Panel/VBox/FreeTracks"]
+name = "FreeTrack"
+
+[node name="PremiumTracks" type="VBoxContainer" parent="Panel/VBox"]
+
+[node name="PremiumLabel" type="Label" parent="Panel/VBox/PremiumTracks"]
+text = "PREMIUM TRACK"
+
+[node name="PremiumTrack" type="HBoxContainer" parent="Panel/VBox/PremiumTracks"]
+name = "PremiumTrack"
+
+[node name="ClaimBtn" type="Button" parent="Panel/VBox"]
+name = "ClaimBtn"
+text = "Claim Current Tier"
