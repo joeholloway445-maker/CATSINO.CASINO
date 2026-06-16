@@ -22,7 +22,7 @@ export const GAMES: GameDef[] = [
     tagline: 'Blackjack with nine lives of luck.',
     emoji: '🃏',
     color: 'cyan',
-    playable: false,
+    playable: true,
   },
   {
     slug: 'nine-lives-holdem',
