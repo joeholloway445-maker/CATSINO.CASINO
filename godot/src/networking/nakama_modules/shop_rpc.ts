@@ -1,4 +1,31 @@
 // Server-side shop with server-authoritative purchases
+import worldShopsData from "../../../world_data/shops.json";
+
+interface WorldShopItem {
+    item_id: string;
+    name: string;
+    type: string;
+    price: number;
+    description: string;
+    emoji: string;
+}
+interface WorldShop {
+    shop_id: string;
+    shop_name: string;
+    district: string;
+    items: WorldShopItem[];
+}
+
+const WORLD_SHOPS: WorldShop[] = (worldShopsData as { shops: WorldShop[] }).shops;
+
+// Flat lookup of world-shop items by item_id -> { shop, item } for purchase validation.
+const WORLD_ITEM_INDEX: Record<string, { shop: WorldShop; item: WorldShopItem }> = {};
+for (const shop of WORLD_SHOPS) {
+    for (const item of shop.items) {
+        WORLD_ITEM_INDEX[item.item_id] = { shop, item };
+    }
+}
+
 const SHOP_ITEMS: Record<string, { price_coins: number; price_gems: number; type: string; value: number }> = {
     "speed_boost_1h": { price_coins: 500, price_gems: 0, type: "boost", value: 3600 },
     "luck_boost_1h":  { price_coins: 500, price_gems: 0, type: "boost", value: 3600 },
@@ -24,6 +51,41 @@ interface ShopPayload {
     currency?: string;
 }
 
+function purchaseWorldItem(
+    ctx: nkruntime.Context,
+    logger: nkruntime.Logger,
+    nk: nkruntime.Nakama,
+    entry: { shop: WorldShop; item: WorldShopItem }
+): string {
+    const { shop, item } = entry;
+
+    try {
+        nk.walletUpdate(ctx.userId, { coins: -item.price }, { reason: `shop_purchase_${item.item_id}`, shop_id: shop.shop_id });
+    } catch {
+        throw new Error("Insufficient coins");
+    }
+
+    const storageKey = `inventory_${item.type}`;
+    let inventory: string[] = [];
+    try {
+        const stored = nk.storageRead([{ collection: "player_data", key: storageKey, userId: ctx.userId }]);
+        if (stored.length > 0) inventory = (stored[0].value as { items: string[] }).items ?? [];
+    } catch { /* empty */ }
+
+    inventory.push(item.item_id);
+    nk.storageWrite([{
+        collection: "player_data",
+        key: storageKey,
+        userId: ctx.userId,
+        value: { items: inventory },
+        permissionRead: 1,
+        permissionWrite: 0
+    }]);
+
+    logger.info("rpcShopPurchase: %s bought world item %s from %s for %d coins", ctx.userId, item.item_id, shop.shop_id, item.price);
+    return JSON.stringify({ success: true, item_id: item.item_id, type: item.type, shop_id: shop.shop_id });
+}
+
 const rpcShopPurchase: nkruntime.RpcFunction = function(
     ctx: nkruntime.Context,
     logger: nkruntime.Logger,
@@ -35,6 +97,11 @@ const rpcShopPurchase: nkruntime.RpcFunction = function(
 
     const { item_id, currency = "coins" } = data;
     if (!item_id) throw new Error("item_id required");
+
+    const worldEntry = WORLD_ITEM_INDEX[item_id];
+    if (worldEntry) {
+        return purchaseWorldItem(ctx, logger, nk, worldEntry);
+    }
 
     const item = SHOP_ITEMS[item_id];
     if (!item) throw new Error("Unknown item: " + item_id);
@@ -96,6 +163,27 @@ const rpcGetShopInventory: nkruntime.RpcFunction = function(
     return JSON.stringify({ items: catalog });
 };
 
+interface WorldShopQuery {
+    shop_id?: string;
+    district?: string;
+}
+
+const rpcGetWorldShop: nkruntime.RpcFunction = function(
+    _ctx: nkruntime.Context,
+    _logger: nkruntime.Logger,
+    _nk: nkruntime.Nakama,
+    payload: string
+): string {
+    let query: WorldShopQuery = {};
+    try { query = payload ? JSON.parse(payload) : {}; } catch { throw new Error("Invalid JSON"); }
+
+    let shops = WORLD_SHOPS;
+    if (query.shop_id) shops = shops.filter(s => s.shop_id === query.shop_id);
+    else if (query.district) shops = shops.filter(s => s.district === query.district);
+
+    return JSON.stringify({ shops });
+};
+
 export function register_shop_rpc(
     _ctx: nkruntime.Context,
     logger: nkruntime.Logger,
@@ -104,5 +192,6 @@ export function register_shop_rpc(
 ): void {
     initializer.registerRpc("shop_purchase", rpcShopPurchase);
     initializer.registerRpc("get_shop_inventory", rpcGetShopInventory);
+    initializer.registerRpc("get_world_shop", rpcGetWorldShop);
     logger.info("shop_rpc module initialized");
 }

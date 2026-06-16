@@ -8,8 +8,9 @@
     "esModuleInterop": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
+    "resolveJsonModule": true,
     "outDir": "build"
   },
-  "include": ["./*.ts", "./nakama-runtime.d.ts"],
+  "include": ["./*.ts", "./nakama-runtime.d.ts", "../../../world_data/shops.json"],
   "exclude": ["node_modules", "build"]
 }
