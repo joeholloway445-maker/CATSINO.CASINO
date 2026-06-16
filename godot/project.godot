@@ -40,7 +40,9 @@ DistrictManager="*res://src/world/district_manager.gd"
 InventoryManager="*res://src/inventory/inventory_manager.gd"
 NetworkManager="*res://src/networking/network_manager.gd"
 PlayerProfile="*res://src/character/player_profile.gd"
-QuestManager="*res://src/world/quest_manager.gd"
+QuestManager="*res://src/core/quest_manager.gd"
+XPManager="*res://src/core/xp_manager.gd"
+NotificationUI="*res://src/ui/notification_ui.gd"
 
 [display]
 
