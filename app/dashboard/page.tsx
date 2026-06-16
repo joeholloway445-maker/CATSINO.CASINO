@@ -109,6 +109,60 @@ export default async function DashboardPage() {
           >
             📖 LORE
           </Link>
+          <Link
+            href="/quests"
+            className="inline-block px-6 py-2.5 rounded-xl border border-purple-500/50 text-purple-400 text-xs font-display tracking-widest hover:bg-purple-500/10 transition-all"
+          >
+            📋 QUESTS
+          </Link>
+          <Link
+            href="/tournaments"
+            className="inline-block px-6 py-2.5 rounded-xl border border-yellow-500/50 text-yellow-400 text-xs font-display tracking-widest hover:bg-yellow-500/10 transition-all"
+          >
+            🏆 TOURNAMENTS
+          </Link>
+          <Link
+            href="/events"
+            className="inline-block px-6 py-2.5 rounded-xl border border-orange-500/50 text-orange-400 text-xs font-display tracking-widest hover:bg-orange-500/10 transition-all"
+          >
+            🎪 EVENTS
+          </Link>
+          <Link
+            href="/summon"
+            className="inline-block px-6 py-2.5 rounded-xl border border-pink-500/50 text-pink-400 text-xs font-display tracking-widest hover:bg-pink-500/10 transition-all"
+          >
+            ✨ SUMMON
+          </Link>
+          <Link
+            href="/inventory"
+            className="inline-block px-6 py-2.5 rounded-xl border border-cyan-500/50 text-cyan-400 text-xs font-display tracking-widest hover:bg-cyan-500/10 transition-all"
+          >
+            🎒 INVENTORY
+          </Link>
+          <Link
+            href="/districts"
+            className="inline-block px-6 py-2.5 rounded-xl border border-emerald-500/50 text-emerald-400 text-xs font-display tracking-widest hover:bg-emerald-500/10 transition-all"
+          >
+            🗺️ DISTRICTS
+          </Link>
+          <Link
+            href="/races"
+            className="inline-block px-6 py-2.5 rounded-xl border border-teal-500/50 text-teal-400 text-xs font-display tracking-widest hover:bg-teal-500/10 transition-all"
+          >
+            🏁 RACES
+          </Link>
+          <Link
+            href="/daily"
+            className="inline-block px-6 py-2.5 rounded-xl border border-amber-500/50 text-amber-400 text-xs font-display tracking-widest hover:bg-amber-500/10 transition-all"
+          >
+            🎁 DAILY
+          </Link>
+          <Link
+            href="/settings"
+            className="inline-block px-6 py-2.5 rounded-xl border border-gray-500/50 text-gray-400 text-xs font-display tracking-widest hover:bg-gray-500/10 transition-all"
+          >
+            ⚙️ SETTINGS
+          </Link>
         </div>
 
         <h2 className="font-display text-lg tracking-widest text-neon-pink neon-text mb-4">RECENT SPINS</h2>
