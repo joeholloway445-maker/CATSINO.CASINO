@@ -1,0 +1,44 @@
+[gd_scene load_steps=2 format=3 uid="uid://coin_pusher_scene"]
+
+[ext_resource type="Script" path="res://src/games/arcade/coin_pusher_game.gd" id="1"]
+
+[node name="CoinPusher" type="Node2D"]
+script = ExtResource("1")
+
+[node name="UI" type="CanvasLayer" parent="."]
+
+[node name="VBox" type="VBoxContainer" parent="UI"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+alignment = 1
+
+[node name="Title" type="Label" parent="UI/VBox"]
+text = "🪙 COIN PUSHER"
+horizontal_alignment = 1
+
+[node name="CoinsOnBoard" type="Label" parent="UI/VBox"]
+name = "CoinsOnBoard"
+text = "Coins on board: 20"
+horizontal_alignment = 1
+
+[node name="BetRow" type="HBoxContainer" parent="UI/VBox"]
+alignment = 1
+
+[node name="BetLabel" type="Label" parent="UI/VBox/BetRow"]
+text = "Bet per drop:"
+
+[node name="BetSpin" type="SpinBox" parent="UI/VBox/BetRow"]
+name = "BetSpin"
+min_value = 5
+max_value = 500
+step = 5
+value = 25
+
+[node name="DropBtn" type="Button" parent="UI/VBox"]
+name = "DropBtn"
+text = "Drop Coin!"
+
+[node name="ResultLabel" type="Label" parent="UI/VBox"]
+name = "ResultLabel"
+text = ""
+horizontal_alignment = 1
