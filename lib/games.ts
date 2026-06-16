@@ -46,7 +46,7 @@ export const GAMES: GameDef[] = [
     tagline: 'Bonus rounds packed with catnip rewards.',
     emoji: '🌿',
     color: 'green',
-    playable: false,
+    playable: true,
   },
   {
     slug: 'whisker-wins',

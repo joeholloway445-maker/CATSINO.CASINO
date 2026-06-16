@@ -1,4 +1,5 @@
 import { redirect } from 'next/navigation'
+import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import Navbar from '@/components/Navbar'
 import DailyBonusButton from '@/components/DailyBonusButton'
@@ -49,8 +50,17 @@ export default async function DashboardPage() {
         </div>
 
         <h2 className="font-display text-lg tracking-widest text-neon-cyan neon-text mb-4">GAME LOBBY</h2>
-        <div className="mb-10">
+        <div className="mb-6">
           <LobbyGrid linkPlayable />
+        </div>
+
+        <div className="mb-10">
+          <Link
+            href="/leaderboard"
+            className="inline-block px-6 py-2.5 rounded-xl border border-neon-purple/50 text-neon-purple text-xs font-display tracking-widest hover:bg-neon-purple/10 hover:shadow-[0_0_16px_rgba(176,38,255,0.3)] transition-all"
+          >
+            🏆 LEADERBOARD
+          </Link>
         </div>
 
         <h2 className="font-display text-lg tracking-widest text-neon-pink neon-text mb-4">RECENT SPINS</h2>
