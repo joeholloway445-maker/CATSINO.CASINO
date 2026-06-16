@@ -20,6 +20,7 @@ config/icon="res://assets/ui/icon.png"
 
 [autoload]
 
+AutoloadInit="*res://src/core/autoload_init.gd"
 GameManager="*res://src/core/game_manager.gd"
 EconomyManager="*res://src/core/economy_manager.gd"
 AccountManager="*res://src/core/account_manager.gd"
@@ -75,3 +76,7 @@ renderer/rendering_method="forward_plus"
 textures/vram_compression/import_etc2_astc=true
 anti_aliasing/quality/msaa_2d=2
 anti_aliasing/quality/msaa_3d=2
+
+[editor_plugins]
+
+enabled=PackedStringArray("res://addons/nakama/plugin.cfg")
