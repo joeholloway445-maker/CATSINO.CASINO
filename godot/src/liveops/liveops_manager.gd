@@ -1,163 +1,242 @@
 extends Node
-
 class_name LiveOpsManager
 
-# ── Battlepass ────────────────────────────────────────────────────────────────
-const MAX_BP_TIERS := 100
-const BP_XP_PER_TIER := 1000
-
-class BattlepassTier:
-	var tier: int
-	var free_reward: Dictionary   # {type, amount/item_id}
-	var premium_reward: Dictionary
-	var claimed_free := false
-	var claimed_premium := false
-
-class Battlepass:
-	var season: int = 1
-	var xp: int = 0
-	var current_tier: int = 0
-	var premium_unlocked := false
-	var tiers: Array[BattlepassTier] = []
-
-# ── Event ─────────────────────────────────────────────────────────────────────
-class LiveEvent:
-	var id: String
-	var name: String
-	var description: String
-	var start_time: int   # unix timestamp
-	var end_time: int
-	var reward: Dictionary
-	var eligibility_level: int = 1
-	var active := false
-
-	func is_live() -> bool:
-		var now := Time.get_unix_time_from_system()
-		return now >= start_time and now <= end_time
-
-# ── State ─────────────────────────────────────────────────────────────────────
-var _battlepass: Battlepass = Battlepass.new()
-var _events: Array[LiveEvent] = []
-var _season: int = 1
-var _season_end: int = 0
-var _initialized := false
-
-# ── Signals ───────────────────────────────────────────────────────────────────
-signal event_started(event_id: String)
+# ── Signals ────────────────────────────────────────────────────────────────────
+signal event_started(event: Dictionary)
 signal event_ended(event_id: String)
-signal battlepass_tier_unlocked(tier: int)
-signal battlepass_xp_gained(amount: int, total: int)
-signal season_ended(season: int)
-signal reward_claimed(reward: Dictionary)
+signal battlepass_tier_unlocked(tier: int, premium: bool, rewards: Array)
+signal season_changed(season_number: int)
+signal xp_gained(amount: int, source: String)
 
-# ── Init ──────────────────────────────────────────────────────────────────────
-func initialize() -> void:
-	if _initialized:
-		return
-	_seed_battlepass()
-	_seed_events()
-	_initialized = true
-	print("[LiveOpsManager] Season %d, %d events, %d BP tiers" % [
-		_season, _events.size(), _battlepass.tiers.size()
-	])
+# ── Constants ──────────────────────────────────────────────────────────────────
+const MAX_BATTLEPASS_TIERS := 100
+const SEASON_CACHE_PATH    := "user://liveops_cache.json"
 
-func _seed_battlepass() -> void:
-	_battlepass.season = _season
-	for i in range(MAX_BP_TIERS):
-		var tier := BattlepassTier.new()
-		tier.tier = i + 1
-		tier.free_reward = {"type": "coins", "amount": 100 + i * 25}
-		tier.premium_reward = {
-			"type": "gems" if i % 5 == 0 else "cosmetic",
-			"amount": 50 if i % 5 == 0 else 1,
-			"item_id": "bp_s%d_t%d_premium" % [_season, i + 1]
+# ── Inner Classes ──────────────────────────────────────────────────────────────
+class LiveEvent:
+	var id:          String
+	var name:        String
+	var description: String
+	var start_time:  int   # Unix timestamp
+	var end_time:    int
+	var event_type:  String  # "tournament", "double_xp", "limited_game", "seasonal"
+	var requirements: Dictionary
+	var rewards:     Array[Dictionary]
+	var is_active:   bool
+
+	func _init(p_id: String, p_name: String, p_type: String) -> void:
+		id         = p_id
+		name       = p_name
+		event_type = p_type
+		requirements = {}
+		rewards    = []
+		is_active  = false
+
+	func to_dict() -> Dictionary:
+		return {
+			"id":           id,
+			"name":         name,
+			"description":  description,
+			"event_type":   event_type,
+			"start_time":   start_time,
+			"end_time":     end_time,
+			"is_active":    is_active,
 		}
-		_battlepass.tiers.append(tier)
 
-func _seed_events() -> void:
-	var now := int(Time.get_unix_time_from_system())
-	var event_templates := [
-		{"id": "paw_parade", "name": "Paw Parade Festival", "eligibility_level": 1,
-		 "reward": {"type": "coins", "amount": 5000}},
-		{"id": "neon_derby", "name": "Neon Derby Race Week", "eligibility_level": 5,
-		 "reward": {"type": "cosmetic", "item_id": "racer_helm_neon"}},
-		{"id": "coliseum_clash", "name": "Coliseum Clash Tournament", "eligibility_level": 10,
-		 "reward": {"type": "gems", "amount": 200}},
-		{"id": "midnight_jackpot", "name": "Midnight Jackpot Hour", "eligibility_level": 1,
-		 "reward": {"type": "coins", "amount": 10000}},
-		{"id": "forest_quest", "name": "Cat Forest Expedition", "eligibility_level": 3,
-		 "reward": {"type": "companion_xp", "amount": 1000}},
-	]
-	for i in range(event_templates.size()):
-		var ev := LiveEvent.new()
-		var tmpl: Dictionary = event_templates[i]
-		ev.id = tmpl["id"]
-		ev.name = tmpl["name"]
-		ev.description = "A limited-time event in CATSINO.CASINO"
-		ev.start_time = now - 3600  # started 1hr ago
-		ev.end_time = now + 86400 * 7  # 7 days from now
-		ev.reward = tmpl["reward"]
-		ev.eligibility_level = tmpl["eligibility_level"]
-		ev.active = true
-		_events.append(ev)
+# ── State ──────────────────────────────────────────────────────────────────────
+var active_events:   Array[LiveEvent]   = []
+var all_events:      Array[LiveEvent]   = []
+var season_number:   int                = 1
+var season_end_time: int                = 0
+var battlepass_xp:   int                = 0
+var battlepass_tier: int                = 0  # Current tier (0-indexed)
+var has_premium_pass: bool              = false
+var _claimed_tiers:  Array[int]         = []
+var _claimed_premium_tiers: Array[int]  = []
 
-# ── Battlepass ────────────────────────────────────────────────────────────────
-func add_battlepass_xp(amount: int) -> void:
-	_battlepass.xp += amount
-	battlepass_xp_gained.emit(amount, _battlepass.xp)
-	var new_tier := _battlepass.xp / BP_XP_PER_TIER
-	if new_tier > _battlepass.current_tier:
-		_battlepass.current_tier = new_tier
-		battlepass_tier_unlocked.emit(new_tier)
+# Battlepass tiers: tier -> {free_reward, premium_reward, xp_required}
+var battlepass_tiers: Array[Dictionary] = []
 
-func claim_battlepass_reward(tier_idx: int, premium: bool) -> bool:
-	if tier_idx < 0 or tier_idx >= _battlepass.tiers.size():
-		return false
-	var tier: BattlepassTier = _battlepass.tiers[tier_idx]
-	if tier.tier > _battlepass.current_tier + 1:
-		return false  # not yet unlocked
-	if premium:
-		if not _battlepass.premium_unlocked:
-			push_warning("[LiveOpsManager] Premium BP not unlocked")
-			return false
-		if tier.claimed_premium:
-			return false
-		tier.claimed_premium = true
-		reward_claimed.emit(tier.premium_reward)
-		EconomyManager.grant(tier.premium_reward)
-	else:
-		if tier.claimed_free:
-			return false
-		tier.claimed_free = true
-		reward_claimed.emit(tier.free_reward)
-		EconomyManager.grant(tier.free_reward)
-	return true
+# ── Lifecycle ─────────────────────────────────────────────────────────────────
+func _ready() -> void:
+	_generate_battlepass_tiers()
+	_load_cache()
 
-func unlock_premium_battlepass() -> void:
-	_battlepass.premium_unlocked = true
+func initialize() -> void:
+	await _fetch_live_data()
+	_check_events()
 
-# ── Events ────────────────────────────────────────────────────────────────────
-func get_active_events() -> Array:
-	return _events.filter(func(e): return e.is_live())
+# ── Events ─────────────────────────────────────────────────────────────────────
+func get_active_events() -> Array[LiveEvent]:
+	return active_events
 
-func check_event_eligibility(event_id: String, player_level: int) -> bool:
-	for ev in _events:
-		if ev.id == event_id:
-			return ev.is_live() and player_level >= ev.eligibility_level
-	return false
+func check_event_eligibility(player_data: Dictionary) -> bool:
+	for event: LiveEvent in active_events:
+		if not event.is_active:
+			continue
+		var reqs := event.requirements
+		if "min_level" in reqs and player_data.get("level", 1) < reqs["min_level"]:
+			continue
+		if "faction" in reqs and player_data.get("faction", "") != reqs["faction"]:
+			continue
+		return true
+	return active_events.size() > 0
 
 func get_event(event_id: String) -> LiveEvent:
-	for ev in _events:
-		if ev.id == event_id:
-			return ev
+	for event: LiveEvent in all_events:
+		if event.id == event_id:
+			return event
 	return null
 
-# ── Season ────────────────────────────────────────────────────────────────────
-func get_season() -> int:
-	return _season
+# ── Battlepass ─────────────────────────────────────────────────────────────────
+func get_battlepass_tier() -> int:
+	return battlepass_tier
 
-func get_season_end_timestamp() -> int:
-	return _season_end
+func get_battlepass_xp() -> int:
+	return battlepass_xp
 
-func get_battlepass() -> Battlepass:
-	return _battlepass
+func get_xp_for_tier(tier: int) -> int:
+	if tier < battlepass_tiers.size():
+		return battlepass_tiers[tier].get("xp_required", 1000)
+	return 1000
+
+func add_battlepass_xp(amount: int, source: String = "gameplay") -> void:
+	battlepass_xp += amount
+	emit_signal("xp_gained", amount, source)
+	# Check tier unlocks
+	while battlepass_tier < MAX_BATTLEPASS_TIERS - 1:
+		var next_tier := battlepass_tier + 1
+		var needed    := get_xp_for_tier(next_tier)
+		if battlepass_xp >= needed:
+			battlepass_xp -= needed
+			battlepass_tier = next_tier
+			var tier_data := battlepass_tiers[next_tier] if next_tier < battlepass_tiers.size() else {}
+			emit_signal("battlepass_tier_unlocked", next_tier, false, tier_data.get("free_rewards", []))
+		else:
+			break
+	_save_cache()
+
+func claim_battlepass_reward(tier: int, premium: bool) -> Dictionary:
+	if premium and not has_premium_pass:
+		push_warning("LiveOpsManager: player does not have premium pass")
+		return {}
+	if tier > battlepass_tier:
+		push_warning("LiveOpsManager: tier %d not yet unlocked (current: %d)" % [tier, battlepass_tier])
+		return {}
+	var claimed_list := _claimed_premium_tiers if premium else _claimed_tiers
+	if tier in claimed_list:
+		push_warning("LiveOpsManager: tier %d already claimed (premium=%s)" % [tier, premium])
+		return {}
+	claimed_list.append(tier)
+	var tier_data := battlepass_tiers[tier] if tier < battlepass_tiers.size() else {}
+	var reward_key := "premium_rewards" if premium else "free_rewards"
+	var rewards    := tier_data.get(reward_key, [])
+	# Distribute rewards via EconomyManager
+	for reward: Dictionary in rewards:
+		if reward.get("type") == "coins":
+			EconomyManager.earn_coins(reward.get("amount", 0), "battlepass_t%d" % tier)
+		elif reward.get("type") == "gems":
+			EconomyManager.earn_gems(reward.get("amount", 0), "battlepass_t%d" % tier)
+	_save_cache()
+	return {"tier": tier, "premium": premium, "rewards": rewards}
+
+func unlock_premium_pass() -> void:
+	has_premium_pass = true
+	_save_cache()
+
+# ── Season ─────────────────────────────────────────────────────────────────────
+func get_season_number() -> int:
+	return season_number
+
+func get_season_end_date() -> String:
+	return Time.get_datetime_string_from_unix_time(season_end_time)
+
+func days_remaining_in_season() -> int:
+	var now := int(Time.get_unix_time_from_system())
+	return maxi(0, (season_end_time - now) / 86400)
+
+# ── Private ────────────────────────────────────────────────────────────────────
+func _generate_battlepass_tiers() -> void:
+	battlepass_tiers.clear()
+	var coin_rewards := [100, 250, 500, 1000, 2500, 5000, 10000, 25000]
+	var gem_rewards  := [5, 10, 25, 50, 100]
+	for i in range(MAX_BATTLEPASS_TIERS):
+		var xp_req := 1000 + i * 200
+		battlepass_tiers.append({
+			"tier":         i,
+			"xp_required":  xp_req,
+			"free_rewards": [{"type": "coins", "amount": coin_rewards[i % coin_rewards.size()]}],
+			"premium_rewards": [
+				{"type": "coins", "amount": coin_rewards[i % coin_rewards.size()] * 2},
+				{"type": "gems",  "amount": gem_rewards[i % gem_rewards.size()]},
+			],
+		})
+
+func _fetch_live_data() -> void:
+	if not AccountManager or not AccountManager.is_authenticated:
+		_load_mock_events()
+		return
+	# In production: fetch from Nakama storage or custom RPC
+	_load_mock_events()
+
+func _load_mock_events() -> void:
+	all_events.clear()
+	var now := int(Time.get_unix_time_from_system())
+	var events_data := [
+		{"id": "double_xp_weekend", "name": "Double XP Weekend",  "type": "double_xp"},
+		{"id": "slots_tourney_01",  "name": "Grand Slots Tourney", "type": "tournament"},
+		{"id": "cat_festival",      "name": "Cat Festival",        "type": "seasonal"},
+	]
+	for data: Dictionary in events_data:
+		var e := LiveEvent.new(data["id"], data["name"], data["type"])
+		e.description = "Special limited event: %s" % data["name"]
+		e.start_time  = now - 3600
+		e.end_time    = now + 86400 * 7
+		e.is_active   = true
+		all_events.append(e)
+	_check_events()
+
+func _check_events() -> void:
+	var now := int(Time.get_unix_time_from_system())
+	active_events.clear()
+	for event: LiveEvent in all_events:
+		if event.start_time <= now and event.end_time > now:
+			if not event.is_active:
+				event.is_active = true
+				emit_signal("event_started", event.to_dict())
+			active_events.append(event)
+		elif event.is_active and event.end_time <= now:
+			event.is_active = false
+			emit_signal("event_ended", event.id)
+
+func _save_cache() -> void:
+	var data := {
+		"battlepass_xp":           battlepass_xp,
+		"battlepass_tier":         battlepass_tier,
+		"has_premium_pass":        has_premium_pass,
+		"claimed_tiers":           _claimed_tiers,
+		"claimed_premium_tiers":   _claimed_premium_tiers,
+		"season_number":           season_number,
+		"season_end_time":         season_end_time,
+	}
+	var f := FileAccess.open(SEASON_CACHE_PATH, FileAccess.WRITE)
+	if f:
+		f.store_string(JSON.stringify(data))
+
+func _load_cache() -> void:
+	if not FileAccess.file_exists(SEASON_CACHE_PATH):
+		season_end_time = int(Time.get_unix_time_from_system()) + 86400 * 90
+		return
+	var f := FileAccess.open(SEASON_CACHE_PATH, FileAccess.READ)
+	if not f:
+		return
+	var parsed = JSON.parse_string(f.get_as_text())
+	if not parsed is Dictionary:
+		return
+	battlepass_xp           = parsed.get("battlepass_xp", 0)
+	battlepass_tier         = parsed.get("battlepass_tier", 0)
+	has_premium_pass        = parsed.get("has_premium_pass", false)
+	_claimed_tiers          = parsed.get("claimed_tiers", [])
+	_claimed_premium_tiers  = parsed.get("claimed_premium_tiers", [])
+	season_number           = parsed.get("season_number", 1)
+	season_end_time         = parsed.get("season_end_time", int(Time.get_unix_time_from_system()) + 86400 * 90)
