@@ -33,7 +33,7 @@ const WalletRpc = {
   }
 };
 
-function InitModule(ctx: nkruntime.Context, logger: nkruntime.Logger, nk: nkruntime.Nakama, initializer: nkruntime.Initializer): void {
+export function register_wallet_rpc(ctx: nkruntime.Context, logger: nkruntime.Logger, nk: nkruntime.Nakama, initializer: nkruntime.Initializer): void {
   initializer.registerRpc("get_wallet", WalletRpc.getWallet);
   initializer.registerRpc("claim_daily_bonus", WalletRpc.claimDailyBonus);
   logger.info("Wallet RPC module loaded");

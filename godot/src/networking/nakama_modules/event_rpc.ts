@@ -87,7 +87,7 @@ const rpcGetFactionScores: nkruntime.RpcFunction = function(
     return JSON.stringify({ scores });
 };
 
-function InitModule(
+export function register_event_rpc(
     _ctx: nkruntime.Context,
     logger: nkruntime.Logger,
     _nk: nkruntime.Nakama,

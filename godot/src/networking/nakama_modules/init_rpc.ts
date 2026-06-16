@@ -1,6 +1,6 @@
 // Master init module — registers all RPCs and sets up initial state
 
-function InitModule(ctx: nkruntime.Context, logger: nkruntime.Logger, nk: nkruntime.Nakama, initializer: nkruntime.Initializer): void {
+export function register_init_rpc(ctx: nkruntime.Context, logger: nkruntime.Logger, nk: nkruntime.Nakama, initializer: nkruntime.Initializer): void {
   logger.info("=== CATSINO.CASINO Nakama Server Starting ===");
 
   // Create leaderboards

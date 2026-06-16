@@ -38,7 +38,9 @@ services:
       postgres:
         condition: service_healthy
     volumes:
-      - ./src/networking/nakama_modules:/nakama/data/modules/ts
+      # Nakama's JS runtime loads compiled .js from /nakama/data/modules — NOT raw .ts.
+      # Run `npm run build` in src/networking/nakama_modules first (setup.sh does this).
+      - ./src/networking/nakama_modules/build:/nakama/data/modules
       - nakama_data:/nakama/data
     restart: unless-stopped
 

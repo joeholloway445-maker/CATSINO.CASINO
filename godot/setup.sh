@@ -42,10 +42,15 @@ fi
 # ── 2. Nakama TypeScript modules ────────────────────────────────────────────
 echo -e "${BOLD}[2/5] Building Nakama TypeScript modules...${RESET}"
 if [ -f "src/networking/nakama_modules/package.json" ]; then
-  (cd src/networking/nakama_modules && npm install && npm run build 2>/dev/null || true)
-  echo -e "  ${GREEN}✓${RESET} Nakama TS compiled"
+  if (cd src/networking/nakama_modules && npm install && npm run build); then
+    echo -e "  ${GREEN}✓${RESET} Nakama TS compiled to build/index.js"
+  else
+    echo -e "  ${RED}✗${RESET} TypeScript build failed — fix errors above before continuing"
+    exit 1
+  fi
 else
-  echo -e "  ${YELLOW}⚠${RESET}  No package.json found in nakama_modules — skipping TS build"
+  echo -e "  ${RED}✗${RESET} No package.json found in nakama_modules — cannot build RPCs"
+  exit 1
 fi
 
 # ── 3. Start Docker (Nakama + Postgres) ─────────────────────────────────────

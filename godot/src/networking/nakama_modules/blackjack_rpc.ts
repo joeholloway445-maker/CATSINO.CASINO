@@ -106,7 +106,7 @@ const BlackjackRpc = {
   }
 };
 
-function InitModule(ctx: nkruntime.Context, logger: nkruntime.Logger, nk: nkruntime.Nakama, initializer: nkruntime.Initializer): void {
+export function register_blackjack_rpc(ctx: nkruntime.Context, logger: nkruntime.Logger, nk: nkruntime.Nakama, initializer: nkruntime.Initializer): void {
   initializer.registerRpc("play_blackjack", BlackjackRpc.playBlackjack);
   logger.info("Blackjack RPC module loaded");
 }

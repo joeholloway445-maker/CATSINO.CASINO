@@ -79,7 +79,7 @@ const InventoryRpc = {
   }
 };
 
-function InitModule(ctx: nkruntime.Context, logger: nkruntime.Logger, nk: nkruntime.Nakama, initializer: nkruntime.Initializer): void {
+export function register_inventory_rpc(ctx: nkruntime.Context, logger: nkruntime.Logger, nk: nkruntime.Nakama, initializer: nkruntime.Initializer): void {
   initializer.registerRpc("get_inventory", InventoryRpc.getInventory);
   initializer.registerRpc("use_item", InventoryRpc.useItem);
   initializer.registerRpc("grant_item", InventoryRpc.grantItem);

@@ -260,7 +260,7 @@ const rpcDailyBonus: nkruntime.RpcFunction = function (
 
 // ─── Module initializer ───────────────────────────────────────────────────────
 // Nakama TypeScript runtime requires a default export that registers RPCs.
-function InitModule(
+export function register_economy_rpc(
   ctx: nkruntime.Context,
   logger: nkruntime.Logger,
   nk: nkruntime.Nakama,
@@ -275,4 +275,3 @@ function InitModule(
 }
 
 // @ts-ignore — Nakama runtime picks this up automatically
-!InitModule && InitModule.bind(null);

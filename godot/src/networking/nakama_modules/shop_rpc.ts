@@ -96,7 +96,7 @@ const rpcGetShopInventory: nkruntime.RpcFunction = function(
     return JSON.stringify({ items: catalog });
 };
 
-function InitModule(
+export function register_shop_rpc(
     _ctx: nkruntime.Context,
     logger: nkruntime.Logger,
     _nk: nkruntime.Nakama,

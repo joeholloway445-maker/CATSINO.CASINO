@@ -222,7 +222,7 @@ const rpcResetWeeklyLeaderboard: nkruntime.RpcFunction = function(
 };
 
 // Register RPCs
-function InitModule(
+export function register_leaderboard_rpc(
     ctx: nkruntime.Context,
     logger: nkruntime.Logger,
     nk: nkruntime.Nakama,

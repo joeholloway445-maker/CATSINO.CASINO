@@ -96,7 +96,7 @@ const rpcGetFriends: nkruntime.RpcFunction = function(
     });
 };
 
-function InitModule(
+export function register_friend_rpc(
     ctx: nkruntime.Context,
     logger: nkruntime.Logger,
     nk: nkruntime.Nakama,

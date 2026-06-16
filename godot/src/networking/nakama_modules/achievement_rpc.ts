@@ -109,7 +109,7 @@ const rpcGetAchievements: nkruntime.RpcFunction = function(
     });
 };
 
-function InitModule(
+export function register_achievement_rpc(
     ctx: nkruntime.Context,
     logger: nkruntime.Logger,
     nk: nkruntime.Nakama,

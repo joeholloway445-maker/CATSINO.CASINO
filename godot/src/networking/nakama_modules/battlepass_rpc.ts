@@ -121,7 +121,7 @@ const rpcClaimBattlePassTier: nkruntime.RpcFunction = function(
     return JSON.stringify({ success: true, tier, rewards });
 };
 
-function InitModule(
+export function register_battlepass_rpc(
     _ctx: nkruntime.Context,
     logger: nkruntime.Logger,
     _nk: nkruntime.Nakama,

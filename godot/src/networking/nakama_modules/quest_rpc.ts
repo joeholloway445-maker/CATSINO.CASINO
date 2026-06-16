@@ -111,7 +111,7 @@ const rpcGetQuests: nkruntime.RpcFunction = function(
     return JSON.stringify({ quests });
 };
 
-function InitModule(
+export function register_quest_rpc(
     _ctx: nkruntime.Context,
     logger: nkruntime.Logger,
     _nk: nkruntime.Nakama,

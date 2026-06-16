@@ -70,7 +70,7 @@ const ProfileRpc = {
   }
 };
 
-function InitModule(ctx: nkruntime.Context, logger: nkruntime.Logger, nk: nkruntime.Nakama, initializer: nkruntime.Initializer): void {
+export function register_profile_rpc(ctx: nkruntime.Context, logger: nkruntime.Logger, nk: nkruntime.Nakama, initializer: nkruntime.Initializer): void {
   initializer.registerRpc("get_profile", ProfileRpc.getProfile);
   initializer.registerRpc("update_profile", ProfileRpc.updateProfile);
   initializer.registerRpc("get_leaderboard", ProfileRpc.getLeaderboard);

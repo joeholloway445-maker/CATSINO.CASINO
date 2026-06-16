@@ -63,7 +63,7 @@ const rpcPredictMatch: nkruntime.RpcFunction = function(
     });
 };
 
-function InitModule(
+export function register_sports_rpc(
     _ctx: nkruntime.Context,
     logger: nkruntime.Logger,
     _nk: nkruntime.Nakama,

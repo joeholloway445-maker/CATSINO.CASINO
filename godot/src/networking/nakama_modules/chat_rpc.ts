@@ -121,7 +121,7 @@ const rpcGetActiveDistricts: nkruntime.RpcFunction = function(
     return JSON.stringify({ districts: counts });
 };
 
-function InitModule(
+export function register_chat_rpc(
     ctx: nkruntime.Context,
     logger: nkruntime.Logger,
     nk: nkruntime.Nakama,

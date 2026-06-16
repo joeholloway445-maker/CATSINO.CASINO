@@ -379,7 +379,7 @@ function _handleGameAction(
 }
 
 // ─── Module initializer ───────────────────────────────────────────────────────
-function InitModule(
+export function register_matchmaking(
   ctx: nkruntime.Context,
   logger: nkruntime.Logger,
   nk: nkruntime.Nakama,
@@ -399,4 +399,3 @@ function InitModule(
 }
 
 // @ts-ignore
-!InitModule && InitModule.bind(null);

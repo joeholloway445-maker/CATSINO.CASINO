@@ -153,7 +153,7 @@ const rpcGetActiveTournaments: nkruntime.RpcFunction = function(
     return JSON.stringify({ tournaments: active });
 };
 
-function InitModule(
+export function register_tournament_rpc(
     ctx: nkruntime.Context,
     logger: nkruntime.Logger,
     nk: nkruntime.Nakama,

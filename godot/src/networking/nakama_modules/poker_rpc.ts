@@ -95,7 +95,7 @@ const PokerRpc = {
   }
 };
 
-function InitModule(ctx: nkruntime.Context, logger: nkruntime.Logger, nk: nkruntime.Nakama, initializer: nkruntime.Initializer): void {
+export function register_poker_rpc(ctx: nkruntime.Context, logger: nkruntime.Logger, nk: nkruntime.Nakama, initializer: nkruntime.Initializer): void {
   initializer.registerRpc("play_poker", PokerRpc.playPoker);
   logger.info("Poker RPC module loaded");
 }

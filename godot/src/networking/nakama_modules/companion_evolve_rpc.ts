@@ -74,7 +74,7 @@ const CompanionEvolveRpc = {
   }
 };
 
-function InitModule(ctx: nkruntime.Context, logger: nkruntime.Logger, nk: nkruntime.Nakama, initializer: nkruntime.Initializer): void {
+export function register_companion_evolve_rpc(ctx: nkruntime.Context, logger: nkruntime.Logger, nk: nkruntime.Nakama, initializer: nkruntime.Initializer): void {
   initializer.registerRpc("feed_companion", CompanionEvolveRpc.feedCompanion);
   initializer.registerRpc("evolve_companion", CompanionEvolveRpc.evolveCompanion);
   logger.info("Companion evolve RPC module loaded");

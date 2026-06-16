@@ -113,7 +113,7 @@ const rpcCombatAction: nkruntime.RpcFunction = function(
     return JSON.stringify({ success: true, state: s, status: "active", ai_move });
 };
 
-function InitModule(
+export function register_combat_rpc(
     _ctx: nkruntime.Context,
     logger: nkruntime.Logger,
     _nk: nkruntime.Nakama,

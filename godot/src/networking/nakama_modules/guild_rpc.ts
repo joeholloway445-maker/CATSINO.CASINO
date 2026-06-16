@@ -202,7 +202,7 @@ const rpcInviteToGuild: nkruntime.RpcFunction = function(
     return JSON.stringify({ success: true, invited_user_id: target_user_id, guild_id });
 };
 
-function InitModule(
+export function register_guild_rpc(
     ctx: nkruntime.Context,
     logger: nkruntime.Logger,
     nk: nkruntime.Nakama,

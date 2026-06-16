@@ -77,7 +77,7 @@ const rpcSpinSlots: nkruntime.RpcFunction = function(
     });
 };
 
-function InitModule(
+export function register_slots_rpc(
     _ctx: nkruntime.Context,
     logger: nkruntime.Logger,
     _nk: nkruntime.Nakama,

@@ -87,7 +87,7 @@ const rpcBuyScratchCard: nkruntime.RpcFunction = function(
     return JSON.stringify({ success: true, cells, payout, is_win: payout > 0 });
 };
 
-function InitModule(
+export function register_scratch_rpc(
     _ctx: nkruntime.Context,
     logger: nkruntime.Logger,
     _nk: nkruntime.Nakama,

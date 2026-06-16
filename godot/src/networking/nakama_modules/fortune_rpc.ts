@@ -46,7 +46,7 @@ const FortuneRpc = {
   }
 };
 
-function InitModule(ctx: nkruntime.Context, logger: nkruntime.Logger, nk: nkruntime.Nakama, initializer: nkruntime.Initializer): void {
+export function register_fortune_rpc(ctx: nkruntime.Context, logger: nkruntime.Logger, nk: nkruntime.Nakama, initializer: nkruntime.Initializer): void {
   initializer.registerRpc("draw_fortune", FortuneRpc.drawFortune);
   logger.info("Fortune wheel RPC module loaded");
 }

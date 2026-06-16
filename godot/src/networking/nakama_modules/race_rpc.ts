@@ -96,7 +96,7 @@ const rpcStartRace: nkruntime.RpcFunction = function(
     });
 };
 
-function InitModule(
+export function register_race_rpc(
     _ctx: nkruntime.Context,
     logger: nkruntime.Logger,
     _nk: nkruntime.Nakama,
