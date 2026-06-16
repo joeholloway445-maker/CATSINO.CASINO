@@ -1,51 +1,80 @@
 class_name NPCDialogueUI
 extends Control
+# Branching dialogue UI — driven entirely by world_data/dialogue.json
+# Non-coders: add dialogue nodes in the JSON to add new conversations.
 
-signal dialogue_closed
 signal quest_accepted(quest_id: String)
-signal shop_opened(shop_type: String)
+signal shop_opened(shop_id: String)
+signal game_opened(game_id: String)
+signal closed()
 
-@onready var portrait_label: Label = $Panel/VBox/Portrait
-@onready var name_label: Label = $Panel/VBox/NameLabel
-@onready var dialogue_label: Label = $Panel/VBox/DialogueLabel
+@onready var npc_name_label: Label = $Panel/VBox/NPCName
+@onready var dialogue_text: RichTextLabel = $Panel/VBox/DialogueText
 @onready var options_container: VBoxContainer = $Panel/VBox/Options
 @onready var close_btn: Button = $Panel/VBox/CloseBtn
 
-var current_npc: Dictionary = {}
+var _npc: Dictionary = {}
+var _dialogue_id: String = ""
 
-func show_npc(npc_id: String) -> void:
-	current_npc = NPCData.get_npc(npc_id)
-	if current_npc.is_empty():
+func open_for_npc(npc_id: String) -> void:
+	_npc = WorldLoader.get_npc(npc_id)
+	if _npc.is_empty():
+		push_warning("[NPCDialogueUI] NPC not found: " + npc_id)
 		return
-	_populate_ui()
+	_dialogue_id = _npc.get("dialogue_id", "")
+	var dlg := WorldLoader.get_dialogue(_dialogue_id)
+	var start := dlg.get("start_node", "greeting")
+	npc_name_label.text = "%s %s" % [_npc.get("emoji", ""), _npc.get("name", "NPC")]
+	_show_node(start)
 	show()
 
-func _populate_ui() -> void:
-	name_label.text = current_npc.get("name", "???")
-	dialogue_label.text = current_npc.get("greeting", "...")
-	_build_options()
+func _show_node(node_id: String) -> void:
+	if node_id == "END":
+		_close()
+		return
+	var node := WorldLoader.get_dialogue_node(_dialogue_id, node_id)
+	if node.is_empty():
+		_close()
+		return
+	dialogue_text.text = node.get("text", "...")
+	_build_options(node.get("options", []))
 
-func _build_options() -> void:
+func _build_options(options: Array) -> void:
 	for child in options_container.get_children():
 		child.queue_free()
-
-	for quest_id in current_npc.get("quest_ids", []):
+	for opt in options:
 		var btn := Button.new()
-		btn.text = "📋 Accept Quest: %s" % quest_id.replace("_", " ").capitalize()
-		btn.pressed.connect(func(): quest_accepted.emit(quest_id))
+		btn.text = opt.get("label", "...")
+		btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		var next: String = opt.get("next_node", "END")
+		var action: String = opt.get("action", "nothing")
+		btn.pressed.connect(func():
+			_handle_action(action)
+			_show_node(next)
+		)
 		options_container.add_child(btn)
 
-	var shop := current_npc.get("shop_type", "none")
-	if shop != "none":
-		var btn := Button.new()
-		btn.text = "🛒 Open Shop"
-		btn.pressed.connect(func(): shop_opened.emit(shop))
-		options_container.add_child(btn)
-
-func _ready() -> void:
-	hide()
-	close_btn.pressed.connect(_close)
+func _handle_action(action: String) -> void:
+	if action == "nothing" or action == "":
+		return
+	if action.begins_with("quest_accept:"):
+		var qid := action.substr("quest_accept:".length())
+		QuestManager.accept_quest(qid)
+		quest_accepted.emit(qid)
+		NotificationUI.notify("Quest accepted: " + WorldLoader.get_quest(qid).get("title", qid))
+	elif action == "shop_open":
+		var shop_id: String = _npc.get("shop_id", "")
+		shop_opened.emit(shop_id)
+	elif action.begins_with("open_game:"):
+		game_opened.emit(action.substr("open_game:".length()))
+	elif action.begins_with("give_coins:"):
+		NotificationUI.notify_win("Received %s Cat Coins!" % action.substr("give_coins:".length()))
 
 func _close() -> void:
 	hide()
-	dialogue_closed.emit()
+	closed.emit()
+
+func _ready() -> void:
+	hide()
+	if close_btn:
+		close_btn.pressed.connect(_close)

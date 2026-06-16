@@ -1,0 +1,71 @@
+{
+  "_comment": "CATSINO.CASINO Districts — edit any field, save, and reload the game. No coding needed!",
+  "_guide": "Each district has: id, display_name, description, scene_path, music_track, entry_fee (0=free), color_hex, max_players",
+  "districts": [
+    {
+      "id": "paw_vegas",
+      "display_name": "Paw Vegas",
+      "description": "The glittering heart of the city — neon signs, slot machines, and endless excitement.",
+      "scene_path": "res://scenes/world/paw_vegas_hub.tscn",
+      "music_track": "res://assets/audio/music/paw_vegas_theme.ogg",
+      "entry_fee": 0,
+      "color_hex": "#9B59B6",
+      "max_players": 200,
+      "ambient_npc_count": 20,
+      "weather": "clear",
+      "time_of_day": "night"
+    },
+    {
+      "id": "neon_alley",
+      "display_name": "Neon Alley",
+      "description": "High-speed racing lanes and tech workshops light up this cyberpunk corridor.",
+      "scene_path": "res://scenes/world/neon_alley.tscn",
+      "music_track": "res://assets/audio/music/neon_alley_theme.ogg",
+      "entry_fee": 0,
+      "color_hex": "#00FFFF",
+      "max_players": 100,
+      "ambient_npc_count": 15,
+      "weather": "foggy",
+      "time_of_day": "night"
+    },
+    {
+      "id": "cat_coliseum",
+      "display_name": "Cat Coliseum",
+      "description": "Ancient stone arena where champions are forged in battle — join the tournament!",
+      "scene_path": "res://scenes/world/cat_coliseum.tscn",
+      "music_track": "res://assets/audio/music/coliseum_theme.ogg",
+      "entry_fee": 0,
+      "color_hex": "#E74C3C",
+      "max_players": 50,
+      "ambient_npc_count": 10,
+      "weather": "clear",
+      "time_of_day": "dusk"
+    },
+    {
+      "id": "cat_forest",
+      "display_name": "Cat Forest",
+      "description": "Ancient woodland teeming with rare companions and hidden secrets.",
+      "scene_path": "res://scenes/world/cat_forest.tscn",
+      "music_track": "res://assets/audio/music/forest_theme.ogg",
+      "entry_fee": 0,
+      "color_hex": "#27AE60",
+      "max_players": 80,
+      "ambient_npc_count": 8,
+      "weather": "misty",
+      "time_of_day": "dawn"
+    },
+    {
+      "id": "arcade_galaxy",
+      "display_name": "Arcade Galaxy",
+      "description": "Zero-gravity game pods and cosmic prizes — the universe's best arcade.",
+      "scene_path": "res://scenes/world/arcade_galaxy.tscn",
+      "music_track": "res://assets/audio/music/arcade_theme.ogg",
+      "entry_fee": 0,
+      "color_hex": "#F39C12",
+      "max_players": 150,
+      "ambient_npc_count": 25,
+      "weather": "clear",
+      "time_of_day": "day"
+    }
+  ]
+}

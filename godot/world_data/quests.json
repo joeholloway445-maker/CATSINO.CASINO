@@ -1,0 +1,171 @@
+{
+  "_comment": "CATSINO.CASINO Quests — create new quests by copying any block and giving it a new id. No coding needed!",
+  "_guide": "type: main/side/daily/faction. objectives is a list of steps. reward_coins and reward_xp are integers. unlock_companion is optional.",
+  "quests": [
+    {
+      "id": "main_001",
+      "title": "Welcome to Paw Vegas",
+      "type": "main",
+      "description": "Your adventure begins! Explore Paw Vegas and take your first spin.",
+      "giver_npc": "npc_slot_sam",
+      "district": "paw_vegas",
+      "prerequisites": [],
+      "objectives": [
+        {"id": "obj_spin", "description": "Spin the slots once", "type": "spin", "target": 1},
+        {"id": "obj_explore", "description": "Visit Paw Vegas", "type": "visit_district", "target": 1, "district": "paw_vegas"}
+      ],
+      "reward_coins": 500,
+      "reward_xp": 100,
+      "unlock_companion": "FL001",
+      "next_quest": "main_002"
+    },
+    {
+      "id": "main_002",
+      "title": "Trial of the Coliseum",
+      "type": "main",
+      "description": "Arena Master Krix challenges you to prove your worth in combat.",
+      "giver_npc": "npc_arena_master",
+      "district": "cat_coliseum",
+      "prerequisites": ["main_001"],
+      "objectives": [
+        {"id": "obj_fight", "description": "Win 3 combat fights", "type": "win_combat", "target": 3},
+        {"id": "obj_visit", "description": "Visit Cat Coliseum", "type": "visit_district", "target": 1, "district": "cat_coliseum"}
+      ],
+      "reward_coins": 1000,
+      "reward_xp": 250,
+      "unlock_companion": "SC001",
+      "next_quest": "main_003"
+    },
+    {
+      "id": "main_003",
+      "title": "The Forest's Secret",
+      "type": "main",
+      "description": "Something stirs in Cat Forest. Forest Ranger Bloom needs your help.",
+      "giver_npc": "npc_forest_ranger_bloom",
+      "district": "cat_forest",
+      "prerequisites": ["main_002"],
+      "objectives": [
+        {"id": "obj_forest", "description": "Visit Cat Forest", "type": "visit_district", "target": 1, "district": "cat_forest"},
+        {"id": "obj_explore_quests", "description": "Complete 1 forest quest", "type": "complete_quest", "target": 1}
+      ],
+      "reward_coins": 1500,
+      "reward_xp": 400,
+      "unlock_companion": "WA001",
+      "next_quest": "main_004"
+    },
+    {
+      "id": "main_004",
+      "title": "Galaxy Champion",
+      "type": "main",
+      "description": "The final trial — prove yourself across all districts and become a legend.",
+      "giver_npc": "npc_arcade_captain",
+      "district": "arcade_galaxy",
+      "prerequisites": ["main_003"],
+      "objectives": [
+        {"id": "obj_puzzle", "description": "Score 500+ in Cat Puzzle", "type": "puzzle_score", "target": 500},
+        {"id": "obj_race", "description": "Win 1 race in Neon Alley", "type": "win_race", "target": 1},
+        {"id": "obj_champ", "description": "Win 5 fights in Coliseum", "type": "win_combat", "target": 5}
+      ],
+      "reward_coins": 5000,
+      "reward_xp": 1000,
+      "unlock_companion": "SC_PRESTIGE",
+      "next_quest": ""
+    },
+    {
+      "id": "side_001",
+      "title": "Lucky Streak",
+      "type": "side",
+      "description": "Lucky Paws wants you to win big — prove you've got what it takes.",
+      "giver_npc": "npc_lucky_paws",
+      "district": "paw_vegas",
+      "prerequisites": [],
+      "objectives": [
+        {"id": "obj_win3", "description": "Win 3 games (any type)", "type": "win_game", "target": 3}
+      ],
+      "reward_coins": 750,
+      "reward_xp": 150,
+      "unlock_companion": "",
+      "next_quest": ""
+    },
+    {
+      "id": "side_002",
+      "title": "Need for Speed",
+      "type": "side",
+      "description": "Speed Queen Zira wants to see what you're made of on the track.",
+      "giver_npc": "npc_speed_queen_zira",
+      "district": "neon_alley",
+      "prerequisites": [],
+      "objectives": [
+        {"id": "obj_race_win", "description": "Win 1 race", "type": "win_race", "target": 1}
+      ],
+      "reward_coins": 600,
+      "reward_xp": 120,
+      "unlock_companion": "VC001",
+      "next_quest": ""
+    },
+    {
+      "id": "daily_spin",
+      "title": "Daily Spin",
+      "type": "daily",
+      "description": "Spin the slots once today for a daily bonus.",
+      "giver_npc": "",
+      "district": "paw_vegas",
+      "prerequisites": [],
+      "objectives": [
+        {"id": "obj_spin_daily", "description": "Spin once", "type": "spin", "target": 1}
+      ],
+      "reward_coins": 200,
+      "reward_xp": 50,
+      "unlock_companion": "",
+      "next_quest": ""
+    },
+    {
+      "id": "daily_games",
+      "title": "Daily Games",
+      "type": "daily",
+      "description": "Play 3 games of any type today.",
+      "giver_npc": "",
+      "district": "paw_vegas",
+      "prerequisites": [],
+      "objectives": [
+        {"id": "obj_games3", "description": "Play 3 games", "type": "play_game", "target": 3}
+      ],
+      "reward_coins": 300,
+      "reward_xp": 75,
+      "unlock_companion": "",
+      "next_quest": ""
+    },
+    {
+      "id": "daily_win",
+      "title": "Win of the Day",
+      "type": "daily",
+      "description": "Win at least one game today.",
+      "giver_npc": "",
+      "district": "paw_vegas",
+      "prerequisites": [],
+      "objectives": [
+        {"id": "obj_win_daily", "description": "Win 1 game", "type": "win_game", "target": 1}
+      ],
+      "reward_coins": 150,
+      "reward_xp": 40,
+      "unlock_companion": "",
+      "next_quest": ""
+    },
+    {
+      "id": "faction_001",
+      "title": "Mosswhisker's Trial",
+      "type": "faction",
+      "description": "The hermit Mosswhisker tests your faction loyalty with a hidden trial.",
+      "giver_npc": "npc_hermit_mosswhisker",
+      "district": "cat_forest",
+      "prerequisites": ["main_001"],
+      "objectives": [
+        {"id": "obj_faction_quests", "description": "Complete 3 quests while in your faction", "type": "complete_quest", "target": 3}
+      ],
+      "reward_coins": 2000,
+      "reward_xp": 500,
+      "unlock_companion": "FL001",
+      "next_quest": ""
+    }
+  ]
+}

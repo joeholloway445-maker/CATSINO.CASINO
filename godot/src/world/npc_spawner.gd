@@ -1,47 +1,48 @@
 class_name NPCSpawner
 extends Node3D
+# Spawns NPCs from world_data/npcs.json via WorldLoader autoload.
+# Non-coders: edit godot/world_data/npcs.json to add/change/remove NPCs.
 
-@export var district: String = "paw_vegas"
+@export var district_id: String = "paw_vegas"
 
-var _dialogue_ui: NPCDialogueUI
+const INTERACTION_RADIUS := 2.5
 
 func _ready() -> void:
+	if WorldLoader.districts.is_empty():
+		await WorldLoader.world_loaded
 	_spawn_npcs()
-	_dialogue_ui = preload("res://scenes/ui/npc_dialogue.tscn").instantiate()
-	get_tree().current_scene.add_child(_dialogue_ui)
-	_dialogue_ui.quest_accepted.connect(_on_quest_accepted)
 
 func _spawn_npcs() -> void:
-	var npcs := NPCData.get_npcs_in_district(district)
-	for npc_data in npcs:
-		var marker := Node3D.new()
-		marker.position = npc_data.get("pos", Vector3.ZERO)
-		marker.name = npc_data.get("id", "npc")
-		marker.set_meta("npc_id", npc_data.get("id", ""))
-		add_child(marker)
-		_add_interaction_area(marker, npc_data)
+	var npc_list := WorldLoader.get_npcs_in_district(district_id)
+	for npc_data in npc_list:
+		_create_npc(npc_data)
 
-func _add_interaction_area(parent: Node3D, npc_data: Dictionary) -> void:
+func _create_npc(data: Dictionary) -> void:
+	var root := Node3D.new()
+	root.name = data.get("id", "npc")
+	root.position = Vector3(data.get("pos_x", 0.0), data.get("pos_y", 0.0), data.get("pos_z", 0.0))
+	add_child(root)
+
 	var label := Label3D.new()
-	label.text = npc_data.get("name", "NPC")
-	label.position = Vector3(0, 1.8, 0)
+	label.text = "%s\n%s" % [data.get("emoji", "🐱"), data.get("name", "NPC")]
 	label.billboard = BaseMaterial3D.BILLBOARD_ENABLED
-	parent.add_child(label)
+	label.pixel_size = 0.008
+	label.position = Vector3(0, 1.8, 0)
+	label.modulate = Color.WHITE
+	root.add_child(label)
 
 	var area := Area3D.new()
 	var shape := CollisionShape3D.new()
 	var sphere := SphereShape3D.new()
-	sphere.radius = 1.5
+	sphere.radius = INTERACTION_RADIUS
 	shape.shape = sphere
 	area.add_child(shape)
-	area.body_entered.connect(func(body): _on_player_near(body, npc_data.get("id", "")))
-	parent.add_child(area)
+	root.add_child(area)
 
-func _on_player_near(body: Node3D, npc_id: String) -> void:
-	if body.is_in_group("player"):
-		_dialogue_ui.show_npc(npc_id)
-
-func _on_quest_accepted(quest_id: String) -> void:
-	if QuestManager.has_method("accept_quest"):
-		QuestManager.accept_quest(quest_id)
-	NotificationUI.notify_win("Quest accepted: %s" % quest_id.replace("_", " ").capitalize())
+	var npc_id: String = data.get("id", "")
+	area.body_entered.connect(func(body):
+		if body.is_in_group("player"):
+			var ui := get_tree().get_first_node_in_group("npc_dialogue_ui")
+			if ui and ui.has_method("open_for_npc"):
+				ui.open_for_npc(npc_id)
+	)

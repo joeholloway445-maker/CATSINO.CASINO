@@ -1,0 +1,320 @@
+{
+  "_comment": "CATSINO.CASINO Dialogue — add lines to any NPC, or create new dialogue blocks. Each line can trigger a quest or open a shop.",
+  "_guide": "dialogue_id must match the NPC's dialogue_id. Each 'node' has: id, text, options[]. Each option has: label, next_node (or 'END'), action (optional: quest_accept, shop_open, give_coins, nothing)",
+  "dialogues": [
+    {
+      "dialogue_id": "slot_sam_dialogue",
+      "start_node": "greeting",
+      "nodes": [
+        {
+          "id": "greeting",
+          "text": "Welcome, high roller! My wares are the finest in Paw Vegas! What can I do for you?",
+          "options": [
+            {"label": "Show me your shop", "next_node": "END", "action": "shop_open"},
+            {"label": "Tell me about Paw Vegas", "next_node": "lore"},
+            {"label": "Nothing, thanks", "next_node": "END", "action": "nothing"}
+          ]
+        },
+        {
+          "id": "lore",
+          "text": "Paw Vegas never sleeps. The coins flow like water here — but only to those clever enough to catch them.",
+          "options": [
+            {"label": "Wise words. Show me your shop.", "next_node": "END", "action": "shop_open"},
+            {"label": "Goodbye", "next_node": "END", "action": "nothing"}
+          ]
+        }
+      ]
+    },
+    {
+      "dialogue_id": "lucky_paws_dialogue",
+      "start_node": "greeting",
+      "nodes": [
+        {
+          "id": "greeting",
+          "text": "Psst! I've got a tip for you — but first you gotta prove you're worth talking to. Win 3 games and come back.",
+          "options": [
+            {"label": "I'll do it!", "next_node": "accept", "action": "quest_accept:side_001"},
+            {"label": "Not interested", "next_node": "END", "action": "nothing"}
+          ]
+        },
+        {
+          "id": "accept",
+          "text": "Smart choice. Win 3 games — any game counts. I'll be here.",
+          "options": [
+            {"label": "On it!", "next_node": "END", "action": "nothing"}
+          ]
+        }
+      ]
+    },
+    {
+      "dialogue_id": "dealer_dev_dialogue",
+      "start_node": "greeting",
+      "nodes": [
+        {
+          "id": "greeting",
+          "text": "The cards never lie. Every hand is a chance at fortune. Care to play?",
+          "options": [
+            {"label": "Let's play Blackjack!", "next_node": "END", "action": "open_game:blackjack"},
+            {"label": "What games do you offer?", "next_node": "games"},
+            {"label": "Maybe later", "next_node": "END", "action": "nothing"}
+          ]
+        },
+        {
+          "id": "games",
+          "text": "Blackjack, Poker, Texas Hold'em — take your pick. The house always has odds, but skill tilts them.",
+          "options": [
+            {"label": "Play Blackjack", "next_node": "END", "action": "open_game:blackjack"},
+            {"label": "Play Poker", "next_node": "END", "action": "open_game:poker"},
+            {"label": "Goodbye", "next_node": "END", "action": "nothing"}
+          ]
+        }
+      ]
+    },
+    {
+      "dialogue_id": "zira_dialogue",
+      "start_node": "greeting",
+      "nodes": [
+        {
+          "id": "greeting",
+          "text": "Speed Queen Zira, at your service. The track is open. Think you can keep up?",
+          "options": [
+            {"label": "Challenge accepted! Race me!", "next_node": "END", "action": "open_game:race"},
+            {"label": "I want to win a race for a quest", "next_node": "quest_info", "action": "quest_accept:side_002"},
+            {"label": "Maybe next time", "next_node": "END", "action": "nothing"}
+          ]
+        },
+        {
+          "id": "quest_info",
+          "text": "Win one race and I'll give you something special. Deal?",
+          "options": [
+            {"label": "Deal! Let's race!", "next_node": "END", "action": "open_game:race"},
+            {"label": "Not now", "next_node": "END", "action": "nothing"}
+          ]
+        }
+      ]
+    },
+    {
+      "dialogue_id": "krix_dialogue",
+      "start_node": "greeting",
+      "nodes": [
+        {
+          "id": "greeting",
+          "text": "Only the strong survive the Coliseum. I've seen champions rise and fall. Which will you be?",
+          "options": [
+            {"label": "I want to fight!", "next_node": "END", "action": "open_game:combat"},
+            {"label": "Tell me about the tournament", "next_node": "tournament"},
+            {"label": "I have a quest to complete here", "next_node": "quest_node", "action": "quest_accept:main_002"},
+            {"label": "I'll train more first", "next_node": "END", "action": "nothing"}
+          ]
+        },
+        {
+          "id": "tournament",
+          "text": "Win five consecutive battles and claim the Champion's Crown. The prize: legendary Cat Coins and a title only ten players have ever earned.",
+          "options": [
+            {"label": "I'm ready to fight!", "next_node": "END", "action": "open_game:combat"},
+            {"label": "Not yet — I need to prepare", "next_node": "END", "action": "nothing"}
+          ]
+        },
+        {
+          "id": "quest_node",
+          "text": "Win three fights here in the Coliseum. Prove yourself worthy of the story ahead.",
+          "options": [
+            {"label": "I'll start now!", "next_node": "END", "action": "open_game:combat"},
+            {"label": "I'll come back", "next_node": "END", "action": "nothing"}
+          ]
+        }
+      ]
+    },
+    {
+      "dialogue_id": "bloom_dialogue",
+      "start_node": "greeting",
+      "nodes": [
+        {
+          "id": "greeting",
+          "text": "The forest is alive, traveler. But something is wrong — creatures are fleeing from the eastern grove.",
+          "options": [
+            {"label": "I'll investigate!", "next_node": "accept", "action": "quest_accept:main_003"},
+            {"label": "What's happening?", "next_node": "lore"},
+            {"label": "I'm just passing through", "next_node": "END", "action": "nothing"}
+          ]
+        },
+        {
+          "id": "lore",
+          "text": "An ancient disturbance stirs in the ruins. The Factionless hermit Mosswhisker knows more — seek him in the deep woods.",
+          "options": [
+            {"label": "I'll help!", "next_node": "accept", "action": "quest_accept:main_003"},
+            {"label": "Thanks for the warning", "next_node": "END", "action": "nothing"}
+          ]
+        },
+        {
+          "id": "accept",
+          "text": "Thank you, traveler. Search the eastern grove and report back what you find. The forest is counting on you.",
+          "options": [
+            {"label": "I'll return with answers", "next_node": "END", "action": "nothing"}
+          ]
+        }
+      ]
+    },
+    {
+      "dialogue_id": "mosswhisker_dialogue",
+      "start_node": "greeting",
+      "nodes": [
+        {
+          "id": "greeting",
+          "text": "You seek answers? Few bother coming this far. The forest remembers... and so do I. Which faction sent you?",
+          "options": [
+            {"label": "I'm SovereignCrown", "next_node": "faction_sc", "action": "quest_accept:faction_001"},
+            {"label": "I'm WildlandsAscendant", "next_node": "faction_wa", "action": "quest_accept:faction_001"},
+            {"label": "I'm VeiledCurrent", "next_node": "faction_vc", "action": "quest_accept:faction_001"},
+            {"label": "I'm Factionless, like you", "next_node": "faction_fl", "action": "quest_accept:faction_001"}
+          ]
+        },
+        {
+          "id": "faction_sc",
+          "text": "SovereignCrown... ambitious, structured. Use that discipline to uncover what lies in the ruins. Return with proof.",
+          "options": [{"label": "Understood", "next_node": "END", "action": "nothing"}]
+        },
+        {
+          "id": "faction_wa",
+          "text": "WildlandsAscendant — good. The forest is your ally. Listen to it, and it will guide you to the truth.",
+          "options": [{"label": "I will listen", "next_node": "END", "action": "nothing"}]
+        },
+        {
+          "id": "faction_vc",
+          "text": "VeiledCurrent... you see currents others miss. The ruins hide secrets even I haven't unraveled. Be swift.",
+          "options": [{"label": "I'll be swift", "next_node": "END", "action": "nothing"}]
+        },
+        {
+          "id": "faction_fl",
+          "text": "Factionless, yes. No loyalty to bind you — and no bias to blind you. That is rarer than you know. Go.",
+          "options": [{"label": "I'll go", "next_node": "END", "action": "nothing"}]
+        }
+      ]
+    },
+    {
+      "dialogue_id": "starwhisker_dialogue",
+      "start_node": "greeting",
+      "nodes": [
+        {
+          "id": "greeting",
+          "text": "Welcome to Arcade Galaxy — where the stars play fair and scores are eternal! Ready for the final challenge?",
+          "options": [
+            {"label": "What's the challenge?", "next_node": "challenge"},
+            {"label": "Accept the challenge!", "next_node": "accept", "action": "quest_accept:main_004"},
+            {"label": "Just browsing", "next_node": "END", "action": "nothing"}
+          ]
+        },
+        {
+          "id": "challenge",
+          "text": "Score 500+ points in Cat Puzzle, win a race, and defeat the Coliseum champion. Complete all three and you become a legend.",
+          "options": [
+            {"label": "I'm in!", "next_node": "accept", "action": "quest_accept:main_004"},
+            {"label": "I'll prepare first", "next_node": "END", "action": "nothing"}
+          ]
+        },
+        {
+          "id": "accept",
+          "text": "The galaxy watches! Complete the trials — your name will shine among the stars.",
+          "options": [{"label": "For glory!", "next_node": "END", "action": "nothing"}]
+        }
+      ]
+    },
+    {
+      "dialogue_id": "sylva_dialogue",
+      "start_node": "greeting",
+      "nodes": [
+        {
+          "id": "greeting",
+          "text": "Every companion has a story — a reason they found you. Browse my collection?",
+          "options": [
+            {"label": "Show me companions!", "next_node": "END", "action": "shop_open"},
+            {"label": "How do companions work?", "next_node": "explain"},
+            {"label": "Maybe later", "next_node": "END", "action": "nothing"}
+          ]
+        },
+        {
+          "id": "explain",
+          "text": "Companions grant stat bonuses based on their faction. Feed them XP to level up. Evolve them at 100 XP for a powerful upgrade!",
+          "options": [
+            {"label": "Let me see some!", "next_node": "END", "action": "shop_open"},
+            {"label": "Good to know, thanks", "next_node": "END", "action": "nothing"}
+          ]
+        }
+      ]
+    },
+    {
+      "dialogue_id": "aqua_merchant_dialogue",
+      "start_node": "greeting",
+      "nodes": [
+        {
+          "id": "greeting",
+          "text": "Rare frames and mods from the deep currents of the Veiled Sea. Shall I show you?",
+          "options": [
+            {"label": "Yes, show me!", "next_node": "END", "action": "shop_open"},
+            {"label": "What's a frame?", "next_node": "explain"},
+            {"label": "No thanks", "next_node": "END", "action": "nothing"}
+          ]
+        },
+        {
+          "id": "explain",
+          "text": "Frames modify your base stats permanently. Mods add temporary effects. Stack them wisely to build your ideal champion.",
+          "options": [
+            {"label": "Show me the shop!", "next_node": "END", "action": "shop_open"},
+            {"label": "Interesting, thanks", "next_node": "END", "action": "nothing"}
+          ]
+        }
+      ]
+    },
+    {
+      "dialogue_id": "wrench_dialogue",
+      "start_node": "greeting",
+      "nodes": [
+        {
+          "id": "greeting",
+          "text": "Best mods in Neon Alley, guaranteed! I built half these things myself. What do you need?",
+          "options": [
+            {"label": "Show me your mods!", "next_node": "END", "action": "shop_open"},
+            {"label": "Goodbye", "next_node": "END", "action": "nothing"}
+          ]
+        }
+      ]
+    },
+    {
+      "dialogue_id": "mira_dialogue",
+      "start_node": "greeting",
+      "nodes": [
+        {
+          "id": "greeting",
+          "text": "Wounds heal faster with the right treatment. I carry potions and revival items. Need anything?",
+          "options": [
+            {"label": "Yes, patch me up!", "next_node": "END", "action": "shop_open"},
+            {"label": "I'm fine, thanks", "next_node": "END", "action": "nothing"}
+          ]
+        }
+      ]
+    },
+    {
+      "dialogue_id": "luminos_dialogue",
+      "start_node": "greeting",
+      "nodes": [
+        {
+          "id": "greeting",
+          "text": "The spirits of luck favor the bold! Every pull brings a companion — some legendary, some waiting to become so.",
+          "options": [
+            {"label": "Summon a companion!", "next_node": "END", "action": "shop_open"},
+            {"label": "What are the odds?", "next_node": "odds"},
+            {"label": "Not today", "next_node": "END", "action": "nothing"}
+          ]
+        },
+        {
+          "id": "odds",
+          "text": "Common: 60%, Uncommon: 25%, Rare: 10%, Epic: 4%, Legendary: 1%. And at 50 pulls — a guaranteed Epic awaits you!",
+          "options": [
+            {"label": "Worth a pull!", "next_node": "END", "action": "shop_open"},
+            {"label": "I'll save my coins", "next_node": "END", "action": "nothing"}
+          ]
+        }
+      ]
+    }
+  ]
+}

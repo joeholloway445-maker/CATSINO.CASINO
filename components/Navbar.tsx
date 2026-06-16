@@ -39,6 +39,9 @@ export default function Navbar({ username = "", coins = 0 }: { username?: string
         <Link href="/districts" className="text-xs text-slate-500 hidden md:block hover:text-emerald-400 transition-colors">
           🗺️
         </Link>
+        <Link href="/world-builder" className="text-xs text-slate-500 hidden md:block hover:text-purple-400 transition-colors" title="World Builder">
+          🌍
+        </Link>
         <div className="px-3 py-1.5 rounded-lg border border-neon-green/40 text-neon-green text-sm font-display tracking-wide">
           {coins.toLocaleString()} 🪙
         </div>
