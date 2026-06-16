@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import SignOutButton from './SignOutButton'
 
-export default function Navbar({ username, coins }: { username: string; coins: number }) {
+export default function Navbar({ username = "", coins = 0 }: { username?: string; coins?: number }) {
   return (
     <header className="flex items-center justify-between px-6 py-4 max-w-6xl mx-auto w-full">
       <Link
@@ -23,6 +23,21 @@ export default function Navbar({ username, coins }: { username: string; coins: n
         </Link>
         <Link href="/companions" className="text-xs text-slate-500 hidden md:block hover:text-green-400 transition-colors">
           🐾
+        </Link>
+        <Link href="/quests" className="text-xs text-slate-500 hidden md:block hover:text-purple-400 transition-colors">
+          📋
+        </Link>
+        <Link href="/events" className="text-xs text-slate-500 hidden md:block hover:text-orange-400 transition-colors">
+          🎪
+        </Link>
+        <Link href="/tournaments" className="text-xs text-slate-500 hidden md:block hover:text-yellow-400 transition-colors">
+          🏆
+        </Link>
+        <Link href="/inventory" className="text-xs text-slate-500 hidden md:block hover:text-cyan-400 transition-colors">
+          🎒
+        </Link>
+        <Link href="/districts" className="text-xs text-slate-500 hidden md:block hover:text-emerald-400 transition-colors">
+          🗺️
         </Link>
         <div className="px-3 py-1.5 rounded-lg border border-neon-green/40 text-neon-green text-sm font-display tracking-wide">
           {coins.toLocaleString()} 🪙
