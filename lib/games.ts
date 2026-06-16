@@ -27,10 +27,10 @@ export const GAMES: GameDef[] = [
   {
     slug: 'nine-lives-holdem',
     name: "9 Lives Hold 'Em",
-    tagline: 'Texas Hold \'Em, feline style.',
+    tagline: "Texas Hold 'Em vs the dealer — 9 lives per session.",
     emoji: '♠️',
     color: 'green',
-    playable: false,
+    playable: true,
   },
   {
     slug: 'lucky-cat-jackpot',
@@ -59,10 +59,10 @@ export const GAMES: GameDef[] = [
   {
     slug: 'feline-fortune',
     name: 'Feline Fortune',
-    tagline: 'Luck-based bonus draws for big payouts.',
+    tagline: '9 mystic fortune cards — up to 10x jackpot.',
     emoji: '🔮',
     color: 'purple',
-    playable: false,
+    playable: true,
   },
 ]
 
