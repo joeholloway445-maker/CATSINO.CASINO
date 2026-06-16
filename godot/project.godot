@@ -14,7 +14,7 @@ config/name="CATSINO.CASINO"
 config/description="Cat-themed social casino MMO"
 config/version="0.1.0"
 config/tags=PackedStringArray("mmo", "casino", "social", "cats")
-run/main_scene="res://scenes/world/main.tscn"
+run/main_scene="res://scenes/ui/splash.tscn"
 config/features=PackedStringArray("4.3", "Forward Plus")
 config/icon="res://assets/ui/icon.png"
 

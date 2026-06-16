@@ -1,0 +1,8 @@
+[gd_scene load_steps=2 format=3 uid="uid://splash_screen"]
+
+[ext_resource type="Script" path="res://src/ui/splash_screen.gd" id="1"]
+
+[node name="SplashScreen" type="Control"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+script = ExtResource("1")

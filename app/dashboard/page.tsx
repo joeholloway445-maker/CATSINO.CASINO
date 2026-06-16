@@ -91,6 +91,24 @@ export default async function DashboardPage() {
           >
             ⚡ BATTLE PASS
           </Link>
+          <Link
+            href="/companions"
+            className="inline-block px-6 py-2.5 rounded-xl border border-green-500/50 text-green-400 text-xs font-display tracking-widest hover:bg-green-500/10 hover:shadow-[0_0_16px_rgba(34,197,94,0.3)] transition-all"
+          >
+            🐾 COMPANIONS
+          </Link>
+          <Link
+            href="/factions"
+            className="inline-block px-6 py-2.5 rounded-xl border border-orange-500/50 text-orange-400 text-xs font-display tracking-widest hover:bg-orange-500/10 hover:shadow-[0_0_16px_rgba(249,115,22,0.3)] transition-all"
+          >
+            ⚔️ FACTIONS
+          </Link>
+          <Link
+            href="/lore"
+            className="inline-block px-6 py-2.5 rounded-xl border border-slate-500/50 text-slate-400 text-xs font-display tracking-widest hover:bg-slate-500/10 transition-all"
+          >
+            📖 LORE
+          </Link>
         </div>
 
         <h2 className="font-display text-lg tracking-widest text-neon-pink neon-text mb-4">RECENT SPINS</h2>
