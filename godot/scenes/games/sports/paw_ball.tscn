@@ -1,0 +1,55 @@
+[gd_scene load_steps=2 format=3 uid="uid://paw_ball_scene"]
+
+[ext_resource type="Script" path="res://src/games/arcade/paw_ball.gd" id="1"]
+
+[node name="PawBall" type="Control"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+script = ExtResource("1")
+
+[node name="VBoxContainer" type="VBoxContainer" parent="."]
+anchor_right = 1.0
+anchor_bottom = 1.0
+theme_override_constants/separation = 20
+
+[node name="Title" type="Label" parent="VBoxContainer"]
+text = "⚽ PAW BALL"
+horizontal_alignment = 1
+
+[node name="MatchInfo" type="Label" parent="VBoxContainer"]
+name = "MatchInfo"
+text = "Loading match..."
+horizontal_alignment = 1
+
+[node name="BetRow" type="HBoxContainer" parent="VBoxContainer"]
+alignment = 1
+
+[node name="BetLabel" type="Label" parent="VBoxContainer/BetRow"]
+text = "Bet:"
+
+[node name="BetSpin" type="SpinBox" parent="VBoxContainer/BetRow"]
+name = "BetSpin"
+min_value = 10
+max_value = 5000
+step = 10
+value = 100
+
+[node name="ButtonRow" type="HBoxContainer" parent="VBoxContainer"]
+alignment = 1
+
+[node name="HomeBtn" type="Button" parent="VBoxContainer/ButtonRow"]
+name = "HomeBtn"
+text = "🏠 HOME WIN"
+
+[node name="DrawBtn" type="Button" parent="VBoxContainer/ButtonRow"]
+name = "DrawBtn"
+text = "🤝 DRAW"
+
+[node name="AwayBtn" type="Button" parent="VBoxContainer/ButtonRow"]
+name = "AwayBtn"
+text = "✈️ AWAY WIN"
+
+[node name="ResultLabel" type="Label" parent="VBoxContainer"]
+name = "ResultLabel"
+text = ""
+horizontal_alignment = 1
