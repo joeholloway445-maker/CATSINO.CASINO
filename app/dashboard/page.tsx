@@ -79,6 +79,18 @@ export default async function DashboardPage() {
           >
             🐱 PROFILE
           </Link>
+          <Link
+            href="/social"
+            className="inline-block px-6 py-2.5 rounded-xl border border-purple-500/50 text-purple-400 text-xs font-display tracking-widest hover:bg-purple-500/10 hover:shadow-[0_0_16px_rgba(168,85,247,0.3)] transition-all"
+          >
+            👥 SOCIAL
+          </Link>
+          <Link
+            href="/battlepass"
+            className="inline-block px-6 py-2.5 rounded-xl border border-yellow-500/50 text-yellow-300 text-xs font-display tracking-widest hover:bg-yellow-500/10 hover:shadow-[0_0_16px_rgba(234,179,8,0.3)] transition-all"
+          >
+            ⚡ BATTLE PASS
+          </Link>
         </div>
 
         <h2 className="font-display text-lg tracking-widest text-neon-pink neon-text mb-4">RECENT SPINS</h2>

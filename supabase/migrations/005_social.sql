@@ -79,3 +79,7 @@ drop trigger if exists trg_update_winnings on public.spin_results;
 create trigger trg_update_winnings
   after insert on public.spin_results
   for each row execute function public.update_total_winnings();
+
+-- XP tracking on profiles
+alter table public.profiles
+  add column if not exists total_xp bigint not null default 0;
