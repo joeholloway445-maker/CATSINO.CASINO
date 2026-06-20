@@ -21,6 +21,7 @@ config/icon="res://assets/ui/icon.png"
 [autoload]
 
 AutoloadInit="*res://src/core/autoload_init.gd"
+ExternalHandoff="*res://src/core/external_handoff.gd"
 WorldLoader="*res://src/world/world_loader.gd"
 WorldQuestBridge="*res://src/world/world_quest_bridge.gd"
 GameManager="*res://src/core/game_manager.gd"
