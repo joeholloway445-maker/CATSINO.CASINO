@@ -89,7 +89,7 @@ export default function DialoguePage() {
                   <div className="text-xs text-gray-400 mb-2 font-semibold">Player choices (buttons shown to the player):</div>
                   {node.options.map((opt, oi) => (
                     <div key={oi} className="flex gap-2 mb-2 items-start">
-                      <input placeholder='Button label (e.g. "Let\'s fight!")'
+                      <input placeholder="Button label (e.g. &quot;Let's fight!&quot;)"
                         className="flex-1 bg-gray-700 border border-gray-600 rounded px-2 py-1.5 text-sm text-white"
                         value={opt.label} onChange={e=>updateOpt(ni,oi,'label',e.target.value)} />
                       <input placeholder='Next node id (or "END")'
