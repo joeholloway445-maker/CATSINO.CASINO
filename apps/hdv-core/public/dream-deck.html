@@ -1,0 +1,286 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>PERSONAMATRIX // DREAM — Control Deck</title>
+<style>
+  :root{
+    --accent:#c947f5; --accent2:#39ff14; --bg:#08070c; --panel:#100d18;
+    --line:#241b33; --text:#d8d2e6; --dim:#6b6280;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%;background:var(--bg);color:var(--text);
+    font-family:"SF Mono",ui-monospace,"Cascadia Code",Menlo,monospace}
+  #app{display:grid;grid-template-columns:1fr 320px;grid-template-rows:auto 1fr auto;
+    height:100vh;gap:1px;background:var(--line)}
+  header{grid-column:1/3;background:var(--panel);padding:10px 16px;display:flex;
+    align-items:center;gap:14px;border-bottom:1px solid var(--line)}
+  header h1{font-size:15px;margin:0;letter-spacing:3px}
+  header h1 b{color:var(--accent)}
+  .tag{font-size:10px;color:var(--dim);border:1px solid var(--line);padding:2px 7px;border-radius:3px}
+  .live{color:var(--accent2);animation:blink 1.1s steps(2) infinite}
+  @keyframes blink{50%{opacity:.25}}
+  #stageWrap{position:relative;background:#000;overflow:hidden;display:flex;align-items:center;justify-content:center}
+  canvas{max-width:100%;max-height:100%;display:block;image-rendering:pixelcrisp}
+  #chat{position:absolute;left:14px;bottom:14px;width:340px;max-height:60%;
+    display:flex;flex-direction:column-reverse;gap:5px;overflow:hidden;pointer-events:none}
+  .msg{background:rgba(10,8,16,.74);border-left:2px solid var(--accent);
+    padding:5px 9px;font-size:12px;line-height:1.35;border-radius:2px;
+    animation:slide .25s ease;backdrop-filter:blur(2px)}
+  .msg .who{color:var(--accent2);font-weight:700}
+  @keyframes slide{from{transform:translateX(-12px);opacity:0}}
+  #chainBanner{position:absolute;top:14px;left:50%;transform:translateX(-50%);
+    font-size:13px;letter-spacing:4px;color:#fff;text-shadow:0 0 12px var(--accent);
+    background:rgba(8,7,12,.5);padding:5px 16px;border:1px solid var(--accent);border-radius:3px}
+  aside{background:var(--panel);padding:14px;overflow:auto;display:flex;flex-direction:column;gap:18px}
+  .block h2{font-size:11px;letter-spacing:2px;color:var(--dim);margin:0 0 9px;text-transform:uppercase}
+  .chain-btn{display:block;width:100%;text-align:left;background:#150f20;color:var(--text);
+    border:1px solid var(--line);padding:8px 10px;margin-bottom:6px;border-radius:4px;cursor:pointer;
+    font-family:inherit;font-size:12px;transition:.15s}
+  .chain-btn:hover{border-color:var(--accent)}
+  .chain-btn.active{border-color:var(--accent);background:#1d1330;box-shadow:0 0 0 1px var(--accent) inset}
+  .chain-btn small{display:block;color:var(--dim);font-size:10px;margin-top:3px}
+  .chain-btn kbd{float:right;color:var(--accent);font-size:10px}
+  label.row{display:flex;justify-content:space-between;font-size:11px;color:var(--dim);margin-bottom:4px}
+  input[type=range]{width:100%;accent-color:var(--accent)}
+  .stat{display:flex;justify-content:space-between;font-size:12px;padding:4px 0;border-bottom:1px dotted var(--line)}
+  .stat b{color:var(--accent2)}
+  .toggle{display:flex;gap:8px;align-items:center;font-size:11px;color:var(--dim)}
+  footer{grid-column:1/3;background:var(--panel);border-top:1px solid var(--line);
+    padding:7px 16px;font-size:11px;color:var(--dim);display:flex;gap:18px;justify-content:space-between}
+  button.ghost{background:none;border:1px solid var(--line);color:var(--text);padding:5px 11px;
+    border-radius:4px;cursor:pointer;font-family:inherit;font-size:11px}
+  button.ghost:hover{border-color:var(--accent2)}
+  .auto{color:var(--accent2)}
+</style>
+</head>
+<body>
+<div id="app">
+  <header>
+    <h1>PERSONA<b>MATRIX</b> // DREAM</h1>
+    <span class="tag">Apex ledger <span class="live">● LIVE</span></span>
+    <span class="tag" id="capTag">capacity 20,480 · ephemeral</span>
+    <span class="tag">filters render on YOUR cpu/gpu — no backend</span>
+  </header>
+
+  <div id="stageWrap">
+    <canvas id="stage" width="960" height="540"></canvas>
+    <div id="chainBanner">— STANDBY —</div>
+    <div id="chat"></div>
+  </div>
+
+  <aside>
+    <div class="block">
+      <h2>Filter chains <span class="auto" id="autoTag"></span></h2>
+      <div id="chains"></div>
+    </div>
+    <div class="block">
+      <h2>Stream energy → filter_director</h2>
+      <label class="row"><span>energy</span><span id="energyVal">0.50</span></label>
+      <input id="energy" type="range" min="0" max="100" value="50" />
+      <label class="toggle" style="margin-top:8px">
+        <input type="checkbox" id="autoDir" checked /> auto: director picks chain from energy
+      </label>
+    </div>
+    <div class="block">
+      <h2>Apex billing ledger</h2>
+      <div class="stat"><span>executions</span><b id="execs">0</b></div>
+      <div class="stat"><span>personas alive</span><b id="alive">0</b></div>
+      <div class="stat"><span>session cost</span><b id="cost">$0.00000000</b></div>
+      <div class="stat"><span>chat rate</span><b id="rate">0/s</b></div>
+    </div>
+    <div class="block">
+      <h2>Signal source</h2>
+      <label class="toggle"><input type="checkbox" id="cam" /> use my webcam (optional)</label>
+      <p style="font-size:10px;color:var(--dim);margin:8px 0 0">Off = synthetic subject. The filters are identical either way — this is the Dream pipeline that feeds OBS via a virtual cam in the desktop build.</p>
+    </div>
+  </aside>
+
+  <footer>
+    <span>keys <kbd>1</kbd><kbd>2</kbd><kbd>3</kbd> switch chains · <kbd>0</kbd> standby · <kbd>space</kbd> burst chat</span>
+    <span>PersonaMatrix Dream MVP — personas spawn → react → terminate. Theater rendered into frame. <button class="ghost" id="snap">save frame ▣</button></span>
+  </footer>
+</div>
+
+<script>
+// ── config (ported straight from config/filters.json) ───────────────────────
+const CHAINS = {
+  scarecrow_proceedings: { keys:["fear_toxin","scarecrow_warp","vhs_glitch"], label:"SCARECROW PROCEEDINGS", hint:"fear_toxin → scarecrow_warp → vhs_glitch" },
+  squid_round:           { keys:["squid_game_overlay","chromatic_aberration"], label:"SQUID ROUND", hint:"squid_game_overlay → chromatic_aberration" },
+  full_breakdown:        { keys:["mirror_fragment","entity_static","pixel_sort"], label:"FULL BREAKDOWN", hint:"mirror_fragment → entity_static → pixel_sort" },
+};
+const CHAIN_ORDER = ["scarecrow_proceedings","squid_round","full_breakdown"];
+const ACCENT=[201,71,245];
+
+// ── persona core (ported from core/persona.py — spawn→execute→terminate) ─────
+const CHAT_LINES = [
+  id=>`NO WAY did that just happen`, ()=>"chat is this real",
+  id=>`clip it. CLIP IT. #${id}`, ()=>"the filter just ate my whole screen lmaooo",
+  ()=>"I've been here 4 hours send help", id=>`persona_${id} entered the proceedings`,
+  ()=>"this is the squid game arc fr", ()=>"W stream W filter W everything",
+  ()=>"⬛🔺⭕ they're watching", ()=>"who let the entity in chat",
+];
+let nextId=1, execs=0, cost=0, alive=0;
+const COST_PER_MIN={ commenter:0.002, filter_director:0.01 };
+function runPersona(role){
+  const id=nextId++; const t0=performance.now(); alive++;
+  let out;
+  if(role==="filter_director"){ out={id}; }
+  else { out={id, text: CHAT_LINES[Math.floor(Math.random()*CHAT_LINES.length)](id)}; }
+  const elapsedMin=(performance.now()-t0)/60000;
+  cost += elapsedMin*(COST_PER_MIN[role]||0.002)+0.0000004; // tiny floor so the meter visibly ticks
+  execs++; alive--;
+  return out;
+}
+
+// ── stage ────────────────────────────────────────────────────────────────────
+const cv=document.getElementById("stage"), ctx=cv.getContext("2d",{willReadFrequently:true});
+const W=cv.width, H=cv.height;
+const off=document.createElement("canvas"); off.width=W; off.height=H;
+const octx=off.getContext("2d",{willReadFrequently:true});
+let activeChain=null, t=0, video=null;
+
+// synthetic subject: a breathing entity silhouette + drifting grid
+function drawSynthetic(g){
+  g.fillStyle="#0a0810"; g.fillRect(0,0,W,H);
+  const cx=W/2, cy=H/2+30;
+  // drifting grid
+  g.strokeStyle="rgba(201,71,245,0.10)"; g.lineWidth=1;
+  for(let i=0;i<20;i++){ const y=((t*0.4+i*40)%H); g.beginPath(); g.moveTo(0,y); g.lineTo(W,y); g.stroke(); }
+  // halo
+  const breath=0.5+0.5*Math.sin(t*0.04);
+  const grd=g.createRadialGradient(cx,cy,20,cx,cy,260+breath*40);
+  grd.addColorStop(0,"rgba(57,255,20,0.22)"); grd.addColorStop(1,"rgba(8,7,12,0)");
+  g.fillStyle=grd; g.fillRect(0,0,W,H);
+  // figure
+  g.fillStyle="#16121f";
+  g.beginPath(); g.ellipse(cx,cy+70,90,140,0,0,Math.PI*2); g.fill();           // body
+  g.beginPath(); g.arc(cx,cy-60,62,0,Math.PI*2); g.fill();                      // head
+  // eyes
+  g.fillStyle=`rgba(201,71,245,${0.6+0.4*breath})`;
+  g.beginPath(); g.arc(cx-22,cy-66,9,0,Math.PI*2); g.arc(cx+22,cy-66,9,0,Math.PI*2); g.fill();
+}
+
+// ── filters (canvas ports of filters/engine.py) ──────────────────────────────
+function fx_scarecrow_warp(d,intensity=0.55){
+  const src=new Uint8ClampedArray(d.data); const amp=intensity*14;
+  for(let y=0;y<H;y++){ const sh=Math.round(Math.sin(y*0.03+t*0.08)*amp);
+    for(let x=0;x<W;x++){ let sx=x+sh; if(sx<0)sx=0; if(sx>=W)sx=W-1;
+      const di=(y*W+x)*4, si=(y*W+sx)*4;
+      d.data[di]=src[si]; d.data[di+1]=src[si+1]; d.data[di+2]=src[si+2]; } } }
+function fx_chromatic(d,shift=7){
+  const src=new Uint8ClampedArray(d.data); const s=Math.round(shift);
+  for(let i=0;i<d.data.length;i+=4){ const px=(i/4)%W;
+    const rIdx=i-(px>s?s*4:0), bIdx=i+((px<W-s)?s*4:0);
+    d.data[i]=src[rIdx]; d.data[i+2]=src[bIdx+2]; } }
+function fx_fear_toxin(d,intensity=0.6){
+  const breath=0.5+0.5*Math.sin(t*0.05);
+  for(let y=0;y<H;y++)for(let x=0;x<W;x++){ const i=(y*W+x)*4;
+    const dx=(x-W/2)/(W/2), dy=(y-H/2)/(H/2); const vig=Math.max(0,1-(dx*dx+dy*dy)*(0.6+breath*intensity));
+    d.data[i]*=0.7+0.3*vig; d.data[i+1]*=vig; d.data[i+2]=Math.min(255,d.data[i+2]*(1.1+intensity*breath)); } }
+function fx_vhs(d,intensity=0.5){
+  for(let y=0;y<H;y+=2)for(let x=0;x<W;x++){ const i=(y*W+x)*4; d.data[i]*=0.82;d.data[i+1]*=0.82;d.data[i+2]*=0.82; }
+  if(Math.random()<0.22){ const ty=Math.floor(Math.random()*H), th=4+Math.random()*16, off=(Math.random()-0.5)*60|0;
+    const src=new Uint8ClampedArray(d.data);
+    for(let y=ty;y<Math.min(H,ty+th);y++)for(let x=0;x<W;x++){ let sx=x+off; if(sx<0)sx+=W; if(sx>=W)sx-=W;
+      const di=(y*W+x)*4, si=(y*W+sx)*4; d.data[di]=src[si];d.data[di+1]=src[si+1];d.data[di+2]=src[si+2]; } } }
+function fx_entity_static(d,intensity=0.5){
+  for(let i=0;i<d.data.length;i+=4){ if(Math.random()<intensity*0.12){ const n=Math.random()*255;
+    d.data[i]=n;d.data[i+1]=n;d.data[i+2]=n; } } }
+function fx_mirror(d){
+  const src=new Uint8ClampedArray(d.data);
+  for(let y=0;y<H;y++)for(let x=0;x<W/2;x++){ const i=(y*W+(W-1-x))*4, si=(y*W+x)*4;
+    d.data[i]=src[si];d.data[i+1]=src[si+1];d.data[i+2]=src[si+2]; } }
+function fx_pixel_sort(d,thr=180){
+  for(let y=0;y<H;y++){ let x=0; while(x<W){ const i=(y*W+x)*4; const lum=d.data[i]*0.3+d.data[i+1]*0.59+d.data[i+2]*0.11;
+    if(lum>thr){ let end=x; while(end<W){ const j=(y*W+end)*4; if((d.data[j]*0.3+d.data[j+1]*0.59+d.data[j+2]*0.11)<=thr)break; end++; }
+      const r=d.data[i],g=d.data[i+1],b=d.data[i+2];
+      for(let k=x;k<end;k++){ const j=(y*W+k)*4; d.data[j]=r;d.data[j+1]=g;d.data[j+2]=b; } x=end; } else x++; } } }
+function fx_squid_overlay(g){
+  const remaining = 456 - (Math.floor(t/12)%456);
+  g.save(); g.font="bold 26px monospace"; g.textAlign="right";
+  g.fillStyle="rgba(8,7,12,.6)"; g.fillRect(W-220,16,204,54);
+  g.strokeStyle=`rgb(${ACCENT})`; g.strokeRect(W-220,16,204,54);
+  g.fillStyle="#fff"; g.fillText("PLAYERS", W-30, 40);
+  g.fillStyle=`rgb(${ACCENT})`; g.fillText(String(remaining).padStart(3,"0"), W-30, 64);
+  // round timer bar
+  const frac=(t%720)/720; g.fillStyle=`rgb(${ACCENT})`; g.fillRect(16,16,(W-440)*(1-frac),6);
+  if(Math.floor(t)%180<6){ g.fillStyle="rgba(255,255,255,.12)"; g.fillRect(0,0,W,H); } // elimination flash
+  g.restore();
+}
+const PIXEL_FILTERS={ scarecrow_warp:fx_scarecrow_warp, chromatic_aberration:fx_chromatic,
+  fear_toxin:fx_fear_toxin, vhs_glitch:fx_vhs, entity_static:fx_entity_static,
+  mirror_fragment:fx_mirror, pixel_sort:fx_pixel_sort };
+const CTX_FILTERS={ squid_game_overlay:fx_squid_overlay };
+
+// ── render loop ──────────────────────────────────────────────────────────────
+function render(){
+  t++;
+  if(video && video.readyState>=2){ octx.save(); octx.scale(-1,1); octx.drawImage(video,-W,0,W,H); octx.restore(); }
+  else drawSynthetic(octx);
+  ctx.drawImage(off,0,0);
+  if(activeChain){
+    const chain=CHAINS[activeChain];
+    const needsPixels = chain.keys.some(k=>PIXEL_FILTERS[k]);
+    if(needsPixels){ let img=ctx.getImageData(0,0,W,H);
+      for(const k of chain.keys){ if(PIXEL_FILTERS[k]) PIXEL_FILTERS[k](img); }
+      ctx.putImageData(img,0,0); }
+    for(const k of chain.keys){ if(CTX_FILTERS[k]) CTX_FILTERS[k](ctx); }
+  }
+  requestAnimationFrame(render);
+}
+render();
+
+// ── persona chat: commenter personas spawn in bursts, rate scales with energy ─
+const chatEl=document.getElementById("chat"); let chatTimes=[];
+function emitChat(n=1){ for(let i=0;i<n;i++){ const r=runPersona("commenter");
+  const m=document.createElement("div"); m.className="msg";
+  m.innerHTML=`<span class="who">persona_${r.id}</span> ${r.text}`;
+  chatEl.prepend(m); chatTimes.push(performance.now());
+  while(chatEl.children.length>9) chatEl.lastChild.remove(); } }
+setInterval(()=>{ const e=energyN(); const burst = Math.random()<(0.25+e*0.7) ? 1+Math.floor(Math.random()*(1+e*4)) : 0;
+  if(burst) emitChat(burst); }, 650);
+
+// ── filter_director: reads energy, picks chain (core/persona.py logic) ────────
+function energyN(){ return +document.getElementById("energy").value/100; }
+function directorPick(e){ if(e>0.8)return"full_breakdown"; if(e>0.5)return"scarecrow_proceedings"; return"squid_round"; }
+setInterval(()=>{ if(!document.getElementById("autoDir").checked) return;
+  runPersona("filter_director"); setChain(directorPick(energyN()), true); }, 1400);
+
+// ── chain UI ─────────────────────────────────────────────────────────────────
+const chainsEl=document.getElementById("chains");
+CHAIN_ORDER.forEach((id,idx)=>{ const c=CHAINS[id];
+  const b=document.createElement("button"); b.className="chain-btn"; b.dataset.id=id;
+  b.innerHTML=`${c.label}<kbd>${idx+1}</kbd><small>${c.hint}</small>`;
+  b.onclick=()=>{ document.getElementById("autoDir").checked=false; setChain(id,false); };
+  chainsEl.appendChild(b); });
+function setChain(id,fromAuto){ activeChain=id;
+  document.querySelectorAll(".chain-btn").forEach(b=>b.classList.toggle("active",b.dataset.id===id));
+  document.getElementById("chainBanner").textContent = id?`— ${CHAINS[id].label} —`:"— STANDBY —";
+  document.getElementById("autoTag").textContent = fromAuto?"· auto":""; }
+
+// ── HUD updates ──────────────────────────────────────────────────────────────
+setInterval(()=>{ const now=performance.now(); chatTimes=chatTimes.filter(x=>now-x<1000);
+  document.getElementById("execs").textContent=execs.toLocaleString();
+  document.getElementById("alive").textContent=alive;
+  document.getElementById("cost").textContent="$"+cost.toFixed(8);
+  document.getElementById("rate").textContent=chatTimes.length+"/s";
+  document.getElementById("energyVal").textContent=energyN().toFixed(2); },250);
+
+// ── inputs ───────────────────────────────────────────────────────────────────
+addEventListener("keydown",e=>{ if(e.key>="1"&&e.key<="3"){ document.getElementById("autoDir").checked=false; setChain(CHAIN_ORDER[+e.key-1],false);}
+  else if(e.key==="0"){ document.getElementById("autoDir").checked=false; setChain(null,false);}
+  else if(e.code==="Space"){ e.preventDefault(); emitChat(3+Math.floor(Math.random()*4)); } });
+document.getElementById("cam").onchange=async ev=>{ if(ev.target.checked){
+    try{ const s=await navigator.mediaDevices.getUserMedia({video:{width:960,height:540}});
+      video=document.createElement("video"); video.srcObject=s; video.muted=true; await video.play(); }
+    catch(err){ alert("Webcam unavailable — staying synthetic. ("+err.message+")"); ev.target.checked=false; } }
+  else { if(video&&video.srcObject){ video.srcObject.getTracks().forEach(t=>t.stop()); } video=null; } };
+document.getElementById("snap").onclick=()=>{ const a=document.createElement("a");
+  a.download="personamatrix_frame.png"; a.href=cv.toDataURL(); a.click(); };
+
+setChain("scarecrow_proceedings",true);
+</script>
+</body>
+</html>

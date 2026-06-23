@@ -1,50 +1,39 @@
-# CATSINO.CASINO
+# Periliminal — single monorepo
 
-A neon cyber-cat **social casino MVP**, built with Next.js 16 + Supabase.
+This used to be split across two GitHub repos (`THE-HDV-CORE` and
+`CATSINO.CASINO`), which made it impossible to tell where any given piece of
+work actually lived. Everything now lives here, in one place.
 
-This is **entertainment only**: a free-to-play virtual coin economy ("Cat Coins").
-There is no real-money gambling, no purchases, no sweepstakes, no redemption, and
-no cash-out path of any kind.
+## Layout
 
-## What's in this MVP
+- `apps/catsino-casino/` — the cat-themed casino web skin (Next.js).
+- `apps/hdv-core/` — the sci-fi web skin (Next.js).
+- `supabase/` — the single shared Postgres schema/migrations both apps and
+  the Godot client read from. There is one canonical database
+  (`lamdemoaszkilguvkvcd`, "Periliminal.Space") behind everything --
+  currencies, characters, inventory, etc. are never duplicated between
+  skins. Migrations from the old THE-HDV-CORE repo were appended
+  (`027`-`030`) rather than merged number-by-number, since both histories
+  were already applied to the same live database independently.
+- `godot/` — the more actively developed of the two Godot clients (combat,
+  companions, economy, social, liveops systems).
+- `godot_hdv_core/` — the other Godot client (world generation,
+  game-mode store, character creator/rig, discovery systems). **Not yet
+  merged into `godot/`** -- the two diverged into genuinely different,
+  non-overlapping systems rather than just cosmetic differences, so a
+  real merge (deciding which systems to keep, port, or combine) needs to
+  happen deliberately rather than by blind file overwrite. Until that
+  happens, treat this as a second reference project, not dead code.
+- `scripts/` — shared tooling (e.g. `repo_factory.sh` for pulling in
+  open-source Godot addons).
 
-- **Auth** — sign up / sign in via Supabase Auth, with a profile auto-created on signup.
-- **Cat Coins economy** — every new player starts with 10,000 Cat Coins.
-- **Purr Play Slots** — a fully playable 3-reel slot machine. The RNG and balance
-  updates run server-side (Postgres function `spin_slot`) so the result can't be
-  tampered with from the client.
-- **Daily bonus** — a streak-based daily login reward.
-- **Dashboard** — balance, XP, daily streak, game lobby, and recent spin history.
-- **Admin panel** (`/admin`) — for users with `profiles.is_admin = true`: view all
-  players and manually adjust Cat Coin balances.
-- **Neon cat branding** — black background with neon purple/cyan/green/pink, glowing
-  text, and a cyber-cat aesthetic across every page.
+## Running an app
 
-Other branded games (Black Cat 21, 9 Lives Hold 'Em, Lucky Cat Jackpot, Catnip Cash,
-Whisker Wins, Feline Fortune) are listed in the lobby as "coming soon" — the lobby
-and economy layer are built so adding each one is just a new game route + a new
-`spin_*`/game function.
+Each app under `apps/` is a self-contained Next.js project with its own
+`package.json`. `cd` into the one you want and run it like any other
+Next app (`npm install && npm run dev`).
 
-## Getting started
+## Running the Godot client
 
-```bash
-npm install
-cp ENV_SETUP.md .env.local   # then fill in your Supabase keys, see ENV_SETUP.md
-npm run dev
-```
-
-Open [http://localhost:3000](http://localhost:3000).
-
-## Stack
-
-- Next.js 16 (App Router) + React 19 + TypeScript
-- Tailwind CSS 4 (custom neon cat theme in `app/globals.css`)
-- Supabase (Postgres + Auth) — schema in `supabase/migrations/001_initial_schema.sql`
-
-## Roadmap (intentionally not built yet)
-
-- Stripe / payments
-- Sweeps coins, redemption, AMOE, legal sweepstakes pages
-- Referral system & Reddit growth automation
-- VIP tiers, live ops events, analytics dashboards
-- Additional slot/table games beyond Purr Play Slots
+Open `godot/project.godot` (or `godot_hdv_core/project.godot`) directly in
+Godot 4.x.

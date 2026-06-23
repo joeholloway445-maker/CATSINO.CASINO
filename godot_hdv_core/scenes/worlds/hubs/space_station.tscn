@@ -1,0 +1,75 @@
+[gd_scene load_steps=7 format=3]
+
+[ext_resource type="Script" path="res://src/world/reality_layer_world.gd" id="1"]
+[ext_resource type="Environment" path="res://assets/environments/hyperliminal.tres" id="2"]
+
+[sub_resource type="PlaneMesh" id="PlaneMesh_1"]
+size = Vector2(30, 30)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_1"]
+albedo_color = Color(0.1, 0.1, 0.15, 1)
+roughness = 0.3
+metallic = 0.6
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_2"]
+albedo_color = Color(0.6, 0.7, 1, 1)
+emission_enabled = true
+emission = Color(0.5, 0.7, 1, 1)
+emission_energy_multiplier = 1.5
+
+[sub_resource type="TorusMesh" id="TorusMesh_1"]
+inner_radius = 2.5
+outer_radius = 3.2
+
+[node name="SpaceStation" type="Node3D"]
+script = ExtResource("1")
+world_id = "space_station"
+back_target = "res://scenes/worlds/hubs/arlington.tscn"
+portal_world_ids = Array[String](["catsino_casino", "nsfw_frontier"])
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = ExtResource("2")
+
+[node name="GateLight" type="OmniLight3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 4, -3)
+light_color = Color(0.6, 0.7, 1, 1)
+light_energy = 2.5
+omni_range = 18.0
+
+[node name="Ground" type="MeshInstance3D" parent="."]
+mesh = SubResource("PlaneMesh_1")
+surface_material_override/0 = SubResource("StandardMaterial3D_1")
+
+[node name="GateRing" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 5, -8)
+mesh = SubResource("TorusMesh_1")
+surface_material_override/0 = SubResource("StandardMaterial3D_2")
+
+[node name="Camera3D" type="Camera3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 0.94, 0.34, 0, -0.34, 0.94, 0, 4, 9)
+current = true
+
+[node name="UI" type="CanvasLayer" parent="."]
+
+[node name="Title" type="Label" parent="UI"]
+offset_left = 30.0
+offset_top = 30.0
+offset_right = 700.0
+offset_bottom = 70.0
+theme_override_font_sizes/font_size = 26
+
+[node name="Description" type="Label" parent="UI"]
+offset_left = 30.0
+offset_top = 70.0
+offset_right = 700.0
+offset_bottom = 130.0
+autowrap_mode = 3
+
+[node name="BackButton" type="Button" parent="UI"]
+offset_left = 30.0
+offset_top = 140.0
+offset_right = 150.0
+offset_bottom = 175.0
+text = "Back to Arlington"
+
+[connection signal="pressed" from="UI/BackButton" to="." method="_on_back_pressed"]

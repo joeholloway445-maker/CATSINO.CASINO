@@ -1,0 +1,325 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* VS Code Dark+ (default) */
+    --vscode-bg: #1e1e1e;
+    --vscode-sidebar-bg: #252526;
+    --vscode-activityBar-bg: #333333;
+    --vscode-activityBar-active: #ffffff;
+    --vscode-activityBar-activeBorder: #0078d4;
+    --vscode-titleBar-bg: #3c3c3c;
+    --vscode-titleBar-activeFg: #cccccc;
+    --vscode-tab-bg: #2d2d2d;
+    --vscode-tab-activeBg: #1e1e1e;
+    --vscode-tab-border: #252526;
+    --vscode-statusBar-bg: #0078d4;
+    --vscode-statusBar-fg: #ffffff;
+    --vscode-panel-bg: #1e1e1e;
+    --vscode-panel-border: #414141;
+    --vscode-input-bg: #3c3c3c;
+    --vscode-input-border: #3c3c3c;
+    --vscode-button-bg: #0e639c;
+    --vscode-button-hover: #1177bb;
+    --vscode-list-hover: #2a2d2e;
+    --vscode-list-active: #094771;
+    --vscode-fg: #cccccc;
+    --vscode-editor-bg: #1e1e1e;
+    --vscode-editor-fg: #d4d4d4;
+    --vscode-lineNumber-fg: #858585;
+    --vscode-selection-bg: #264f78;
+    --vscode-border: #414141;
+    --vscode-dropdown-bg: #3c3c3c;
+    --vscode-menu-bg: #3c3c3c;
+    --vscode-menu-hover: #094771;
+    --vscode-scrollbar-bg: #1e1e1e;
+    --vscode-scrollbar-thumb: #424242;
+    --vscode-scrollbar-thumb-hover: #4f4f4f;
+    --vscode-badge-bg: #616161;
+    --vscode-badge-fg: #ffffff;
+    --vscode-error: #f48771;
+    --vscode-warning: #cca700;
+    --vscode-info: #75beff;
+    --vscode-success: #89d185;
+    --vscode-git-modified: #e2c08d;
+    --vscode-git-added: #73c991;
+    --vscode-git-deleted: #f85149;
+    --vscode-git-untracked: #73c991;
+    --vscode-diff-inserted: #587c0c;
+    --vscode-diff-removed: #94151b;
+    --vscode-focusBorder: #007fd4;
+    --vscode-quickInput-bg: #252526;
+    --vscode-widget-shadow: rgba(0, 0, 0, 0.36);
+    --vscode-sash-hover: #007fd4;
+
+    /* shadcn overrides */
+    --background: 0 0% 12%;
+    --foreground: 0 0% 80%;
+    --card: 0 0% 12%;
+    --card-foreground: 0 0% 80%;
+    --popover: 0 0% 15%;
+    --popover-foreground: 0 0% 80%;
+    --primary: 207 100% 42%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 0 0% 17%;
+    --secondary-foreground: 0 0% 80%;
+    --muted: 0 0% 17%;
+    --muted-foreground: 0 0% 52%;
+    --accent: 0 0% 17%;
+    --accent-foreground: 0 0% 80%;
+    --destructive: 8 88% 70%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 0 0% 25%;
+    --input: 0 0% 25%;
+    --ring: 207 100% 42%;
+    --radius: 0.25rem;
+  }
+
+  .vs-light {
+    --vscode-bg: #ffffff;
+    --vscode-sidebar-bg: #f3f3f3;
+    --vscode-activityBar-bg: #2c2c2c;
+    --vscode-activityBar-active: #ffffff;
+    --vscode-activityBar-activeBorder: #0078d4;
+    --vscode-titleBar-bg: #dddddd;
+    --vscode-titleBar-activeFg: #333333;
+    --vscode-tab-bg: #ececec;
+    --vscode-tab-activeBg: #ffffff;
+    --vscode-tab-border: #e4e4e4;
+    --vscode-statusBar-bg: #0078d4;
+    --vscode-statusBar-fg: #ffffff;
+    --vscode-panel-bg: #f8f8f8;
+    --vscode-panel-border: #e4e4e4;
+    --vscode-input-bg: #ffffff;
+    --vscode-input-border: #cecece;
+    --vscode-button-bg: #0e639c;
+    --vscode-button-hover: #1177bb;
+    --vscode-list-hover: #e8e8e8;
+    --vscode-list-active: #e4e6f1;
+    --vscode-fg: #3c3c3c;
+    --vscode-editor-bg: #ffffff;
+    --vscode-editor-fg: #2c2c2c;
+    --vscode-lineNumber-fg: #2b91af;
+    --vscode-selection-bg: #add6ff;
+    --vscode-border: #e4e4e4;
+    --vscode-dropdown-bg: #ffffff;
+    --vscode-menu-bg: #f3f3f3;
+    --vscode-menu-hover: #e8e8e8;
+    --vscode-scrollbar-bg: #f8f8f8;
+    --vscode-scrollbar-thumb: #c2c2c2;
+    --vscode-scrollbar-thumb-hover: #a0a0a0;
+    --vscode-badge-bg: #c4c4c4;
+    --vscode-badge-fg: #333333;
+    --vscode-error: #a1260d;
+    --vscode-warning: #bf8803;
+    --vscode-info: #0078d4;
+    --vscode-success: #107c10;
+    --vscode-git-modified: #895503;
+    --vscode-git-added: #2e7d32;
+    --vscode-git-deleted: #c62828;
+    --vscode-git-untracked: #2e7d32;
+    --vscode-diff-inserted: #d1ffd6;
+    --vscode-diff-removed: #ffebeb;
+    --vscode-focusBorder: #007fd4;
+    --vscode-quickInput-bg: #f3f3f3;
+    --vscode-widget-shadow: rgba(0, 0, 0, 0.16);
+    --vscode-sash-hover: #007fd4;
+  }
+
+  .vs-solarized-dark {
+    --vscode-bg: #002b36;
+    --vscode-sidebar-bg: #073642;
+    --vscode-activityBar-bg: #002b36;
+    --vscode-activityBar-active: #fdf6e3;
+    --vscode-activityBar-activeBorder: #268bd2;
+    --vscode-titleBar-bg: #00212b;
+    --vscode-titleBar-activeFg: #93a1a1;
+    --vscode-tab-bg: #073642;
+    --vscode-tab-activeBg: #002b36;
+    --vscode-tab-border: #073642;
+    --vscode-statusBar-bg: #268bd2;
+    --vscode-statusBar-fg: #fdf6e3;
+    --vscode-panel-bg: #002b36;
+    --vscode-panel-border: #586e75;
+    --vscode-input-bg: #073642;
+    --vscode-input-border: #586e75;
+    --vscode-button-bg: #268bd2;
+    --vscode-button-hover: #2aa198;
+    --vscode-list-hover: #073642;
+    --vscode-list-active: #094771;
+    --vscode-fg: #93a1a1;
+    --vscode-editor-bg: #002b36;
+    --vscode-editor-fg: #839496;
+    --vscode-lineNumber-fg: #586e75;
+    --vscode-selection-bg: #073642;
+    --vscode-border: #586e75;
+    --vscode-dropdown-bg: #073642;
+    --vscode-menu-bg: #073642;
+    --vscode-menu-hover: #094771;
+    --vscode-scrollbar-bg: #002b36;
+    --vscode-scrollbar-thumb: #586e75;
+    --vscode-scrollbar-thumb-hover: #657b83;
+    --vscode-badge-bg: #586e75;
+    --vscode-badge-fg: #fdf6e3;
+    --vscode-error: #dc322f;
+    --vscode-warning: #b58900;
+    --vscode-info: #268bd2;
+    --vscode-success: #859900;
+    --vscode-git-modified: #b58900;
+    --vscode-git-added: #859900;
+    --vscode-git-deleted: #dc322f;
+    --vscode-git-untracked: #859900;
+    --vscode-focusBorder: #268bd2;
+    --vscode-sash-hover: #268bd2;
+  }
+
+  .vs-monokai {
+    --vscode-bg: #272822;
+    --vscode-sidebar-bg: #1e1f1c;
+    --vscode-activityBar-bg: #272822;
+    --vscode-activityBar-active: #f8f8f2;
+    --vscode-activityBar-activeBorder: #f92672;
+    --vscode-titleBar-bg: #1e1f1c;
+    --vscode-titleBar-activeFg: #f8f8f2;
+    --vscode-tab-bg: #2f302a;
+    --vscode-tab-activeBg: #272822;
+    --vscode-tab-border: #1e1f1c;
+    --vscode-statusBar-bg: #75715e;
+    --vscode-statusBar-fg: #f8f8f2;
+    --vscode-panel-bg: #272822;
+    --vscode-panel-border: #49483e;
+    --vscode-input-bg: #1e1f1c;
+    --vscode-input-border: #49483e;
+    --vscode-button-bg: #66d9ef;
+    --vscode-button-hover: #a6e22e;
+    --vscode-list-hover: #3e3d32;
+    --vscode-list-active: #49483e;
+    --vscode-fg: #f8f8f2;
+    --vscode-editor-bg: #272822;
+    --vscode-editor-fg: #f8f8f2;
+    --vscode-lineNumber-fg: #90908a;
+    --vscode-selection-bg: #49483e;
+    --vscode-border: #49483e;
+    --vscode-dropdown-bg: #1e1f1c;
+    --vscode-menu-bg: #1e1f1c;
+    --vscode-menu-hover: #3e3d32;
+    --vscode-scrollbar-bg: #272822;
+    --vscode-scrollbar-thumb: #49483e;
+    --vscode-scrollbar-thumb-hover: #75715e;
+    --vscode-badge-bg: #75715e;
+    --vscode-badge-fg: #f8f8f2;
+    --vscode-error: #f92672;
+    --vscode-warning: #e6db74;
+    --vscode-info: #66d9ef;
+    --vscode-success: #a6e22e;
+    --vscode-git-modified: #e6db74;
+    --vscode-git-added: #a6e22e;
+    --vscode-git-deleted: #f92672;
+    --vscode-git-untracked: #a6e22e;
+    --vscode-focusBorder: #f92672;
+    --vscode-sash-hover: #f92672;
+  }
+
+  .vs-github {
+    --vscode-bg: #ffffff;
+    --vscode-sidebar-bg: #f6f8fa;
+    --vscode-activityBar-bg: #24292f;
+    --vscode-activityBar-active: #ffffff;
+    --vscode-activityBar-activeBorder: #2f81f7;
+    --vscode-titleBar-bg: #f6f8fa;
+    --vscode-titleBar-activeFg: #24292f;
+    --vscode-tab-bg: #f6f8fa;
+    --vscode-tab-activeBg: #ffffff;
+    --vscode-tab-border: #d0d7de;
+    --vscode-statusBar-bg: #24292f;
+    --vscode-statusBar-fg: #ffffff;
+    --vscode-panel-bg: #ffffff;
+    --vscode-panel-border: #d0d7de;
+    --vscode-input-bg: #f6f8fa;
+    --vscode-input-border: #d0d7de;
+    --vscode-button-bg: #2da44e;
+    --vscode-button-hover: #2c974b;
+    --vscode-list-hover: #eaeef2;
+    --vscode-list-active: #ddf4ff;
+    --vscode-fg: #24292f;
+    --vscode-editor-bg: #ffffff;
+    --vscode-editor-fg: #24292f;
+    --vscode-lineNumber-fg: #8c959f;
+    --vscode-selection-bg: #ddf4ff;
+    --vscode-border: #d0d7de;
+    --vscode-dropdown-bg: #f6f8fa;
+    --vscode-menu-bg: #f6f8fa;
+    --vscode-menu-hover: #eaeef2;
+    --vscode-scrollbar-bg: #f6f8fa;
+    --vscode-scrollbar-thumb: #c2c2c2;
+    --vscode-scrollbar-thumb-hover: #a0a0a0;
+    --vscode-badge-bg: #8c959f;
+    --vscode-badge-fg: #ffffff;
+    --vscode-error: #cf222e;
+    --vscode-warning: #9a6700;
+    --vscode-info: #0969da;
+    --vscode-success: #1a7f37;
+    --vscode-git-modified: #9a6700;
+    --vscode-git-added: #1a7f37;
+    --vscode-git-deleted: #cf222e;
+    --vscode-git-untracked: #1a7f37;
+    --vscode-focusBorder: #0969da;
+    --vscode-sash-hover: #2f81f7;
+  }
+
+  html, body, #root {
+    height: 100%;
+    margin: 0;
+    overflow: hidden;
+  }
+
+  body {
+    font-family: -apple-system, "system-ui", "Segoe WPC", "Segoe UI", "Inter", sans-serif;
+    font-size: 13px;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    background-color: var(--vscode-bg);
+    color: var(--vscode-fg);
+  }
+
+  code, pre, .monaco-editor, .xterm, [data-terminal] {
+    font-family: "Cascadia Code", "SF Mono", Menlo, Monaco, "Courier New", monospace;
+    font-feature-settings: "liga" on, "calt" on;
+  }
+
+  .font-editor {
+    font-family: "Cascadia Code", "SF Mono", Menlo, Monaco, "Courier New", monospace;
+    font-feature-settings: "liga" on, "calt" on;
+  }
+
+  /* Codicon font icons for Activity Bar */
+  .codicon {
+    font-size: 24px;
+    color: #858585;
+  }
+  .activity-bar button:hover .codicon {
+    color: #cccccc;
+  }
+  .activity-bar button.active .codicon {
+    color: #ffffff;
+  }
+}
+
+/* Scrollbar styles */
+@layer base {
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  ::-webkit-scrollbar-track {
+    background: var(--vscode-scrollbar-bg);
+  }
+  ::-webkit-scrollbar-thumb {
+    background: var(--vscode-scrollbar-thumb);
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--vscode-scrollbar-thumb-hover);
+  }
+}

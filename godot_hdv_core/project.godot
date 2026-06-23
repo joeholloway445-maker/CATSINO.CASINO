@@ -1,0 +1,31 @@
+; Engine configuration file.
+; It's best edited using the editor UI and not directly,
+; since the parameters that go here are not all obvious.
+
+config_version=5
+
+[application]
+
+config/name="Periliminal.Space"
+config/description="The HDV-CORE multiverse client — reality-layer worlds, races, frames, and rigs."
+config/tags=PackedStringArray("mmo", "multiverse", "rpg")
+run/main_scene="res://scenes/worlds/world_select.tscn"
+config/features=PackedStringArray("4.3", "Forward Plus")
+
+[autoload]
+
+GameData="*res://src/core/game_data.gd"
+WorldRegistry="*res://src/core/world_registry.gd"
+DiscoveryManager="*res://src/world/discovery_manager.gd"
+GameModeManager="*res://src/core/game_mode_manager.gd"
+GameModeStore="*res://src/core/game_mode_store.gd"
+PersonaMatrixClient="*res://src/networking/persona_matrix_client.gd"
+DiscordTicketClient="*res://src/networking/discord_ticket_client.gd"
+ExternalGameLauncher="*res://src/networking/external_game_launcher.gd"
+
+[rendering]
+
+renderer/rendering_method="forward_plus"
+environment/defaults/default_environment="res://assets/default_env.tres"
+anti_aliasing/quality/msaa_3d=2
+environment/glow/upscale_mode=1
