@@ -47,6 +47,8 @@ PlayerProfile="*res://src/character/player_profile.gd"
 QuestManager="*res://src/core/quest_manager.gd"
 XPManager="*res://src/core/xp_manager.gd"
 NotificationUI="*res://src/ui/notification_ui.gd"
+GameModeManager="*res://src/core/game_mode_manager.gd"
+GameModeStore="*res://src/core/game_mode_store.gd"
 
 [display]
 

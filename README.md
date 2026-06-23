@@ -15,15 +15,32 @@ work actually lived. Everything now lives here, in one place.
   skins. Migrations from the old THE-HDV-CORE repo were appended
   (`027`-`030`) rather than merged number-by-number, since both histories
   were already applied to the same live database independently.
-- `godot/` — the more actively developed of the two Godot clients (combat,
-  companions, economy, social, liveops systems).
-- `godot_hdv_core/` — the other Godot client (world generation,
-  game-mode store, character creator/rig, discovery systems). **Not yet
-  merged into `godot/`** -- the two diverged into genuinely different,
-  non-overlapping systems rather than just cosmetic differences, so a
-  real merge (deciding which systems to keep, port, or combine) needs to
-  happen deliberately rather than by blind file overwrite. Until that
-  happens, treat this as a second reference project, not dead code.
+- `godot/` — the canonical Godot client (combat, companions, economy,
+  social, liveops, minigames). Two systems from `godot_hdv_core/` have been
+  merged in so far:
+  - **Character rig/preview** (`src/character/character_rig.gd`,
+    `texture_materials.gd`, `character_preview.gd`) — the procedural 3D PBR
+    rig is now wired to catsino's actual race/frame data (`RaceDataCharacter`,
+    `FrameModData`) instead of hdv-core's `GameData`. Every cat breed got a
+    `texture_type`/`primary_color` so the rig renders for all 20 races.
+    `character_creator.gd` now uses real race/frame/stat data (it previously
+    used a disconnected placeholder race list) and shows a live 3D preview.
+  - **Game-mode layer** (`src/core/game_mode_manager.gd`,
+    `game_mode_store.gd`, `src/data/game_mode_data.gd`,
+    `src/ui/game_mode_store_ui.gd`) — this is a world-*state* toggle
+    (persistent-aware / persistent-incognito / sandboxed creator modes), not
+    a minigame system, so it doesn't compete with the slots/poker/blackjack
+    in `src/games/` — both coexist untouched. Re-priced from hdv-core's real
+    USD ($9.99/$14.99 IAP) to gems (catsino's existing premium currency),
+    since this casino has no real-money trading. Reachable from the main
+    menu's new "🌐 Game Modes" button.
+- `godot_hdv_core/` — what's left of the other Godot client, not yet
+  merged in: world generation/chunk streaming, the creator-mode sandbox
+  (timeline replay/forge + Discord-mod-ticket UGC review pipeline), and
+  ambient-NPC awareness reactions. These are large, genuinely separate
+  systems (not just cosmetic differences), so they're being merged
+  deliberately rather than by blind file overwrite. Treat this as a
+  reference project, not dead code, until that happens.
 - `scripts/` — shared tooling (e.g. `repo_factory.sh` for pulling in
   open-source Godot addons).
 

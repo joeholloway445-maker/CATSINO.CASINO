@@ -1,20 +1,21 @@
 extends Control
 class_name CharacterCreator
-# First-time character creation — pick race, faction, frame, name
+# First-time character creation — pick race, faction, frame, name.
+# Wired to RaceDataCharacter/FrameModData/CharacterCreatorLogic (the real
+# stat/lore data layer) and renders a live 3D preview via CharacterRig
+# (ported from THE-HDV-CORE) instead of a static placeholder label.
 
 signal character_created(config: Dictionary)
+
+const CharacterPreviewScene := preload("res://scenes/character/character_preview.tscn")
 
 var _name_field: LineEdit
 var _race_selector: OptionButton
 var _faction_selector: OptionButton
 var _frame_selector: OptionButton
-var _preview_label: Label
-
-const RACES = [
-	"Nyx", "Ember", "Glacial", "Tempest", "Void", "Photon", "Bloom", "Aqua",
-	"Aether", "Shadow", "Crimson", "Bolt", "Prism", "Verdant", "Flame",
-	"Storm", "Lunar", "Obsidian", "Radiant", "Quantum",
-]
+var _lore_label: Label
+var _preview: Node3D
+var _preview_viewport: SubViewport
 
 const FACTIONS = ["Factionless", "SovereignCrown", "WildlandsAscendant", "VeiledCurrent"]
 
@@ -22,28 +23,34 @@ const STARTER_FRAMES = ["veil", "zephyr", "viper", "bastion", "tremor", "phantom
 
 func _ready() -> void:
 	_build_ui()
+	_update_preview()
 
 func _build_ui() -> void:
-	var root = VBoxContainer.new()
+	var root = HBoxContainer.new()
 	root.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	add_child(root)
+
+	var left = VBoxContainer.new()
+	left.custom_minimum_size = Vector2(440, 0)
+	left.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	root.add_child(left)
 
 	var title = Label.new()
 	title.text = "CREATE YOUR CAT"
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	title.add_theme_font_size_override("font_size", 28)
-	root.add_child(title)
+	left.add_child(title)
 
 	var subtitle = Label.new()
 	subtitle.text = "Your name, race, and faction define your identity in Paw Vegas."
 	subtitle.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	subtitle.modulate = Color(0.7, 0.7, 0.7)
-	root.add_child(subtitle)
+	left.add_child(subtitle)
 
 	var form = VBoxContainer.new()
 	form.custom_minimum_size = Vector2(400, 0)
 	form.set_anchors_preset(Control.PRESET_CENTER)
-	root.add_child(form)
+	left.add_child(form)
 
 	# Name
 	var name_row = HBoxContainer.new()
@@ -67,8 +74,8 @@ func _build_ui() -> void:
 	race_row.add_child(race_lbl)
 	_race_selector = OptionButton.new()
 	_race_selector.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	for race in RACES:
-		_race_selector.add_item(race)
+	for race in RaceDataCharacter.RACES:
+		_race_selector.add_item(race.name)
 	_race_selector.item_selected.connect(func(_i): _update_preview())
 	race_row.add_child(_race_selector)
 
@@ -95,16 +102,19 @@ func _build_ui() -> void:
 	frame_row.add_child(frame_lbl)
 	_frame_selector = OptionButton.new()
 	_frame_selector.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	for frame in STARTER_FRAMES:
-		_frame_selector.add_item(frame.capitalize())
+	for frame_id in STARTER_FRAMES:
+		var frame_data := FrameModData.get_frame(frame_id)
+		_frame_selector.add_item(frame_data.get("name", frame_id.capitalize()))
+	_frame_selector.item_selected.connect(func(_i): _update_preview())
 	frame_row.add_child(_frame_selector)
 
-	# Preview
-	_preview_label = Label.new()
-	_preview_label.text = "Your cat: ?"
-	_preview_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	_preview_label.modulate = Color(0.8, 0.9, 1.0)
-	form.add_child(_preview_label)
+	# Lore / stats readout
+	_lore_label = Label.new()
+	_lore_label.text = ""
+	_lore_label.autowrap_mode = TextServer.AUTOWRAP_WORD
+	_lore_label.custom_minimum_size = Vector2(400, 80)
+	_lore_label.modulate = Color(0.8, 0.9, 1.0)
+	form.add_child(_lore_label)
 
 	# Create button
 	var create_btn = Button.new()
@@ -113,31 +123,51 @@ func _build_ui() -> void:
 	create_btn.pressed.connect(_on_create_pressed)
 	form.add_child(create_btn)
 
+	# Live 3D preview (right side), ported from THE-HDV-CORE
+	_preview_viewport = SubViewport.new()
+	_preview_viewport.size = Vector2i(480, 480)
+	_preview_viewport.render_target_update_mode = SubViewport.UPDATE_ALWAYS
+	_preview = CharacterPreviewScene.instantiate()
+	_preview_viewport.add_child(_preview)
+
+	var preview_container = SubViewportContainer.new()
+	preview_container.stretch = true
+	preview_container.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	preview_container.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	preview_container.add_child(_preview_viewport)
+	root.add_child(preview_container)
+
+func _selected_race_id() -> String:
+	return RaceDataCharacter.RACES[_race_selector.selected].id
+
 func _update_preview() -> void:
-	var race = RACES[_race_selector.selected]
+	var race_id := _selected_race_id()
 	var faction = FACTIONS[_faction_selector.selected]
-	var frame = STARTER_FRAMES[_frame_selector.selected]
-	_preview_label.text = "%s the %s (%s) in a %s frame" % [
-		_name_field.text if not _name_field.text.is_empty() else "???",
-		race, faction, frame,
+	var frame_id = STARTER_FRAMES[_frame_selector.selected]
+	var race_data := RaceDataCharacter.get_race(race_id)
+	var stats := CharacterCreatorLogic.build_starting_stats(race_id, faction, frame_id)
+	_lore_label.text = "%s\n\nPOW %d  RES %d  SPD %d  LCK %d  STY %d" % [
+		race_data.get("lore", ""), stats.pow, stats.res, stats.spd, stats.lck, stats.sty,
 	]
+	if _preview:
+		_preview.preview(race_id, frame_id)
 
 func _on_create_pressed() -> void:
 	var cat_name = _name_field.text.strip_edges()
-	if cat_name.is_empty():
-		_preview_label.text = "⚠️ Enter a name first!"
+	if not CharacterCreatorLogic.validate_name(cat_name):
+		_lore_label.text = "⚠️ Enter a valid name (2-20 letters/numbers, no spaces)."
 		return
+
+	var race_id := _selected_race_id()
+	var faction = FACTIONS[_faction_selector.selected]
+	var frame_id = STARTER_FRAMES[_frame_selector.selected]
 
 	var config = {
 		"name": cat_name,
-		"race": RACES[_race_selector.selected],
-		"faction": FACTIONS[_faction_selector.selected],
-		"frame": STARTER_FRAMES[_frame_selector.selected],
+		"race": race_id,
+		"faction": faction,
+		"frame": frame_id,
 	}
 
-	if PlayerProfile:
-		PlayerProfile.username = config.name
-		PlayerProfile.faction = config.faction
-		PlayerProfile.selected_frame = config.frame
-
+	CharacterCreatorLogic.apply_creation(race_id, faction, frame_id, cat_name)
 	character_created.emit(config)

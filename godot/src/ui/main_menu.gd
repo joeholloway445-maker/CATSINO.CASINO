@@ -8,6 +8,7 @@ signal open_companions()
 signal open_shop()
 signal open_achievements()
 signal open_settings()
+signal open_game_modes()
 
 var _player_info_label: Label
 
@@ -54,6 +55,7 @@ func _build_ui() -> void:
 		{label="🐾 Companions", sig="open_companions"},
 		{label="🛒 Shop", sig="open_shop"},
 		{label="🏆 Achievements", sig="open_achievements"},
+		{label="🌐 Game Modes", sig="open_game_modes"},
 		{label="⚙️ Settings", sig="open_settings"},
 	]:
 		var btn = Button.new()

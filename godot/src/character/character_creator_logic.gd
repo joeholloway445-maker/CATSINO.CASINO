@@ -25,6 +25,13 @@ static func get_starter_companions(faction: String) -> Array[String]:
 		"VeiledCurrent": return ["VC001", "VC002"]
 		_: return ["FL001", "FL002"]
 
+static func build_loadout(race_id: String, frame_id: String, mod_id: String = "") -> Dictionary:
+	return {
+		"race": RaceDataCharacter.get_race(race_id),
+		"frame": FrameModData.get_frame(frame_id),
+		"mod": FrameModData.get_mod(mod_id) if not mod_id.is_empty() else {},
+	}
+
 static func apply_creation(race_id: String, faction: String, frame_id: String, name: String) -> void:
 	PlayerProfile.set_faction(faction)
 	PlayerProfile.set_frame(frame_id)
