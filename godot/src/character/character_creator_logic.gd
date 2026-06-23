@@ -34,9 +34,11 @@ static func build_loadout(race_id: String, frame_id: String, mod_id: String = ""
 
 static func apply_creation(race_id: String, faction: String, frame_id: String, name: String) -> void:
 	PlayerProfile.set_faction(faction)
+	PlayerProfile.set_race(race_id)
 	PlayerProfile.set_frame(frame_id)
 	PlayerProfile.username = name
 	var companions := get_starter_companions(faction)
 	for c in companions:
-		PlayerProfile.companions.append(c)
-	PlayerProfile.save()
+		if c not in PlayerProfile.active_companion_ids:
+			PlayerProfile.active_companion_ids.append(c)
+	PlayerProfile.profile_updated.emit()

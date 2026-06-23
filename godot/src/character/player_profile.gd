@@ -12,6 +12,7 @@ var username: String = "CatPlayer"
 var level: int = 1
 var xp: int = 0
 var faction: String = "Factionless"
+var selected_race_id: String = "tabby"
 var selected_frame: String = "veil"
 var selected_mod: String = ""
 var active_companion_ids: Array[String] = []
@@ -39,6 +40,7 @@ func _load() -> void:
 	level = data.get("level", 1)
 	xp = data.get("xp", 0)
 	faction = data.get("faction", "Factionless")
+	selected_race_id = data.get("selected_race_id", "tabby")
 	selected_frame = data.get("selected_frame", "veil")
 	selected_mod = data.get("selected_mod", "")
 	active_companion_ids = Array(data.get("active_companions", []), TYPE_STRING, "", null)
@@ -53,6 +55,7 @@ func _save() -> void:
 		"level": level,
 		"xp": xp,
 		"faction": faction,
+		"selected_race_id": selected_race_id,
 		"selected_frame": selected_frame,
 		"selected_mod": selected_mod,
 		"active_companions": active_companion_ids,
@@ -84,6 +87,11 @@ func xp_progress() -> float:
 
 func set_faction(new_faction: String) -> void:
 	faction = new_faction
+	_save()
+	profile_updated.emit()
+
+func set_race(race_id: String) -> void:
+	selected_race_id = race_id
 	_save()
 	profile_updated.emit()
 

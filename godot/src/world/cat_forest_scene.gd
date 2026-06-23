@@ -88,3 +88,19 @@ func talk_to_npc(npc_id: int) -> Dictionary:
 
 func get_active_quests() -> Array[Dictionary]:
 	return _active_quests.duplicate(true)
+
+## Drives the "Ancient Ruins" discover-quest off DiscoveryManager's
+## perception-weighted chunk system (ported from godot_hdv_core). Call as
+## the player moves through the forest; advances forest_explore_001 once
+## per newly-generated (not previously visited) chunk.
+func explore_chunk(world_pos: Vector3, player_id: String, perception: int = 1) -> void:
+	var coord := DiscoveryManager.world_pos_to_chunk(world_pos)
+	var already_known := DiscoveryManager.has_chunk(coord)
+	var chunk := DiscoveryManager.get_or_generate_chunk(coord)
+	if chunk.is_hub:
+		return
+	var loadout := CharacterCreatorLogic.build_loadout(PlayerProfile.selected_race_id, PlayerProfile.selected_frame)
+	var pack := PlayerInfluencePack.from_loadout(player_id, loadout, perception)
+	DiscoveryManager.register_party_visit(coord, [pack])
+	if not already_known:
+		update_quest_progress("forest_explore_001", 1)

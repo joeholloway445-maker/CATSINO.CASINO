@@ -23,6 +23,9 @@ func world_pos_to_chunk(pos: Vector3) -> Vector2i:
 	var size: float = float(HubRegionData.CHUNK_SIZE)
 	return Vector2i(floori(pos.x / size), floori(pos.z / size))
 
+func has_chunk(coord: Vector2i) -> bool:
+	return _chunks.has(coord)
+
 ## Returns the chunk at coord, generating it on first access. Hub-bound
 ## coords always resolve to the frozen, hand-authored hub chunk.
 func get_or_generate_chunk(coord: Vector2i) -> WorldChunk:
