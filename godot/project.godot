@@ -50,6 +50,7 @@ NotificationUI="*res://src/ui/notification_ui.gd"
 GameModeManager="*res://src/core/game_mode_manager.gd"
 GameModeStore="*res://src/core/game_mode_store.gd"
 DiscoveryManager="*res://src/world/discovery_manager.gd"
+DiscordTicketClient="*res://src/networking/discord_ticket_client.gd"
 
 [display]
 
