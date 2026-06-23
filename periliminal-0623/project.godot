@@ -10,7 +10,7 @@ config_version=5
 
 [application]
 
-config/name="CATSINO.CASINO"
+config/name="Periliminal-0623"
 config/description="Cat-themed social casino MMO"
 config/version="0.1.0"
 config/tags=PackedStringArray("mmo", "casino", "social", "cats")

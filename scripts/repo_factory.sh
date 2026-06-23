@@ -26,7 +26,7 @@ done
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
-GODOT_DIR="$REPO_ROOT/godot"
+GODOT_DIR="$REPO_ROOT/periliminal-0623"
 
 # ── Structure ─────────────────────────────────────────────────────────────────
 create_structure() {
@@ -98,16 +98,16 @@ create_structure() {
 # ── Git Submodules ─────────────────────────────────────────────────────────────
 add_submodule() {
   local url="$1" path="$2" name="$3"
-  if [[ -d "$GODOT_DIR/addons/$path/.git" ]] || git -C "$REPO_ROOT" submodule status "godot/addons/$path" &>/dev/null 2>&1; then
+  if [[ -d "$GODOT_DIR/addons/$path/.git" ]] || git -C "$REPO_ROOT" submodule status "periliminal-0623/addons/$path" &>/dev/null 2>&1; then
     warn "Submodule already exists: $name"
     return 0
   fi
   info "Adding submodule: $name"
-  git -C "$REPO_ROOT" submodule add --force "$url" "godot/addons/$path" 2>&1 | tail -1 || {
+  git -C "$REPO_ROOT" submodule add --force "$url" "periliminal-0623/addons/$path" 2>&1 | tail -1 || {
     warn "git submodule add failed for $name — trying plain clone"
     git clone --depth 1 "$url" "$GODOT_DIR/addons/$path"
   }
-  success "Added: $name -> godot/addons/$path"
+  success "Added: $name -> periliminal-0623/addons/$path"
 }
 
 clone_addons() {
