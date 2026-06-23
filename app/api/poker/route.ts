@@ -6,7 +6,7 @@ const VALID_BETS = new Set([10, 25, 50, 100, 250, 500, 1000])
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json()
-    const { bet, held_indices = [], phase = 'deal' } = body
+    const { bet, held_indices = [], held_cards = [], phase = 'deal' } = body
 
     if (!VALID_BETS.has(bet)) {
       return NextResponse.json({ error: 'Invalid bet' }, { status: 400 })
@@ -20,6 +20,7 @@ export async function POST(req: NextRequest) {
       p_bet: bet,
       p_held_indices: held_indices,
       p_phase: phase,
+      p_held_cards: held_cards,
     })
 
     if (error) {

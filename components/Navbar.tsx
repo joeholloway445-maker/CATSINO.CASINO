@@ -33,6 +33,9 @@ export default function Navbar({ username = "", coins = 0 }: { username?: string
         <Link href="/tournaments" className="text-xs text-slate-500 hidden md:block hover:text-yellow-400 transition-colors">
           🏆
         </Link>
+        <Link href="/leaderboard" className="text-xs text-slate-500 hidden md:block hover:text-cyan-400 transition-colors" title="Leaderboard">
+          📊
+        </Link>
         <Link href="/inventory" className="text-xs text-slate-500 hidden md:block hover:text-cyan-400 transition-colors">
           🎒
         </Link>

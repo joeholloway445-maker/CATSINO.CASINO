@@ -63,17 +63,10 @@ export async function POST(req: Request) {
 
   const cost = count === 10 ? COST_MULTI : COST_SINGLE;
 
-  const { data: wallet } = await supabase
-    .from("wallets")
-    .select("coins")
-    .eq("user_id", user.id)
-    .single();
-
-  if (!wallet || wallet.coins < cost) {
-    return NextResponse.json({ error: "Insufficient coins" }, { status: 400 });
+  const { error: spendError } = await supabase.rpc("spend_coins", { p_amount: cost });
+  if (spendError) {
+    return NextResponse.json({ error: spendError.message }, { status: 400 });
   }
-
-  await supabase.from("wallets").update({ coins: wallet.coins - cost }).eq("user_id", user.id);
 
   const results = [];
   for (let i = 0; i < count; i++) {

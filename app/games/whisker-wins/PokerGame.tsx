@@ -64,18 +64,17 @@ export default function PokerGame({ initialBalance }: { initialBalance: number }
     if (loading) return
     setLoading(true)
     const heldIndices = held.map((h, i) => h ? i : -1).filter(i => i >= 0)
+    const heldCards = heldIndices.map(i => cards[i])
 
     const res = await fetch('/api/poker', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ bet, held_indices: heldIndices, phase: 'draw' }),
+      body: JSON.stringify({ bet, held_indices: heldIndices, held_cards: heldCards, phase: 'draw' }),
     })
     const data = await res.json()
     if (data.error) { setMessage(data.error); setLoading(false); return }
 
-    // Keep held cards, replace others
-    const newCards = cards.map((c, i) => held[i] ? c : data.cards[i])
-    setCards(newCards)
+    setCards(data.cards)
     setBalance(data.new_balance)
     setHandRank(data.hand_rank)
     setLastWin(data.win)
