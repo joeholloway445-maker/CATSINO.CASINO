@@ -61,17 +61,21 @@ work actually lived. Everything now lives here, in one place.
   that don't exist on `PlayerProfile` (`companions`/`save()` instead of
   `active_companion_ids`/`_save()`).
 
-  **Deliberately not ported**: `world_select.gd`/`world_registry.gd`/
+  **Not wired into gameplay**: `world_select.gd`/`world_registry.gd`/
   `reality_layer_world.gd` are HDV-core's own multiverse-hub lore (the
   five reality layers, age-gated cross-repo world links — one entry
   literally treats Catsino as an external world to launch into).
-  Catsino is its own world with its own rules, so this stays HDV-only
-  rather than getting grafted on. Its only other consumers
-  (`frame_data.gd`/`mod_data.gd`/`game_data.gd`/
-  `external_game_launcher.gd`/the original `character_creator_ui.gd`)
-  have no other callers, so nothing else is left unported.
-- `godot_hdv_core/` — kept only for the multiverse-hub lore/navigation
-  above. Everything else of substance has been folded into `godot/`.
+  Catsino is its own world with its own rules, so none of this is
+  reachable from catsino's UI flow. Rather than living in a second
+  parallel Godot project, it's preserved inside the single project at
+  `godot/hdv_lore/` (mirroring the original relative paths under its
+  own `src/`/`scenes/`/`assets/` subtree), with its own
+  `GameData`/`WorldRegistry`/`PersonaMatrixClient`/`ExternalGameLauncher`
+  autoloads registered alongside catsino's — nothing in catsino's
+  gameplay code references any of them. The only generic, data-driven
+  pieces (`character_rig.gd`, `texture_materials.gd`) are shared rather
+  than duplicated, since catsino's own rewired character preview uses
+  them too.
 - `scripts/` — shared tooling (e.g. `repo_factory.sh` for pulling in
   open-source Godot addons).
 
@@ -83,5 +87,5 @@ Next app (`npm install && npm run dev`).
 
 ## Running the Godot client
 
-Open `godot/project.godot` (or `godot_hdv_core/project.godot`) directly in
-Godot 4.x.
+Open `godot/project.godot` directly in Godot 4.x. This is the single
+canonical Godot project — there is no second project to open separately.
