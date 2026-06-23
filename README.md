@@ -43,19 +43,35 @@ work actually lived. Everything now lives here, in one place.
     `hub_region_data.gd`, `procedural_region_generator.gd`,
     `player_influence_pack.gd`, `discovery_manager.gd`) — a chunk-based
     procedural overworld layered *alongside* catsino's hand-authored
-    district system (`DistrictManager`), not replacing it. Per your call:
-    catsino is its own world with its own rules, so where the two
-    world models would actually conflict, this is dropped in as an
-    independent, optional system rather than forced to reconcile.
+    district system (`DistrictManager`), not replacing it. Driven by
+    `cat_forest_scene.gd`'s `explore_chunk()`, wired into the existing
+    "Ancient Ruins" discover-quest rather than a new entry point.
   - **Creator-mode UGC sandbox** (`src/data/timeline_data.gd`,
-    `ugc_submission.gd`, `src/ui/creator_mode_ui.gd`,
-    `scenes/ui/creator_mode.tscn`) — timeline replay/forge submissions
-    through the Discord-mod-ticket review pipeline. Reachable from the
-    Game Modes store when a sandboxed mode is activated.
-- `godot_hdv_core/` — what's left unmerged: nothing structurally
-  significant remains: this was the reference copy of THE-HDV-CORE's
-  Godot client and all of its standalone systems have now been folded
-  into `godot/` as siblings rather than replacements.
+    `ugc_submission.gd`, `src/networking/discord_ticket_client.gd`,
+    `src/ui/creator_mode_ui.gd`, `scenes/ui/creator_mode.tscn`) —
+    timeline replay/forge submissions through the Discord-mod-ticket
+    review pipeline. Reachable from the Game Modes store when a
+    sandboxed mode is activated.
+
+  Two pre-existing catsino bugs got fixed along the way (both were
+  dormant/never actually called before this merge wired their callers
+  up): `PlayerProfile` never persisted the player's chosen race at all
+  (`selected_race_id` now exists, set via `set_race()`), and
+  `CharacterCreatorLogic.apply_creation()` referenced fields/methods
+  that don't exist on `PlayerProfile` (`companions`/`save()` instead of
+  `active_companion_ids`/`_save()`).
+
+  **Deliberately not ported**: `world_select.gd`/`world_registry.gd`/
+  `reality_layer_world.gd` are HDV-core's own multiverse-hub lore (the
+  five reality layers, age-gated cross-repo world links — one entry
+  literally treats Catsino as an external world to launch into).
+  Catsino is its own world with its own rules, so this stays HDV-only
+  rather than getting grafted on. Its only other consumers
+  (`frame_data.gd`/`mod_data.gd`/`game_data.gd`/
+  `external_game_launcher.gd`/the original `character_creator_ui.gd`)
+  have no other callers, so nothing else is left unported.
+- `godot_hdv_core/` — kept only for the multiverse-hub lore/navigation
+  above. Everything else of substance has been folded into `godot/`.
 - `scripts/` — shared tooling (e.g. `repo_factory.sh` for pulling in
   open-source Godot addons).
 
