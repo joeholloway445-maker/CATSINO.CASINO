@@ -34,7 +34,7 @@ export default function HomePage() {
         <h2 className="font-display text-lg tracking-widest text-center text-neon-cyan neon-text mb-8">
           GAME LOBBY
         </h2>
-        <LobbyGrid />
+        <LobbyGrid linkPlayable />
       </section>
 
       <footer className="text-center text-xs text-slate-600 pb-6">
