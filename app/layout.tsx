@@ -17,7 +17,7 @@ const spaceMono = Space_Mono({
 export const metadata: Metadata = {
   title: 'CATSINO.CASINO — Neon Cat Social Casino',
   description:
-    'A free-to-play, cat-themed social casino. Spin Purr Play Slots and more with Cat Coins. No real-money gambling, ever.',
+    'A free-to-play, cat-themed social casino. Spin Purr Play Slots and more with Cat Chips. No real-money gambling, ever.',
 }
 
 export default function RootLayout({

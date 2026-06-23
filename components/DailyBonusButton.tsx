@@ -21,7 +21,7 @@ export default function DailyBonusButton({ canClaim }: { canClaim: boolean }) {
       return
     }
 
-    setMessage(`+${data.reward.toLocaleString()} Cat Coins! Streak: ${data.streak}`)
+    setMessage(`+${data.reward.toLocaleString()} Cat Chips! Streak: ${data.streak}`)
     setLoading(false)
     router.refresh()
   }
@@ -29,7 +29,7 @@ export default function DailyBonusButton({ canClaim }: { canClaim: boolean }) {
   return (
     <div className="rounded-xl border border-neon-green/40 bg-[#0a0813]/80 p-5 flex flex-col gap-2">
       <h3 className="font-display text-sm tracking-wide text-neon-green">DAILY BONUS</h3>
-      <p className="text-xs text-slate-400">Claim free Cat Coins every day. Keep your streak alive!</p>
+      <p className="text-xs text-slate-400">Claim free Cat Chips every day. Keep your streak alive!</p>
       <button
         onClick={claim}
         disabled={!canClaim || loading}

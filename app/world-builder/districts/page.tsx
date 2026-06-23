@@ -61,7 +61,7 @@ export default function DistrictsPage() {
                   value={editing.description} onChange={e=>setEditing({...editing,description:e.target.value})} />
               </div>
               <div>
-                <label className="block text-xs text-gray-400 mb-1">Entry Fee (Cat Coins, 0 = free)</label>
+                <label className="block text-xs text-gray-400 mb-1">Entry Fee (Cat Chips, 0 = free)</label>
                 <input type="number" min={0} className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm text-white"
                   value={editing.entry_fee} onChange={e=>setEditing({...editing,entry_fee:parseInt(e.target.value)||0})} />
               </div>

@@ -42,7 +42,7 @@ export default function ShopsPage() {
         <div className="flex items-center justify-between mb-8">
           <div>
             <h1 className="text-3xl font-bold">🛍️ Shop Editor</h1>
-            <p className="text-gray-400 text-sm mt-1">Manage shop inventories — items, Cat Coin prices, and districts.</p>
+            <p className="text-gray-400 text-sm mt-1">Manage shop inventories — items, Cat Chip prices, and districts.</p>
           </div>
           <button onClick={()=>setEditing({...BLANK,items:[BLANK_ITEM()]})}
             className="bg-yellow-600 hover:bg-yellow-500 px-4 py-2 rounded-xl font-semibold text-sm">

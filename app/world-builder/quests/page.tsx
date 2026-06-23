@@ -98,7 +98,7 @@ export default function QuestsPage() {
                   value={editing.prerequisites} onChange={e=>setEditing({...editing,prerequisites:e.target.value})} />
               </div>
               <div>
-                <label className="block text-xs text-gray-400 mb-1">Reward: Cat Coins 🪙</label>
+                <label className="block text-xs text-gray-400 mb-1">Reward: Cat Chips 🪙</label>
                 <input type="number" className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm text-white"
                   value={editing.reward_coins} onChange={e=>setEditing({...editing,reward_coins:parseInt(e.target.value)||0})} />
               </div>

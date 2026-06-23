@@ -78,7 +78,7 @@ export default async function ProfilePage() {
             </div>
             <div className="text-right">
               <p className="text-2xl font-bold text-neon-green">{coins.toLocaleString()}</p>
-              <p className="text-xs text-slate-500">🪙 Cat Coins</p>
+              <p className="text-xs text-slate-500">🪙 Cat Chips</p>
             </div>
           </div>
         </div>

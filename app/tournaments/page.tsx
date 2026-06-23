@@ -31,7 +31,7 @@ export default async function TournamentsPage() {
       <Navbar />
       <main className="max-w-4xl mx-auto px-4 py-12">
         <h1 className="text-4xl font-bold text-center text-orange-400 mb-2">🏆 Tournaments</h1>
-        <p className="text-center text-gray-400 mb-10">Compete for Cat Coin prizes and exclusive titles</p>
+        <p className="text-center text-gray-400 mb-10">Compete for Cat Chip prizes and exclusive titles</p>
 
         {(!tournaments || tournaments.length === 0) ? (
           <div className="text-center py-20">

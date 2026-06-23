@@ -55,7 +55,7 @@ export default function SlotMachine({ initialBalance }: { initialBalance: number
   async function spin() {
     if (busy) return
     if (bet > balance) {
-      setError('Not enough Cat Coins for that bet.')
+      setError('Not enough Cat Chips for that bet.')
       return
     }
 
@@ -178,9 +178,9 @@ export default function SlotMachine({ initialBalance }: { initialBalance: number
             }`}
           >
             {isJackpot
-              ? `👑 JACKPOT! +${lastWin.toLocaleString()} CAT COINS!`
+              ? `👑 JACKPOT! +${lastWin.toLocaleString()} CAT CHIPS!`
               : isWin
-                ? `+${lastWin.toLocaleString()} Cat Coins`
+                ? `+${lastWin.toLocaleString()} Cat Chips`
                 : 'No win this time. Try again!'}
           </motion.div>
         )}

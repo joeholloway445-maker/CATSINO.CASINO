@@ -84,7 +84,7 @@ export default function SettingsClient({ initialUsername, email, faction }: Prop
       <div className="bg-gray-800/50 rounded-2xl p-6 border border-gray-700">
         <h2 className="text-lg font-bold text-gray-400 mb-2">ℹ️ About</h2>
         <p className="text-gray-500 text-sm">
-          CATSINO.CASINO — Free-to-play virtual cat casino. All games use virtual Cat Coins only.
+          CATSINO.CASINO — Free-to-play virtual cat casino. All games use virtual Cat Chips only.
           No real money involved. All RNG is server-authoritative.
         </p>
       </div>

@@ -49,7 +49,7 @@ export default function SignupPage() {
           <div className="text-4xl mb-3">🐈‍⬛✉️</div>
           <h1 className="font-display text-lg text-neon-green neon-text mb-2 tracking-widest">CHECK YOUR EMAIL</h1>
           <p className="font-mono text-xs text-slate-400">
-            Confirm your email to claim your 10,000 starting Cat Coins and enter the casino.
+            Confirm your email to claim your 10,000 starting Cat Chips and enter the casino.
           </p>
         </div>
       </div>
@@ -60,7 +60,7 @@ export default function SignupPage() {
     <div className="w-full max-w-sm">
       <div className="rounded-xl border border-neon-purple/40 bg-[#0a0813]/80 p-8 neon-border">
         <h1 className="font-display text-xl text-neon-purple neon-text mb-1 tracking-widest">JOIN THE PRIDE</h1>
-        <p className="font-mono text-xs text-slate-400 mb-6">Start with 10,000 free Cat Coins</p>
+        <p className="font-mono text-xs text-slate-400 mb-6">Start with 10,000 free Cat Chips</p>
 
         <form onSubmit={handleSignup} className="space-y-4">
           <div>

@@ -33,7 +33,7 @@ export default async function AdminPage() {
       <Navbar username={profile.username} coins={wallet?.coins ?? 0} />
       <section className="max-w-4xl mx-auto px-6 py-8">
         <h1 className="font-display text-2xl text-neon-pink neon-text tracking-widest mb-1">ADMIN PANEL</h1>
-        <p className="text-xs text-slate-500 mb-8">Manage users and adjust Cat Coin balances.</p>
+        <p className="text-xs text-slate-500 mb-8">Manage users and adjust Cat Chip balances.</p>
 
         <div className="rounded-xl border border-neon-pink/30 bg-[#0a0813]/80 overflow-hidden">
           <table className="w-full text-xs">

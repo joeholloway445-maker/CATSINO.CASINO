@@ -54,7 +54,7 @@ export default async function DailyRewardPage() {
             <div className="bg-yellow-500/20 border-2 border-yellow-400 rounded-2xl p-8 mb-4 inline-block">
               <p className="text-2xl font-bold text-yellow-300 mb-2">Today&apos;s Reward</p>
               <p className="text-5xl font-bold text-white">+{todayReward.coins.toLocaleString()}</p>
-              <p className="text-yellow-400">Cat Coins</p>
+              <p className="text-yellow-400">Cat Chips</p>
             </div>
             <br />
             <form action="/api/daily-bonus" method="POST">

@@ -27,7 +27,7 @@ export default function HeroContent() {
         transition={{ duration: 0.6, delay: 0.1, ease: 'easeOut' }}
         className="max-w-xl text-slate-300 text-sm sm:text-base mb-2"
       >
-        A neon cyber-cat social casino. Free Cat Coins, no real money, no
+        A neon cyber-cat social casino. Free Cat Chips, no real money, no
         cash-outs &mdash; just glowing reels and nine lives of luck.
       </motion.p>
       <motion.p
@@ -48,7 +48,7 @@ export default function HeroContent() {
           href="/signup"
           className="inline-block px-8 py-3 rounded-lg bg-neon-purple text-white font-display tracking-widest neon-border hover:opacity-90 transition-opacity"
         >
-          GET 10,000 CAT COINS
+          GET 10,000 CAT CHIPS
         </Link>
       </motion.div>
     </section>

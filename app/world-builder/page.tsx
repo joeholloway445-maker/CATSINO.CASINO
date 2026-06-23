@@ -34,7 +34,7 @@ const SECTIONS = [
     href: '/world-builder/shops',
     emoji: '🛍️',
     title: 'Shops',
-    desc: 'Manage shop inventories — add items, set Cat Coin prices, assign to NPCs.',
+    desc: 'Manage shop inventories — add items, set Cat Chip prices, assign to NPCs.',
     color: 'from-yellow-600 to-yellow-800',
   },
 ]
@@ -76,7 +76,7 @@ export default function WorldBuilderPage() {
             <li>Changes save to the database immediately.</li>
             <li>The Godot game also reads <code className="bg-gray-800 px-1 rounded">godot/world_data/*.json</code> files — edit those for offline changes.</li>
             <li>Restart the Godot project to see your changes reflected in-game.</li>
-            <li>All economy uses virtual Cat Coins — no real money involved.</li>
+            <li>All economy uses virtual Cat Chips — no real money involved.</li>
           </ol>
         </div>
 

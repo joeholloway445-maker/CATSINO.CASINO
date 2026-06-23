@@ -96,7 +96,7 @@ export default function ScratchCard({ initialBalance }: { initialBalance: number
     <div className="flex flex-col items-center gap-6">
       {/* Balance */}
       <p className="text-xs text-slate-400">
-        Balance: <span className="text-neon-cyan font-bold">{balance.toLocaleString()} Cat Coins</span>
+        Balance: <span className="text-neon-cyan font-bold">{balance.toLocaleString()} Cat Chips</span>
       </p>
 
       {/* Scratch card grid */}
@@ -154,7 +154,7 @@ export default function ScratchCard({ initialBalance }: { initialBalance: number
           >
             {isWin ? (
               <p className={`font-display text-xl tracking-widest ${isJackpot ? 'text-neon-pink neon-text' : 'text-neon-green'}`}>
-                {isJackpot ? '👑 JACKPOT! ' : ''}+{result.win.toLocaleString()} Cat Coins ({result.multiplier}x)
+                {isJackpot ? '👑 JACKPOT! ' : ''}+{result.win.toLocaleString()} Cat Chips ({result.multiplier}x)
               </p>
             ) : (
               <p className="text-slate-500 text-sm">No match — try again!</p>

@@ -11,7 +11,7 @@ export const GAMES: GameDef[] = [
   {
     slug: 'purr-play-slots',
     name: 'Purr Play Slots',
-    tagline: 'Classic 3-reel neon cat slots. Spin for Cat Coins.',
+    tagline: 'Classic 3-reel neon cat slots. Spin for Cat Chips.',
     emoji: '🎰',
     color: 'purple',
     playable: true,

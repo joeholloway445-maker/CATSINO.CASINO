@@ -63,7 +63,10 @@ export async function POST(req: Request) {
 
   const cost = count === 10 ? COST_MULTI : COST_SINGLE;
 
-  const { error: spendError } = await supabase.rpc("spend_coins", { p_amount: cost });
+  const { error: spendError } = await supabase.rpc("spend_currency", {
+    p_currency: "charges",
+    p_amount: cost,
+  });
   if (spendError) {
     return NextResponse.json({ error: spendError.message }, { status: 400 });
   }
