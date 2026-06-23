@@ -34,13 +34,28 @@ work actually lived. Everything now lives here, in one place.
     USD ($9.99/$14.99 IAP) to gems (catsino's existing premium currency),
     since this casino has no real-money trading. Reachable from the main
     menu's new "🌐 Game Modes" button.
-- `godot_hdv_core/` — what's left of the other Godot client, not yet
-  merged in: world generation/chunk streaming, the creator-mode sandbox
-  (timeline replay/forge + Discord-mod-ticket UGC review pipeline), and
-  ambient-NPC awareness reactions. These are large, genuinely separate
-  systems (not just cosmetic differences), so they're being merged
-  deliberately rather than by blind file overwrite. Treat this as a
-  reference project, not dead code, until that happens.
+  - **Ambient NPC awareness** (`src/world/ambient_npc.gd`) — mob NPCs that
+    react differently depending on persistent-aware vs incognito mode.
+    Rewired off hdv-core's `PersonaMatrixClient`/`GameData` onto catsino's
+    `CasinoHTTPClient`; `recruit()` now just emits a signal since
+    companion/mount/pet ids use different schemes here.
+  - **Procedural world chunks + discovery** (`src/world/world_chunk.gd`,
+    `hub_region_data.gd`, `procedural_region_generator.gd`,
+    `player_influence_pack.gd`, `discovery_manager.gd`) — a chunk-based
+    procedural overworld layered *alongside* catsino's hand-authored
+    district system (`DistrictManager`), not replacing it. Per your call:
+    catsino is its own world with its own rules, so where the two
+    world models would actually conflict, this is dropped in as an
+    independent, optional system rather than forced to reconcile.
+  - **Creator-mode UGC sandbox** (`src/data/timeline_data.gd`,
+    `ugc_submission.gd`, `src/ui/creator_mode_ui.gd`,
+    `scenes/ui/creator_mode.tscn`) — timeline replay/forge submissions
+    through the Discord-mod-ticket review pipeline. Reachable from the
+    Game Modes store when a sandboxed mode is activated.
+- `godot_hdv_core/` — what's left unmerged: nothing structurally
+  significant remains: this was the reference copy of THE-HDV-CORE's
+  Godot client and all of its standalone systems have now been folded
+  into `godot/` as siblings rather than replacements.
 - `scripts/` — shared tooling (e.g. `repo_factory.sh` for pulling in
   open-source Godot addons).
 

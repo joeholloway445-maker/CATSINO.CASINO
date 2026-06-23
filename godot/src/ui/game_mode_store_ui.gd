@@ -49,12 +49,7 @@ func _on_activate_pressed() -> void:
 	if not GameModeManager.set_active(mode["id"]):
 		return
 	if mode.get("sandboxed", false):
-		# TODO: hdv-core's creator-mode sandbox (timeline replay/forge, UGC
-		# submission pipeline, scenes/ui/creator_mode.tscn) hasn't been
-		# ported — see godot_hdv_core/. Catsino has no in-engine UGC builder
-		# yet (world-builder is web-only, app/world-builder/*), so there's
-		# nowhere to route to here yet. Falling back to the main menu.
-		get_tree().change_scene_to_file("res://scenes/ui/main_menu.tscn")
+		get_tree().change_scene_to_file("res://scenes/ui/creator_mode.tscn")
 		return
 	_populate()
 
