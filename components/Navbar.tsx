@@ -48,6 +48,9 @@ export default function Navbar({ username = "", coins = 0 }: { username?: string
         <Link href="/plots" className="text-xs text-slate-500 hidden md:block hover:text-purple-400 transition-colors" title="The Cat Conclave">
           📜
         </Link>
+        <Link href="/campaign" className="text-xs text-slate-500 hidden md:block hover:text-red-400 transition-colors" title="The Clawpaign">
+          ⚔️
+        </Link>
         <div className="px-3 py-1.5 rounded-lg border border-neon-green/40 text-neon-green text-sm font-display tracking-wide">
           {coins.toLocaleString()} 🪙
         </div>
