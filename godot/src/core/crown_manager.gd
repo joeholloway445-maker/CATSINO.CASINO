@@ -125,6 +125,7 @@ func log_provisional_pvp(player_id: String, hours: float) -> void:
 		p["title"] = "Champion"
 		ascended.emit(player_id, "Champion")
 		NotificationUI.notify_win("🏆 %s is now a Champion!" % player_id)
+		NotificationUI.notify_info("A second frame awaits — your senses are about to double. (Character menu)")
 
 func add_champion_levels(player_id: String, levels: int) -> void:
 	var p := _player(player_id)

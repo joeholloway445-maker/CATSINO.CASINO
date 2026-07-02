@@ -27,6 +27,7 @@ func _ready() -> void:
 		"periliminal":
 			_sky.day_length_seconds = 999999.0
 			_sky.start_hour = 3.0 # permanent dead-of-night
+	IdentityLens.tune_sky(_sky)
 	add_child(_sky)
 
 	_player = ThirdPersonController.new()

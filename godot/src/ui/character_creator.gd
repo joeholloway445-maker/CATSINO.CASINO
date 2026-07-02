@@ -146,8 +146,11 @@ func _update_preview() -> void:
 	var frame_id = STARTER_FRAMES[_frame_selector.selected]
 	var race_data := RaceDataCharacter.get_race(race_id)
 	var stats := CharacterCreatorLogic.build_starting_stats(race_id, faction, frame_id)
-	_lore_label.text = "%s\n\nPOW %d  RES %d  SPD %d  LCK %d  STY %d" % [
-		race_data.get("lore", ""), stats.pow, stats.res, stats.spd, stats.lck, stats.sty,
+	var sensorium := FrameSensorium.of(frame_id)
+	_lore_label.text = "%s\n\n%s\n\nPOW %d  RES %d  SPD %d  LCK %d  STY %d\n\nYou will be 1 in %d. No one else's world will look or sound like yours." % [
+		race_data.get("lore", ""), sensorium.desc,
+		stats.pow, stats.res, stats.spd, stats.lck, stats.sty,
+		IdentityLens.BASE_BUILDS,
 	]
 	if _preview:
 		_preview.preview(race_id, frame_id)

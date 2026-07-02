@@ -6,6 +6,9 @@ extends Node3D
 
 @export var day_length_seconds := 300.0
 @export var start_hour := 10.0 # 0-24
+## Set by IdentityLens: the player's frame(s) tint every light this sky casts.
+var frame_tint := Color(1, 1, 1)
+var frame_energy_mult := 1.0
 
 var _sun: DirectionalLight3D
 var _env: WorldEnvironment
@@ -60,13 +63,13 @@ func _apply(t: float) -> void:
 	var daylight := clampf(elevation * 2.0 + 0.5, 0.0, 1.0)
 	var duskness := clampf(1.0 - absf(elevation) * 4.0, 0.0, 1.0)
 
-	_sun.light_energy = maxf(daylight * 1.3, 0.05)
-	_sun.light_color = Color(1.0, 0.95, 0.85).lerp(Color(1.0, 0.55, 0.35), duskness)
+	_sun.light_energy = maxf(daylight * 1.3, 0.05) * frame_energy_mult
+	_sun.light_color = (Color(1.0, 0.95, 0.85).lerp(Color(1.0, 0.55, 0.35), duskness)) * frame_tint
 
 	var top := NIGHT_TOP.lerp(DAY_TOP, daylight).lerp(DUSK_TOP, duskness * 0.7)
 	var horizon := NIGHT_HORIZON.lerp(DAY_HORIZON, daylight).lerp(DUSK_HORIZON, duskness * 0.8)
-	_sky_mat.sky_top_color = top
-	_sky_mat.sky_horizon_color = horizon
+	_sky_mat.sky_top_color = top * frame_tint
+	_sky_mat.sky_horizon_color = horizon.lerp(horizon * frame_tint, 0.5)
 	_sky_mat.ground_bottom_color = horizon.darkened(0.6)
 	_sky_mat.ground_horizon_color = horizon
 

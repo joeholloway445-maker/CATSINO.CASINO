@@ -16,6 +16,7 @@ func _ready() -> void:
 	add_child(_terrain)
 
 	_sky = DayNightSky.new()
+	IdentityLens.tune_sky(_sky)
 	add_child(_sky)
 
 	_player = ThirdPersonController.new()

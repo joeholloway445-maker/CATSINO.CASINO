@@ -99,13 +99,14 @@ func _build_chunk(coord: Vector2i) -> Node3D:
 	return root
 
 func _chunk_material(chunk: WorldChunk) -> StandardMaterial3D:
-	var mat := StandardMaterial3D.new()
 	var color: Color = HUB_COLOR if chunk.is_hub else BIOME_COLORS.get(
 		str(chunk.biome.get("biome", "plains")), BIOME_COLORS["plains"])
 	if chunk.dominant_pack != null:
 		color = color.lerp(chunk.dominant_pack.texture_tint, 0.35)
-	mat.albedo_color = color
-	mat.roughness = 0.95
+	# All hard mesh renders through the player's race lens — the same chunk
+	# is made of different stuff on different players' clients.
+	var mat := IdentityLens.world_material(color)
+	mat.roughness = maxf(mat.roughness, 0.7) # ground stays walkable-matte
 	return mat
 
 ## Low-poly biome props (crystals, ruins pillars, trees) from the chunk's
@@ -157,7 +158,13 @@ func _make_prop(biome: String, rng: RandomNumberGenerator) -> MeshInstance3D:
 			mi.position.y += cone.height * 0.5
 			mat.albedo_color = Color(0.15, 0.4, 0.2) if biome == "overgrowth" else Color(0.25, 0.5, 0.25)
 	mat.roughness = 0.9
-	mi.material_override = mat
+	# Props are hard mesh too — same race lens, lighter pull.
+	var lensed := IdentityLens.world_material(mat.albedo_color, 0.25)
+	if mat.emission_enabled:
+		lensed.emission_enabled = true
+		lensed.emission = mat.emission
+		lensed.emission_energy_multiplier = mat.emission_energy_multiplier
+	mi.material_override = lensed
 	return mi
 
 func _on_chunk_repainted(coord: Vector2i, chunk: WorldChunk) -> void:

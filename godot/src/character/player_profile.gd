@@ -14,6 +14,8 @@ var xp: int = 0
 var faction: String = "Factionless"
 var selected_race_id: String = "tabby"
 var selected_frame: String = "veil"
+## Second frame, chosen at Champion ascension (level 50+). Empty until then.
+var ascended_frame: String = ""
 var selected_mod: String = ""
 var active_companion_ids: Array[String] = []
 var titles: Array[String] = []
@@ -42,6 +44,7 @@ func _load() -> void:
 	faction = data.get("faction", "Factionless")
 	selected_race_id = data.get("selected_race_id", "tabby")
 	selected_frame = data.get("selected_frame", "veil")
+	ascended_frame = data.get("ascended_frame", "")
 	selected_mod = data.get("selected_mod", "")
 	active_companion_ids = Array(data.get("active_companions", []), TYPE_STRING, "", null)
 	titles = Array(data.get("titles", []), TYPE_STRING, "", null)
@@ -57,6 +60,7 @@ func _save() -> void:
 		"faction": faction,
 		"selected_race_id": selected_race_id,
 		"selected_frame": selected_frame,
+		"ascended_frame": ascended_frame,
 		"selected_mod": selected_mod,
 		"active_companions": active_companion_ids,
 		"titles": titles,
@@ -99,6 +103,17 @@ func set_frame(frame_id: String) -> void:
 	selected_frame = frame_id
 	_save()
 	profile_updated.emit()
+
+## Ascension frame: only choosable once Champion (level 50+); multiplies
+## the build space x20 and blends the frame sensorium into a duet.
+func set_ascended_frame(frame_id: String) -> bool:
+	if level < 50:
+		NotificationUI.notify_error("A second frame is chosen at Champion ascension (level 50).")
+		return false
+	ascended_frame = frame_id
+	_save()
+	profile_updated.emit()
+	return true
 
 func set_mod(mod_id: String) -> void:
 	selected_mod = mod_id
