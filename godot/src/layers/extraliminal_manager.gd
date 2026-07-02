@@ -11,7 +11,7 @@ signal landmark_claimed(landmark_id: String, guild: String)
 signal guild_war_started(landmark_id: String, attacker_guild: String, defender_guild: String)
 signal guild_war_resolved(landmark_id: String, winner: String)
 
-const DOOR_ESSENCE_COST := 25 # opening a liminal door burns Liminal essence
+const DOOR_TOKEN_COST := 25 # opening a liminal door stakes PvP tokens
 
 ## Landmark seeds — stand-ins for real-world POIs until GPS wiring exists.
 const LANDMARKS: Array[Dictionary] = [
@@ -31,7 +31,11 @@ var _active_wars: Dictionary = {} # landmark_id -> {attacker, defender}
 ## Roll a roaming entity at a landmark from the full ~600-entity roster,
 ## rarity-weighted (rarity 5 is genuinely rare in the wild).
 func spawn_wild_entity(landmark_id: String) -> Dictionary:
-	var roster := CompanionRegistry.get_all()
+	# Faction-exclusive rosters: you only ever encounter entities your
+	# faction can bond with (Factionless players get the Lone Wolf roster).
+	# equivalent_exchange (prestige) is the intended bypass for off-faction
+	# entities — wired at the catch UI, not here.
+	var roster := CompanionRegistry.accessible_roster(PlayerProfile.faction)
 	if roster.is_empty():
 		return {}
 	var pool: Array = []
@@ -47,11 +51,11 @@ func spawn_wild_entity(landmark_id: String) -> Dictionary:
 ## the roster as unlocked AND become UGC blueprints (EntityBlueprint).
 func attempt_catch(entity: Dictionary, use_lure: bool = false) -> bool:
 	var base := 0.35 + 0.10 * (6 - clampi(int(entity.get("rarity", 3)), 1, 5))
-	if use_lure and await EconomyManager.spend_currency("sigil", 5, "entity_lure"):
+	if use_lure and await EconomyManager.spend_currency("fragments", 5, "entity_lure"):
 		base += 0.25
 	if randf() < base:
 		CompanionSystem.unlock_companion(entity.get("id", ""))
-		EconomyManager.earn_currency("sigil", int(entity.get("rarity", 1)), "entity_caught")
+		EconomyManager.earn_currency("charges", int(entity.get("rarity", 1)), "entity_caught")
 		entity_caught.emit(entity)
 		return true
 	return false
@@ -64,7 +68,7 @@ func claim_landmark(landmark_id: String, guild: String) -> bool:
 		return false
 	_claims[landmark_id] = guild
 	landmark_claimed.emit(landmark_id, guild)
-	EconomyManager.earn_currency("sigil", 10, "landmark_claimed")
+	EconomyManager.earn_currency("tokens", 10, "landmark_claimed")
 	return true
 
 ## One challenger opens the liminal door; the war is now live and their
@@ -73,8 +77,8 @@ func open_liminal_door(landmark_id: String, attacker_guild: String) -> bool:
 	var defender := landmark_owner(landmark_id)
 	if defender == "" or defender == attacker_guild or _active_wars.has(landmark_id):
 		return false
-	if not await EconomyManager.spend_currency("essence", DOOR_ESSENCE_COST, "liminal_door"):
-		NotificationUI.notify_error("A liminal door costs %d essence to force open." % DOOR_ESSENCE_COST)
+	if not await EconomyManager.spend_currency("tokens", DOOR_TOKEN_COST, "liminal_door"):
+		NotificationUI.notify_error("A liminal door costs %d tokens to force open." % DOOR_TOKEN_COST)
 		return false
 	_active_wars[landmark_id] = {"attacker": attacker_guild, "defender": defender}
 	guild_war_started.emit(landmark_id, attacker_guild, defender)
@@ -91,4 +95,4 @@ func resolve_guild_war(landmark_id: String, attacker_won: bool) -> void:
 		_claims[landmark_id] = winner
 	_active_wars.erase(landmark_id)
 	guild_war_resolved.emit(landmark_id, winner)
-	EconomyManager.earn_currency("sigil", 25, "guild_war_%s" % ("won" if attacker_won else "defended"))
+	EconomyManager.earn_currency("tokens", 25, "guild_war_%s" % ("won" if attacker_won else "defended"))

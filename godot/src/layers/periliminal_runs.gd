@@ -5,17 +5,18 @@ extends Node
 ##    (LayerManager), solo or with whoever wandered with you.
 ##  - Chunks are procedurally generated on first entry, then STATIC forever —
 ##    the seed is recorded and every future visitor sees the same space.
-##  - Death loses EVERYTHING: entities, inventory, every currency but
-##    whispers. In a group, one death is everyone's death (shared fate).
-##  - Rewards scale hard with depth: whispers are earned ONLY here.
+##  - Death loses EVERYTHING: entities, inventory, every currency except
+##    prestige (experience is the one thing the layer can't take). In a
+##    group, one death is everyone's death (shared fate).
+##  - Rewards scale hard with depth — the layer pays out in fragments.
 
 signal run_started(party: Array, depth_seed: int)
 signal depth_advanced(depth: int, reward_preview: int)
-signal run_survived(depth: int, whispers_earned: int)
+signal run_survived(depth: int, fragments_earned: int)
 signal run_wiped(depth: int, victims: Array)
 
 const SEED_LEDGER_PATH := "user://periliminal_seeds.json"
-const WHISPERS_PER_DEPTH := 3 # compounding below
+const FRAGMENTS_PER_DEPTH := 3 # compounding below
 
 var active := false
 var party: Array[String] = []
@@ -56,19 +57,19 @@ func advance_depth() -> void:
 
 func preview_reward() -> int:
 	# 3, 9, 18, 30, 45... — quadratic-ish so deep runs feel earned.
-	return WHISPERS_PER_DEPTH * depth * (depth + 1) / 2
+	return FRAGMENTS_PER_DEPTH * depth * (depth + 1) / 2
 
-## Walking out alive banks the whispers.
+## Walking out alive banks the fragments.
 func exit_alive() -> void:
 	if not active: return
 	var earned := preview_reward()
-	EconomyManager.earn_currency("whisper", earned, "periliminal_depth_%d" % depth)
+	EconomyManager.earn_currency("fragments", earned, "periliminal_depth_%d" % depth)
 	run_survived.emit(depth, earned)
 	active = false
 	LayerManager.transition_to("liminal", true)
 
 ## ANY party member dying wipes the whole party: entities, inventory, and
-## every balance except whispers already banked from past runs.
+## every balance except prestige.
 func member_died(player_id: String) -> void:
 	if not active or player_id not in party:
 		return
@@ -89,9 +90,9 @@ func _wipe_local_player() -> void:
 	# Inventory.
 	if InventoryManager.has_method("clear_all"):
 		InventoryManager.clear_all()
-	# Currencies — whispers survive; they're the only thing that does.
+	# Currencies — prestige survives; it's the only thing that does.
 	for currency in EconomyManager.CURRENCIES.keys():
-		if currency == "whisper":
+		if currency == "prestige":
 			continue
 		var bal: int = EconomyManager.get_balance(currency)
 		if bal > 0:

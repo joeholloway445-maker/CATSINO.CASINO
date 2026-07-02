@@ -93,7 +93,7 @@ func _liminal_enter(coord: Vector2i) -> void:
 	# via a new WorldChunk), and harvest a little essence for the risk.
 	if DiscoveryManager.has_chunk(_prev_chunk) and _prev_chunk != coord:
 		DiscoveryManager._chunks.erase(_prev_chunk)
-	EconomyManager.earn_currency("essence", 1, "liminal_wandering")
+	EconomyManager.earn_currency("fragments", 1, "liminal_wandering")
 
 func _build_hud() -> void:
 	var layer := CanvasLayer.new()

@@ -21,6 +21,27 @@ static func get_by_id(companion_id: String) -> Dictionary:
 			return c.duplicate()
 	return {}
 
+## Roster files use both "SovereignCrown" and "sovereign_crown" styles.
+static func normalize_faction(f: String) -> String:
+	match f.to_lower().replace("_", "").replace(" ", ""):
+		"sovereigncrown": return "SovereignCrown"
+		"wildlandsascendant", "wildlandsascendants": return "WildlandsAscendant"
+		"veiledcurrent": return "VeiledCurrent"
+		_: return "Factionless"
+
+## Entities are faction-exclusive: each faction's roster is only accessible
+## to its members. The Factionless entities are the Lone Wolf roster —
+## accessible only to players who stay Factionless.
+static func is_accessible(entity: Dictionary, player_faction: String) -> bool:
+	return normalize_faction(str(entity.get("faction", ""))) == normalize_faction(player_faction)
+
+static func accessible_roster(player_faction: String) -> Array[Dictionary]:
+	var result: Array[Dictionary] = []
+	for c in get_all():
+		if is_accessible(c, player_faction):
+			result.append(c)
+	return result
+
 static func get_by_faction(faction: String) -> Array[Dictionary]:
 	var result: Array[Dictionary] = []
 	for c in get_all():

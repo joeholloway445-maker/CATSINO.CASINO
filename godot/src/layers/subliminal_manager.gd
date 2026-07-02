@@ -11,7 +11,7 @@ signal apartment_updated()
 const SAVE_PATH := "user://subliminal.json"
 const FREE_INVITE_CAP := 3
 const CREATOR_INVITE_CAP := 10
-const CREATOR_SUB_GEMS := 120 # per 30 days
+const CREATOR_SUB_COINS := 2500 # per 30 days
 
 ## The apartment is a fixed small footprint (roughly a studio flat) —
 ## a grid of placeable UGC slots rather than open terrain.
@@ -64,7 +64,7 @@ func mark_invited_by(inviter: String) -> void:
 	_save()
 
 func buy_creator_subscription() -> bool:
-	if not await EconomyManager.spend_gems(CREATOR_SUB_GEMS, "creator_subscription"):
+	if not await EconomyManager.spend_coins(CREATOR_SUB_COINS, "creator_subscription"):
 		return false
 	var now := int(Time.get_unix_time_from_system())
 	_creator_sub_until = maxi(_creator_sub_until, now) + 30 * 24 * 3600

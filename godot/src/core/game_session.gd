@@ -25,6 +25,7 @@ func record_result(won: bool, bet: int, payout: int) -> void:
 	# spend_5000 (side_004) counts cumulative coins bet, not a threshold flag.
 	QuestManager.update_progress("spend_5000", bet)
 	QuestManager.update_progress("play_game")
+	EconomyManager.earn_prestige(5 if won else 2, "gameplay")
 	if won:
 		QuestManager.update_progress("win_game")
 	if payout >= 500:

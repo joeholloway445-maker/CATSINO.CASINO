@@ -6,19 +6,47 @@ of a six-layer cosmology. This doc is the canonical spec; the code under
 
 ## The six layers
 
-| Layer | What it is | Entry | PvP | Persistence | Currency |
+| Layer | What it is | Entry | PvP | Persistence | Primary currency |
 |---|---|---|---|---|---|
-| **Hyperliminal** | Catsino itself — the neon casino reality (districts, games, tournaments) | always | no | static | 🪙 Cat Coins |
-| **Liminal** | The between-space. Multiplayer, procedural, **never static** — chunks dissolve behind you | always | yes | ephemeral | 🌫️ Essence |
-| **Subliminal** | Invite-only start screen + one small apartment per player where ALL UGC building happens. 3 outstanding invites max; creator subscription raises the cap | invite | no | personal | ✨ Spark* |
-| **Supraliminal** | The main MMORPG — the DFW Metroplex | always | outside hubs | chunked, infinite | 🏴 Influence |
-| **Extraliminal** | Pokemon-GO-style real-world overlay — roaming roster entities, guild halls at claimable landmarks | always | guild wars | landmark | 🔮 Sigils |
-| **Periliminal** | The psychological layer. You can't enter it — it takes you after wandering the Liminal too long | pulled only | no | generated-then-static | 👁️ Whispers |
+| **Hyperliminal** | Catsino itself — the neon casino reality (districts, games, tournaments) | always | no | static | 🎰 Chips |
+| **Liminal** | The between-space. Multiplayer, procedural, **never static** — chunks dissolve behind you | always | yes | ephemeral | ⚔️ Tokens |
+| **Subliminal** | Invite-only start screen + one small apartment per player where ALL UGC building happens. 3 outstanding invites max; creator subscription raises the cap | invite | no | personal | ⚡ Charges |
+| **Supraliminal** | The main MMORPG — the DFW Metroplex | always | outside hubs | chunked, infinite | ⚔️ Tokens |
+| **Extraliminal** | Pokemon-GO-style real-world overlay — roaming faction-exclusive entities, guild halls at claimable landmarks | always | guild wars | landmark | ⚡ Charges |
+| **Periliminal** | The psychological layer. You can't enter it — it takes you after wandering the Liminal too long | pulled only | no | generated-then-static | 🧩 Fragments |
 
-*Spark is reserved in `RealityLayers` but not yet in `EconomyManager.CURRENCIES`
-(currently: cat_coins, gems, essence, influence, sigil, whisper — gems being
-the premium cross-layer currency). If Spark should replace gems as currency
-#6 or be #7, decide before the economy ships.
+## The six currencies
+
+1. **🪙 Coins** — the main currency. Purchasable with real-world money,
+   usable on anything (internal id stays `cat_coins`).
+2. **🎰 Chips** — only purchasable with coins (`buy_chips`); the casino's
+   dedicated currency for all bets.
+3. **🧩 Fragments** — PvE: earned from and spent on PvE play. Also paid out
+   by casino jackpots, matched 1:1 on your first three coin purchases
+   (`purchase_coins`), and during match events.
+4. **⚔️ Tokens** — PvP: earned from and spent on PvP play (territory claims,
+   liminal doors, guild-war stakes). Same jackpot/purchase-match sources as
+   fragments.
+5. **⚡ Charges** — primarily from quests and achievements, secondarily the
+   casino; spent leveling up companions and entities.
+6. **🌟 Prestige** — our experience. Earned by general gameplay everywhere;
+   **influence level** (`EconomyManager.influence_level()`) is our level
+   system, derived from lifetime prestige. Spent on **equivalent exchange**
+   (`equivalent_exchange(gate, tier)`): buying past race/faction/morality/
+   influence gates — nothing is truly out of reach if you put in the time.
+
+Legacy note: `gems` still exists as a hidden balance so old shop/battlepass
+code paths don't crash, but it is NOT one of the six — those price points
+should migrate to coins.
+
+## Entity access rules
+
+Rosters are faction-exclusive (~150 per faction): SovereignCrown,
+WildlandsAscendant, VeiledCurrent each have their own entities, and the
+**Factionless roster is the Lone Wolf set** — only accessible to players who
+stay Factionless. `CompanionRegistry.is_accessible/accessible_roster`
+enforce it; extraliminal spawns only roll entities you can bond with.
+Equivalent exchange (prestige) is the designed bypass for off-faction pulls.
 
 ## Supraliminal: DFW Metroplex
 
@@ -53,17 +81,16 @@ only if it grows persistent worlds/economy of its own.
 - Chunks generate on first entry, then the seed is ledgered — **static
   forever**, same space for every future visitor.
 - **Death loses everything**: entities, inventory, every currency except
-  already-banked Whispers. **Group shared fate: one dies, all die.**
-- Rewards compound with depth (3, 9, 18, 30, 45…) and Whispers are earned
-  *only* here — they buy the rarest blueprints, one entity resurrection, and
-  permanent account perks.
+  Prestige. **Group shared fate: one dies, all die.**
+- Rewards compound with depth (3, 9, 18, 30, 45…) paid in Fragments; death
+  wipes every balance except Prestige.
 
 ## Extraliminal (`extraliminal_manager.gd`)
 
-- Roaming entities rolled rarity-weighted from the ~600-entity roster.
+- Roaming entities rolled rarity-weighted from your faction's exclusive roster (~150 each; Factionless = Lone Wolf set). Full authored pool: ~604.
 - Landmarks are claimable **guild halls**. A guild war starts when one
   challenger **opens a liminal door** at the landmark (Secret-Power-style
-  hidden entrance, costs Essence) and their guild pours through to fight.
+  hidden entrance, staked in Tokens) and their guild pours through to fight.
 
 ## Identity & perception
 

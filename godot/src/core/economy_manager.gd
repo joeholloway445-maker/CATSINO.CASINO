@@ -14,50 +14,60 @@ const DAILY_BONUS_BASE := 500
 const DAILY_BONUS_MAX  := 5000
 const DAILY_STREAK_CAP := 7
 
-## The six currencies — one anchored to each reality layer. `earned_by` and
-## `spent_on` document the acquisition/sink loops the managers implement.
+## The six canonical currencies. `earned_by`/`spent_on` document the loops
+## the managers implement. NOTE: "cat_coins" is the internal id for Coins
+## (kept to avoid rewriting every existing call site); "gems" survives only
+## as a legacy balance so old spend_gems paths don't crash — it is NOT one
+## of the six and should be migrated to coins pricing over time.
 const CURRENCIES: Dictionary = {
 	"cat_coins": {
-		name="Cat Coins", icon="🪙", layer="hyperliminal",
-		earned_by="casino games, races, quests, daily bonus",
-		spent_on="bets, race entries, shop items, tournament fees",
+		name="Coins", icon="🪙",
+		earned_by="the main currency — purchasable with real-world money; also from races, quests, daily bonus",
+		spent_on="anything: chips, shop, entries, subscriptions — the universal spend",
 	},
-	"gems": {
-		name="Gems", icon="💎", layer="hyperliminal",
-		earned_by="battlepass, achievements, big quest chains, IAP",
-		spent_on="game-mode activations, gacha, premium cosmetics",
+	"chips": {
+		name="Chips", icon="🎰",
+		earned_by="ONLY purchasable with coins (buy_chips) — and casino winnings pay back in chips",
+		spent_on="casino games only: slots, poker, blackjack, wheel bets",
 	},
-	"essence": {
-		name="Essence", icon="🌫️", layer="liminal",
-		earned_by="surviving liminal excursions; harvested from never-static chunks before they dissolve",
-		spent_on="stabilizing a liminal exit, opening liminal doors (guild wars), shortcut travel between layers",
+	"fragments": {
+		name="Fragments", icon="🧩",
+		earned_by="PvE play; casino jackpot rewards; matched 1:1 on your first three coin purchases; events",
+		spent_on="PvE: dungeon/run entries, PvE gear, periliminal recovery",
 	},
-	"influence": {
-		name="Influence", icon="🏴", layer="supraliminal",
-		earned_by="claiming/holding territory, winning alliance fights, keystone chunks",
-		spent_on="alliance upgrades, siege gear, hub-adjacent claim rights",
+	"tokens": {
+		name="Tokens", icon="⚔️",
+		earned_by="PvP play; casino jackpot rewards; matched 1:1 on your first three coin purchases; events",
+		spent_on="PvP: territory claims, siege gear, liminal doors, guild-war stakes",
 	},
-	"sigil": {
-		name="Sigils", icon="🔮", layer="extraliminal",
-		earned_by="catching roaming entities, holding landmark guild halls, guild-war victories",
-		spent_on="guild hall perks, landmark fortification, entity lures",
+	"charges": {
+		name="Charges", icon="⚡",
+		earned_by="primarily quests and achievements; secondarily from the casino",
+		spent_on="leveling up companions and entities",
 	},
-	"whisper": {
-		name="Whispers", icon="👁️", layer="periliminal",
-		earned_by="ONLY by surviving Periliminal runs — the deeper the run, the more you carry out",
-		spent_on="the rarest blueprints, resurrecting one lost entity, permanent account-wide perks",
+	"prestige": {
+		name="Prestige", icon="🌟",
+		earned_by="general gameplay everywhere — our version of experience (influence level is the level system)",
+		spent_on="equivalent exchange: buying past race/faction/morality/influence gates — nothing is truly out of reach if you put in the time",
 	},
 }
+
+## First-3-coin-purchase match: each purchase is matched 1:1 in fragments
+## AND tokens (also flipped on during match events).
+const PURCHASE_MATCH_LIMIT := 3
+var match_event_active := false
 
 # ── State ──────────────────────────────────────────────────────────────────────
 var _balances: Dictionary = {
 	"cat_coins": 0,
-	"gems":      0,
-	"essence":   0,
-	"influence": 0,
-	"sigil":     0,
-	"whisper":   0,
+	"gems":      0, # legacy only — not one of the six
+	"chips":     0,
+	"fragments": 0,
+	"tokens":    0,
+	"charges":   0,
+	"prestige":  0,
 }
+var _coin_purchases_made: int = 0
 var transaction_log: Array[Dictionary] = []
 var _daily_bonus_last_claimed: String = ""
 var _daily_bonus_streak: int          = 0
@@ -111,6 +121,53 @@ func spend_currency(currency: String, amount: int, destination: String = "unknow
 	_record_transaction(currency, -amount, destination, "spend")
 	await _push_transaction_to_server(currency, -amount, destination, "spend")
 	return true
+
+# ── Coin purchases, chips, and equivalent exchange ────────────────────────────
+## Real-money coin purchase entry point (store hooks call this after the
+## platform transaction clears). First three purchases — and any purchase
+## during a match event — are matched 1:1 in fragments AND tokens.
+func purchase_coins(amount: int) -> void:
+	if amount <= 0: return
+	await earn_currency("cat_coins", amount, "iap_purchase")
+	_coin_purchases_made += 1
+	if _coin_purchases_made <= PURCHASE_MATCH_LIMIT or match_event_active:
+		await earn_currency("fragments", amount, "purchase_match")
+		await earn_currency("tokens", amount, "purchase_match")
+		NotificationUI.notify_win("Purchase matched! +%d 🧩 and +%d ⚔️" % [amount, amount])
+
+## Chips can ONLY be bought with coins — the casino's dedicated currency.
+func buy_chips(chip_amount: int) -> bool:
+	if not await spend_coins(chip_amount, "chip_exchange"):
+		return false
+	await earn_currency("chips", chip_amount, "chip_exchange")
+	return true
+
+## Casino jackpots pay their bonus out in fragments and tokens.
+func award_jackpot_bonus(amount: int) -> void:
+	await earn_currency("fragments", amount, "jackpot")
+	await earn_currency("tokens", amount, "jackpot")
+
+## Equivalent exchange: spend prestige to buy past a gate that would
+## otherwise block you (race, faction, morality, influence level, ...).
+## Gate cost scales with how "hard" the gate is; callers pass the tier.
+func equivalent_exchange(gate: String, tier: int = 1) -> bool:
+	var cost := 100 * tier * tier
+	if not await spend_currency("prestige", cost, "exchange_%s" % gate):
+		NotificationUI.notify_error("Equivalent exchange needs %d 🌟 prestige for this gate." % cost)
+		return false
+	NotificationUI.notify_win("Exchange accepted — the %s gate opens. 🌟" % gate)
+	return true
+
+## Influence level — our level system, derived from lifetime prestige earned
+## (spending prestige on exchanges never lowers it).
+var _lifetime_prestige: int = 0
+
+func influence_level() -> int:
+	return 1 + int(sqrt(_lifetime_prestige / 100.0))
+
+func earn_prestige(amount: int, source: String = "gameplay") -> void:
+	_lifetime_prestige += maxi(amount, 0)
+	await earn_currency("prestige", amount, source)
 
 func spend_coins(amount: int, destination: String = "unknown") -> bool:
 	if amount <= 0:
