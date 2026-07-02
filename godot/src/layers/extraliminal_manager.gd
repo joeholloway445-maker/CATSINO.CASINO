@@ -57,6 +57,7 @@ func attempt_catch(entity: Dictionary, use_lure: bool = false) -> bool:
 		CompanionSystem.unlock_companion(entity.get("id", ""))
 		EconomyManager.earn_currency("charges", int(entity.get("rarity", 1)), "entity_caught")
 		entity_caught.emit(entity)
+		CrownManager.add_score("Top Wildlife Tames", "local_player", 1)
 		return true
 	return false
 

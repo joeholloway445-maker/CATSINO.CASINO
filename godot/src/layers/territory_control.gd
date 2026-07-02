@@ -1,10 +1,12 @@
 extends Node
 ## Autoloaded as "TerritoryControl". The Supraliminal war layer: every chunk
 ## outside the hand-authored hub bounds is PvP and claimable by alliances
-## (factions and their guild coalitions). Holding territory generates
-## Influence; the alliance holding the most weighted territory crowns its
-## top-contributing player **Sovereign of the Metroplex** — ESO-emperor-like,
-## but the crown keeps working for the whole alliance, not just the wearer.
+## (factions and their guild coalitions). Every claim scores the player on
+## the "Top Territory Captures" leaderboard, whose #1 wears the Crown of the
+## Conqueror (CrownData id 47) — so the Metroplex ruler is decided by the
+## same crowns system as everything else. The leading alliance's top
+## contributor is titled **Conqueror of the Metroplex**, and the crown's
+## buff works for the whole alliance, not just the wearer.
 
 signal chunk_claimed(coord: Vector2i, alliance: String)
 signal chunk_contested(coord: Vector2i, attacker: String, defender: String)
@@ -47,6 +49,7 @@ func claim_chunk(coord: Vector2i, alliance: String, player_id: String) -> bool:
 	_contribution.get_or_add(alliance, {})[player_id] = \
 		_contribution[alliance].get(player_id, 0) + weight
 	EconomyManager.earn_currency("tokens", weight, "territory_claim")
+	CrownManager.add_score("Top Territory Captures", player_id, weight, alliance)
 	chunk_claimed.emit(coord, alliance)
 	_recompute_sovereign()
 	return true
@@ -94,7 +97,7 @@ func _recompute_sovereign() -> void:
 		sovereign_id = top_player
 		sovereign_alliance = best_alliance
 		sovereign_crowned.emit(top_player, best_alliance)
-		NotificationUI.notify_info("👑 %s of %s is crowned Sovereign of the Metroplex!" % [top_player, best_alliance])
+		NotificationUI.notify_info("👑 %s of %s is the Conqueror of the Metroplex!" % [top_player, best_alliance])
 
 ## The Sovereign's crown buffs the whole alliance while held.
 func sovereign_bonus(alliance: String) -> float:

@@ -83,6 +83,7 @@ func _supraliminal_enter(coord: Vector2i) -> void:
 	DiscoveryManager.register_party_visit(coord, [pack])
 	if not already_known:
 		QuestManager.update_progress("discover_chunk")
+		CrownManager.add_score("Top Terrain Explored", "local_player", 1)
 	var owner := TerritoryControl.claim_owner(coord)
 	if owner != "" and owner != PlayerProfile.faction:
 		NotificationUI.notify_info("⚔️ %s territory — you are fair game here." % owner)

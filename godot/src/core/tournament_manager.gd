@@ -119,6 +119,7 @@ func _finish(winner: Dictionary) -> void:
 	tournament_finished.emit(winner, _standings)
 	if winner.get("is_player", false):
 		AchievementManager.check("tournament_won")
+		CrownManager.add_score("Top Arena Victories", "local_player", 1, PlayerProfile.faction)
 	await get_tree().create_timer(3.0).timeout
 	state = TournamentState.IDLE
 	current_tournament = {}

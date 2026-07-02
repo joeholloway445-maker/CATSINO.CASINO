@@ -55,6 +55,7 @@ func _finish(outcome: String, payout: int) -> void:
 	if won:
 		NotificationUI.notify_win("Combat win! +%d coins ⚔️" % payout)
 		AchievementManager.check("battle_win")
+		CrownManager.add_score("Top 1v1 Victories", "local_player", 1, PlayerProfile.faction)
 		# Objective ids from QuestManager.QUESTS (main_002 / daily_003)
 		QuestManager.update_progress("enter_combat")
 		QuestManager.update_progress("win_combat")
