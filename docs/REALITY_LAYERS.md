@@ -91,6 +91,29 @@ link). Ported into `crown_data.gd` + `crown_manager.gd`:
 - **God tier** — Triple Crown + champion level ≥ 160 + still holding a
   crown. Title ladder: Champion / Ascendant / Former <title> / God.
 
+## The PVXC (inside the casino)
+
+An Ark-Survival-styled PvXC pit sunk under the casino floor
+(`src/pvxc/`, reachable from the main menu's 🔴 gate). Two loops in one
+room:
+
+- **Revenge loop** — dying registers your killer in the revenge ledger;
+  killing your registered killer pays a **double share** and flips the
+  grudge onto them. The gate screen shows you who you owe.
+- **House recovery** — the casino takes the **entry stake** up front (chips
+  only), a **40% cut of every death's carried loot** (killer gets the
+  rest), and a **10% extraction fee** on whatever walks out. Big floor
+  winners walking into the pit is the design.
+- **Multipliers** — everything inside pays **6x**; the **permanently red
+  core** at dead center pays **12x** (loot nodes are densest there).
+  Harvest nodes, roaming roster creatures (no faction access rules down
+  here — everything wants your loot), and four rim extraction gates.
+- **Audio** — no track in the pit by design: music fades out and your
+  build's SensoriumAmbience carries the room. Nothing comforting.
+- **Planned: PVXC Light** — spectate/bet on runs without entering
+  (candidate web-app spinoff). `PvxcManager.run_started/run_ended/
+  kill_recorded` are the event feed it will consume.
+
 ## Arena modes (not separate layers)
 
 MOBA ("Paws of the Ancients"), Faction Conflict, survival ("Last Cat

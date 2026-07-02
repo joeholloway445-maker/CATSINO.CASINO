@@ -21,6 +21,9 @@ const TRACKS: Dictionary = {
 	"racing":    ["res://assets/music/ridin_tonight.mp3"],
 	"overworld": ["res://assets/music/taillights_fade.mp3"],
 	"victory":   ["res://assets/music/take_a_bow_for_blake.mp3"],
+	# The PVXC gets NO track by design — nothing comforting down there.
+	# An empty list fades the music out; SensoriumAmbience carries the room.
+	"pvxc":      [],
 }
 
 ## Which context each reality layer wants when you arrive in it.
@@ -62,6 +65,11 @@ func play_context(context: String, loop: bool = true) -> void:
 		return
 	var paths: Array = TRACKS.get(context, [])
 	if paths.is_empty():
+		# Silence is a context too: fade out whatever's playing.
+		_current_context = context
+		var fade := create_tween()
+		fade.tween_property(_active, "volume_db", -40.0, FADE_SECONDS)
+		fade.tween_callback(_active.stop)
 		return
 	# Multiple tracks per context rotate deterministically per build —
 	# another place two players' games diverge.

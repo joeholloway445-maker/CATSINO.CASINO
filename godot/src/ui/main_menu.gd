@@ -59,6 +59,7 @@ func _build_ui() -> void:
 		{label="🗺️ Overworld", sig="", scene="res://scenes/world/overworld.tscn"},
 		{label="🌀 Reality Layers", sig="", scene="res://scenes/layers/layer_select.tscn"},
 		{label="🌗 Ascension", sig="", scene="res://scenes/ui/ascension.tscn"},
+		{label="🔴 The PVXC", sig="", scene="res://scenes/pvxc/pvxc_gate.tscn"},
 		{label="⚙️ Settings", sig="open_settings"},
 	]:
 		var btn = Button.new()
