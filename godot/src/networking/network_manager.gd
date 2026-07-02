@@ -1,1 +1,49 @@
-ZXh0ZW5kcyBOb2RlCmNsYXNzX25hbWUgTmV0d29ya01hbmFnZXIKIyBOYWthbWEgUlBDIGRpc3BhdGNoZXIg4oCUIGRlbGVnYXRlcyB0byBBY2NvdW50TWFuYWdlcidzIGF1dGhlbnRpY2F0ZWQgY2xpZW50CiMgYW5kIHNlc3Npb24gcmF0aGVyIHRoYW4gaG9sZGluZyBpdHMgb3duLiBBY2NvdW50TWFuYWdlciBvd25zIHRoZSBzaW5nbGUKIyBOYWthbWEgY2xpZW50L3Nlc3Npb24gZm9yIHRoaXMgZ2FtZSAoY3JlYXRlZCBpbiBfaW5pdF9uYWthbWFfY2xpZW50KCksCiMgcG9wdWxhdGVkIG9uIGF1dGhfZGV2aWNlKCkvYXV0aF9lbWFpbCgpL2F1dGhfY3VzdG9tKCkpOyBOZXR3b3JrTWFuYWdlciB1c2VkCiMgdG8gYXV0aGVudGljYXRlIGEgc2Vjb25kLCBpbmRlcGVuZGVudCBjbGllbnQvc2Vzc2lvbiB0aGF0IG5vdGhpbmcgZXZlcgojIHBvcHVsYXRlZCwgc28gZXZlcnkgY2FsbF9ycGMoKSBjYWxsZXIgKHNsb3RzLCByYWNpbmcsIGNvbWJhdCwgZ3VpbGRzLAojIGxlYWRlcmJvYXJkcywgc2hvcCwgdG91cm5hbWVudHMsIGdhY2hhLCBxdWVzdHMpIHNpbGVudGx5IGZhaWxlZCB3aXRoCiMgNDAxICJOb3QgYXV0aGVudGljYXRlZCIgZXZlbiBhZnRlciBhIHN1Y2Nlc3NmdWwgbG9naW4uCgpzaWduYWwgY29ubmVjdGVkKCkKc2lnbmFsIGRpc2Nvbm5lY3RlZCgpCnNpZ25hbCBycGNfZXJyb3IoY29kZTogaW50LCBtZXNzYWdlOiBTdHJpbmcpCgpmdW5jIF9nZXRfY2xpZW50KCk6CglyZXR1cm4gQWNjb3VudE1hbmFnZXIuZ2V0X25ha2FtYV9jbGllbnQoKSBpZiBBY2NvdW50TWFuYWdlciBlbHNlIG51bGwKCmZ1bmMgX2dldF9zZXNzaW9uKCk6CglyZXR1cm4gQWNjb3VudE1hbmFnZXIuZ2V0X25ha2FtYV9zZXNzaW9uKCkgaWYgQWNjb3VudE1hbmFnZXIgZWxzZSBudWxsCgpmdW5jIGNhbGxfcnBjKHJwY19pZDogU3RyaW5nLCBwYXlsb2FkOiBWYXJpYW50LCBjYWxsYmFjazogQ2FsbGFibGUpIC0+IHZvaWQ6Cgl2YXIgcGF5bG9hZF9zdHI6IFN0cmluZyA9IEpTT04uc3RyaW5naWZ5KHBheWxvYWQpIGlmIHBheWxvYWQgaXMgRGljdGlvbmFyeSBvciBwYXlsb2FkIGlzIEFycmF5IGVsc2Ugc3RyKHBheWxvYWQpCgl2YXIgY2xpZW50ID0gX2dldF9jbGllbnQoKQoJdmFyIHNlc3Npb24gPSBfZ2V0X3Nlc3Npb24oKQoJaWYgbm90IGNsaWVudCBvciBub3Qgc2Vzc2lvbiBvciBzZXNzaW9uLmlzX2V4cGlyZWQoKToKCQlycGNfZXJyb3IuZW1pdCg0MDEsICJOb3QgYXV0aGVudGljYXRlZCIpCgkJY2FsbGJhY2suY2FsbCh7InN1Y2Nlc3MiOiBmYWxzZSwgImVycm9yIjogIk5vdCBhdXRoZW50aWNhdGVkIn0pCgkJcmV0dXJuCgoJdmFyIHJlc3VsdCA9IGF3YWl0IGNsaWVudC5ycGNfYXN5bmMoc2Vzc2lvbiwgcnBjX2lkLCBwYXlsb2FkX3N0cikKCWlmIHJlc3VsdC5pc19leGNlcHRpb24oKToKCQl2YXIgZXggPSByZXN1bHQuZ2V0X2V4Y2VwdGlvbigpCgkJcnBjX2Vycm9yLmVtaXQoZXguc3RhdHVzX2NvZGUsIGV4Lm1lc3NhZ2UpCgkJY2FsbGJhY2suY2FsbCh7InN1Y2Nlc3MiOiBmYWxzZSwgImVycm9yIjogZXgubWVzc2FnZX0pCgkJcmV0dXJuCgoJdmFyIHBhcnNlZCA9IEpTT04ucGFyc2Vfc3RyaW5nKHJlc3VsdC5wYXlsb2FkKQoJaWYgcGFyc2VkID09IG51bGw6CgkJY2FsbGJhY2suY2FsbCh7InN1Y2Nlc3MiOiBmYWxzZSwgImVycm9yIjogIkludmFsaWQgSlNPTiByZXNwb25zZSJ9KQoJCXJldHVybgoKCWNhbGxiYWNrLmNhbGwocGFyc2VkKQoKZnVuYyBpc19jb25uZWN0ZWRfdG9fc2VydmVyKCkgLT4gYm9vbDoKCXJldHVybiBBY2NvdW50TWFuYWdlci5pc19hdXRoZW50aWNhdGVkIGlmIEFjY291bnRNYW5hZ2VyIGVsc2UgZmFsc2UKCmZ1bmMgZ2V0X3Nlc3Npb24oKToKCXJldHVybiBfZ2V0X3Nlc3Npb24oKQo=
+extends Node
+class_name NetworkManager
+# Nakama RPC dispatcher — delegates to AccountManager's authenticated client
+# and session rather than holding its own. AccountManager owns the single
+# Nakama client/session for this game (created in _init_nakama_client(),
+# populated on auth_device()/auth_email()/auth_custom()); NetworkManager used
+# to authenticate a second, independent client/session that nothing ever
+# populated, so every call_rpc() caller (slots, racing, combat, guilds,
+# leaderboards, shop, tournaments, gacha, quests) silently failed with
+# 401 "Not authenticated" even after a successful login.
+
+signal connected()
+signal disconnected()
+signal rpc_error(code: int, message: String)
+
+func _get_client():
+	return AccountManager.get_nakama_client() if AccountManager else null
+
+func _get_session():
+	return AccountManager.get_nakama_session() if AccountManager else null
+
+func call_rpc(rpc_id: String, payload: Variant, callback: Callable) -> void:
+	var payload_str: String = JSON.stringify(payload) if payload is Dictionary or payload is Array else str(payload)
+	var client = _get_client()
+	var session = _get_session()
+	if not client or not session or session.is_expired():
+		rpc_error.emit(401, "Not authenticated")
+		callback.call({"success": false, "error": "Not authenticated"})
+		return
+
+	var result = await client.rpc_async(session, rpc_id, payload_str)
+	if result.is_exception():
+		var ex = result.get_exception()
+		rpc_error.emit(ex.status_code, ex.message)
+		callback.call({"success": false, "error": ex.message})
+		return
+
+	var parsed = JSON.parse_string(result.payload)
+	if parsed == null:
+		callback.call({"success": false, "error": "Invalid JSON response"})
+		return
+
+	callback.call(parsed)
+
+func is_connected_to_server() -> bool:
+	return AccountManager.is_authenticated if AccountManager else false
+
+func get_session():
+	return _get_session()

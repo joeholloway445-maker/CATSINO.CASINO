@@ -65,10 +65,7 @@ func _process(delta: float) -> void:
 				_race_running = false
 				race_finished_visual.emit(_finish_order)
 
-func _frame_base_speed() -> float:
-	return 0.1  # fallback
-
-func _frame_base_speed(frame_id: String) -> float:
+static func _frame_base_speed(frame_id: String) -> float:
 	match frame_id:
 		"bolt":    return 0.14
 		"veil":    return 0.12
@@ -91,3 +88,42 @@ func get_player_position() -> float:
 
 func get_participants() -> Array[RaceParticipant]:
 	return _participants
+
+## Instant, track-aware race resolution for offline/local play. Each racer's
+## finish time is the track distance over their frame speed, with per-lap
+## variance so slower frames can still steal a podium. Returns
+## {position:int, results:[{id, frame_id, time}], player_time:float} sorted
+## by finish time. Difficulty widens the AI speed spread so expert tracks
+## field genuinely faster opponents.
+static func simulate_race(player_frame: String, track: Dictionary) -> Dictionary:
+	var laps: int = int(track.get("laps", 3))
+	var distance: float = float(track.get("distance", 1200.0))
+	var difficulty: String = str(track.get("difficulty", "beginner"))
+	var ai_boost := {"beginner": 0.0, "intermediate": 0.01, "expert": 0.02}.get(difficulty, 0.0)
+	var num_ai := {"beginner": 3, "intermediate": 5, "expert": 7}.get(difficulty, 3)
+
+	var entries: Array[Dictionary] = []
+	var racers := [{"id": "YOU", "frame_id": player_frame, "boost": 0.0}]
+	for i in range(num_ai):
+		racers.append({
+			"id": AI_NAMES[i % AI_NAMES.size()],
+			"frame_id": AI_FRAMES[(i * 3 + laps) % AI_FRAMES.size()],
+			"boost": ai_boost,
+		})
+
+	for r in racers:
+		var speed: float = _frame_base_speed(r["frame_id"]) + r["boost"]
+		var time := 0.0
+		for lap in range(laps):
+			time += (distance / float(laps)) / (speed * 100.0) * randf_range(0.92, 1.08)
+		entries.append({"id": r["id"], "frame_id": r["frame_id"], "time": snappedf(time, 0.01)})
+
+	entries.sort_custom(func(a, b): return a["time"] < b["time"])
+	var player_pos := entries.size()
+	var player_time := 0.0
+	for i in range(entries.size()):
+		if entries[i]["id"] == "YOU":
+			player_pos = i + 1
+			player_time = entries[i]["time"]
+			break
+	return {"position": player_pos, "results": entries, "player_time": player_time}

@@ -47,6 +47,10 @@ func earn_coins(amount: int, source: String = "unknown") -> void:
 	_record_transaction(CURRENCY_COINS, amount, source, "earn")
 	await _push_transaction_to_server(CURRENCY_COINS, amount, source, "earn")
 
+## Alias for earn_coins — quest/arena/liveops rewards call add_coins.
+func add_coins(amount: int, source: String = "unknown") -> void:
+	earn_coins(amount, source)
+
 func spend_coins(amount: int, destination: String = "unknown") -> bool:
 	if amount <= 0:
 		push_warning("EconomyManager: spend_coins called with non-positive amount %d" % amount)

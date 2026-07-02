@@ -11,6 +11,18 @@ signal race_finished(position: int, payout: int)
 var _current_bet: int = 0
 var _current_frame: String = "basic"
 
+func _ready() -> void:
+	# RaceUI resolves races itself (server RPC or local RaceAI sim); listen to
+	# its result so achievements/XP/quest progress fire either way.
+	if race_ui:
+		race_ui.race_started.connect(func(frame_id: String, bet: int):
+			_current_frame = frame_id
+			_current_bet = bet
+			race_started.emit(frame_id, bet))
+		race_ui.race_finished.connect(func(position: int, payout: int):
+			_on_race_result(position, payout, {}))
+
+## Legacy programmatic entry point (bypasses RaceUI) — still server-only.
 func start_race(frame_id: String, bet: int) -> void:
 	_current_bet = bet
 	_current_frame = frame_id
