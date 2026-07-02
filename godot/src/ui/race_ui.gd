@@ -59,8 +59,14 @@ func _build_ui() -> void:
 
 	_track_selector = OptionButton.new()
 	_track_selector.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	for t in RaceData.TRACKS:
-		_track_selector.add_item("%s — %s (entry %d 🪙)" % [t.name, t.difficulty, t.entry_fee])
+	var player_level: int = PlayerProfile.level
+	for i in range(RaceData.TRACKS.size()):
+		var t: Dictionary = RaceData.TRACKS[i]
+		if RaceData.is_unlocked(t, player_level):
+			_track_selector.add_item("%s — %s (entry %d 🪙)" % [t.name, t.difficulty, t.entry_fee])
+		else:
+			_track_selector.add_item("🔒 %s — unlocks at level %d" % [t.name, RaceData.unlock_level(t)])
+			_track_selector.set_item_disabled(i, true)
 	_track_selector.item_selected.connect(func(_i): _refresh_track_info())
 	track_row.add_child(_track_selector)
 
@@ -138,6 +144,9 @@ func _refresh_track_info() -> void:
 
 func _on_race_pressed() -> void:
 	var track := _selected_track()
+	if not RaceData.is_unlocked(track, PlayerProfile.level):
+		_status_label.text = "Track locked — reach level %d." % RaceData.unlock_level(track)
+		return
 	var entry_fee: int = int(track.entry_fee)
 	var bet := int(_bet_spinbox.value)
 

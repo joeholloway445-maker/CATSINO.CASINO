@@ -1,6 +1,7 @@
 extends Node
-# Bridges world_data/quests.json into the QuestManager at startup.
-# Any quests defined in the JSON are registered automatically.
+# Bridges world_data/quests.json into the QuestManager at startup: each JSON
+# quest is converted to QuestManager's native shape and registered. Built-in
+# QUESTS win id collisions (register_quest skips ids that already exist).
 
 func _ready() -> void:
 	if WorldLoader.quests.is_empty():
@@ -10,24 +11,33 @@ func _ready() -> void:
 func _register_json_quests() -> void:
 	var count := 0
 	for quest_id in WorldLoader.quests.keys():
-		if not QuestManager.quests.has(quest_id):
-			var q: Dictionary = WorldLoader.quests[quest_id]
-			QuestManager.quests[quest_id] = {
-				"title": q.get("title", quest_id),
-				"type": q.get("type", "side"),
-				"description": q.get("description", ""),
-				"district": q.get("district", ""),
-				"giver_npc": q.get("giver_npc", ""),
-				"objectives": q.get("objectives", []),
-				"reward_coins": q.get("reward_coins", 0),
-				"reward_xp": q.get("reward_xp", 0),
-				"unlock_companion": q.get("unlock_companion", ""),
-				"next_quest": q.get("next_quest", ""),
-				"prerequisites": q.get("prerequisites", []),
-				"completed": false,
-				"active": false,
-				"progress": {},
-			}
-			count += 1
+		var q: Dictionary = WorldLoader.quests[quest_id]
+		var rewards := {
+			"coins": int(q.get("reward_coins", 0)),
+			"xp": int(q.get("reward_xp", 0)),
+		}
+		if str(q.get("unlock_companion", "")) != "":
+			rewards["companion_unlock"] = q["unlock_companion"]
+		var objectives: Array = []
+		for obj in q.get("objectives", []):
+			objectives.append({
+				"id": obj.get("id", ""),
+				"desc": obj.get("description", ""),
+				"target": int(obj.get("target", 1)),
+				"type": obj.get("type", ""),
+				"district": obj.get("district", ""),
+			})
+		QuestManager.register_quest({
+			"id": quest_id,
+			"type": q.get("type", "side"),
+			"name": q.get("title", quest_id),
+			"desc": q.get("description", ""),
+			"district": q.get("district", ""),
+			"giver_npc": q.get("giver_npc", ""),
+			"objectives": objectives,
+			"rewards": rewards,
+			"prereq": q.get("prerequisites", []),
+		})
+		count += 1
 	if count > 0:
 		print("[WorldQuestBridge] Registered %d quests from world_data/quests.json" % count)

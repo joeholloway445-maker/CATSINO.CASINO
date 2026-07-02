@@ -37,11 +37,14 @@ func register(player_data: Dictionary) -> bool:
 		return false
 	if current_tournament["participants"].size() >= MAX_PARTICIPANTS:
 		return false
-	if not EconomyManager.spend_coins(current_tournament["entry_fee"]):
-		return false
+	# Only the human player pays from the real wallet; AI entrants just
+	# inflate the prize pool. spend_coins is a coroutine — must be awaited.
+	if player_data.get("is_player", false):
+		if not await EconomyManager.spend_coins(current_tournament["entry_fee"], "tournament_entry"):
+			return false
+		AchievementManager.check("tournament_entered")
 	current_tournament["participants"].append(player_data)
 	current_tournament["prize_pool"] += current_tournament["entry_fee"]
-	AchievementManager.check("tournament_entered")
 	return true
 
 func start() -> void:

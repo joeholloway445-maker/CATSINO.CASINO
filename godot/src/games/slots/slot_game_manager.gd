@@ -14,10 +14,11 @@ func spin(bet: int) -> void:
 			var payout: int = result.get("payout", 0)
 			spin_completed.emit(result)
 			AchievementManager.check("spin")
-			QuestManager.update_progress("daily_spin")
+			QuestManager.update_progress("spin_5")
+			QuestManager.update_progress("spin")
 			if payout > 0:
 				AchievementManager.check("win", payout)
-				QuestManager.update_progress("win_3_games")
+				QuestManager.update_progress("win_slots_3")
 				if payout >= 10000:
 					AchievementManager.check("big_win", payout)
 			XPManager.award_game("slots", payout > 0)

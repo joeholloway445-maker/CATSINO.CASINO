@@ -55,13 +55,19 @@ func _build_ui() -> void:
 		{label="🐾 Companions", sig="open_companions"},
 		{label="🛒 Shop", sig="open_shop"},
 		{label="🏆 Achievements", sig="open_achievements"},
-		{label="🌐 Game Modes", sig="open_game_modes"},
+		{label="🌐 Game Modes", sig="open_game_modes", scene="res://scenes/ui/game_mode_store.tscn"},
+		{label="🗺️ Overworld", sig="", scene="res://scenes/world/overworld.tscn"},
 		{label="⚙️ Settings", sig="open_settings"},
 	]:
 		var btn = Button.new()
 		btn.text = action.label
-		var sig_name = action.sig
-		btn.pressed.connect(func(): emit_signal(sig_name))
+		var sig_name: String = action.sig
+		var scene_path: String = action.get("scene", "")
+		btn.pressed.connect(func():
+			if sig_name != "":
+				emit_signal(sig_name)
+			if scene_path != "":
+				get_tree().change_scene_to_file(scene_path))
 		quick_row.add_child(btn)
 
 	# District grid

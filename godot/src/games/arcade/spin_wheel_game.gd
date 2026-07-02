@@ -54,7 +54,7 @@ func _spin() -> void:
 				result_label.text = "Won: +%d coins! 🎉" % payout
 				NotificationUI.notify_win("Fortune Wheel: +%d!" % payout)
 				AchievementManager.check("win", payout)
-				QuestManager.update_progress("fortune_wheel_spin")
+				QuestManager.update_progress("spin_5")
 			else:
 				result_label.text = "Better luck next spin!"
 			XPManager.award_game("fortune_wheel", payout > 0)

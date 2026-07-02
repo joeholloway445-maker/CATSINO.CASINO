@@ -22,8 +22,13 @@ func record_result(won: bool, bet: int, payout: int) -> void:
 	games_played += 1
 	session_ended.emit(current_game, won, payout)
 	AchievementManager.check("big_spender", total_bet_this_session)
-	if total_bet_this_session >= 10000:
-		QuestManager.update_progress("big_spender")
+	# spend_5000 (side_004) counts cumulative coins bet, not a threshold flag.
+	QuestManager.update_progress("spend_5000", bet)
+	QuestManager.update_progress("play_game")
+	if won:
+		QuestManager.update_progress("win_game")
+	if payout >= 500:
+		QuestManager.update_progress("win_500")
 
 func get_net() -> int:
 	return total_won_this_session - total_bet_this_session

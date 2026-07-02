@@ -114,6 +114,24 @@ func transition_to_district(district: District) -> void:
 	_is_transitioning = false
 	emit_signal("district_loading_progress", 1.0)
 	emit_signal("district_loaded", district)
+	_fire_visit_quest_triggers(district)
+
+## Advances both quest systems on arrival: the JSON quests' generic
+## "visit_district" trigger, the built-in per-district objectives, and
+## side_004's visit-all-districts counter (once per unique district).
+var _visited_districts: Dictionary = {}
+
+func _fire_visit_quest_triggers(district: District) -> void:
+	QuestManager.update_progress("visit_district")
+	match district:
+		District.CAT_COLISEUM:  QuestManager.update_progress("visit_coliseum")
+		District.ARCADE_GALAXY: QuestManager.update_progress("visit_arcade")
+		District.NEON_ALLEY:    QuestManager.update_progress("visit_neon")
+		District.CAT_FOREST:    QuestManager.update_progress("visit_forest")
+		_: pass
+	if not _visited_districts.has(district):
+		_visited_districts[district] = true
+		QuestManager.update_progress("visit_all_5")
 
 # ── Private ────────────────────────────────────────────────────────────────────
 func _poll_player_counts() -> void:

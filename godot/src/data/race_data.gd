@@ -29,7 +29,16 @@ const TRACKS: Array[Dictionary] = [
 	},
 ]
 
+## Player level required to enter each difficulty tier.
+const UNLOCK_LEVELS = {"beginner": 1, "intermediate": 5, "expert": 12}
+
 static func get_track(track_id: String) -> Dictionary:
 	for t in TRACKS:
 		if t.id == track_id: return t.duplicate()
 	return {}
+
+static func unlock_level(track: Dictionary) -> int:
+	return UNLOCK_LEVELS.get(str(track.get("difficulty", "beginner")), 1)
+
+static func is_unlocked(track: Dictionary, player_level: int) -> bool:
+	return player_level >= unlock_level(track)

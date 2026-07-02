@@ -72,14 +72,19 @@ func initialize() -> void:
 	emit_signal("roster_loaded", roster.size())
 
 # ── Public API ─────────────────────────────────────────────────────────────────
-func get_companion(companion_id: int) -> CompanionData:
+# companion_id is untyped: the roster indexes by int, but quest/battlepass
+# rewards pass string ids from other id schemes — those resolve to null and
+# no-op with a warning instead of hard-crashing on the typed signature.
+func get_companion(companion_id) -> CompanionData:
 	return _companion_index.get(companion_id, null)
 
-func unlock_companion(companion_id: int) -> void:
+func unlock_companion(companion_id) -> void:
 	var c := get_companion(companion_id)
 	if c:
 		c.is_unlocked = true
 		_save_progress()
+	else:
+		push_warning("CompanionSystem: unlock_companion(%s) — id not in roster, skipping" % str(companion_id))
 
 func evolve(companion_id: int) -> void:
 	var c := get_companion(companion_id)

@@ -55,8 +55,10 @@ func _finish(outcome: String, payout: int) -> void:
 	if won:
 		NotificationUI.notify_win("Combat win! +%d coins ⚔️" % payout)
 		AchievementManager.check("battle_win")
-		QuestManager.update_progress("first_battle")
-		QuestManager.update_progress("grand_tournament")
+		# Objective ids from QuestManager.QUESTS (main_002 / daily_003)
+		QuestManager.update_progress("enter_combat")
+		QuestManager.update_progress("win_combat")
+		QuestManager.update_progress("win_1_combat")
 	else:
 		NotificationUI.notify_error("Defeated! Better luck next time.")
 	XPManager.award_game("combat", won)

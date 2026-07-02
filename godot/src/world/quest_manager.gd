@@ -94,6 +94,15 @@ const QUESTS: Array[Dictionary] = [
 		rewards={coins=5000, xp=500},
 		prereq=["main_003"],
 	},
+	{
+		id="side_005", type=QuestType.SIDE, name="Cartographer's Call",
+		desc="Chart the wild overworld beyond the districts — every chunk you discover is painted with your influence.",
+		objectives=[
+			{id="discover_chunk", desc="Discover 10 wild overworld chunks", target=10},
+		],
+		rewards={coins=2500, xp=600},
+		prereq=[],
+	},
 	# Daily quests (repeatable)
 	{
 		id="daily_001", type=QuestType.DAILY, name="Daily Spin",
@@ -151,13 +160,27 @@ const QUESTS: Array[Dictionary] = [
 
 var _active: Dictionary = {}   # quest_id -> {state, progress}
 var _completed: Array[String] = []
+## Quests registered at runtime (world_data/quests.json via WorldQuestBridge),
+## already converted to the same shape as QUESTS.
+var _dynamic_quests: Array[Dictionary] = []
 
 func _ready() -> void:
 	_load_quest_state()
 
+func register_quest(quest: Dictionary) -> void:
+	if quest.get("id", "") == "" or not _find_quest(quest["id"]).is_empty():
+		return
+	_dynamic_quests.append(quest)
+
+func all_quests() -> Array[Dictionary]:
+	var result: Array[Dictionary] = []
+	result.assign(QUESTS)
+	result.append_array(_dynamic_quests)
+	return result
+
 func get_available_quests() -> Array[Dictionary]:
 	var result: Array[Dictionary] = []
-	for q in QUESTS:
+	for q in all_quests():
 		if q.id in _completed:
 			continue
 		if q.id in _active:
@@ -188,7 +211,9 @@ func update_progress(trigger: String, amount: int = 1) -> void:
 	for quest_id in _active.keys():
 		var quest = _find_quest(quest_id)
 		for obj in quest.get("objectives", []):
-			if obj.get("id", "") == trigger:
+			# Built-in quests match on objective id; JSON quests carry a
+			# trigger `type` ("spin", "win_race", ...) shared across quests.
+			if obj.get("id", "") == trigger or obj.get("type", "") == trigger:
 				var current: int = _active[quest_id]["progress"].get(obj.id, 0)
 				current = mini(current + amount, obj.get("target", 1))
 				_active[quest_id]["progress"][obj.id] = current
@@ -206,18 +231,50 @@ func _check_completion(quest_id: String, quest: Dictionary) -> void:
 	_completed.append(quest_id)
 	var rewards: Dictionary = quest.get("rewards", {})
 	if rewards.get("coins", 0) > 0:
-		EconomyManager.add_coins(rewards["coins"])
+		EconomyManager.add_coins(rewards["coins"], "quest_reward")
 	if rewards.get("xp", 0) > 0:
-		EconomyManager.add_xp(rewards["xp"])
+		PlayerProfile.add_xp(rewards["xp"])
 	if rewards.get("gems", 0) > 0:
-		EconomyManager.add_gems(rewards["gems"])
+		EconomyManager.earn_gems(rewards["gems"], "quest_reward")
 	if rewards.has("companion_unlock"):
-		CompanionSystem.unlock(rewards["companion_unlock"])
+		CompanionSystem.unlock_companion(rewards["companion_unlock"])
 	quest_completed.emit(quest_id, rewards)
 	AchievementManager.check("quest_completed")
 
+## Compat shims for callers written against the old core quest tracker.
+## accept_quest also mirrors the action to the Nakama quest RPC so
+## server-tracked quests (neon_alley_racer, arcade_champion, ...) stay in
+## sync when a session exists.
+func accept_quest(quest_id: String) -> void:
+	if not _find_quest(quest_id).is_empty():
+		accept(quest_id)
+	if NetworkManager.is_connected_to_server():
+		NetworkManager.call_rpc("quest_action", {quest_id=quest_id, action="accept"}, func(_r): pass)
+
+## Force-completes a local quest (fills every objective) or, for
+## server-only quest ids, just reports completion to Nakama.
+func complete_quest(quest_id: String) -> void:
+	var quest := _find_quest(quest_id)
+	if not quest.is_empty() and quest_id in _active:
+		for obj in quest.get("objectives", []):
+			_active[quest_id]["progress"][obj.id] = obj.get("target", 1)
+		_check_completion(quest_id, quest)
+		_save_quest_state()
+	if NetworkManager.is_connected_to_server():
+		NetworkManager.call_rpc("quest_action", {quest_id=quest_id, action="complete"},
+			func(result: Dictionary):
+				if result.get("coins_awarded", 0) > 0:
+					NotificationUI.show_notification("Quest reward: +%d coins!" % result.coins_awarded, Color(0.3, 1.0, 0.3), "🎉")
+		)
+
+func is_active(quest_id: String) -> bool:
+	return quest_id in _active
+
+func is_complete(quest_id: String) -> bool:
+	return quest_id in _completed
+
 func _find_quest(quest_id: String) -> Dictionary:
-	for q in QUESTS:
+	for q in all_quests():
 		if q.id == quest_id:
 			return q
 	return {}

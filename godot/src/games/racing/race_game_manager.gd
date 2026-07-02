@@ -49,6 +49,11 @@ func _on_race_result(position: int, payout: int, result: Dictionary) -> void:
 	else:
 		NotificationUI.notify_error("Race finished: %d place. No payout." % position)
 	XPManager.award_game("race", position <= 3)
-	QuestManager.update_progress("neon_alley_racer")
+	# QuestManager.update_progress matches OBJECTIVE ids, not quest ids —
+	# these are the racing objectives across main_003 / side_002 / daily_002.
+	QuestManager.update_progress("race_neon")
+	QuestManager.update_progress("race_3")
+	QuestManager.update_progress("race_1")
 	if position == 1:
-		QuestManager.update_progress("race_champion")
+		QuestManager.update_progress("first_place")
+		QuestManager.update_progress("win_race")

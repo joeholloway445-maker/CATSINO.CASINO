@@ -55,8 +55,14 @@ func _spawn_notification(note: Dictionary) -> void:
 		_process_queue()
 	)
 
-func notify_win(amount: int) -> void:
-	show_notification("+%d 🪙 WIN!" % amount, Color(0.3, 1.0, 0.3), "🎉")
+# Accepts either a coin amount or a pre-formatted message — callers across
+# the codebase use both.
+func notify_win(amount_or_message) -> void:
+	var msg: String = "+%d 🪙 WIN!" % amount_or_message if amount_or_message is int else str(amount_or_message)
+	show_notification(msg, Color(0.3, 1.0, 0.3), "🎉")
+
+func notify_info(message: String) -> void:
+	show_notification(message, Color(0.7, 0.85, 1.0), "ℹ️")
 
 func notify_achievement(name: String) -> void:
 	show_notification("Achievement: %s" % name, Color(1.0, 0.85, 0.0), "🏆")

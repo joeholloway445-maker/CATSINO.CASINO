@@ -76,6 +76,16 @@ work actually lived. Everything now lives here, in one place.
   pieces (`character_rig.gd`, `texture_materials.gd`) are shared rather
   than duplicated, since catsino's own rewired character preview uses
   them too.
+  - **3D overworld** (`src/world/overworld/`) — a walkable third-person
+    overworld: streamed procedural heightmap terrain (one mesh per
+    DiscoveryManager chunk, biome-tinted, low-poly props from each chunk's
+    deterministic prop seed), a procedural day/night sky, and a capsule-cat
+    controller whose movement feel is adapted from the Godot TPS/platformer
+    demos (fetched as reference — their binary assets can't be vendored, so
+    everything here is procedural and asset-free). Walking into a
+    never-generated chunk fires the discover mechanic and advances the
+    "Cartographer's Call" quest; influence repaints show up as ground tint.
+    Reachable from the main menu's "🗺️ Overworld" button.
 - `scripts/` — shared tooling (e.g. `repo_factory.sh` for pulling in
   open-source Godot addons).
 
