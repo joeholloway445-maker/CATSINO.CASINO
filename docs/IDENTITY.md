@@ -99,3 +99,26 @@ multiplier: they only come from quests, crowns, and feats
 - **Equivalent exchange** — race/faction gates on any of this can be
   bought through with Prestige. Nothing is out of reach; some things are
   just expensive in time.
+
+## The soundtrack & the signature style
+
+Original tracks (Suno-produced; the catalog grows over time) live in
+`godot/assets/music/` and are context-mapped by `MusicManager`:
+
+| Track | Context |
+|---|---|
+| **Periliminal Space** | THE theme song — title, main menu, Subliminal |
+| **noclip** | The Liminal and the Periliminal (falling out of reality) |
+| **Ridin' Tonight** | Racing |
+| **Taillights Fade** | Supraliminal/Extraliminal overworld (night driving) |
+| **Take a Bow for Blake** | Tournament/championship victory stinger |
+
+Two rules define the audio signature:
+1. **The tracks carry the melody; your build carries the texture.** Under
+   every track, `SensoriumAmbience` live-synthesizes a quiet bed from your
+   frame's mode/tempo/timbre and your identity seed — the world's hum is
+   yours alone.
+2. **Multiple tracks per context rotate by identity seed** — as the Suno
+   catalog grows, different builds hear different cuts in the same places.
+   Drop a new .mp3 in `assets/music/` and add it to a context's list in
+   `music_manager.gd`; nothing else needed.

@@ -62,6 +62,7 @@ SubliminalManager="*res://src/layers/subliminal_manager.gd"
 LayerManager="*res://src/layers/layer_manager.gd"
 PeriliminalRuns="*res://src/layers/periliminal_runs.gd"
 ExtraliminalManager="*res://src/layers/extraliminal_manager.gd"
+MusicManager="*res://src/audio/music_manager.gd"
 
 [display]
 

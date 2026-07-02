@@ -30,6 +30,7 @@ func _ready() -> void:
 	_player.global_position = spawn
 
 	_player.chunk_changed.connect(_on_player_chunk_changed)
+	add_child(SensoriumAmbience.new())
 	_build_hud()
 
 func _build_hud() -> void:

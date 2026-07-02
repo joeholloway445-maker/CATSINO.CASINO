@@ -32,6 +32,10 @@ const DIFFICULTY_BONUS = {"beginner": 1.0, "intermediate": 1.25, "expert": 1.6}
 
 func _ready() -> void:
 	_build_ui()
+	MusicManager.enter_racing()
+
+func _exit_tree() -> void:
+	MusicManager.exit_racing()
 
 func _build_ui() -> void:
 	var root = VBoxContainer.new()

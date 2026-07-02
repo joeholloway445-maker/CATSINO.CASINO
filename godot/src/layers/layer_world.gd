@@ -38,6 +38,7 @@ func _ready() -> void:
 	spawn.y = _terrain.height_at(spawn.x, spawn.z) + 2.0
 	_player.global_position = spawn
 	_player.chunk_changed.connect(_on_chunk_changed)
+	add_child(SensoriumAmbience.new()) # your build's own hum, under the music
 	_build_hud()
 
 func _spawn_point() -> Vector3:
