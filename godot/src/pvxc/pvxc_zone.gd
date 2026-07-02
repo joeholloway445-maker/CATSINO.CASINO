@@ -145,6 +145,7 @@ func _spawn_creature(pos: Vector3, rng: RandomNumberGenerator) -> void:
 	if roster.is_empty():
 		return
 	var entity: Dictionary = roster[rng.randi() % roster.size()]
+	var area := Area3D.new()
 	var mi := MeshInstance3D.new()
 	var caps := CapsuleMesh.new()
 	caps.radius = 0.5
@@ -157,9 +158,37 @@ func _spawn_creature(pos: Vector3, rng: RandomNumberGenerator) -> void:
 	var seen: Dictionary = IdentityLens.perceive_being(profile, Color(0.6, 0.3, 0.3))
 	mi.material_override = seen.material
 	mi.scale = Vector3.ONE * seen.scale
-	mi.position = pos + Vector3(0, 1.0, 0)
-	mi.set_meta("entity_id", entity.get("id", ""))
-	add_child(mi)
+	mi.position.y = 1.0
+	area.add_child(mi)
+	var cs := CollisionShape3D.new()
+	var sph := SphereShape3D.new()
+	sph.radius = 1.4
+	cs.shape = sph
+	cs.position.y = 1.0
+	area.add_child(cs)
+	area.position = pos
+	# Touching a creature is a fight, resolved on the spot: your stats +
+	# a luck roll vs its POW (rarity-weighted). Win -> its bounty joins your
+	# loot and it counts as a PvXC kill (revenge rules included — yes, the
+	# ledger holds grudges against creatures too). Lose -> the pit keeps you.
+	var ename: String = str(entity.get("name", "something feral"))
+	var epow: int = int(entity.get("pow", 50)) + int(entity.get("rarity", 1)) * 8
+	area.body_entered.connect(func(b):
+		if not (b is ThirdPersonController) or not PvxcManager.in_run:
+			return
+		var stats := CharacterCreatorLogic.build_starting_stats(
+			PlayerProfile.selected_race_id, PlayerProfile.faction, PlayerProfile.selected_frame)
+		var mine: int = int(stats.pow) + int(stats.lck) + PlayerProfile.level * 2 + randi() % 30
+		if mine >= epow + randi() % 30:
+			var bounty: int = 15 + int(entity.get("rarity", 1)) * 20
+			PvxcManager.record_kill(ename, bounty, area.global_position)
+			NotificationUI.notify_win("🗡️ Took down %s (+%d bounty)" % [ename, bounty])
+			area.queue_free()
+		else:
+			PvxcManager.record_death(ename)
+			MusicManager.exit_racing()
+			get_tree().change_scene_to_file("res://scenes/pvxc/pvxc_gate.tscn"))
+	add_child(area)
 
 func _spawn_gate(pos: Vector3) -> void:
 	var gate := Area3D.new()
