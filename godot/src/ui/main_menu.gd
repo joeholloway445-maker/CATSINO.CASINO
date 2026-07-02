@@ -57,6 +57,7 @@ func _build_ui() -> void:
 		{label="🏆 Achievements", sig="open_achievements"},
 		{label="🌐 Game Modes", sig="open_game_modes", scene="res://scenes/ui/game_mode_store.tscn"},
 		{label="🗺️ Overworld", sig="", scene="res://scenes/world/overworld.tscn"},
+		{label="🌀 Reality Layers", sig="", scene="res://scenes/layers/layer_select.tscn"},
 		{label="⚙️ Settings", sig="open_settings"},
 	]:
 		var btn = Button.new()

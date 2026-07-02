@@ -38,6 +38,11 @@ const CRAFT_RECIPES: Dictionary = {
 	"legendary_emote_001": ["epic_shard", "common_essence"]
 }
 
+## Wipes the whole inventory — the Periliminal keeps what it kills.
+func clear_all() -> void:
+	_items.clear()
+	inventory_loaded.emit([])
+
 func add_item(item_data: Dictionary) -> bool:
 	var item_id: String = item_data.get("id", "")
 	if item_id == "" or item_id in _items:

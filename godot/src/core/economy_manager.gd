@@ -14,10 +14,49 @@ const DAILY_BONUS_BASE := 500
 const DAILY_BONUS_MAX  := 5000
 const DAILY_STREAK_CAP := 7
 
+## The six currencies — one anchored to each reality layer. `earned_by` and
+## `spent_on` document the acquisition/sink loops the managers implement.
+const CURRENCIES: Dictionary = {
+	"cat_coins": {
+		name="Cat Coins", icon="🪙", layer="hyperliminal",
+		earned_by="casino games, races, quests, daily bonus",
+		spent_on="bets, race entries, shop items, tournament fees",
+	},
+	"gems": {
+		name="Gems", icon="💎", layer="hyperliminal",
+		earned_by="battlepass, achievements, big quest chains, IAP",
+		spent_on="game-mode activations, gacha, premium cosmetics",
+	},
+	"essence": {
+		name="Essence", icon="🌫️", layer="liminal",
+		earned_by="surviving liminal excursions; harvested from never-static chunks before they dissolve",
+		spent_on="stabilizing a liminal exit, opening liminal doors (guild wars), shortcut travel between layers",
+	},
+	"influence": {
+		name="Influence", icon="🏴", layer="supraliminal",
+		earned_by="claiming/holding territory, winning alliance fights, keystone chunks",
+		spent_on="alliance upgrades, siege gear, hub-adjacent claim rights",
+	},
+	"sigil": {
+		name="Sigils", icon="🔮", layer="extraliminal",
+		earned_by="catching roaming entities, holding landmark guild halls, guild-war victories",
+		spent_on="guild hall perks, landmark fortification, entity lures",
+	},
+	"whisper": {
+		name="Whispers", icon="👁️", layer="periliminal",
+		earned_by="ONLY by surviving Periliminal runs — the deeper the run, the more you carry out",
+		spent_on="the rarest blueprints, resurrecting one lost entity, permanent account-wide perks",
+	},
+}
+
 # ── State ──────────────────────────────────────────────────────────────────────
 var _balances: Dictionary = {
-	CURRENCY_COINS: 0,
-	CURRENCY_GEMS:  0,
+	"cat_coins": 0,
+	"gems":      0,
+	"essence":   0,
+	"influence": 0,
+	"sigil":     0,
+	"whisper":   0,
 }
 var transaction_log: Array[Dictionary] = []
 var _daily_bonus_last_claimed: String = ""
@@ -50,6 +89,28 @@ func earn_coins(amount: int, source: String = "unknown") -> void:
 ## Alias for earn_coins — quest/arena/liveops rewards call add_coins.
 func add_coins(amount: int, source: String = "unknown") -> void:
 	earn_coins(amount, source)
+
+# ── Generic currency API (all six layer currencies) ───────────────────────────
+func get_balance(currency: String) -> int:
+	return _balances.get(currency, 0)
+
+func earn_currency(currency: String, amount: int, source: String = "unknown") -> void:
+	if amount <= 0 or not CURRENCIES.has(currency):
+		return
+	_adjust_balance(currency, amount)
+	_record_transaction(currency, amount, source, "earn")
+	await _push_transaction_to_server(currency, amount, source, "earn")
+
+func spend_currency(currency: String, amount: int, destination: String = "unknown") -> bool:
+	if amount <= 0 or not CURRENCIES.has(currency):
+		return false
+	if _balances.get(currency, 0) < amount:
+		emit_signal("insufficient_funds", currency, amount, _balances.get(currency, 0))
+		return false
+	_adjust_balance(currency, -amount)
+	_record_transaction(currency, -amount, destination, "spend")
+	await _push_transaction_to_server(currency, -amount, destination, "spend")
+	return true
 
 func spend_coins(amount: int, destination: String = "unknown") -> bool:
 	if amount <= 0:
