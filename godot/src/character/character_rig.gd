@@ -12,6 +12,14 @@ const TextureMaterials = preload("res://src/character/texture_materials.gd")
 
 var _parts: Array[MeshInstance3D] = []
 
+## When true, this rig represents ANOTHER being on the local player's
+## client: it renders through the viewer's race lens and the RPS
+## perception model (apparent scale, threat aura, loadout visibility).
+## Leave false for the player's own preview — you see yourself as you are.
+@export var perceived := false
+## The other being's profile for perception (level/faction/alignment/stats).
+var perceived_profile: Dictionary = {}
+
 func build_from_loadout(race: Dictionary, frame: Dictionary, mod: Dictionary = {}) -> void:
 	clear()
 	if race.is_empty() or frame.is_empty():
@@ -26,6 +34,17 @@ func build_from_loadout(race: Dictionary, frame: Dictionary, mod: Dictionary = {
 		mod_scale = _scale_from_mod(mod.get("id", ""))
 
 	var material := TextureMaterials.build_material(race.get("texture_type", ""), race.get("primary_color", Color.WHITE))
+	if perceived and not perceived_profile.is_empty():
+		# Their substance, read through YOUR lens, scaled by the RPS model.
+		var seen: Dictionary = IdentityLens.perceive_being(
+			perceived_profile, race.get("primary_color", Color.WHITE))
+		material = seen.material
+		scale = Vector3.ONE * seen.view.apparent_scale
+		if not seen.view.loadout_visible:
+			# Outclassed: no detail, just the silhouette you should walk away from.
+			material.albedo_color = Color(0.05, 0.05, 0.08)
+			material.roughness = 1.0
+			material.metallic = 0.0
 
 	# Torso
 	var torso := _add_part(CapsuleMesh.new(), material)

@@ -12,14 +12,17 @@ extends Control
 
 func _ready() -> void:
 	_refresh()
-	PlayerProfile.xp_changed.connect(func(_xp, _lv): _refresh())
+	PlayerProfile.profile_updated.connect(_refresh)
 
 func _refresh() -> void:
 	username_label.text = PlayerProfile.get_display_name()
-	level_label.text = "Level %d" % PlayerProfile.level
-	title_label.text = '"%s"' % PlayerProfile.current_title
-	faction_label.text = "Faction: %s" % PlayerProfile.faction if PlayerProfile.faction else "No Faction"
-	frame_label.text = "Frame: %s" % PlayerProfile.frame_id.capitalize()
+	level_label.text = "Level %d  •  Influence %d" % [PlayerProfile.level, EconomyManager.influence_level()]
+	title_label.text = '"%s"' % PlayerProfile.active_title if PlayerProfile.active_title else ""
+	faction_label.text = "Faction: %s" % PlayerProfile.faction
+	var frame_text := PlayerProfile.selected_frame.capitalize()
+	if PlayerProfile.ascended_frame != "":
+		frame_text += " + %s (ascended)" % PlayerProfile.ascended_frame.capitalize()
+	frame_label.text = "Frame: %s" % frame_text
 	xp_bar.value = PlayerProfile.xp_progress() * 100
-	companions_label.text = "Companions: %d" % PlayerProfile.companions.size()
-	wins_label.text = "Wins: %d" % PlayerProfile.total_wins
+	companions_label.text = "Companions: %d" % PlayerProfile.active_companion_ids.size()
+	wins_label.text = IdentityLens.rarity_text()

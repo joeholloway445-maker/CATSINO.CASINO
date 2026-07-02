@@ -16,6 +16,8 @@ extends Node
 
 signal lens_changed()
 
+const TextureMaterials = preload("res://src/character/texture_materials.gd")
+
 const BASE_BUILDS := 20 * 20 * 20      # race x frame x mod = 8,000
 const ASCENSION_MULT := 20             # second frame
 const FACTION_MULT := 3                # the three factions
