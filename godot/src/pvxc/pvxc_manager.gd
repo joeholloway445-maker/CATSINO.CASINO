@@ -126,3 +126,9 @@ func extract() -> void:
 
 func my_target() -> String:
 	return revenge_ledger.get("local_player", "")
+
+## PVXC time is provisional-PvP time: every second in a run feeds the
+## Champion trial clock (CrownManager wants hours).
+func _process(delta: float) -> void:
+	if in_run:
+		CrownManager.log_provisional_pvp("local_player", delta / 3600.0)

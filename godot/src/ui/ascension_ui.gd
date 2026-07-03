@@ -45,11 +45,23 @@ func _ready() -> void:
 	_refresh()
 
 func _refresh() -> void:
+	for child in _list.get_children():
+		child.queue_free()
 	var base := PlayerProfile.selected_frame
 	var current := PlayerProfile.ascended_frame
 	if current != "":
 		_header.text = "🌗 ASCENDED: %s + %s" % [base.capitalize(), current.capitalize()]
 		_preview.text = FrameSensorium.blend(base, current).desc
+	elif PlayerProfile.level >= 50 and CrownManager.title_of("local_player") == "":
+		_header.text = "🌗 ASCENSION — the Champion trial awaits"
+		_preview.text = "Opt in, survive 4 hours of provisional PvP (the PVXC counts), and the second frame is yours to choose."
+		var trial := Button.new()
+		trial.text = "⚔️ Begin Champion Trial"
+		trial.pressed.connect(func():
+			CrownManager.start_champion_trial("local_player", PlayerProfile.level)
+			_refresh())
+		_list.add_child(trial)
+		return
 	elif PlayerProfile.level >= 50:
 		_header.text = "🌗 ASCENSION — choose your second frame"
 		_preview.text = "Your %s senses will keep 60%% authority; the second frame colors them. This multiplies your build space twentyfold." % base.capitalize()
@@ -57,8 +69,6 @@ func _refresh() -> void:
 		_header.text = "🌗 ASCENSION — sealed until level 50"
 		_preview.text = "Now: %s" % FrameSensorium.of(base).desc
 
-	for child in _list.get_children():
-		child.queue_free()
 	if PlayerProfile.level < 50 or current != "":
 		return
 
