@@ -32,6 +32,17 @@ func _ready() -> void:
 	_build_camera()
 
 func _build_body() -> void:
+	var real := AssetLibrary.instance("player_cat")
+	if real != null:
+		add_child(real)
+		var cshape := CollisionShape3D.new()
+		var ccap := CapsuleShape3D.new()
+		ccap.radius = 0.4
+		ccap.height = 1.2
+		cshape.shape = ccap
+		cshape.position.y = 0.6
+		add_child(cshape)
+		return
 	var shape := CollisionShape3D.new()
 	var capsule := CapsuleShape3D.new()
 	capsule.radius = 0.4

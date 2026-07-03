@@ -43,9 +43,47 @@ func _build_arena() -> void:
 	env.fog_enabled = true
 	env.fog_light_color = Color(0.2, 0.04, 0.06)
 	env.fog_density = 0.015
+	env.ssao_enabled = true
+	env.ssao_intensity = 2.0
+	env.tonemap_mode = Environment.TONE_MAPPER_ACES
+	env.glow_enabled = true
+	env.glow_intensity = 0.8
+	env.volumetric_fog_enabled = true
+	env.volumetric_fog_density = 0.03
+	env.volumetric_fog_albedo = Color(0.4, 0.05, 0.08)
 	var we := WorldEnvironment.new()
 	we.environment = env
 	add_child(we)
+
+	# Embers rising out of the red core — the pit breathes.
+	var embers := GPUParticles3D.new()
+	embers.amount = 200
+	embers.lifetime = 6.0
+	embers.position.y = 0.5
+	var pmat := ParticleProcessMaterial.new()
+	pmat.emission_shape = ParticleProcessMaterial.EMISSION_SHAPE_RING
+	pmat.emission_ring_radius = CORE
+	pmat.emission_ring_inner_radius = 0.0
+	pmat.emission_ring_height = 0.5
+	pmat.emission_ring_axis = Vector3.UP
+	pmat.direction = Vector3.UP
+	pmat.initial_velocity_min = 1.0
+	pmat.initial_velocity_max = 3.0
+	pmat.gravity = Vector3(0, 0.5, 0)
+	pmat.scale_min = 0.05
+	pmat.scale_max = 0.15
+	pmat.color = Color(1.0, 0.25, 0.1)
+	embers.process_material = pmat
+	var ember_mesh := SphereMesh.new()
+	ember_mesh.radius = 0.06
+	ember_mesh.height = 0.12
+	var ember_mat := StandardMaterial3D.new()
+	ember_mat.emission_enabled = true
+	ember_mat.emission = Color(1.0, 0.3, 0.1)
+	ember_mat.emission_energy_multiplier = 3.0
+	ember_mesh.material = ember_mat
+	embers.draw_pass_1 = ember_mesh
+	add_child(embers)
 
 	# Crater floor (hard mesh — renders through the race lens like all of it).
 	var floor_mesh := CylinderMesh.new()
@@ -146,20 +184,23 @@ func _spawn_creature(pos: Vector3, rng: RandomNumberGenerator) -> void:
 		return
 	var entity: Dictionary = roster[rng.randi() % roster.size()]
 	var area := Area3D.new()
-	var mi := MeshInstance3D.new()
-	var caps := CapsuleMesh.new()
-	caps.radius = 0.5
-	caps.height = 1.6
-	mi.mesh = caps
 	# Wild PVXC creatures render through your lens WITH perception — strong
 	# ones loom at you before you ever read their stats.
 	var profile := {"level": int(entity.get("rarity", 1)) * 15, "faction": entity.get("faction", ""),
 		"alignment": "feral", "stats": {"pow": entity.get("pow", 50)}}
 	var seen: Dictionary = IdentityLens.perceive_being(profile, Color(0.6, 0.3, 0.3))
-	mi.material_override = seen.material
-	mi.scale = Vector3.ONE * seen.scale
-	mi.position.y = 1.0
-	area.add_child(mi)
+	var visual: Node3D = AssetLibrary.instance("creature")
+	if visual == null:
+		var mi := MeshInstance3D.new()
+		var caps := CapsuleMesh.new()
+		caps.radius = 0.5
+		caps.height = 1.6
+		mi.mesh = caps
+		mi.material_override = seen.material
+		visual = mi
+	visual.scale = Vector3.ONE * seen.scale
+	visual.position.y = 1.0
+	area.add_child(visual)
 	var cs := CollisionShape3D.new()
 	var sph := SphereShape3D.new()
 	sph.radius = 1.4

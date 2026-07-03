@@ -119,10 +119,14 @@ func _scatter_props(root: Node3D, chunk: WorldChunk, size: float) -> void:
 	var density: float = float(chunk.biome.get("prop_density", 0.3))
 	var count := int(density * 12.0)
 	var biome: String = str(chunk.biome.get("biome", "plains"))
+	var slot := {"crystal_field": "crystal", "ruins": "ruin_pillar", "ashland": "rock"}.get(biome, "tree")
 	for i in range(count):
 		var px := rng.randf() * size
 		var pz := rng.randf() * size
-		var prop := _make_prop(biome, rng)
+		# Real asset if installed (docs/SHIPPING.md), procedural otherwise.
+		var prop: Node3D = AssetLibrary.instance_or(slot,
+			func(): return _make_prop(biome, rng),
+			BIOME_COLORS.get(biome, Color.WHITE), 0.2)
 		prop.position = Vector3(px, height_at(root.position.x + px, root.position.z + pz), pz)
 		root.add_child(prop)
 

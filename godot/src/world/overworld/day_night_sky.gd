@@ -37,8 +37,21 @@ func _ready() -> void:
 	env.background_mode = Environment.BG_SKY
 	env.sky = sky
 	env.ambient_light_source = Environment.AMBIENT_SOURCE_SKY
-	env.tonemap_mode = Environment.TONE_MAPPER_FILMIC
+	env.tonemap_mode = Environment.TONE_MAPPER_ACES
+	env.tonemap_white = 6.0
 	env.glow_enabled = true
+	env.glow_intensity = 0.6
+	env.glow_bloom = 0.1
+	env.glow_blend_mode = Environment.GLOW_BLEND_MODE_SOFTLIGHT
+	env.ssao_enabled = true
+	env.ssao_intensity = 1.5
+	env.ssil_enabled = true
+	env.volumetric_fog_enabled = true
+	env.volumetric_fog_density = 0.01
+	env.volumetric_fog_albedo = Color(0.85, 0.85, 0.95)
+	env.adjustment_enabled = true
+	env.adjustment_contrast = 1.05
+	env.adjustment_saturation = 1.1
 
 	_env = WorldEnvironment.new()
 	_env.environment = env
