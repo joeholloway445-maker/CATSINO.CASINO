@@ -1,7 +1,6 @@
 [gd_scene load_steps=2 format=3 uid="uid://layer_subliminal"]
 
-[ext_resource type="Script" path="res://src/layers/layer_world.gd" id="1"]
+[ext_resource type="Script" path="res://src/layers/subliminal_apartment.gd" id="1"]
 
 [node name="Subliminal" type="Node3D"]
 script = ExtResource("1")
-layer_id = "subliminal"
