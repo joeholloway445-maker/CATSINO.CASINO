@@ -75,6 +75,7 @@ func add_xp(amount: int) -> void:
 	while xp >= threshold:
 		level += 1
 		level_up.emit(level)
+		SkillManager.grant_points(1, "level %d" % level)
 		threshold = xp_for_level(level + 1)
 	_save()
 	profile_updated.emit()

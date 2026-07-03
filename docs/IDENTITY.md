@@ -122,3 +122,27 @@ Two rules define the audio signature:
    catalog grows, different builds hear different cuts in the same places.
    Drop a new .mp3 in `assets/music/` and add it to a context's list in
    `music_manager.gd`; nothing else needed.
+
+## Skills — lines, morphs, bars, ultimates
+
+ESO-shaped, but every line comes from what you ARE (`src/skills/`):
+
+- **Frame Discipline** (all 20 frames): 5 actives + 1 ultimate + 3
+  passives, generated from the frame's stat profile, lore, and sensorium —
+  a Bolt line plays nothing like an Ossian line. Your ascended frame's
+  line powers **Bar II**, so bar-swapping is literally swapping sensoria.
+- **Race Heritage** (all 20): passive-heavy, 2 actives + the True-Form
+  ultimate ("every hard surface in YOUR world turns to your substance —
+  and everyone nearby sees theirs flicker").
+- **Faction lines**: Crown Mandate / Wild Ascension / Current Working —
+  and the **Lone Wolf** line, Factionless-only, whose ultimate
+  ("Nobody's Hour") stops you rendering on anyone's client entirely.
+- **The Liminal Arts**: the universal line (Doorframe, Wrong Hallway,
+  Hum of the Vents, and the Noclip ultimate).
+- **Morphs**: every active refracts at rank IV — lore says a skill
+  practiced long enough starts perceiving YOU back and must choose what
+  it sees: a weapon (Edge: +35% power) or a survivor (Still: -30%
+  cost/cooldown).
+- **Ranks by use**, skill points from level-ups and quests, flux resource
+  scaled by STY/RES (regen by SPD), ultimate charge from dealing AND
+  taking damage. Hotbar: keys 1-5, R ultimate, Tab bar-swap.

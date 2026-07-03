@@ -23,8 +23,10 @@ var _hud_hp: Label
 var _core_light: OmniLight3D
 var _creatures: Array[PvxcCreature] = []
 var _player_hp := PLAYER_MAX_HP
+var _shield := 0
 var _attack_cd := 0.0
 var _attack_damage := 20
+var _attack_damage_base := 20
 
 func _ready() -> void:
 	if not PvxcManager.in_run:
@@ -39,6 +41,7 @@ func _ready() -> void:
 	var stats := CharacterCreatorLogic.build_starting_stats(
 		PlayerProfile.selected_race_id, PlayerProfile.faction, PlayerProfile.selected_frame)
 	_attack_damage = 14 + int(stats.pow) / 2 + PlayerProfile.level
+	_attack_damage_base = _attack_damage
 	var rng2 := RandomNumberGenerator.new()
 	rng2.seed = 0x50565844
 	for i in range(CREATURES):
@@ -49,6 +52,9 @@ func _ready() -> void:
 	# No track here on purpose: the PVXC gets your build's hum and a pulse,
 	# nothing comforting. (MusicManager fades out via the empty context.)
 	MusicManager.play_context("pvxc")
+	var hotbar := HotbarUI.new()
+	hotbar.cast_requested.connect(_on_cast)
+	add_child(hotbar)
 	_build_hud()
 
 func _build_arena() -> void:
@@ -234,27 +240,74 @@ func _spawn_gate(pos: Vector3) -> void:
 			get_tree().change_scene_to_file("res://scenes/ui/main_menu.tscn"))
 	add_child(gate)
 
-func _unhandled_input(event: InputEvent) -> void:
-	# Left click / F = swing at the nearest creature in range.
-	var is_attack := (event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT) \
-		or (event is InputEventKey and event.pressed and event.keycode == KEY_F)
-	if not is_attack or _attack_cd > 0.0 or not PvxcManager.in_run:
+## Skill effect resolution — the hotbar emits, the zone applies.
+func _on_cast(sk: Dictionary) -> void:
+	if not PvxcManager.in_run:
 		return
-	_attack_cd = ATTACK_COOLDOWN
-	var nearest: PvxcCreature = null
-	var best := ATTACK_RANGE
+	var kind: String = sk.get("kind", "damage")
+	var shape: String = sk.get("shape", "single")
+	var radius: float = float(sk.get("radius", 3.0))
+	var power: float = float(sk.get("power", 1.0))
+	var dmg := int(_attack_damage * power)
+	match kind:
+		"damage", "chance":
+			if kind == "chance":
+				dmg = int(dmg * (2.0 if randf() < 0.35 else 0.6)) # gambler's spread
+			var hit := 0
+			for c in _targets_for(shape, radius):
+				c.take_hit(dmg)
+				hit += 1
+			if hit > 0:
+				SkillManager.gain_ultimate(6.0 * hit)
+			else:
+				NotificationUI.notify_info("%s — nothing in reach." % sk.get("name", "?"))
+		"shield":
+			_shield = maxi(_shield, int(30 * power))
+			SkillManager.gain_ultimate(4.0)
+		"mobility":
+			var fwd := -_player.global_transform.basis.z
+			_player.global_position += fwd * (6.0 + 6.0 * power)
+			SkillManager.gain_ultimate(3.0)
+		"control":
+			for c in _targets_for("aoe", maxf(radius, 6.0)):
+				c.speed *= 0.5
+				get_tree().create_timer(4.0).timeout.connect(func():
+					if is_instance_valid(c): c.speed *= 2.0)
+			SkillManager.gain_ultimate(5.0)
+		"buff":
+			_attack_damage = int(_attack_damage * (1.0 + 0.25 * power))
+			get_tree().create_timer(8.0).timeout.connect(func():
+				_attack_damage = _attack_damage_base) # settles back
+			SkillManager.gain_ultimate(4.0)
+
+func _targets_for(shape: String, radius: float) -> Array[PvxcCreature]:
+	var out: Array[PvxcCreature] = []
+	var origin := _player.global_position
+	var fwd := -_player.global_transform.basis.z
 	for c in _creatures:
-		if is_instance_valid(c):
-			var d: float = c.dist_to(_player.global_position)
-			if d < best:
-				best = d
-				nearest = c
-	if nearest:
-		nearest.take_hit(_attack_damage)
-	else:
-		NotificationUI.notify_info("Swipe — nothing in range.")
+		if not is_instance_valid(c):
+			continue
+		var d := c.dist_to(origin)
+		match shape:
+			"single":
+				if d < radius:
+					out.append(c)
+					return out # nearest-ish single target
+			"aoe", "self":
+				if d < radius:
+					out.append(c)
+			"line":
+				var rel := c.global_position - origin
+				if d < radius and rel.normalized().dot(fwd) > 0.6:
+					out.append(c)
+	return out
 
 func _on_player_bitten(damage: int) -> void:
+	SkillManager.gain_ultimate(3.0) # taking hits charges the ultimate too
+	if _shield > 0:
+		var absorbed := mini(_shield, damage)
+		_shield -= absorbed
+		damage -= absorbed
 	_player_hp -= damage
 	if _player_hp <= 0:
 		# The pit keeps you. Nearest creature gets the credit.
@@ -303,7 +356,7 @@ func _process(_delta: float) -> void:
 		_core_light.light_energy = 3.0 + sin(Time.get_ticks_msec() / 300.0) * 1.2
 	_attack_cd = maxf(_attack_cd - _delta, 0.0)
 	if _hud_hp:
-		_hud_hp.text = "❤️ %d/%d   🗡️ %s (click / F)" % [
+		_hud_hp.text = "❤️ %d/%d%s   1-5 skills • R ult • Tab bar" % [
 			maxi(_player_hp, 0), PLAYER_MAX_HP,
-			"ready" if _attack_cd <= 0.0 else "..."]
+			("  🛡️ %d" % _shield) if _shield > 0 else ""]
 		_hud_hp.modulate = Color(1, 0.3, 0.3) if _player_hp < 30 else Color(0.9, 0.9, 0.9)

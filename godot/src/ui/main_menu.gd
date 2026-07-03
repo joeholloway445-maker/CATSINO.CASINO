@@ -62,6 +62,7 @@ func _build_ui() -> void:
 		{label="🔴 The PVXC", sig="", scene="res://scenes/pvxc/pvxc_gate.tscn"},
 		{label="🏟️ Arena", sig="", scene="res://scenes/ui/arena_hub.tscn"},
 		{label="👑 Crown Hall", sig="", scene="res://scenes/ui/crown_hall.tscn"},
+		{label="📖 Skills", sig="", scene="res://scenes/ui/skill_tree.tscn"},
 		{label="⚙️ Settings", sig="open_settings"},
 	]:
 		var btn = Button.new()

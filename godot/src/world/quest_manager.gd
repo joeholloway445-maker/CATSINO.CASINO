@@ -241,6 +241,7 @@ func _check_completion(quest_id: String, quest: Dictionary) -> void:
 	quest_completed.emit(quest_id, rewards)
 	AchievementManager.check("quest_completed")
 	CrownManager.add_score("Top Quest Completions", "local_player", 1)
+	SkillManager.grant_points(1, quest.get("name", "quest complete"))
 
 ## Compat shims for callers written against the old core quest tracker.
 ## accept_quest also mirrors the action to the Nakama quest RPC so
