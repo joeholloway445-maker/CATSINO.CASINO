@@ -12,10 +12,19 @@ const HARVEST_NODES := 40
 const CREATURES := 12
 const GATES := 4
 
+const PLAYER_MAX_HP := 100
+const ATTACK_RANGE := 3.0
+const ATTACK_COOLDOWN := 0.6
+
 var _player: ThirdPersonController
 var _hud_mult: Label
 var _hud_loot: Label
+var _hud_hp: Label
 var _core_light: OmniLight3D
+var _creatures: Array[PvxcCreature] = []
+var _player_hp := PLAYER_MAX_HP
+var _attack_cd := 0.0
+var _attack_damage := 20
 
 func _ready() -> void:
 	if not PvxcManager.in_run:
@@ -26,6 +35,16 @@ func _ready() -> void:
 	_player = ThirdPersonController.new()
 	add_child(_player)
 	_player.global_position = Vector3(RIM - 10.0, 3.0, 0)
+	# Player attack power scales with build + entities.
+	var stats := CharacterCreatorLogic.build_starting_stats(
+		PlayerProfile.selected_race_id, PlayerProfile.faction, PlayerProfile.selected_frame)
+	_attack_damage = 14 + int(stats.pow) / 2 + PlayerProfile.level
+	var rng2 := RandomNumberGenerator.new()
+	rng2.seed = 0x50565844
+	for i in range(CREATURES):
+		var a := rng2.randf() * TAU
+		var r := rng2.randf_range(CORE, RIM * 0.9)
+		_spawn_creature(Vector3(cos(a) * r, 0, sin(a) * r), rng2)
 	add_child(SensoriumAmbience.new())
 	# No track here on purpose: the PVXC gets your build's hum and a pulse,
 	# nothing comforting. (MusicManager fades out via the empty context.)
@@ -136,13 +155,6 @@ func _build_arena() -> void:
 		var a := rng.randf() * TAU
 		_spawn_harvest_node(Vector3(cos(a) * r, 0, sin(a) * r), rng)
 
-	# Hostile creatures from the FULL roster — the PVXC doesn't respect
-	# faction access; everything in here wants your loot.
-	for i in range(CREATURES):
-		var a := rng.randf() * TAU
-		var r := rng.randf_range(CORE, RIM * 0.9)
-		_spawn_creature(Vector3(cos(a) * r, 0, sin(a) * r), rng)
-
 	# Extraction gates on the rim — green, obvious, far from the good loot.
 	for i in range(GATES):
 		var a := TAU * i / GATES
@@ -183,53 +195,16 @@ func _spawn_creature(pos: Vector3, rng: RandomNumberGenerator) -> void:
 	if roster.is_empty():
 		return
 	var entity: Dictionary = roster[rng.randi() % roster.size()]
-	var area := Area3D.new()
-	# Wild PVXC creatures render through your lens WITH perception — strong
-	# ones loom at you before you ever read their stats.
-	var profile := {"level": int(entity.get("rarity", 1)) * 15, "faction": entity.get("faction", ""),
-		"alignment": "feral", "stats": {"pow": entity.get("pow", 50)}}
-	var seen: Dictionary = IdentityLens.perceive_being(profile, Color(0.6, 0.3, 0.3))
-	var visual: Node3D = AssetLibrary.instance("creature")
-	if visual == null:
-		var mi := MeshInstance3D.new()
-		var caps := CapsuleMesh.new()
-		caps.radius = 0.5
-		caps.height = 1.6
-		mi.mesh = caps
-		mi.material_override = seen.material
-		visual = mi
-	visual.scale = Vector3.ONE * seen.scale
-	visual.position.y = 1.0
-	area.add_child(visual)
-	var cs := CollisionShape3D.new()
-	var sph := SphereShape3D.new()
-	sph.radius = 1.4
-	cs.shape = sph
-	cs.position.y = 1.0
-	area.add_child(cs)
-	area.position = pos
-	# Touching a creature is a fight, resolved on the spot: your stats +
-	# a luck roll vs its POW (rarity-weighted). Win -> its bounty joins your
-	# loot and it counts as a PvXC kill (revenge rules included — yes, the
-	# ledger holds grudges against creatures too). Lose -> the pit keeps you.
-	var ename: String = str(entity.get("name", "something feral"))
-	var epow: int = int(entity.get("pow", 50)) + int(entity.get("rarity", 1)) * 8
-	area.body_entered.connect(func(b):
-		if not (b is ThirdPersonController) or not PvxcManager.in_run:
-			return
-		var stats := CharacterCreatorLogic.build_starting_stats(
-			PlayerProfile.selected_race_id, PlayerProfile.faction, PlayerProfile.selected_frame)
-		var mine: int = int(stats.pow) + int(stats.lck) + PlayerProfile.level * 2 + randi() % 30
-		if mine >= epow + randi() % 30:
-			var bounty: int = 15 + int(entity.get("rarity", 1)) * 20
-			PvxcManager.record_kill(ename, bounty, area.global_position)
-			NotificationUI.notify_win("🗡️ Took down %s (+%d bounty)" % [ename, bounty])
-			area.queue_free()
-		else:
-			PvxcManager.record_death(ename)
-			MusicManager.exit_racing()
-			get_tree().change_scene_to_file("res://scenes/pvxc/pvxc_gate.tscn"))
-	add_child(area)
+	var c := PvxcCreature.new()
+	c.position = pos
+	add_child(c)
+	c.setup(entity, _player)
+	_creatures.append(c)
+	c.bit_player.connect(_on_player_bitten)
+	c.died.connect(func(creature: PvxcCreature):
+		_creatures.erase(creature)
+		PvxcManager.record_kill(str(creature.entity.get("name", "?")), creature.bounty, creature.global_position)
+		NotificationUI.notify_win("🗡️ %s down (+%d bounty)" % [creature.entity.get("name", "?"), creature.bounty]))
 
 func _spawn_gate(pos: Vector3) -> void:
 	var gate := Area3D.new()
@@ -259,6 +234,42 @@ func _spawn_gate(pos: Vector3) -> void:
 			get_tree().change_scene_to_file("res://scenes/ui/main_menu.tscn"))
 	add_child(gate)
 
+func _unhandled_input(event: InputEvent) -> void:
+	# Left click / F = swing at the nearest creature in range.
+	var is_attack := (event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT) \
+		or (event is InputEventKey and event.pressed and event.keycode == KEY_F)
+	if not is_attack or _attack_cd > 0.0 or not PvxcManager.in_run:
+		return
+	_attack_cd = ATTACK_COOLDOWN
+	var nearest: PvxcCreature = null
+	var best := ATTACK_RANGE
+	for c in _creatures:
+		if is_instance_valid(c):
+			var d: float = c.dist_to(_player.global_position)
+			if d < best:
+				best = d
+				nearest = c
+	if nearest:
+		nearest.take_hit(_attack_damage)
+	else:
+		NotificationUI.notify_info("Swipe — nothing in range.")
+
+func _on_player_bitten(damage: int) -> void:
+	_player_hp -= damage
+	if _player_hp <= 0:
+		# The pit keeps you. Nearest creature gets the credit.
+		var killer := "the PVXC"
+		var best := 999999.0
+		for c in _creatures:
+			if is_instance_valid(c):
+				var d: float = c.dist_to(_player.global_position)
+				if d < best:
+					best = d
+					killer = str(c.entity.get("name", killer))
+		PvxcManager.record_death(killer)
+		MusicManager.exit_racing()
+		get_tree().change_scene_to_file("res://scenes/pvxc/pvxc_gate.tscn")
+
 func _build_hud() -> void:
 	var layer := CanvasLayer.new()
 	add_child(layer)
@@ -269,6 +280,10 @@ func _build_hud() -> void:
 	_hud_loot = Label.new()
 	_hud_loot.position = Vector2(10, 40)
 	layer.add_child(_hud_loot)
+	_hud_hp = Label.new()
+	_hud_hp.position = Vector2(10, 88)
+	_hud_hp.add_theme_font_size_override("font_size", 18)
+	layer.add_child(_hud_hp)
 	var target := Label.new()
 	target.position = Vector2(10, 64)
 	target.modulate = Color(1, 0.4, 0.4)
@@ -286,3 +301,9 @@ func _process(_delta: float) -> void:
 	_hud_loot.text = "Carried loot: %d  (die and it's the house's)" % PvxcManager.carried_loot
 	if is_instance_valid(_core_light):
 		_core_light.light_energy = 3.0 + sin(Time.get_ticks_msec() / 300.0) * 1.2
+	_attack_cd = maxf(_attack_cd - _delta, 0.0)
+	if _hud_hp:
+		_hud_hp.text = "❤️ %d/%d   🗡️ %s (click / F)" % [
+			maxi(_player_hp, 0), PLAYER_MAX_HP,
+			"ready" if _attack_cd <= 0.0 else "..."]
+		_hud_hp.modulate = Color(1, 0.3, 0.3) if _player_hp < 30 else Color(0.9, 0.9, 0.9)

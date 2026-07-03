@@ -40,6 +40,29 @@ func _ready() -> void:
 	_player.chunk_changed.connect(_on_chunk_changed)
 	add_child(SensoriumAmbience.new()) # your build's own hum, under the music
 	_build_hud()
+	_wire_presence()
+
+var _peers: Dictionary = {} # peer_id -> RemotePlayer
+
+func _wire_presence() -> void:
+	PresenceManager.peer_joined.connect(func(pid, prof):
+		if _peers.has(pid): return
+		var rp := RemotePlayer.new()
+		rp.setup(pid, prof)
+		add_child(rp)
+		_peers[pid] = rp)
+	PresenceManager.peer_updated.connect(func(pid, pos):
+		if not _peers.has(pid):
+			var rp := RemotePlayer.new()
+			rp.setup(pid, PresenceManager.peer_profile(pid))
+			add_child(rp)
+			_peers[pid] = rp
+		_peers[pid].move_to(pos, _terrain))
+	PresenceManager.peer_left.connect(func(pid):
+		if _peers.has(pid):
+			_peers[pid].queue_free()
+			_peers.erase(pid))
+	PresenceManager.join_layer(layer_id)
 
 func _spawn_point() -> Vector3:
 	match layer_id:
@@ -123,6 +146,8 @@ func _build_hud() -> void:
 		layer.add_child(timer_lbl)
 
 func _process(_delta: float) -> void:
+	if is_instance_valid(_player):
+		PresenceManager.report_position(_player.global_position)
 	if layer_id == "liminal":
 		var lbl: Label = get_node_or_null("CanvasLayer/WanderTimer")
 		if lbl == null:

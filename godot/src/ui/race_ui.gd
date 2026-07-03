@@ -106,11 +106,18 @@ func _build_ui() -> void:
 	_bet_spinbox.value = 200
 	bet_row.add_child(_bet_spinbox)
 
+	var btn_row := HBoxContainer.new()
+	root.add_child(btn_row)
+	var drive_btn := Button.new()
+	drive_btn.text = "🏎️ DRIVE IT"
+	drive_btn.add_theme_font_size_override("font_size", 16)
+	drive_btn.pressed.connect(_on_drive_pressed)
+	btn_row.add_child(drive_btn)
 	_race_btn = Button.new()
-	_race_btn.text = "START RACE 🏁"
+	_race_btn.text = "QUICK RESULT 🏁"
 	_race_btn.add_theme_font_size_override("font_size", 16)
 	_race_btn.pressed.connect(_on_race_pressed)
-	root.add_child(_race_btn)
+	btn_row.add_child(_race_btn)
 
 	_status_label = Label.new()
 	_status_label.text = ""
@@ -175,16 +182,23 @@ func _on_race_pressed() -> void:
 		sim["payout"] = _local_payout(sim.get("position", 99), bet, track)
 		_on_race_result(sim, track, bet)
 
-## Payout for locally-simulated races: podium finishes return the bet times a
-## position multiplier, scaled up on harder tracks; 1st also refunds the entry fee.
+## Actually drive the race in 3D — same fees, same payout math.
+func _on_drive_pressed() -> void:
+	var track := _selected_track()
+	if not RaceData.is_unlocked(track, PlayerProfile.level):
+		_status_label.text = "Track locked — reach level %d." % RaceData.unlock_level(track)
+		return
+	var bet := int(_bet_spinbox.value)
+	if not await EconomyManager.spend_coins(int(track.entry_fee) + bet, "race_" + str(track.id)):
+		_status_label.text = "Not enough coins (entry %d + bet %d)." % [int(track.entry_fee), bet]
+		return
+	RaceSession.track = track
+	RaceSession.bet = bet
+	RaceSession.frame_id = FRAME_OPTIONS[_frame_selector.selected].id
+	get_tree().change_scene_to_file("res://scenes/games/racing/race_drive.tscn")
+
 func _local_payout(position: int, bet: int, track: Dictionary) -> int:
-	if position > 3:
-		return 0
-	var mult: float = POSITION_MULT.get(position, 0.0) * DIFFICULTY_BONUS.get(str(track.difficulty), 1.0)
-	var payout := int(bet * mult)
-	if position == 1:
-		payout += int(track.entry_fee)
-	return payout
+	return RaceSession.payout(position, bet, track)
 
 func _on_race_result(result: Dictionary, track: Dictionary, bet: int) -> void:
 	_race_btn.disabled = false
