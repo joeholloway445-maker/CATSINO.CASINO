@@ -37,5 +37,14 @@ services:
       - ./builds/html5:/usr/share/nginx/html:ro
     ports: ["8080:80"]
 
+  psychology:
+    build: ./services/psychology
+    restart: unless-stopped
+    environment:
+      SUPABASE_URL: ${SUPABASE_URL}
+      SUPABASE_SERVICE_KEY: ${SUPABASE_SERVICE_KEY}
+      POLL_INTERVAL: ${PSYCH_POLL_INTERVAL:-60}
+    depends_on: [nakama]
+
 volumes:
   nakama_db:
