@@ -9,6 +9,8 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    env:
+      VPS_HOST: ${{ secrets.VPS_HOST }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -25,7 +27,9 @@ jobs:
           unzip -q Godot_v4.3-stable_linux.x86_64.zip
           mkdir -p builds/html5
           ./Godot_v4.3-stable_linux.x86_64 --headless --path godot --export-release "Web" ../builds/html5/index.html || echo "Add a 'Web' export preset in the editor to enable this step."
+      # Skips cleanly until the VPS secrets are configured in repo settings.
       - name: Deploy over SSH
+        if: ${{ env.VPS_HOST != '' }}
         uses: appleboy/ssh-action@v1
         with:
           host: ${{ secrets.VPS_HOST }}
