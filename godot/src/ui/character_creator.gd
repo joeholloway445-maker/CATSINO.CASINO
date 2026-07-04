@@ -13,6 +13,7 @@ var _name_field: LineEdit
 var _race_selector: OptionButton
 var _faction_selector: OptionButton
 var _frame_selector: OptionButton
+var _mod_selector: OptionButton
 var _lore_label: Label
 var _preview: Node3D
 var _preview_viewport: SubViewport
@@ -89,7 +90,7 @@ func _build_ui() -> void:
 	_faction_selector = OptionButton.new()
 	_faction_selector.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	for faction in FACTIONS:
-		_faction_selector.add_item(faction)
+		_faction_selector.add_item(FactionSystem.display_name(faction))
 	_faction_selector.item_selected.connect(func(_i): _update_preview())
 	faction_row.add_child(_faction_selector)
 
@@ -102,11 +103,30 @@ func _build_ui() -> void:
 	frame_row.add_child(frame_lbl)
 	_frame_selector = OptionButton.new()
 	_frame_selector.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	for frame_id in STARTER_FRAMES:
-		var frame_data := FrameModData.get_frame(frame_id)
-		_frame_selector.add_item(frame_data.get("name", frame_id.capitalize()))
+	# All 20 frames, grouped 10 LIGHT then 10 HEAVY. Light = easier early
+	# game (fast, forgiving) but squishier late; heavy = harder to pilot
+	# early, dominant late. The label says which so nobody signs up blind.
+	for i in range(FrameModData.FRAMES.size()):
+		var f: Dictionary = FrameModData.FRAMES[i]
+		var tag := "☀️ LIGHT (easier early)" if f.type == "light" else "🌑 HEAVY (harder early, stronger late)"
+		_frame_selector.add_item("%s — %s" % [f.name, tag])
 	_frame_selector.item_selected.connect(func(_i): _update_preview())
 	frame_row.add_child(_frame_selector)
+
+	# Mod: the 20 morphological rigs from the Periliminal.Space source —
+	# your body plan, each with a bonus and a drawback.
+	var mod_row = HBoxContainer.new()
+	form.add_child(mod_row)
+	var mod_lbl = Label.new()
+	mod_lbl.text = "Rig Mod:"
+	mod_lbl.custom_minimum_size = Vector2(100, 0)
+	mod_row.add_child(mod_lbl)
+	_mod_selector = OptionButton.new()
+	_mod_selector.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	for rig in MorphRigData.RIGS:
+		_mod_selector.add_item("%s (%s / %s)" % [rig.name, rig.bonus, rig.drawback])
+	_mod_selector.item_selected.connect(func(_i): _update_preview())
+	mod_row.add_child(_mod_selector)
 
 	# Lore / stats readout
 	_lore_label = Label.new()
@@ -143,7 +163,7 @@ func _selected_race_id() -> String:
 func _update_preview() -> void:
 	var race_id := _selected_race_id()
 	var faction = FACTIONS[_faction_selector.selected]
-	var frame_id = STARTER_FRAMES[_frame_selector.selected]
+	var frame_id: String = FrameModData.FRAMES[_frame_selector.selected].id
 	var race_data := RaceDataCharacter.get_race(race_id)
 	var stats := CharacterCreatorLogic.build_starting_stats(race_id, faction, frame_id)
 	var sensorium := FrameSensorium.of(frame_id)
@@ -163,7 +183,7 @@ func _on_create_pressed() -> void:
 
 	var race_id := _selected_race_id()
 	var faction = FACTIONS[_faction_selector.selected]
-	var frame_id = STARTER_FRAMES[_frame_selector.selected]
+	var frame_id: String = FrameModData.FRAMES[_frame_selector.selected].id
 
 	var config = {
 		"name": cat_name,
@@ -173,4 +193,5 @@ func _on_create_pressed() -> void:
 	}
 
 	CharacterCreatorLogic.apply_creation(race_id, faction, frame_id, cat_name)
+	PlayerProfile.set_mod(MorphRigData.RIGS[_mod_selector.selected].id)
 	character_created.emit(config)

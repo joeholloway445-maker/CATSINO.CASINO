@@ -43,7 +43,8 @@ func begin_run(members: Array[String]) -> void:
 		_seed_ledger[fingerprint] = {"seed": _run_seed, "deepest": 0}
 		_save_ledger()
 	run_started.emit(party, _run_seed)
-	NotificationUI.notify_info("The Periliminal has you. Go deep or get out. 👁️")
+	var drive: String = Hope.combat_profile().get("dominant_drive", "curiosity")
+	NotificationUI.notify_info("The Periliminal has you. Somewhere in here, Knoll is wearing your %s. 👁️" % drive)
 
 ## Each depth cleared multiplies what's waiting at the exit.
 func advance_depth() -> void:
@@ -87,9 +88,10 @@ func _wipe_local_player() -> void:
 		if c.is_unlocked:
 			c.is_unlocked = false
 	PlayerProfile.active_companion_ids.clear()
-	# Inventory.
+	# Inventory — and the vaults. The Periliminal keeps what it kills.
 	if InventoryManager.has_method("clear_all"):
 		InventoryManager.clear_all()
+	BankManager.periliminal_seize()
 	# Currencies — prestige survives; it's the only thing that does.
 	for currency in EconomyManager.CURRENCIES.keys():
 		if currency == "prestige":

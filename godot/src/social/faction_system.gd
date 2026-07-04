@@ -45,6 +45,17 @@ const FACTIONS = {
 	},
 }
 
+## Canonical display labels — internal ids stay camel-cased.
+const DISPLAY_NAMES := {
+	"SovereignCrown": "Sovereign Crown",
+	"VeiledCurrent": "Veiled Current",
+	"WildlandsAscendant": "Wildlands Ascendant",
+	"Factionless": "Factionless",
+}
+
+static func display_name(faction: String) -> String:
+	return DISPLAY_NAMES.get(faction, faction)
+
 static func get_faction_data(faction: String) -> Dictionary:
 	return FACTIONS.get(faction, {})
 

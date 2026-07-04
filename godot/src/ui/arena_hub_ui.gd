@@ -53,6 +53,41 @@ func _ready() -> void:
 		list.add_child(card)
 		list.add_child(HSeparator.new())
 
+	# The referendum floor: vote on where the story and DLCs go.
+	var vote_hdr := Label.new()
+	vote_hdr.text = "🗳️ SHAPE WHAT COMES NEXT"
+	vote_hdr.add_theme_font_size_override("font_size", 18)
+	vote_hdr.modulate = Color(1.0, 0.85, 0.4)
+	list.add_child(vote_hdr)
+	for ballot in StoryVote.BALLOTS:
+		var bcard := VBoxContainer.new()
+		var bt := Label.new()
+		bt.text = ballot.title
+		bt.add_theme_font_size_override("font_size", 15)
+		bcard.add_child(bt)
+		var bd := Label.new()
+		bd.text = ballot.desc
+		bd.modulate = Color(0.7, 0.7, 0.75)
+		bd.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		bcard.add_child(bd)
+		if StoryVote.has_voted(ballot.id):
+			var done := Label.new()
+			done.text = "✅ Your vote is in."
+			done.modulate = Color(0.5, 0.9, 0.5)
+			bcard.add_child(done)
+		else:
+			for oi in range(ballot.options.size()):
+				var ob := Button.new()
+				ob.text = ballot.options[oi]
+				var bid: String = ballot.id
+				var opt := oi
+				ob.pressed.connect(func():
+					StoryVote.vote(bid, opt)
+					get_tree().reload_current_scene())
+				bcard.add_child(ob)
+		list.add_child(bcard)
+		list.add_child(HSeparator.new())
+
 	_log = VBoxContainer.new()
 	root.add_child(_log)
 

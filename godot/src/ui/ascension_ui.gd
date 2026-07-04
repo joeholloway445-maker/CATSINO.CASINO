@@ -90,11 +90,12 @@ func _refresh() -> void:
 		card.add_child(desc)
 
 		var btn := Button.new()
-		btn.text = "Ascend with %s" % frame.name
-		btn.pressed.connect(func():
-			if PlayerProfile.set_ascended_frame(fid):
-				NotificationUI.notify_win("🌗 Ascended — the world just changed for you alone.")
-				_refresh())
+		if AscensionTrial.locked_out():
+			btn.text = "Trial sealed — %d min (one server day per failure)" % (AscensionTrial.lockout_remaining() / 60)
+			btn.disabled = true
+		else:
+			btn.text = "⚔️ Trial for %s (3 rounds — lose and drop everything)" % frame.name
+			btn.pressed.connect(func(): AscensionTrial.begin(fid))
 		card.add_child(btn)
 		_list.add_child(card)
 		_list.add_child(HSeparator.new())

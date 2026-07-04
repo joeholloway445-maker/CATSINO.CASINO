@@ -42,6 +42,7 @@ func _ready() -> void:
 	var hotbar := HotbarUI.new()
 	hotbar.cast_requested.connect(_on_cast)
 	add_child(hotbar)
+	add_child(HopeUI.new()) # Hope is always on YOUR screen
 	var stats := CharacterCreatorLogic.build_starting_stats(
 		PlayerProfile.selected_race_id, PlayerProfile.faction, PlayerProfile.selected_frame)
 	_attack_damage = 14 + int(stats.pow) / 2 + PlayerProfile.level
@@ -124,13 +125,24 @@ func _supraliminal_enter(coord: Vector2i) -> void:
 	if owner != "" and owner != PlayerProfile.faction:
 		NotificationUI.notify_info("⚔️ %s territory — you are fair game here." % owner)
 
+var _chunk_entered_at := 0.0
+
 func _liminal_enter(coord: Vector2i) -> void:
+	# Hope watches HOW you take each liminal threshold: fast transit reads
+	# as rushing (boredom/lust), a long dwell before moving on reads as
+	# hesitation (fear/anxiety). Chunk borders are the doors out here.
+	var now := Time.get_ticks_msec() / 1000.0
+	var dwell := now - _chunk_entered_at
+	_chunk_entered_at = now
+	var approach := "rushed" if dwell < 4.0 else ("lingered" if dwell > 20.0 else "peeked")
+	Hope.observe_door("liminal_%d_%d" % [coord.x, coord.y], approach, dwell)
 	# Never static: the chunk you just left stops existing. Erase its
 	# record so re-entering regenerates it differently (fresh prop seed
 	# via a new WorldChunk), and harvest a little essence for the risk.
 	if DiscoveryManager.has_chunk(_prev_chunk) and _prev_chunk != coord:
 		DiscoveryManager._chunks.erase(_prev_chunk)
 	EconomyManager.earn_currency("fragments", 1, "liminal_wandering")
+	QuestManager.update_progress("visit_liminal")
 
 func _build_hud() -> void:
 	var layer := CanvasLayer.new()
@@ -166,6 +178,8 @@ func _in_pvp_zone() -> bool:
 ## offline ghost stand-ins). Hub interiors are sanctuaries: nothing lands.
 func _on_cast(sk: Dictionary) -> void:
 	SkillVFX.cast_flash(self, _player.global_position)
+	if Hope.maybe_manifest(str(sk.get("id", ""))):
+		SkillVFX.aoe_ring(self, _player.global_position, 2.0, Color(1.0, 0.95, 0.6))
 	var shape: String = sk.get("shape", "single")
 	var radius: float = float(sk.get("radius", 3.0))
 	var power: float = float(sk.get("power", 1.0))
