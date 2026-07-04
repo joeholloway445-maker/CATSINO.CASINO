@@ -5,7 +5,7 @@
 name: deploy
 on:
   push:
-    branches: [claude/intelligent-fermi-yyigzo]
+    branches: [main]
 jobs:
   deploy:
     runs-on: ubuntu-latest

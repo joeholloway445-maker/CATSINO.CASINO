@@ -15,9 +15,9 @@ const spaceMono = Space_Mono({
 })
 
 export const metadata: Metadata = {
-  title: 'CATSINO.CASINO — Neon Cat Social Casino',
+  title: 'PERILIMINAL.SPACE — Six Realities. One of You.',
   description:
-    'A free-to-play, cat-themed social casino. Spin Purr Play Slots and more with Cat Chips. No real-money gambling, ever.',
+    'A psychology XRMMORPG across six reality layers. Every session starts in your Subliminal. The Catsino is one layer of six — virtual coins only, no real-money gambling, ever.',
 }
 
 export default function RootLayout({

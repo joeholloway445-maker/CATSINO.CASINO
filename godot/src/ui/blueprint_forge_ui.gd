@@ -167,6 +167,37 @@ func _rebuild_controls() -> void:
 	_section("FORM")
 	for d in BlueprintData.defs_for(_current.kind):
 		_add_control(d, _current.params, _rebuild_preview)
+	# Governance: status badge, review submission, and the fork opt-in —
+	# forking another creator's work is never possible without this.
+	_section("GOVERNANCE")
+	var status_lbl := Label.new()
+	var status: String = str(_current.get("status", "private"))
+	status_lbl.text = "Status: %s%s" % [status.to_upper(),
+		"" if status == "canon" else "  (usable only in your Subliminal)"]
+	status_lbl.modulate = Color(0.5, 1.0, 0.6) if status == "canon" else Color(1.0, 0.8, 0.5)
+	_controls_box.add_child(status_lbl)
+	var author_lbl := Label.new()
+	author_lbl.text = "Creator: %s — sole crafter of every copy" % str(_current.get("author", "?"))
+	author_lbl.modulate = Color(0.7, 0.7, 0.9)
+	_controls_box.add_child(author_lbl)
+	if str(_current.get("author", "")) == PlayerProfile.username:
+		var forks := CheckButton.new()
+		forks.text = "Allow others to fork this design"
+		forks.button_pressed = bool(_current.get("allow_forks", false))
+		forks.toggled.connect(func(on):
+			_current["allow_forks"] = on
+			BlueprintManager.update(_current)
+			_current = BlueprintManager.get_blueprint(str(_current.id)).duplicate(true))
+		_controls_box.add_child(forks)
+		if status in ["private", "rejected"]:
+			var submit := Button.new()
+			submit.text = "📜 Submit for canon review (Discord mods → dev team)"
+			submit.pressed.connect(func():
+				BlueprintManager.update(_current)
+				if BlueprintManager.submit_for_review(str(_current.id)):
+					_current = BlueprintManager.get_blueprint(str(_current.id)).duplicate(true)
+					_rebuild_controls())
+			_controls_box.add_child(submit)
 	var adefs := BlueprintData.audio_defs_for(_current.kind)
 	if not adefs.is_empty():
 		_section("SOUND SIGNATURE")

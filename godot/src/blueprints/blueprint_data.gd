@@ -124,6 +124,19 @@ static func fresh(kind: String, base_id: String, display_name: String) -> Dictio
 		"author": PlayerProfile.username if PlayerProfile else "unknown",
 		"version": 1,
 		"locked": [],
+		# UGC governance (see docs/UGC_POLICY.md):
+		#   private     — usable ONLY inside your own Subliminal
+		#   mod_review  — submitted; Discord mod team balance check
+		#   dev_review  — mods passed it; dev team canon check
+		#   canon       — in-game lore; property of Holloway's Own
+		#                 Providential Enterprise Apex Holdings Inc.,
+		#                 creator keeps the blueprint + name + sole crafting
+		#   rejected    — back to Subliminal-only, resubmit after edits
+		"status": "private",
+		"allow_forks": false, # NEVER forkable without the creator's opt-in
+		"for_sale": false,
+		"price": 0,
+		"copies_sold": 0,
 	}
 
 ## Deterministic seed so procedural detail (scratches, rune layout, particle
@@ -139,6 +152,10 @@ static func clamp_params(bp: Dictionary) -> Dictionary:
 		return {}
 	var clean := fresh(kind, str(bp.get("base_id", "custom")), str(bp.get("name", "Imported")))
 	clean["author"] = str(bp.get("author", "unknown"))
+	# Imports NEVER arrive canon or forkable — status is server-granted, not
+	# something a share code can claim. An import is a fresh private design.
+	clean["status"] = "private"
+	clean["allow_forks"] = false
 	var src: Dictionary = bp.get("params", {})
 	for d in defs_for(kind):
 		if not src.has(d.key):
