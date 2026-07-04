@@ -105,6 +105,44 @@ static func ultimate_burst(parent: Node3D, at: Vector3, radius: float) -> void:
 	tw.tween_property(mat, "albedo_color:a", 0.0, 0.8)
 	tw.tween_callback(col.queue_free)
 
+## Renders a cast styled by a player skill-blueprint from the Forge —
+## shape_style, colors, density and scale all come from the blueprint, and
+## its synthesized sound signature plays alongside. Falls back to nothing
+## exotic if params are missing (clamp_params guarantees defaults anyway).
+static func blueprint_cast(parent: Node3D, at: Vector3, bp: Dictionary) -> void:
+	var p: Dictionary = bp.get("params", {})
+	var c1: Color = p.get("primary_color", _tint())
+	var c2: Color = p.get("secondary_color", Color.WHITE)
+	var scale: float = float(p.get("scale", 1.0))
+	var density: float = float(p.get("particle_density", 1.0))
+	var turb: float = float(p.get("turbulence", 0.3))
+	var afterglow: float = float(p.get("afterglow", 0.6))
+	match str(p.get("shape_style", "ring")):
+		"ring":
+			aoe_ring(parent, at, 2.0 * scale, c1)
+		"burst":
+			var b := _particles(parent, at + Vector3(0, 1.0, 0), int(40 * density), 0.5 + afterglow * 0.4, c1, 4.0 * scale)
+			b.one_shot = true
+		"spiral":
+			for i in 3:
+				var s := _particles(parent, at + Vector3(0, 0.4 + i * 0.5, 0), int(18 * density), 0.7, c1.lerp(c2, i / 3.0), 2.0 * scale)
+				s.one_shot = true
+				(s.process_material as ParticleProcessMaterial).orbit_velocity_min = 0.6 + turb
+				(s.process_material as ParticleProcessMaterial).orbit_velocity_max = 1.2 + turb
+		"shards":
+			for i in int(5 * density):
+				var ang := TAU * i / maxf(5 * density, 1.0)
+				line_beam(parent, at + Vector3(cos(ang), 0, sin(ang)) * 0.3, Vector3(cos(ang), 0.1, sin(ang)), 2.5 * scale)
+		"wave":
+			aoe_ring(parent, at, 1.2 * scale, c1)
+			aoe_ring(parent, at, 2.4 * scale, c2)
+		"sigil":
+			aoe_ring(parent, at, 1.0 * scale, c1)
+			var g := _particles(parent, at + Vector3(0, 0.2, 0), int(30 * density), 0.9 + afterglow, c2, 0.8)
+			g.one_shot = true
+			(g.process_material as ParticleProcessMaterial).gravity = Vector3(0, 1.5, 0)
+	BlueprintAudio.play(parent, bp)
+
 ## Impact puff on a target.
 static func hit_spark(parent: Node3D, at: Vector3) -> void:
 	var p := _particles(parent, at + Vector3(0, 1.0, 0), 16, 0.35, Color(1.0, 0.8, 0.4), 3.0)

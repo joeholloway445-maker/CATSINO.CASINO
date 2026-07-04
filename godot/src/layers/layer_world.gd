@@ -44,6 +44,8 @@ func _ready() -> void:
 	add_child(hotbar)
 	add_child(HopeUI.new()) # Hope is always on YOUR screen
 	add_child(ChatUI.new()) # T toggles; five channels
+	# B opens the Blueprint Forge anywhere in the open world.
+	set_process_unhandled_key_input(true)
 	var stats := CharacterCreatorLogic.build_starting_stats(
 		PlayerProfile.selected_race_id, PlayerProfile.faction, PlayerProfile.selected_frame)
 	_attack_damage = 14 + int(stats.pow) / 2 + PlayerProfile.level
@@ -185,9 +187,23 @@ func _in_pvp_zone() -> bool:
 ## Cast resolution in the open world — targets are other players (or their
 ## offline ghost stand-ins). Hub interiors are sanctuaries: nothing lands.
 func _on_cast(sk: Dictionary) -> void:
-	SkillVFX.cast_flash(self, _player.global_position)
+	# Forge override: an equipped skill blueprint replaces the stock flash
+	# with the player's own shape/color/sound design.
+	var cast_bp := BlueprintManager.equipped_for("skill", str(sk.get("id", "")))
+	if not cast_bp.is_empty():
+		SkillVFX.blueprint_cast(self, _player.global_position, cast_bp)
+	else:
+		SkillVFX.cast_flash(self, _player.global_position)
 	if Hope.maybe_manifest(str(sk.get("id", ""))):
 		SkillVFX.aoe_ring(self, _player.global_position, 2.0, Color(1.0, 0.95, 0.6))
+		# If the player forged a companion form, Hope wears it when she shows.
+		var hope_bp := BlueprintManager.equipped_for("entity", "companion")
+		if not hope_bp.is_empty():
+			var form := BlueprintMesh.build(hope_bp)
+			form.position = _player.global_position + Vector3(1.2, 0, 1.2)
+			add_child(form)
+			BlueprintAudio.play(self, hope_bp)
+			get_tree().create_timer(4.0).timeout.connect(form.queue_free)
 	var shape: String = sk.get("shape", "single")
 	var radius: float = float(sk.get("radius", 3.0))
 	var power: float = float(sk.get("power", 1.0))
@@ -247,6 +263,13 @@ func _on_player_died(killer: String) -> void:
 	spawn.y = _terrain.height_at(spawn.x, spawn.z) + 2.0
 	_player.global_position = spawn
 	_player.velocity = Vector3.ZERO
+
+func _unhandled_key_input(event: InputEvent) -> void:
+	if event is InputEventKey and event.pressed and not event.echo and event.keycode == KEY_B:
+		if get_node_or_null("BlueprintForge") == null:
+			var forge := BlueprintForgeUI.new()
+			forge.name = "BlueprintForge"
+			add_child(forge)
 
 func _process(_delta: float) -> void:
 	if is_instance_valid(_player):

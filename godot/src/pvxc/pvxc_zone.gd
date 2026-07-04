@@ -249,8 +249,13 @@ func _on_cast(sk: Dictionary) -> void:
 	var radius: float = float(sk.get("radius", 3.0))
 	var power: float = float(sk.get("power", 1.0))
 	var dmg := int(_attack_damage * power)
-	# VFX: every cast flashes in your sensorium's light.
-	SkillVFX.cast_flash(self, _player.global_position)
+	# VFX: every cast flashes in your sensorium's light — unless the player
+	# forged a blueprint for this skill, in which case THEIR design plays.
+	var cast_bp := BlueprintManager.equipped_for("skill", str(sk.get("id", "")))
+	if not cast_bp.is_empty():
+		SkillVFX.blueprint_cast(self, _player.global_position, cast_bp)
+	else:
+		SkillVFX.cast_flash(self, _player.global_position)
 	if sk.get("ult_cost", 0) > 0:
 		SkillVFX.ultimate_burst(self, _player.global_position, maxf(radius, 6.0))
 	elif shape == "aoe":
