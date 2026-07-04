@@ -1,0 +1,40 @@
+# Push to the default branch -> build the web app + (if a Godot export
+# preset exists) the HTML5 client, then deploy to the Hostinger VPS over
+# SSH. Required repo secrets: VPS_HOST, VPS_USER, VPS_SSH_KEY,
+# SUPABASE_URL, SUPABASE_ANON_KEY, NAKAMA_SERVER_KEY.
+name: deploy
+on:
+  push:
+    branches: [claude/intelligent-fermi-yyigzo]
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 20 }
+      - name: Build web
+        working-directory: apps/catsino-casino
+        run: |
+          npm ci
+          npm run build
+      - name: Export Godot HTML5 (best effort)
+        continue-on-error: true
+        run: |
+          wget -q https://github.com/godotengine/godot/releases/download/4.3-stable/Godot_v4.3-stable_linux.x86_64.zip
+          unzip -q Godot_v4.3-stable_linux.x86_64.zip
+          mkdir -p builds/html5
+          ./Godot_v4.3-stable_linux.x86_64 --headless --path godot --export-release "Web" ../builds/html5/index.html || echo "Add a 'Web' export preset in the editor to enable this step."
+      - name: Deploy over SSH
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          script: |
+            cd /opt/periliminal
+            git pull
+            SUPABASE_URL='${{ secrets.SUPABASE_URL }}' \
+            SUPABASE_ANON_KEY='${{ secrets.SUPABASE_ANON_KEY }}' \
+            NAKAMA_SERVER_KEY='${{ secrets.NAKAMA_SERVER_KEY }}' \
+            docker compose up -d --build

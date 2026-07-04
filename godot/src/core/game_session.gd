@@ -9,6 +9,7 @@ var current_game: String = ""
 var session_start_time: float = 0.0
 var total_bet_this_session: int = 0
 var total_won_this_session: int = 0
+var _loss_streak := 0
 var games_played: int = 0
 
 func start(game_id: String) -> void:
@@ -25,6 +26,16 @@ func record_result(won: bool, bet: int, payout: int) -> void:
 	# spend_5000 (side_004) counts cumulative coins bet, not a threshold flag.
 	QuestManager.update_progress("spend_5000", bet)
 	QuestManager.update_progress("play_game")
+	# Psychology: gambling under pressure. Pressure = bet vs bankroll;
+	# streak = consecutive losses walking in. Hope files it; Supabase keeps it.
+	var balance := EconomyManager.get_balance("chips") + EconomyManager.get_coins()
+	_loss_streak = 0 if won else _loss_streak + 1
+	Hope.record("gambling", {
+		"game": current_game, "bet": bet, "payout": payout,
+		"balance_before": balance + bet - payout, "balance_after": balance,
+		"streak": _loss_streak,
+		"pressure": float(bet) / maxf(balance + bet - payout, 1.0),
+	})
 	EconomyManager.earn_prestige(5 if won else 2, "gameplay")
 	if won:
 		QuestManager.update_progress("win_game")

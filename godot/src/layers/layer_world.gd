@@ -43,6 +43,7 @@ func _ready() -> void:
 	hotbar.cast_requested.connect(_on_cast)
 	add_child(hotbar)
 	add_child(HopeUI.new()) # Hope is always on YOUR screen
+	add_child(ChatUI.new()) # T toggles; five channels
 	var stats := CharacterCreatorLogic.build_starting_stats(
 		PlayerProfile.selected_race_id, PlayerProfile.faction, PlayerProfile.selected_frame)
 	_attack_damage = 14 + int(stats.pow) / 2 + PlayerProfile.level
@@ -143,6 +144,13 @@ func _liminal_enter(coord: Vector2i) -> void:
 		DiscoveryManager._chunks.erase(_prev_chunk)
 	EconomyManager.earn_currency("fragments", 1, "liminal_wandering")
 	QuestManager.update_progress("visit_liminal")
+	# Doors: the liminal's whole point. One per fresh chunk, placed off-center.
+	var door := LiminalDoor.new()
+	door.layer = "liminal"
+	var size := float(HubRegionData.CHUNK_SIZE)
+	door.position = Vector3(coord.x * size + size * 0.3, 0, coord.y * size + size * 0.6)
+	door.position.y = _terrain.height_at(door.position.x, door.position.z)
+	add_child(door)
 
 func _build_hud() -> void:
 	var layer := CanvasLayer.new()

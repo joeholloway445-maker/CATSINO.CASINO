@@ -26,7 +26,7 @@ const LAYERS: Array[Dictionary] = [
 		currency="charges",
 	},
 	{
-		id="supraliminal", name="Supraliminal — DFW Metroplex",
+		id="supraliminal", name="Superliminal — DFW Metroplex",
 		desc="The main MMORPG layer. Arlington is the neutral PvE center (Marketplace, Arena, Workshop, Space Station); Dallas, Fort Worth and Denton are the three faction hubs. Everything between and beyond is PvP, claimable, and scales infinitely off the chunk system.",
 		entry="always", pvp="outside_hubs", persistence="chunked",
 		scene="res://scenes/layers/supraliminal.tscn",
@@ -40,7 +40,7 @@ const LAYERS: Array[Dictionary] = [
 		currency="charges",
 	},
 	{
-		id="periliminal", name="Periliminal Space",
+		id="periliminal", name="Periliminal — the Anchor",
 		desc="The psychological layer. Reached only by wandering the Liminal too long. Procedurally generated, then static forever. Death loses EVERYTHING — entities, inventory, all of it. In a group, one death is everyone's death. High risk, highest rewards.",
 		entry="liminal_wander", pvp=false, persistence="generated_then_static",
 		scene="res://scenes/layers/periliminal.tscn",
