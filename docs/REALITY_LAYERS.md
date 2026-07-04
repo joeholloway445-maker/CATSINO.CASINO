@@ -114,6 +114,35 @@ room:
   (candidate web-app spinoff). `PvxcManager.run_started/run_ended/
   kill_recorded` are the event feed it will consume.
 
+## Faction identities (skills & buffs)
+
+- **Sovereign Crown — building & sentries** ("Crown Mandate"): Raise
+  Bulwark (walls), Crown Sentry (autonomous turrets), Royal Fortification;
+  ultimate **Coronation Bastion** rings you in walls + sentries. Passive
+  *Mandate of Stone*: structures last 50% longer, sentries hit 20% harder.
+- **Veiled Current — the liminal** ("Current Working"): Wrong Step
+  (blink), Veil of the Current (phase shield), Undertow Pull; ultimate
+  **Between Tide**. Passive *Currentborn*: the Periliminal pull timer runs
+  25% slower and liminal doors cost 30% fewer tokens.
+- **Wildlands Ascendants — transformation & creation** ("Wild
+  Ascension"): Feral Shift (transform), Grow Thicket (create terrain),
+  Packmate (MAKE a creature that fights for you); ultimate **Apex
+  Bloom**. Passive *Green Memory*: transformations last 30% longer,
+  creations inherit your stats.
+- **Factionless — the Lone Wolf**: Nobody's Strike, Scavenger's Wager,
+  Gone Quiet; ultimate **Nobody's Hour** (you stop rendering entirely).
+  Passive *Unaligned*: +10% rewards in open-PvP territory.
+
+## The Supraliminal gauntlet
+
+Everything outside the four hub cities is **free open PvP** — and the
+factionless start in neutral Arlington at the center. Joining a faction
+means physically crossing the wilds to Dallas, Fort Worth, or Denton:
+fight through, survive, or get carried. Skills land on other players only
+outside hub bounds (hubs are sanctuaries); dying in the open costs 20% of
+your tokens and respawns you at your hub. PvP kills out there pay tokens,
+feed the Crown of Valor board, and count toward the Champion trial.
+
 ## Arena modes (not separate layers)
 
 MOBA ("Paws of the Ancients"), Faction Conflict, survival ("Last Cat

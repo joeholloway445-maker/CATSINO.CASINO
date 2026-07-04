@@ -17,7 +17,9 @@ var _warned := false
 func _process(delta: float) -> void:
 	if current_layer_id != "liminal":
 		return
-	_liminal_wander += delta
+	# Currentborn (Veiled Current passive): the between tolerates you longer.
+	var rate := 0.75 if PlayerProfile.faction == "VeiledCurrent" else 1.0
+	_liminal_wander += delta * rate
 	var left := WANDER_PULL_SECONDS - _liminal_wander
 	if left <= WANDER_WARN_SECONDS and not _warned:
 		_warned = true

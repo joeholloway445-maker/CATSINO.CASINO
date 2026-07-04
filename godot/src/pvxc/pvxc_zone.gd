@@ -249,6 +249,14 @@ func _on_cast(sk: Dictionary) -> void:
 	var radius: float = float(sk.get("radius", 3.0))
 	var power: float = float(sk.get("power", 1.0))
 	var dmg := int(_attack_damage * power)
+	# VFX: every cast flashes in your sensorium's light.
+	SkillVFX.cast_flash(self, _player.global_position)
+	if sk.get("ult_cost", 0) > 0:
+		SkillVFX.ultimate_burst(self, _player.global_position, maxf(radius, 6.0))
+	elif shape == "aoe":
+		SkillVFX.aoe_ring(self, _player.global_position, radius)
+	elif shape == "line":
+		SkillVFX.line_beam(self, _player.global_position, -_player.global_transform.basis.z, radius)
 	match kind:
 		"damage", "chance":
 			if kind == "chance":
@@ -256,6 +264,7 @@ func _on_cast(sk: Dictionary) -> void:
 			var hit := 0
 			for c in _targets_for(shape, radius):
 				c.take_hit(dmg)
+				SkillVFX.hit_spark(self, c.global_position)
 				hit += 1
 			if hit > 0:
 				SkillManager.gain_ultimate(6.0 * hit)
@@ -263,6 +272,7 @@ func _on_cast(sk: Dictionary) -> void:
 				NotificationUI.notify_info("%s — nothing in reach." % sk.get("name", "?"))
 		"shield":
 			_shield = maxi(_shield, int(30 * power))
+			SkillVFX.shield_bubble(self, _player, 6.0)
 			SkillManager.gain_ultimate(4.0)
 		"mobility":
 			var fwd := -_player.global_transform.basis.z
@@ -279,6 +289,23 @@ func _on_cast(sk: Dictionary) -> void:
 			get_tree().create_timer(8.0).timeout.connect(func():
 				_attack_damage = _attack_damage_base) # settles back
 			SkillManager.gain_ultimate(4.0)
+		"build": # Sovereign Crown / Wildlands creations — walls and thickets
+			_spawn_wall(_player.global_position - _player.global_transform.basis.z * 3.0, power)
+			SkillManager.gain_ultimate(4.0)
+		"sentry": # Crown Sentry — autonomous turret
+			_spawn_sentry(_player.global_position - _player.global_transform.basis.z * 2.0, power)
+			SkillManager.gain_ultimate(4.0)
+		"summon": # Wildlands Packmate — a made creature that fights for you
+			_spawn_summon(_player.global_position + Vector3(1.5, 0, 1.5), power)
+			SkillManager.gain_ultimate(4.0)
+		"transform": # Feral Shift / Apex Bloom — become the bigger thing
+			_apply_transform(power, sk.get("ult_cost", 0) > 0)
+			SkillManager.gain_ultimate(3.0)
+		"bastion": # Coronation Bastion — walls + sentries in a ring
+			for i in range(4):
+				var a := TAU * i / 4.0
+				_spawn_wall(_player.global_position + Vector3(cos(a), 0, sin(a)) * 6.0, power)
+				_spawn_sentry(_player.global_position + Vector3(cos(a + 0.4), 0, sin(a + 0.4)) * 5.0, power)
 
 func _targets_for(shape: String, radius: float) -> Array[PvxcCreature]:
 	var out: Array[PvxcCreature] = []
@@ -322,6 +349,122 @@ func _on_player_bitten(damage: int) -> void:
 		PvxcManager.record_death(killer)
 		MusicManager.exit_racing()
 		get_tree().change_scene_to_file("res://scenes/pvxc/pvxc_gate.tscn")
+
+## ── Faction skill structures ────────────────────────────────────────────────
+const CROWN_BUFF := 1.5 # Mandate of Stone: Crown structures last longer, hit harder
+
+func _faction_mult() -> float:
+	return CROWN_BUFF if PlayerProfile.faction == "SovereignCrown" else 1.0
+
+func _spawn_wall(at: Vector3, power: float) -> void:
+	var wall := StaticBody3D.new()
+	var mi := MeshInstance3D.new()
+	var box := BoxMesh.new()
+	box.size = Vector3(5.0, 2.6, 0.7)
+	mi.mesh = box
+	mi.position.y = 1.3
+	mi.material_override = IdentityLens.world_material(Color(0.85, 0.7, 0.3) if PlayerProfile.faction == "SovereignCrown" else Color(0.25, 0.5, 0.25), 0.5)
+	wall.add_child(mi)
+	var cs := CollisionShape3D.new()
+	var bs := BoxShape3D.new()
+	bs.size = box.size
+	cs.shape = bs
+	cs.position.y = 1.3
+	wall.add_child(cs)
+	wall.position = at
+	wall.rotation.y = _player.rotation.y
+	add_child(wall)
+	SkillVFX.aoe_ring(self, at, 2.0)
+	get_tree().create_timer(10.0 * power * _faction_mult()).timeout.connect(func():
+		if is_instance_valid(wall): wall.queue_free())
+
+func _spawn_sentry(at: Vector3, power: float) -> void:
+	var sentry := Node3D.new()
+	var mi := MeshInstance3D.new()
+	var cyl := CylinderMesh.new()
+	cyl.top_radius = 0.25
+	cyl.bottom_radius = 0.45
+	cyl.height = 2.2
+	mi.mesh = cyl
+	mi.position.y = 1.1
+	var mat := StandardMaterial3D.new()
+	mat.albedo_color = Color(0.9, 0.75, 0.2)
+	mat.emission_enabled = true
+	mat.emission = Color(1.0, 0.85, 0.3)
+	mat.emission_energy_multiplier = 1.2
+	mi.material_override = mat
+	sentry.add_child(mi)
+	sentry.position = at
+	add_child(sentry)
+	var dps := int(_attack_damage * 0.4 * power * _faction_mult())
+	var tick := Timer.new()
+	tick.wait_time = 1.0
+	tick.autostart = true
+	sentry.add_child(tick)
+	tick.timeout.connect(func():
+		var best: PvxcCreature = null
+		var bd := 12.0
+		for c in _creatures:
+			if is_instance_valid(c):
+				var d: float = c.dist_to(sentry.global_position)
+				if d < bd:
+					bd = d
+					best = c
+		if best:
+			best.take_hit(dps)
+			SkillVFX.line_beam(self, sentry.global_position, (best.global_position - sentry.global_position).normalized(), bd)
+			SkillVFX.hit_spark(self, best.global_position))
+	get_tree().create_timer(15.0 * _faction_mult()).timeout.connect(func():
+		if is_instance_valid(sentry): sentry.queue_free())
+
+func _spawn_summon(at: Vector3, power: float) -> void:
+	# A made creature: chases the nearest hostile and bites it.
+	var ally := Node3D.new()
+	var mi := MeshInstance3D.new()
+	var caps := CapsuleMesh.new()
+	caps.radius = 0.35
+	caps.height = 1.1
+	mi.mesh = caps
+	mi.position.y = 0.7
+	mi.material_override = IdentityLens.world_material(Color(0.3, 0.7, 0.35), 0.6)
+	ally.add_child(mi)
+	ally.position = at
+	add_child(ally)
+	SkillVFX.aoe_ring(self, at, 2.5)
+	var dps := int(_attack_damage * 0.5 * power * (1.2 if PlayerProfile.faction == "WildlandsAscendant" else 1.0))
+	var tick := Timer.new()
+	tick.wait_time = 0.8
+	tick.autostart = true
+	ally.add_child(tick)
+	tick.timeout.connect(func():
+		var best: PvxcCreature = null
+		var bd := 999.0
+		for c in _creatures:
+			if is_instance_valid(c):
+				var d: float = c.dist_to(ally.global_position)
+				if d < bd:
+					bd = d
+					best = c
+		if best == null: return
+		if bd > 2.0:
+			ally.global_position += (best.global_position - ally.global_position).normalized() * 4.0 * 0.8
+		else:
+			best.take_hit(dps)
+			SkillVFX.hit_spark(self, best.global_position))
+	get_tree().create_timer(15.0).timeout.connect(func():
+		if is_instance_valid(ally): ally.queue_free())
+
+func _apply_transform(power: float, is_ult: bool) -> void:
+	var wa := PlayerProfile.faction == "WildlandsAscendant"
+	var dur := (12.0 if is_ult else 8.0) * (1.3 if wa else 1.0) # Green Memory
+	var mult := 1.0 + 0.3 * power
+	_attack_damage = int(_attack_damage * mult)
+	_player.scale = Vector3.ONE * (1.35 if is_ult else 1.15)
+	SkillVFX.ultimate_burst(self, _player.global_position, 4.0) if is_ult else SkillVFX.aoe_ring(self, _player.global_position, 3.0)
+	NotificationUI.notify_info("🐾 You are the bigger thing now (%ds)." % int(dur))
+	get_tree().create_timer(dur).timeout.connect(func():
+		_attack_damage = _attack_damage_base
+		if is_instance_valid(_player): _player.scale = Vector3.ONE)
 
 func _build_hud() -> void:
 	var layer := CanvasLayer.new()

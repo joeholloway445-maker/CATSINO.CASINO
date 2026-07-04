@@ -133,58 +133,118 @@ static func race_line(race_id: String) -> Dictionary:
 		],
 	}
 
-## ── FACTION LINES ──────────────────────────────────────────────────────────
+## ── FACTION LINES — bespoke identities, not generated ──────────────────────
+## Sovereign Crown: building & sentries. The Crown holds ground; what it
+##   raises, stays raised.
+## Veiled Current: liminal arts amplified. The Current was walking the
+##   between before anyone named it.
+## Wildlands Ascendants: transformation & creation. What survives the wilds
+##   becomes the wilds — and then makes more of them.
+## Factionless: the Lone Wolf. No banner, no backup, unperceived.
 const FACTION_LINES := {
 	"SovereignCrown": {
-		name="Crown Mandate", theme="pow",
-		flavor="The Crown does not ask. Skills of command, execution, and the weight of authority.",
-		ult_name="Coronation", ult_lore="Every ally under the Mandate strikes as one crown for six seconds.",
-	},
-	"WildlandsAscendant": {
-		name="Wild Ascension", theme="res",
-		flavor="What survives the wilds becomes the wilds. Skills of endurance, regrowth, and the pack.",
-		ult_name="The Green Tide", ult_lore="The terrain itself rises — roots and regrowth heal the pack and drag enemies down.",
+		name="Crown Mandate",
+		flavor="The Crown does not chase. It builds where it stands and dares the world to object.",
+		actives=[
+			{id="fac_sc_a0", name="Raise Bulwark", kind="build", shape="line", radius=4.0,
+			 power=1.0, cost=25, cooldown=10.0,
+			 lore="A wall of Crown-gold masonry assembles from nothing. Architecture as an argument."},
+			{id="fac_sc_a1", name="Crown Sentry", kind="sentry", shape="single", radius=12.0,
+			 power=0.8, cost=30, cooldown=14.0,
+			 lore="A sentry spire of the old empire, deputized on the spot. It does not sleep, blink, or forgive."},
+			{id="fac_sc_a2", name="Royal Fortification", kind="shield", shape="self", radius=0.0,
+			 power=1.5, cost=22, cooldown=9.0,
+			 lore="You are Crown property now — and the Crown protects its assets."},
+		],
+		ultimate={id="fac_sc_ult", name="Coronation Bastion", kind="bastion", shape="aoe", radius=10.0,
+			power=2.5, ult_cost=150, cooldown=1.0,
+			lore="A ring of walls and sentries erupts around you. For thirty seconds, this ground is Dallas."},
+		passives=[
+			{id="fac_sc_p0", name="Mandate of Stone", desc="Structures you raise last 50%% longer and sentries hit 20%% harder."},
+			{id="fac_sc_p1", name="Crown Territory", desc="+5%% all stats inside SovereignCrown-claimed chunks."},
+		],
 	},
 	"VeiledCurrent": {
-		name="Current Working", theme="spd",
-		flavor="Water finds every crack. Skills of flow, misdirection, and arriving where you weren't.",
-		ult_name="Undertow", ult_lore="The Current takes everyone nearby somewhere slightly worse for them.",
+		name="Current Working",
+		flavor="Water finds every crack. The Current was walking the liminal before anyone named it.",
+		actives=[
+			{id="fac_vc_a0", name="Wrong Step", kind="mobility", shape="self", radius=0.0,
+			 power=1.4, cost=14, cooldown=4.0,
+			 lore="You step where the floor isn't and arrive where the wall was. The between doesn't mind — you're a regular."},
+			{id="fac_vc_a1", name="Veil of the Current", kind="shield", shape="self", radius=0.0,
+			 power=1.2, cost=20, cooldown=8.0,
+			 lore="You go slightly liminal. Attacks pass through the space you almost occupy."},
+			{id="fac_vc_a2", name="Undertow Pull", kind="control", shape="aoe", radius=8.0,
+			 power=1.0, cost=24, cooldown=9.0,
+			 lore="The Current takes everyone nearby by the ankles. They were standing on water the whole time."},
+		],
+		ultimate={id="fac_vc_ult", name="Between Tide", kind="damage", shape="aoe", radius=11.0,
+			power=3.5, ult_cost=150, cooldown=1.0,
+			lore="For one held breath the whole fight happens in the liminal — and the liminal sides with you."},
+		passives=[
+			{id="fac_vc_p0", name="Currentborn", desc="The Periliminal pull timer runs 25%% slower; liminal doors cost 30%% fewer tokens."},
+			{id="fac_vc_p1", name="Slipstream", desc="+5%% all stats inside VeiledCurrent-claimed chunks."},
+		],
+	},
+	"WildlandsAscendant": {
+		name="Wild Ascension",
+		flavor="What survives the wilds becomes the wilds. What becomes the wilds makes more of them.",
+		actives=[
+			{id="fac_wa_a0", name="Feral Shift", kind="transform", shape="self", radius=0.0,
+			 power=1.3, cost=26, cooldown=12.0,
+			 lore="Your frame remembers being something with more teeth. Let it."},
+			{id="fac_wa_a1", name="Grow Thicket", kind="build", shape="aoe", radius=5.0,
+			 power=0.9, cost=24, cooldown=10.0,
+			 lore="You create a thicket where there was floor. It grows like it's making up for lost time."},
+			{id="fac_wa_a2", name="Packmate", kind="summon", shape="single", radius=10.0,
+			 power=1.0, cost=32, cooldown=16.0,
+			 lore="You make a creature — not summon, MAKE. The Ascendants stopped asking permission for creation long ago."},
+		],
+		ultimate={id="fac_wa_ult", name="Apex Bloom", kind="transform", shape="aoe", radius=9.0,
+			power=3.0, ult_cost=150, cooldown=1.0,
+			lore="Full transformation. Whatever you become for these twelve seconds, the field remembers it as the apex."},
+		passives=[
+			{id="fac_wa_p0", name="Green Memory", desc="Transformations last 30%% longer; your creations inherit 20%% of your stats."},
+			{id="fac_wa_p1", name="Wildclaim", desc="+5%% all stats inside WildlandsAscendant-claimed chunks."},
+		],
 	},
 	"Factionless": {
-		name="Lone Wolf", theme="lck",
-		flavor="No banner, no orders, no backup. The Lone Wolf line is the only one that scales with what you've survived alone.",
-		ult_name="Nobody's Hour", ult_lore="For ten seconds you don't render on anyone's client at all. The Factionless know: unperceived is unkillable.",
+		name="Lone Wolf",
+		flavor="No banner, no orders, no backup. The only line that scales with what you've survived alone.",
+		actives=[
+			{id="fac_fl_a0", name="Nobody's Strike", kind="damage", shape="single", radius=4.0,
+			 power=1.6, cost=22, cooldown=6.0,
+			 lore="Hits harder when no ally is near — which, for you, is always."},
+			{id="fac_fl_a1", name="Scavenger's Wager", kind="chance", shape="aoe", radius=6.0,
+			 power=1.4, cost=20, cooldown=8.0,
+			 lore="You learned to gamble because the alternative was starving. The odds respect that."},
+			{id="fac_fl_a2", name="Gone Quiet", kind="mobility", shape="self", radius=0.0,
+			 power=1.2, cost=16, cooldown=7.0,
+			 lore="Not invisible. Just not worth perceiving. There's a difference, and it keeps you alive."},
+		],
+		ultimate={id="fac_fl_ult", name="Nobody's Hour", kind="shield", shape="self", radius=0.0,
+			power=4.0, ult_cost=175, cooldown=1.0,
+			lore="For ten seconds you don't render on anyone's client at all. Unperceived is unkillable."},
+		passives=[
+			{id="fac_fl_p0", name="Unaligned", desc="+10%% all rewards in open-PvP territory — nobody splits your take."},
+		],
 	},
 }
 
 static func faction_line(faction: String) -> Dictionary:
 	var f: Dictionary = FACTION_LINES.get(faction, FACTION_LINES["Factionless"])
-	var arch: Dictionary = ARCHETYPES[f.theme]
 	var actives: Array[Dictionary] = []
-	for i in range(3):
-		var shape: Dictionary = SLOT_SHAPES[i + 1]
-		var aname := "%s: %s" % [f.name, arch.verbs[i]]
-		actives.append({
-			"id": "fac_%s_a%d" % [faction, i], "name": aname,
-			"kind": arch.kind, "shape": shape.shape, "radius": shape.radius,
-			"power": arch.base_power * shape.mult,
-			"cost": arch.cost, "cooldown": arch.cooldown,
-			"lore": f.flavor,
-			"morphs": _morphs_for(aname, arch.kind),
-		})
+	for a in f.actives:
+		var e: Dictionary = a.duplicate()
+		e["lore"] = "%s %s" % [e.get("lore", ""), f.flavor]
+		e["morphs"] = _morphs_for(e.name, e.kind)
+		actives.append(e)
 	return {
 		"id": "line_faction_%s" % faction, "name": f.name,
 		"source": "faction", "source_id": faction,
 		"actives": actives,
-		"ultimate": {
-			"id": "fac_%s_ult" % faction, "name": f.ult_name,
-			"kind": "damage" if f.theme == "pow" else "buff",
-			"shape": "aoe", "radius": 10.0, "power": 3.5, "ult_cost": 150, "cooldown": 1.0,
-			"lore": f.ult_lore,
-		},
-		"passives": [
-			{"id": "fac_%s_p0" % faction, "name": "Allegiance", "desc": "+5%% all stats inside your faction's territory."},
-		],
+		"ultimate": f.ultimate,
+		"passives": f.passives,
 	}
 
 ## ── THE LIMINAL ARTS: the universal line ───────────────────────────────────

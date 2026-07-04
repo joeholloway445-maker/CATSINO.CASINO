@@ -39,10 +39,21 @@ func _ready() -> void:
 	_player.global_position = spawn
 	_player.chunk_changed.connect(_on_chunk_changed)
 	add_child(SensoriumAmbience.new()) # your build's own hum, under the music
+	var hotbar := HotbarUI.new()
+	hotbar.cast_requested.connect(_on_cast)
+	add_child(hotbar)
+	var stats := CharacterCreatorLogic.build_starting_stats(
+		PlayerProfile.selected_race_id, PlayerProfile.faction, PlayerProfile.selected_frame)
+	_attack_damage = 14 + int(stats.pow) / 2 + PlayerProfile.level
 	_build_hud()
 	_wire_presence()
 
 var _peers: Dictionary = {} # peer_id -> RemotePlayer
+var _peer_hp: Dictionary = {} # peer_id -> hp (open-PvP wilds)
+var _player_hp := 100
+var _shield := 0
+var _attack_damage := 20
+var _hostile_tick := 0.0
 
 func _wire_presence() -> void:
 	PresenceManager.peer_joined.connect(func(pid, prof):
@@ -145,9 +156,98 @@ func _build_hud() -> void:
 		timer_lbl.modulate = Color(0.8, 0.6, 1.0)
 		layer.add_child(timer_lbl)
 
+func _in_pvp_zone() -> bool:
+	match layer_id:
+		"liminal": return true
+		"supraliminal": return TerritoryControl.is_pvp_at(_player.global_position)
+		_: return false
+
+## Cast resolution in the open world — targets are other players (or their
+## offline ghost stand-ins). Hub interiors are sanctuaries: nothing lands.
+func _on_cast(sk: Dictionary) -> void:
+	SkillVFX.cast_flash(self, _player.global_position)
+	var shape: String = sk.get("shape", "single")
+	var radius: float = float(sk.get("radius", 3.0))
+	var power: float = float(sk.get("power", 1.0))
+	if sk.get("ult_cost", 0) > 0:
+		SkillVFX.ultimate_burst(self, _player.global_position, maxf(radius, 6.0))
+	elif shape == "aoe":
+		SkillVFX.aoe_ring(self, _player.global_position, radius)
+	elif shape == "line":
+		SkillVFX.line_beam(self, _player.global_position, -_player.global_transform.basis.z, radius)
+	match sk.get("kind", "damage"):
+		"shield":
+			_shield = maxi(_shield, int(30 * power))
+			SkillVFX.shield_bubble(self, _player, 6.0)
+			return
+		"mobility":
+			_player.global_position += -_player.global_transform.basis.z * (6.0 + 6.0 * power)
+			return
+		_:
+			pass
+	if not _in_pvp_zone():
+		NotificationUI.notify_info("PvE sanctuary — your skills won't land on anyone here.")
+		return
+	var dmg := int(_attack_damage * power)
+	var reach := maxf(radius, 4.0)
+	for pid in _peers.keys():
+		var rp: RemotePlayer = _peers[pid]
+		if not is_instance_valid(rp): continue
+		if rp.global_position.distance_to(_player.global_position) > reach: continue
+		_peer_hp[pid] = _peer_hp.get(pid, 80 + randi() % 60) - dmg
+		SkillVFX.hit_spark(self, rp.global_position)
+		SkillManager.gain_ultimate(6.0)
+		if _peer_hp[pid] <= 0:
+			_on_peer_killed(pid, rp)
+
+func _on_peer_killed(pid: String, rp: RemotePlayer) -> void:
+	_peers.erase(pid)
+	_peer_hp.erase(pid)
+	rp.queue_free()
+	var loot := 15 + randi() % 40
+	EconomyManager.earn_currency("tokens", loot, "open_pvp_kill")
+	EconomyManager.earn_prestige(6, "pvp_kill")
+	CrownManager.add_score("Top PvP Kills", "local_player", 1, PlayerProfile.faction)
+	CrownManager.log_provisional_pvp("local_player", 0.05)
+	NotificationUI.notify_win("⚔️ %s falls in the wilds (+%d tokens)" % [pid.trim_prefix("ghost_").replace("_", " "), loot])
+
+## Dying in the open: lose 20% of your tokens and wake up at your hub —
+## Arlington for the factionless. Getting TO your faction the first time
+## means surviving this gauntlet (or getting carried).
+func _on_player_died(killer: String) -> void:
+	var lost := int(EconomyManager.get_balance("tokens") * 0.2)
+	if lost > 0:
+		await EconomyManager.spend_currency("tokens", lost, "open_pvp_death")
+	NotificationUI.notify_error("💀 %s got you in the open. -%d tokens. The wilds don't care who you were." % [killer, lost])
+	_player_hp = 100
+	_shield = 0
+	var spawn := _spawn_point()
+	spawn.y = _terrain.height_at(spawn.x, spawn.z) + 2.0
+	_player.global_position = spawn
+	_player.velocity = Vector3.ZERO
+
 func _process(_delta: float) -> void:
 	if is_instance_valid(_player):
 		PresenceManager.report_position(_player.global_position)
+	# The wilds bite back: in open PvP, nearby hostiles take swings at you.
+	if is_instance_valid(_player) and _in_pvp_zone():
+		_hostile_tick += _delta
+		if _hostile_tick >= 2.0:
+			_hostile_tick = 0.0
+			for pid in _peers.keys():
+				var rp: RemotePlayer = _peers[pid]
+				if not is_instance_valid(rp): continue
+				if rp.global_position.distance_to(_player.global_position) < 10.0:
+					var hit := 6 + randi() % 10
+					if _shield > 0:
+						var ab := mini(_shield, hit)
+						_shield -= ab
+						hit -= ab
+					_player_hp -= hit
+					SkillManager.gain_ultimate(3.0)
+					if _player_hp <= 0:
+						_on_player_died(pid.trim_prefix("ghost_").replace("_", " "))
+					break
 	if layer_id == "liminal":
 		var lbl: Label = get_node_or_null("CanvasLayer/WanderTimer")
 		if lbl == null:
