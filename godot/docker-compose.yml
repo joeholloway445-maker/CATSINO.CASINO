@@ -1,0 +1,49 @@
+version: "3.8"
+
+services:
+  postgres:
+    image: postgres:14
+    environment:
+      POSTGRES_DB: nakama
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: localdb
+    ports:
+      - "5433:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  nakama:
+    image: heroiclabs/nakama:3.21.1
+    command:
+      - "--name=catsino_mmo"
+      - "--database.address=postgres:5432"
+      - "--runtime.path=/nakama/data/modules"
+      - "--session.token_expiry_sec=86400"
+      - "--console.port=7351"
+    ports:
+      - "7349:7349"
+      - "7350:7350"
+      - "7351:7351"
+    environment:
+      NAKAMA_DATABASE_ADDRESS: "postgres:5432"
+      NAKAMA_DATABASE_USERNAME: postgres
+      NAKAMA_DATABASE_PASSWORD: localdb
+      NAKAMA_DATABASE_NAME: nakama
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      # Nakama's JS runtime loads compiled .js from /nakama/data/modules — NOT raw .ts.
+      # Run `npm run build` in src/networking/nakama_modules first (setup.sh does this).
+      - ./src/networking/nakama_modules/build:/nakama/data/modules
+      - nakama_data:/nakama/data
+    restart: unless-stopped
+
+volumes:
+  pgdata:
+  nakama_data:

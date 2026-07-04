@@ -1,0 +1,50 @@
+# Periliminal.Space full stack — Nakama + Postgres (Nakama's own),
+# Next.js landing/API, and the exported Godot HTML5 client behind nginx.
+# Supabase runs hosted (lamdemoaszkilguvkvcd) — self-host later with
+# `supabase start` or the supabase/docker compose if needed.
+services:
+  nakama-db:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_PASSWORD: nakama
+      POSTGRES_DB: nakama
+    volumes: [nakama_db:/var/lib/postgresql/data]
+
+  nakama:
+    image: registry.heroiclabs.com/heroiclabs/nakama:3.21.1
+    depends_on: [nakama-db]
+    entrypoint:
+      - "/bin/sh"
+      - "-ecx"
+      - >
+        /nakama/nakama migrate up --database.address postgres:nakama@nakama-db:5432/nakama &&
+        exec /nakama/nakama --name periliminal --database.address postgres:nakama@nakama-db:5432/nakama
+        --socket.server_key "${NAKAMA_SERVER_KEY:-defaultkey}" --runtime.js_entrypoint "index.js"
+    volumes:
+      - ./godot/src/networking/nakama_modules/build:/nakama/data/modules
+    ports: ["7350:7350", "7351:7351"]
+
+  web:
+    build: ./apps/catsino-casino
+    environment:
+      NEXT_PUBLIC_SUPABASE_URL: ${SUPABASE_URL}
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: ${SUPABASE_ANON_KEY}
+    ports: ["3000:3000"]
+
+  game:
+    image: nginx:alpine
+    volumes:
+      - ./builds/html5:/usr/share/nginx/html:ro
+    ports: ["8080:80"]
+
+  psychology:
+    build: ./services/psychology
+    restart: unless-stopped
+    environment:
+      SUPABASE_URL: ${SUPABASE_URL}
+      SUPABASE_SERVICE_KEY: ${SUPABASE_SERVICE_KEY}
+      POLL_INTERVAL: ${PSYCH_POLL_INTERVAL:-60}
+    depends_on: [nakama]
+
+volumes:
+  nakama_db:

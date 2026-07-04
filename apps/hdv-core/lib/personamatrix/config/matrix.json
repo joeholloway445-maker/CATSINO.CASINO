@@ -1,0 +1,58 @@
+{
+  "matrix": {
+    "name": "PersonaMatrix",
+    "version": "0.1.0",
+    "base_entity_count": 4096,
+    "variants_per_entity": 5,
+    "total_capacity": 20480,
+    "lifecycle_policy": "ephemeral",
+    "comment": "Personas spawn on demand, execute, terminate immediately. Nothing idles."
+  },
+  "modules": {
+    "dream": {
+      "purpose": "Streaming operations - filters, simulated audience, stream theater",
+      "persona_allocation": 4096,
+      "roles": ["commenter", "hype_agent", "filter_director", "co_streamer"],
+      "priority": 1,
+      "status": "MVP"
+    },
+    "hope": {
+      "purpose": "In-game matrix / content farm",
+      "persona_allocation": 4096,
+      "roles": ["content_gen", "clip_editor", "caption_writer"],
+      "priority": 3,
+      "status": "planned"
+    },
+    "no_one": {
+      "purpose": "Security - validation, abuse prevention, audit",
+      "persona_allocation": 4096,
+      "roles": ["validator", "auditor", "rate_limiter"],
+      "priority": 2,
+      "status": "planned"
+    },
+    "vision": {
+      "purpose": "Enterprise white-label licensing",
+      "persona_allocation": 4096,
+      "roles": ["workflow_agent", "tenant_admin"],
+      "priority": 4,
+      "status": "planned"
+    },
+    "apex": {
+      "purpose": "Master orchestrator - routes work, kills idle personas, tracks cost",
+      "persona_allocation": 4096,
+      "roles": ["router", "billing", "load_balancer"],
+      "priority": 1,
+      "status": "MVP"
+    }
+  },
+  "cost_model": {
+    "currency": "USD",
+    "default_cost_per_minute": 0.002,
+    "role_overrides": {
+      "filter_director": 0.01,
+      "co_streamer": 0.02,
+      "validator": 0.001
+    },
+    "kill_after_seconds_idle": 0
+  }
+}

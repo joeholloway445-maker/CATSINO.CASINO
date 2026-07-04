@@ -1,0 +1,7 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "installCommand": "cd apps/catsino-casino && npm install",
+  "buildCommand": "cd apps/catsino-casino && npm run build",
+  "outputDirectory": "apps/catsino-casino/.next",
+  "framework": "nextjs"
+}

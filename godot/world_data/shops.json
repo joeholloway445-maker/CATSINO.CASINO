@@ -1,0 +1,87 @@
+{
+  "_comment": "CATSINO.CASINO Shops — add items by copying any item block and changing the id. Prices are in Cat Coins (virtual only).",
+  "_guide": "shop_id must match an NPC's shop_id. item type: consumable, frame, mod, companion_item, equipment",
+  "shops": [
+    {
+      "shop_id": "paw_vegas_consumables",
+      "shop_name": "Slot Sam's Emporium",
+      "district": "paw_vegas",
+      "items": [
+        {"item_id": "lucky_charm", "name": "Lucky Charm", "type": "consumable", "price": 500, "description": "+10 LCK for 3 spins", "emoji": "🍀"},
+        {"item_id": "double_down", "name": "Double Down Token", "type": "consumable", "price": 750, "description": "Doubles next payout if you win", "emoji": "💰"},
+        {"item_id": "coin_magnet", "name": "Coin Magnet", "type": "consumable", "price": 1000, "description": "+25% coins from all games for 10 minutes", "emoji": "🧲"},
+        {"item_id": "xp_booster", "name": "XP Booster", "type": "consumable", "price": 800, "description": "Double XP from next 5 games", "emoji": "⭐"},
+        {"item_id": "pity_shield", "name": "Pity Shield", "type": "consumable", "price": 1200, "description": "Resets gacha pity counter to 0 (pretend you just pulled epic)", "emoji": "🛡️"}
+      ]
+    },
+    {
+      "shop_id": "paw_vegas_frames",
+      "shop_name": "Aqua Merchant",
+      "district": "paw_vegas",
+      "items": [
+        {"item_id": "chrome_frame", "name": "Chrome Frame", "type": "frame", "price": 2000, "description": "+5 POW, +3 RES", "emoji": "🖼️"},
+        {"item_id": "neon_frame", "name": "Neon Frame", "type": "frame", "price": 2500, "description": "+8 SPD, -2 RES", "emoji": "💡"},
+        {"item_id": "gold_frame", "name": "Gold Frame", "type": "frame", "price": 5000, "description": "+10 LCK, +5 STY", "emoji": "✨"},
+        {"item_id": "shadow_frame", "name": "Shadow Frame", "type": "frame", "price": 3500, "description": "+7 POW, stealth bonus in combat", "emoji": "🌑"},
+        {"item_id": "crystal_mod", "name": "Crystal Mod", "type": "mod", "price": 1500, "description": "+15% coin earnings for 1 hour", "emoji": "💎"}
+      ]
+    },
+    {
+      "shop_id": "neon_alley_mods",
+      "shop_name": "Wrench Glitch's Workshop",
+      "district": "neon_alley",
+      "items": [
+        {"item_id": "turbo_mod", "name": "Turbo Mod", "type": "mod", "price": 1800, "description": "+12 SPD for next race", "emoji": "🏎️"},
+        {"item_id": "nitro_boost", "name": "Nitro Boost", "type": "consumable", "price": 600, "description": "Instant +20 SPD for one race", "emoji": "🚀"},
+        {"item_id": "stealth_mod", "name": "Stealth Mod", "type": "mod", "price": 2200, "description": "Opponents can't see your stats for one match", "emoji": "👁️"},
+        {"item_id": "shield_generator", "name": "Shield Generator", "type": "equipment", "price": 3000, "description": "+15 RES permanently (one slot)", "emoji": "🛡️"},
+        {"item_id": "luck_chip", "name": "Luck Chip", "type": "mod", "price": 1200, "description": "+8 LCK for 30 minutes", "emoji": "🍀"}
+      ]
+    },
+    {
+      "shop_id": "cat_coliseum_mods",
+      "shop_name": "Arena Armory",
+      "district": "cat_coliseum",
+      "items": [
+        {"item_id": "battle_frame", "name": "Battle Frame", "type": "frame", "price": 4000, "description": "+15 POW, +10 RES, -5 SPD", "emoji": "⚔️"},
+        {"item_id": "champions_badge", "name": "Champion's Badge", "type": "equipment", "price": 6000, "description": "+20 to all stats for coliseum fights", "emoji": "🏆"},
+        {"item_id": "rage_mod", "name": "Rage Mod", "type": "mod", "price": 2800, "description": "+25% damage when HP < 50%", "emoji": "😡"},
+        {"item_id": "recovery_kit", "name": "Recovery Kit", "type": "consumable", "price": 400, "description": "Restores 50% HP between fights", "emoji": "💊"}
+      ]
+    },
+    {
+      "shop_id": "cat_coliseum_consumables",
+      "shop_name": "Healer Mira",
+      "district": "cat_coliseum",
+      "items": [
+        {"item_id": "healing_potion", "name": "Healing Potion", "type": "consumable", "price": 300, "description": "Restore 30 HP in combat", "emoji": "🧪"},
+        {"item_id": "full_restore", "name": "Full Restore", "type": "consumable", "price": 900, "description": "Fully restore HP between fights", "emoji": "💉"},
+        {"item_id": "antidote", "name": "Antidote", "type": "consumable", "price": 250, "description": "Cure all status effects", "emoji": "🌿"},
+        {"item_id": "revive_crystal", "name": "Revive Crystal", "type": "consumable", "price": 1500, "description": "Revive with 50% HP if knocked out", "emoji": "💫"}
+      ]
+    },
+    {
+      "shop_id": "cat_forest_companions",
+      "shop_name": "Companion Keeper Sylva",
+      "district": "cat_forest",
+      "items": [
+        {"item_id": "companion_food", "name": "Companion Treat", "type": "companion_item", "price": 200, "description": "+10 Companion XP", "emoji": "🐟"},
+        {"item_id": "evolution_crystal", "name": "Evolution Crystal", "type": "companion_item", "price": 5000, "description": "Force-evolve a companion at any XP level", "emoji": "💎"},
+        {"item_id": "bond_token", "name": "Bond Token", "type": "companion_item", "price": 800, "description": "+5% synergy bonus from this companion permanently", "emoji": "💝"},
+        {"item_id": "rare_bait", "name": "Rare Companion Bait", "type": "companion_item", "price": 2000, "description": "10× higher chance of Rare+ in next summon", "emoji": "🎣"},
+        {"item_id": "faction_charm", "name": "Faction Charm", "type": "companion_item", "price": 1500, "description": "Next summoned companion matches your faction", "emoji": "🎖️"}
+      ]
+    },
+    {
+      "shop_id": "arcade_galaxy_gacha",
+      "shop_name": "Gacha Sage Luminos",
+      "district": "arcade_galaxy",
+      "items": [
+        {"item_id": "single_pull", "name": "Single Summon", "type": "consumable", "price": 500, "description": "Summon 1 companion — who will it be?", "emoji": "✨"},
+        {"item_id": "ten_pull", "name": "10× Summon Bundle", "type": "consumable", "price": 4500, "description": "Summon 10 companions — save 500 coins!", "emoji": "🎰"},
+        {"item_id": "pity_ticket", "name": "Pity Ticket", "type": "consumable", "price": 3000, "description": "Guaranteed Rare or higher companion", "emoji": "🎫"},
+        {"item_id": "legend_ticket", "name": "Legend Ticket", "type": "consumable", "price": 15000, "description": "Guaranteed Legendary companion", "emoji": "👑"}
+      ]
+    }
+  ]
+}

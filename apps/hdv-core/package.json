@@ -1,0 +1,45 @@
+{
+  "name": "hdv-core",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.100.1",
+    "@heroiclabs/nakama-js": "^2.8.0",
+    "@livekit/components-react": "^2.9.21",
+    "@monaco-editor/react": "^4.7.0",
+    "@radix-ui/react-popover": "^1.1.15",
+    "@supabase/ssr": "^0.10.3",
+    "@supabase/supabase-js": "^2.106.2",
+    "@types/three": "^0.184.1",
+    "clsx": "^2.1.1",
+    "cmdk": "^1.1.1",
+    "idb": "^8.0.3",
+    "livekit-client": "^2.19.2",
+    "matrix-js-sdk": "^41.7.0",
+    "monaco-editor": "^0.55.1",
+    "next": "16.2.7",
+    "phaser": "^4.1.0",
+    "posthog-js": "^1.386.8",
+    "react": "19.2.4",
+    "react-dom": "19.2.4",
+    "tailwind-merge": "^3.4.0",
+    "three": "^0.184.0",
+    "zustand": "^5.0.13"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4",
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "eslint": "^9",
+    "eslint-config-next": "16.2.7",
+    "tailwindcss": "^4",
+    "typescript": "^5"
+  }
+}

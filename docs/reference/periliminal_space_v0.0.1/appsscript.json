@@ -1,0 +1,87 @@
+{
+  "timeZone": "America/Chicago",
+  "exceptionLogging": "STACKDRIVER",
+  "runtimeVersion": "V8",
+  "dependencies": {
+    "enabledAdvancedServices": [
+      {
+        "userSymbol": "Drive",
+        "serviceId": "drive",
+        "version": "v3"
+      },
+      {
+        "userSymbol": "WorkspaceEvents",
+        "serviceId": "workspaceevents",
+        "version": "v1"
+      },
+      {
+        "userSymbol": "AdSense",
+        "serviceId": "adsense",
+        "version": "v2"
+      },
+      {
+        "userSymbol": "DisplayVideo",
+        "serviceId": "displayvideo",
+        "version": "v4"
+      },
+      {
+        "userSymbol": "DriveActivity",
+        "serviceId": "driveactivity",
+        "version": "v2"
+      },
+      {
+        "userSymbol": "DriveLabels",
+        "serviceId": "drivelabels",
+        "version": "v2beta"
+      },
+      {
+        "userSymbol": "Docs",
+        "serviceId": "docs",
+        "version": "v1"
+      },
+      {
+        "userSymbol": "Sheets",
+        "serviceId": "sheets",
+        "version": "v4"
+      },
+      {
+        "userSymbol": "AdminReseller",
+        "serviceId": "reseller",
+        "version": "v1"
+      },
+      {
+        "userSymbol": "AdminLicenseManager",
+        "serviceId": "licensing",
+        "version": "v1"
+      },
+      {
+        "userSymbol": "DoubleClickCampaigns",
+        "serviceId": "dfareporting",
+        "version": "v5"
+      },
+      {
+        "userSymbol": "Gmail",
+        "serviceId": "gmail",
+        "version": "v1"
+      },
+      {
+        "userSymbol": "AdminDirectory",
+        "serviceId": "admin",
+        "version": "directory_v1"
+      },
+      {
+        "userSymbol": "Chat",
+        "serviceId": "chat",
+        "version": "v1"
+      }
+    ],
+    "libraries": [
+      {
+        "userSymbol": "PeriliminalSpaceV001",
+        "libraryId": "1GUjRr7MbcbbXE0jRKnJFkwW4gPEW2yDEO2nY5fYL9ESFK6Ds0ZUv_TzN",
+        "version": "0",
+        "developmentMode": true
+      }
+    ]
+  }
+}

@@ -1,0 +1,18 @@
+[gd_scene load_steps=2 format=3 uid="uid://cat_coliseum"]
+
+[ext_resource type="Script" path="res://src/world/cat_coliseum_scene.gd" id="1_coliseum"]
+
+[node name="CatColiseum" type="Node3D"]
+script = ExtResource("1_coliseum")
+
+[node name="Arena" type="Node3D" parent="."]
+
+[node name="SpectatorRing" type="Node3D" parent="."]
+
+[node name="BattleStage" type="Node3D" parent="."]
+
+[node name="UILayer" type="CanvasLayer" parent="."]
+
+[node name="CombatHUD" type="Control" parent="UILayer"]
+anchor_right = 1.0
+anchor_bottom = 1.0

@@ -1,0 +1,15 @@
+{
+  "name": "catsino-nakama-modules",
+  "version": "1.0.0",
+  "private": true,
+  "description": "CATSINO.CASINO server-authoritative Nakama RPC modules",
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "build": "esbuild index.ts --bundle --platform=neutral --target=es2017 --format=cjs --tree-shaking=false --outfile=build/index.js",
+    "watch": "esbuild index.ts --bundle --platform=neutral --target=es2017 --format=cjs --tree-shaking=false --outfile=build/index.js --watch"
+  },
+  "devDependencies": {
+    "esbuild": "^0.21.0",
+    "typescript": "^5.4.0"
+  }
+}

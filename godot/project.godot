@@ -1,0 +1,112 @@
+; Engine configuration file.
+; It's best edited using the editor UI and not directly,
+; since the parameters that go here are not all obvious.
+;
+; Format:
+;   [section] ; section goes between []
+;   param=value ; assign values to parameters
+
+config_version=5
+
+[application]
+
+config/name="Periliminal"
+config/description="Cat-themed social casino MMO"
+config/version="0.1.0"
+config/tags=PackedStringArray("mmo", "casino", "social", "cats")
+run/main_scene="res://scenes/ui/splash.tscn"
+config/features=PackedStringArray("4.3", "Forward Plus")
+config/icon="res://assets/ui/icon.png"
+
+[autoload]
+
+AutoloadInit="*res://src/core/autoload_init.gd"
+ExternalHandoff="*res://src/core/external_handoff.gd"
+WorldLoader="*res://src/world/world_loader.gd"
+WorldQuestBridge="*res://src/world/world_quest_bridge.gd"
+GameManager="*res://src/core/game_manager.gd"
+EconomyManager="*res://src/core/economy_manager.gd"
+AccountManager="*res://src/core/account_manager.gd"
+AchievementManager="*res://src/core/achievement_manager.gd"
+ShopManager="*res://src/core/shop_manager.gd"
+TournamentManager="*res://src/core/tournament_manager.gd"
+DailyRewards="*res://src/core/daily_rewards.gd"
+BattlePass="*res://src/liveops/battlepass.gd"
+EventManager="*res://src/liveops/event_manager.gd"
+SocialManager="*res://src/social/social_manager.gd"
+FactionSystem="*res://src/social/faction_system.gd"
+LiveOpsManager="*res://src/liveops/liveops_manager.gd"
+CompanionSystem="*res://src/companion/companion_system.gd"
+CompanionManager="*res://src/companion/companion_system.gd"
+CombatSystem="*res://src/combat/combat_system.gd"
+GameFactory="*res://src/games/game_factory.gd"
+DistrictManager="*res://src/world/district_manager.gd"
+InventoryManager="*res://src/inventory/inventory_manager.gd"
+NetworkManager="*res://src/networking/network_manager.gd"
+PlayerProfile="*res://src/character/player_profile.gd"
+QuestManager="*res://src/world/quest_manager.gd"
+XPManager="*res://src/core/xp_manager.gd"
+NotificationUI="*res://src/ui/notification_ui.gd"
+GameModeManager="*res://src/core/game_mode_manager.gd"
+GameModeStore="*res://src/core/game_mode_store.gd"
+DiscoveryManager="*res://src/world/discovery_manager.gd"
+DiscordTicketClient="*res://src/networking/discord_ticket_client.gd"
+GameData="*res://hdv_lore/src/core/game_data.gd"
+WorldRegistry="*res://hdv_lore/src/core/world_registry.gd"
+PersonaMatrixClient="*res://hdv_lore/src/networking/persona_matrix_client.gd"
+ExternalGameLauncher="*res://hdv_lore/src/networking/external_game_launcher.gd"
+CrownManager="*res://src/core/crown_manager.gd"
+IdentityLens="*res://src/identity/identity_lens.gd"
+TerritoryControl="*res://src/layers/territory_control.gd"
+SubliminalManager="*res://src/layers/subliminal_manager.gd"
+LayerManager="*res://src/layers/layer_manager.gd"
+PeriliminalRuns="*res://src/layers/periliminal_runs.gd"
+ExtraliminalManager="*res://src/layers/extraliminal_manager.gd"
+SkillManager="*res://src/skills/skill_manager.gd"
+GuildManager="*res://src/social/guild_manager.gd"
+BankManager="*res://src/economy/bank_manager.gd"
+StoryVote="*res://src/community/story_vote.gd"
+Hope="*res://src/companion/hope.gd"
+AscensionTrial="*res://src/ascension/ascension_trial.gd"
+RaceStorylines="*res://src/quests/race_storylines.gd"
+ChatManager="*res://src/social/chat_manager.gd"
+PresenceManager="*res://src/multiplayer/presence_manager.gd"
+PvxcManager="*res://src/pvxc/pvxc_manager.gd"
+BlueprintManager="*res://src/blueprints/blueprint_manager.gd"
+MusicManager="*res://src/audio/music_manager.gd"
+
+[display]
+
+window/size/viewport_width=1920
+window/size/viewport_height=1080
+window/size/resizable=true
+window/stretch/mode="canvas_items"
+window/stretch/aspect="expand"
+
+[input]
+
+ui_accept={
+"deadzone": 0.5,
+"events": [Object(InputEventKey,"resource_local_to_scene":false,"resource_name":"","device":-1,"window_id":0,"alt_pressed":false,"shift_pressed":false,"ctrl_pressed":false,"meta_pressed":false,"pressed":false,"keycode":4194309,"physical_keycode":0,"key_label":0,"unicode":0,"location":0,"echo":false,"script":null)
+, Object(InputEventKey,"resource_local_to_scene":false,"resource_name":"","device":-1,"window_id":0,"alt_pressed":false,"shift_pressed":false,"ctrl_pressed":false,"meta_pressed":false,"pressed":false,"keycode":32,"physical_keycode":0,"key_label":0,"unicode":32,"location":0,"echo":false,"script":null)
+]
+}
+
+[network]
+
+limits/debugger/max_chars_per_second=32768
+
+[physics]
+
+common/physics_ticks_per_second=60
+
+[rendering]
+
+renderer/rendering_method="forward_plus"
+textures/vram_compression/import_etc2_astc=true
+anti_aliasing/quality/msaa_2d=2
+anti_aliasing/quality/msaa_3d=2
+
+[editor_plugins]
+
+enabled=PackedStringArray("res://addons/nakama/plugin.cfg")

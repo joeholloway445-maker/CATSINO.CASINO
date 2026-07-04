@@ -1,0 +1,69 @@
+{
+  "filters": {
+    "scarecrow_warp": {
+      "category": "horror",
+      "description": "Dark Knight fear-toxin distortion. Sine-wave warping + smear, like reality melting.",
+      "params": { "intensity": 0.5, "wave_speed": 2.0, "smear": 0.3 },
+      "realtime_safe": true
+    },
+    "fear_toxin": {
+      "category": "horror",
+      "description": "Scarecrow hallucination - color channel splits, breathing zoom, darkness creeping at edges.",
+      "params": { "intensity": 0.6, "pulse_rate": 1.5 },
+      "realtime_safe": true
+    },
+    "squid_game_overlay": {
+      "category": "game_show",
+      "description": "Players-remaining HUD, round timer, elimination flash. Game show death-stakes aesthetic.",
+      "params": { "players_start": 456, "round_seconds": 60, "accent_color": [201, 71, 245] },
+      "realtime_safe": true
+    },
+    "vhs_glitch": {
+      "category": "analog",
+      "description": "VHS tracking errors, scanlines, color bleed, random horizontal tears.",
+      "params": { "intensity": 0.5, "tear_chance": 0.08 },
+      "realtime_safe": true
+    },
+    "chromatic_aberration": {
+      "category": "analog",
+      "description": "RGB channels split apart from center. Subtle = cinematic, heavy = broken reality.",
+      "params": { "shift_px": 6 },
+      "realtime_safe": true
+    },
+    "pixel_sort": {
+      "category": "glitch",
+      "description": "Bright pixels smear into sorted streaks. Datamosh-adjacent corruption look.",
+      "params": { "threshold": 180, "direction": "horizontal" },
+      "realtime_safe": true
+    },
+    "thermal_vision": {
+      "category": "surveillance",
+      "description": "Predator-style heat map colorization.",
+      "params": { "colormap": "JET" },
+      "realtime_safe": true
+    },
+    "entity_static": {
+      "category": "horror",
+      "description": "Analog-horror static bursts with subliminal frame inversion flashes.",
+      "params": { "burst_chance": 0.05, "invert_chance": 0.01 },
+      "realtime_safe": true
+    },
+    "mirror_fragment": {
+      "category": "horror",
+      "description": "Frame shatters into mirrored kaleidoscope shards. Identity fragmentation.",
+      "params": { "segments": 4 },
+      "realtime_safe": true
+    },
+    "deep_dream_lite": {
+      "category": "ai",
+      "description": "Edge-amplified hallucination pass (cheap stand-in for neural style until GPU hookup).",
+      "params": { "iterations": 2, "edge_gain": 1.8 },
+      "realtime_safe": true
+    }
+  },
+  "chains": {
+    "scarecrow_proceedings": ["fear_toxin", "scarecrow_warp", "vhs_glitch"],
+    "squid_round": ["squid_game_overlay", "chromatic_aberration"],
+    "full_breakdown": ["mirror_fragment", "entity_static", "pixel_sort"]
+  }
+}

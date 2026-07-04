@@ -1,0 +1,7 @@
+[gd_scene load_steps=2 format=3 uid="uid://layer_periliminal"]
+
+[ext_resource type="Script" path="res://src/layers/layer_world.gd" id="1"]
+
+[node name="Periliminal" type="Node3D"]
+script = ExtResource("1")
+layer_id = "periliminal"
