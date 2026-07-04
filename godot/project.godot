@@ -73,6 +73,7 @@ ChatManager="*res://src/social/chat_manager.gd"
 PresenceManager="*res://src/multiplayer/presence_manager.gd"
 PvxcManager="*res://src/pvxc/pvxc_manager.gd"
 BlueprintManager="*res://src/blueprints/blueprint_manager.gd"
+Marketplace="*res://src/economy/marketplace.gd"
 MusicManager="*res://src/audio/music_manager.gd"
 
 [display]

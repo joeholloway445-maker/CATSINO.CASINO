@@ -120,8 +120,9 @@ func _init_social_manager() -> void:
 func _on_authenticated(_session: Dictionary) -> void:
 	if game_state == GameState.LOGIN:
 		_set_state(GameState.WORLD)
-		if DistrictManager:
-			await DistrictManager.transition_to_district(DistrictManager.District.PAW_VEGAS)
+		# Every session begins in YOUR Subliminal — the calm room with the
+		# mode selector. The casino is one layer of six, not the front door.
+		get_tree().change_scene_to_file("res://scenes/layers/subliminal.tscn")
 
 func _on_session_expired() -> void:
 	_set_state(GameState.LOGIN)

@@ -20,6 +20,7 @@ func _ready() -> void:
 	_build_camera()
 	add_child(SensoriumAmbience.new())
 	_build_panel()
+	_build_mode_selector()
 	SubliminalManager.apartment_updated.connect(_refresh_slots)
 	_refresh_slots()
 
@@ -202,3 +203,73 @@ func _build_panel() -> void:
 	leave.text = "⬅ Step out"
 	leave.pressed.connect(func(): LayerManager.transition_to("hyperliminal"))
 	box.add_child(leave)
+
+## The mode selector — the Subliminal IS the start screen, every session.
+## From your calm room you step into any of the six realities (entry rules
+## enforced by LayerManager; the Periliminal shows but never opens — it
+## takes you, you don't take it). The casino is one door of six.
+func _build_mode_selector() -> void:
+	var layer := CanvasLayer.new()
+	add_child(layer)
+	var panel := PanelContainer.new()
+	panel.set_anchors_and_offsets_preset(Control.PRESET_CENTER_RIGHT)
+	panel.position += Vector2(-360, 0)
+	panel.custom_minimum_size = Vector2(340, 0)
+	layer.add_child(panel)
+	var box := VBoxContainer.new()
+	panel.add_child(box)
+
+	var title := Label.new()
+	title.text = "WHERE TO, %s?" % PlayerProfile.username.to_upper()
+	title.add_theme_font_size_override("font_size", 18)
+	box.add_child(title)
+
+	for l in RealityLayers.LAYERS:
+		if l.id == "subliminal":
+			continue # you're standing in it
+		var btn := Button.new()
+		btn.text = str(l.name)
+		btn.tooltip_text = str(l.desc)
+		var gate := LayerManager.can_enter(str(l.id))
+		if not bool(gate.get("ok", true)):
+			btn.disabled = true
+			btn.text += "  (%s)" % str(gate.get("reason", "locked"))
+		btn.pressed.connect(func(): LayerManager.transition_to(str(l.id)))
+		box.add_child(btn)
+
+	box.add_child(HSeparator.new())
+
+	var forge := Button.new()
+	forge.text = "🛠️ Blueprint Forge (B)"
+	forge.pressed.connect(func():
+		if get_node_or_null("BlueprintForge") == null:
+			var f := BlueprintForgeUI.new()
+			f.name = "BlueprintForge"
+			add_child(f))
+	box.add_child(forge)
+
+	# Tier shop: buy the space that fits — private studio up to a 300-soul
+	# public pavilion.
+	box.add_child(HSeparator.new())
+	var tier_lbl := Label.new()
+	var cur: Dictionary = SubliminalManager.current_tier()
+	tier_lbl.text = "Space: %s (%d guests%s)" % [cur.name, cur.capacity,
+		", public-capable" if cur.can_public else ""]
+	tier_lbl.modulate = Color(0.8, 0.75, 1.0)
+	box.add_child(tier_lbl)
+	for t in SubliminalManager.TIERS:
+		if t.id == cur.id or int(t.price) <= int(cur.price):
+			continue
+		var up := Button.new()
+		up.text = "Upgrade: %s — %d 🪙 (%d guests)" % [t.name, t.price, t.capacity]
+		up.tooltip_text = str(t.desc)
+		up.pressed.connect(func():
+			if await SubliminalManager.buy_tier(str(t.id)):
+				get_tree().reload_current_scene())
+		box.add_child(up)
+	if cur.can_public:
+		var pub := CheckButton.new()
+		pub.text = "Open to the public"
+		pub.button_pressed = SubliminalManager.is_public
+		pub.toggled.connect(func(on): SubliminalManager.set_public(on))
+		box.add_child(pub)
