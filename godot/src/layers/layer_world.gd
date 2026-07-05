@@ -77,7 +77,31 @@ func _wire_presence() -> void:
 		if _peers.has(pid):
 			_peers[pid].queue_free()
 			_peers.erase(pid))
+	PresenceManager.bot_wants_cast.connect(_on_bot_cast)
 	PresenceManager.join_layer(layer_id)
+
+## Tiered bots (see PresenceManager) "attacking" — gives them a visible
+## skill flash instead of only the silent hostile-tick damage, and feeds
+## landed hits back so adaptive bots escalate mid-fight.
+func _on_bot_cast(pid: String, skill: Dictionary) -> void:
+	if not _peers.has(pid) or not is_instance_valid(_peers[pid]):
+		return
+	var rp: RemotePlayer = _peers[pid]
+	SkillVFX.cast_flash(self, rp.global_position)
+	if not _in_pvp_zone():
+		return
+	if rp.global_position.distance_to(_player.global_position) > 5.0:
+		return
+	var hit := 4 + randi() % 8
+	if _shield > 0:
+		var ab := mini(_shield, hit)
+		_shield -= ab
+		hit -= ab
+	_player_hp -= hit
+	SkillVFX.hit_spark(self, _player.global_position)
+	PresenceManager.report_bot_hit_landed(pid)
+	if _player_hp <= 0:
+		_on_player_died(pid.trim_prefix("ghost_").replace("_", " "))
 
 func _spawn_point() -> Vector3:
 	match layer_id:
@@ -116,7 +140,10 @@ func _supraliminal_enter(coord: Vector2i) -> void:
 	var chunk := DiscoveryManager.get_or_generate_chunk(coord)
 	if chunk.is_hub:
 		NotificationUI.notify_info("Entering %s — PvE sanctuary." % chunk.hub_id.capitalize())
+		MusicManager.play_context("sanctuary")
 		return
+	if MusicManager.current_context() == "sanctuary":
+		MusicManager.play_context("overworld")
 	var loadout := CharacterCreatorLogic.build_loadout(
 		PlayerProfile.selected_race_id, PlayerProfile.selected_frame)
 	var pack := PlayerInfluencePack.from_loadout("local_player", loadout, 1)
@@ -127,6 +154,7 @@ func _supraliminal_enter(coord: Vector2i) -> void:
 	var owner := TerritoryControl.claim_owner(coord)
 	if owner != "" and owner != PlayerProfile.faction:
 		NotificationUI.notify_info("⚔️ %s territory — you are fair game here." % owner)
+	_maybe_spawn_entity(coord)
 
 var _chunk_entered_at := 0.0
 
@@ -153,6 +181,54 @@ func _liminal_enter(coord: Vector2i) -> void:
 	door.position = Vector3(coord.x * size + size * 0.3, 0, coord.y * size + size * 0.6)
 	door.position.y = _terrain.height_at(door.position.x, door.position.z)
 	add_child(door)
+	_maybe_spawn_entity(coord)
+
+## World-threat wildlife from EntityDexData — separate from player/bot
+## "peers". Faction-exclusive: your own faction's roster (or the
+## Factionless ancient-pantheon lines if you have none), a random line,
+## stage picked by rough danger of the area (liminal runs hotter than
+## the open superliminal wilds).
+var _entities: Dictionary = {} # instance_id -> WorldEntity
+
+const ENTITY_SPAWN_CHANCE := 0.35
+const MAX_CONCURRENT_ENTITIES := 3
+
+func _maybe_spawn_entity(coord: Vector2i) -> void:
+	if _entities.size() >= MAX_CONCURRENT_ENTITIES or randf() > ENTITY_SPAWN_CHANCE:
+		return
+	var faction := CompanionRegistry.normalize_faction(PlayerProfile.faction)
+	var line := EntityDexData.random_line(faction)
+	if line.is_empty():
+		return
+	var max_stage := 2 if layer_id == "supraliminal" else 3
+	var stage := randi_range(1, max_stage)
+	var ent := WorldEntity.new()
+	var size := float(HubRegionData.CHUNK_SIZE)
+	var spawn_pos := Vector3(coord.x * size + randf_range(0.2, 0.8) * size, 0,
+		coord.y * size + randf_range(0.2, 0.8) * size)
+	spawn_pos.y = _terrain.height_at(spawn_pos.x, spawn_pos.z)
+	ent.position = spawn_pos
+	ent.setup(line, stage, _player)
+	ent.bit_player.connect(func(dmg): _on_entity_bite(ent, dmg))
+	ent.died.connect(_on_entity_died)
+	add_child(ent)
+	_entities[ent.get_instance_id()] = ent
+
+func _on_entity_bite(ent: WorldEntity, dmg: int) -> void:
+	var hit := dmg
+	if _shield > 0:
+		var ab := mini(_shield, hit)
+		_shield -= ab
+		hit -= ab
+	_player_hp -= hit
+	SkillVFX.hit_spark(self, _player.global_position)
+	if _player_hp <= 0:
+		_on_player_died(str(ent.stage_info.get("name", "the wilds")))
+
+func _on_entity_died(ent: WorldEntity) -> void:
+	_entities.erase(ent.get_instance_id())
+	EconomyManager.earn_currency("fragments", ent.bounty(), "world_entity_kill")
+	QuestManager.update_progress("defeat_entity")
 
 func _build_hud() -> void:
 	var layer := CanvasLayer.new()
@@ -223,11 +299,20 @@ func _on_cast(sk: Dictionary) -> void:
 			return
 		_:
 			pass
-	if not _in_pvp_zone():
-		NotificationUI.notify_info("PvE sanctuary — your skills won't land on anyone here.")
-		return
 	var dmg := int(_attack_damage * power)
 	var reach := maxf(radius, 4.0)
+	# World-threat wildlife lands regardless of PvP zone — entities aren't
+	# players, hitting them was never a PvP question.
+	for iid in _entities.keys().duplicate():
+		var ent: WorldEntity = _entities[iid]
+		if not is_instance_valid(ent): continue
+		if ent.global_position.distance_to(_player.global_position) > reach: continue
+		ent.take_hit(dmg)
+		SkillManager.gain_ultimate(4.0)
+	if not _in_pvp_zone():
+		if _entities.is_empty():
+			NotificationUI.notify_info("PvE sanctuary — your skills won't land on anyone here.")
+		return
 	for pid in _peers.keys():
 		var rp: RemotePlayer = _peers[pid]
 		if not is_instance_valid(rp): continue
@@ -282,6 +367,10 @@ func _process(_delta: float) -> void:
 			for pid in _peers.keys():
 				var rp: RemotePlayer = _peers[pid]
 				if not is_instance_valid(rp): continue
+				# Static-tier bots ignore the player entirely — only real
+				# players and reactive/adaptive bots bite in the open.
+				if pid.begins_with("ghost_") and PresenceManager.peer_tier(pid) == PresenceManager.BotTier.STATIC:
+					continue
 				if rp.global_position.distance_to(_player.global_position) < 10.0:
 					var hit := 6 + randi() % 10
 					if _shield > 0:

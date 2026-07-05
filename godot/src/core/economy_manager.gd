@@ -318,11 +318,18 @@ func _push_transaction_to_server(currency: String, amount: int, party: String, k
 func _rpc(fn: String, payload: Dictionary):
 	if not _nakama_client:
 		return null
-	# Nakama Godot 4 client pattern
-	var result = await _nakama_client.rpc_async(fn, JSON.stringify(payload))
-	if result.is_exception():
-		push_error("EconomyManager RPC %s failed: %s" % [fn, result.get_exception().message])
+	# Routed through NetworkManager.call_rpc so the session (owned by
+	# AccountManager) is always the one actually authenticating the call —
+	# calling _nakama_client.rpc_async directly here would need a session
+	# arg this scope doesn't have.
+	var response: Dictionary = {}
+	var done := false
+	NetworkManager.call_rpc(fn, payload, func(r):
+		response = r
+		done = true)
+	while not done:
+		await get_tree().process_frame
+	if not response.get("success", true) and response.has("error"):
+		push_error("EconomyManager RPC %s failed: %s" % [fn, response.error])
 		return null
-	if result.payload:
-		return JSON.parse_string(result.payload)
-	return null
+	return response

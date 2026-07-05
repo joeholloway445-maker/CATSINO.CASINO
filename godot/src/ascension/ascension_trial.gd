@@ -50,6 +50,7 @@ func begin(frame_id: String) -> bool:
 	candidate_frame = frame_id
 	current_round = 1
 	trial_started.emit(frame_id)
+	MusicManager.play_context("ascension")
 	get_tree().change_scene_to_file("res://scenes/ascension/trial_arena.tscn")
 	return true
 
@@ -94,6 +95,7 @@ func lose(round_number: int) -> void:
 	current_round = 0
 	trial_lost.emit(round_number)
 	NotificationUI.notify_error("💀 The trial keeps your inventory and your pride. Return in four hours — one server day.")
+	MusicManager.play_context("theme")
 	get_tree().change_scene_to_file("res://scenes/ui/ascension.tscn")
 
 func _save() -> void:

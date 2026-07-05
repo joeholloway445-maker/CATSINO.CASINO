@@ -31,7 +31,7 @@ func send(channel: String, text: String, to: String = "") -> void:
 		"faction": PlayerProfile.faction,
 		"guild": GuildManager.guild.get("name", "") if GuildManager.in_guild() else "",
 	}
-	if _try_socket():
+	if await _try_socket():
 		_socket.send_match_state_async("chat_%s" % _scope_key(channel, to), 2, JSON.stringify(payload))
 	# Always echo locally (your own message shows immediately either way).
 	message_received.emit(channel, payload.from, text)
@@ -54,6 +54,11 @@ func _try_socket() -> bool:
 			return false
 		_socket = client.create_socket()
 		_socket.received_match_state.connect(_on_state)
+		var result = await _socket.connect_async(AccountManager.get_nakama_session())
+		if result.is_exception():
+			push_warning("ChatManager: socket connect failed: %s" % result.get_exception().message)
+			_socket = null
+			return false
 	return _socket.is_connected_to_host()
 
 func _on_state(state) -> void:
