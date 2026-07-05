@@ -8,6 +8,9 @@ func _ready() -> void:
 	print("║  Free-to-play Cat Coins only — no real  ║")
 	print("║  money, no sweeps, no redemption.        ║")
 	print("╚══════════════════════════════════════════╝")
+	# Applied before any UI exists — every Control created anywhere after
+	# this inherits it automatically (nothing sets its own theme).
+	get_tree().root.theme = AAATheme.build()
 	_validate_autoloads()
 
 func _validate_autoloads() -> void:

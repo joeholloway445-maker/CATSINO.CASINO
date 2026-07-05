@@ -46,6 +46,8 @@ func _ready() -> void:
 	env.ssao_enabled = true
 	env.ssao_intensity = 1.5
 	env.ssil_enabled = true
+	env.ssr_enabled = true
+	env.ssr_max_steps = 32
 	env.volumetric_fog_enabled = true
 	env.volumetric_fog_density = 0.01
 	env.volumetric_fog_albedo = Color(0.85, 0.85, 0.95)

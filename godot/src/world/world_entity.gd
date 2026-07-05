@@ -56,6 +56,9 @@ func setup(dex_line: Dictionary, stage: int, target: Node3D) -> void:
 	bp.params["ethereal"] = 0.15 * stage if category == "Energy" else 0.0
 	_visual = BlueprintMesh.build(bp)
 	add_child(_visual)
+	if stage >= 3:
+		# Apex form gets a real visual tell, not just a bigger hp bar.
+		SkillVFX.add_aura_shell(_visual, CATEGORY_GLOW.get(category, Color.WHITE), 0.1)
 
 	_label = Label3D.new()
 	_label.billboard = BaseMaterial3D.BILLBOARD_ENABLED

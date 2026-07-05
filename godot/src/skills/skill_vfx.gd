@@ -81,6 +81,8 @@ static func shield_bubble(parent: Node3D, follow: Node3D, duration: float = 6.0)
 		if is_instance_valid(bub): bub.queue_free())
 
 ## Big vertical column + shockwave for ultimates.
+## A reality-tear pillar, not a particle puff — the holographic shader
+## gives it scanlines + rim + flicker instead of a flat emissive cylinder.
 static func ultimate_burst(parent: Node3D, at: Vector3, radius: float) -> void:
 	var c := _tint()
 	aoe_ring(parent, at, radius, c)
@@ -91,18 +93,19 @@ static func ultimate_burst(parent: Node3D, at: Vector3, radius: float) -> void:
 	cyl.top_radius = 0.8
 	cyl.bottom_radius = 1.6
 	cyl.height = 14.0
+	cyl.radial_segments = 24
 	col.mesh = cyl
-	var mat := StandardMaterial3D.new()
-	mat.albedo_color = Color(c.r, c.g, c.b, 0.5)
-	mat.emission_enabled = true
-	mat.emission = c
-	mat.emission_energy_multiplier = 4.0
-	mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	var mat := ShaderMaterial.new()
+	mat.shader = load("res://assets/shaders/holographic.gdshader")
+	mat.set_shader_parameter("base_color", Color(c.r, c.g, c.b, 0.65))
+	mat.set_shader_parameter("scan_speed", 3.0)
+	mat.set_shader_parameter("rim_power", 2.0)
 	col.material_override = mat
 	col.position = at + Vector3(0, 7, 0)
 	parent.add_child(col)
 	var tw := parent.create_tween()
-	tw.tween_property(mat, "albedo_color:a", 0.0, 0.8)
+	tw.tween_method(func(a: float): mat.set_shader_parameter("base_color", Color(c.r, c.g, c.b, a)),
+		0.65, 0.0, 0.8)
 	tw.tween_callback(col.queue_free)
 
 ## Renders a cast styled by a player skill-blueprint from the Forge —
@@ -142,6 +145,25 @@ static func blueprint_cast(parent: Node3D, at: Vector3, bp: Dictionary) -> void:
 			g.one_shot = true
 			(g.process_material as ParticleProcessMaterial).gravity = Vector3(0, 1.5, 0)
 	BlueprintAudio.play(parent, bp)
+
+## Wraps a shimmering aura shell around a Node3D's visible mesh — the
+## cat_aura shader inflates a duplicate of every MeshInstance3D found
+## under `root` outward along its own normals and pulses it additively.
+## Used for Hope's manifestations and apex-stage (Stage 3) world entities
+## — a genuine visual "this one is different," not just a bigger number.
+static func add_aura_shell(root: Node3D, color: Color, size: float = 0.06) -> void:
+	var shader := load("res://assets/shaders/cat_aura.gdshader")
+	for child in root.get_children():
+		if child is MeshInstance3D and child.mesh != null:
+			var shell := MeshInstance3D.new()
+			shell.mesh = child.mesh
+			shell.transform = child.transform
+			var mat := ShaderMaterial.new()
+			mat.shader = shader
+			mat.set_shader_parameter("aura_color", Color(color.r, color.g, color.b, 1.0))
+			mat.set_shader_parameter("aura_size", size)
+			shell.material_override = mat
+			child.add_child(shell)
 
 ## Impact puff on a target.
 static func hit_spark(parent: Node3D, at: Vector3) -> void:

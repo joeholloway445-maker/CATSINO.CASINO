@@ -39,6 +39,7 @@ func _ready() -> void:
 	_player.global_position = spawn
 	_player.chunk_changed.connect(_on_chunk_changed)
 	add_child(SensoriumAmbience.new()) # your build's own hum, under the music
+	add_child(RealityBendOverlay.new(_reality_bend_baseline()))
 	var hotbar := HotbarUI.new()
 	hotbar.cast_requested.connect(_on_cast)
 	add_child(hotbar)
@@ -102,6 +103,14 @@ func _on_bot_cast(pid: String, skill: Dictionary) -> void:
 	PresenceManager.report_bot_hit_landed(pid)
 	if _player_hp <= 0:
 		_on_player_died(pid.trim_prefix("ghost_").replace("_", " "))
+
+func _reality_bend_baseline() -> float:
+	match layer_id:
+		"liminal": return 0.30
+		"periliminal": return 0.55
+		"extraliminal": return 0.08
+		"supraliminal": return 0.05
+		_: return 0.0
 
 func _spawn_point() -> Vector3:
 	match layer_id:
@@ -278,6 +287,7 @@ func _on_cast(sk: Dictionary) -> void:
 			var form := BlueprintMesh.build(hope_bp)
 			form.position = _player.global_position + Vector3(1.2, 0, 1.2)
 			add_child(form)
+			SkillVFX.add_aura_shell(form, Color(1.0, 0.9, 0.65))
 			BlueprintAudio.play(self, hope_bp)
 			get_tree().create_timer(4.0).timeout.connect(form.queue_free)
 	var shape: String = sk.get("shape", "single")

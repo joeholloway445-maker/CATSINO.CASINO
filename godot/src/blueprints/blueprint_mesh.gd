@@ -19,6 +19,14 @@ static func _mat(base: Color, metallic: float, roughness: float,
 	m.albedo_color = base
 	m.metallic = metallic
 	m.roughness = roughness
+	# A thin rim light on every blueprint surface — the difference between
+	## "flat Godot primitive" and "this was lit for a screenshot."
+	m.rim_enabled = true
+	m.rim = 0.35
+	m.rim_tint = 0.5
+	if metallic > 0.5:
+		m.clearcoat_enabled = true
+		m.clearcoat = 0.5
 	if emission > 0.01:
 		m.emission_enabled = true
 		m.emission = emit_color
