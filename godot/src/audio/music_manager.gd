@@ -24,6 +24,14 @@ const TRACKS: Dictionary = {
 	# The PVXC gets NO track by design — nothing comforting down there.
 	# An empty list fades the music out; SensoriumAmbience carries the room.
 	"pvxc":      [],
+	# Next tracks wanted (empty = silence fallback until dropped in):
+	#   ascension -> the trial arena, all 3 rounds — wants tension that
+	#                doesn't resolve until win/lose calls victory/theme.
+	#   sanctuary -> hub interiors (Arlington/Dallas/Fort Worth/Denton) —
+	#                distinct from the open-wilds "overworld" track so a
+	#                hub audibly feels safe the moment you cross into it.
+	"ascension": [],
+	"sanctuary": [],
 }
 
 ## Which context each reality layer wants when you arrive in it.
@@ -103,6 +111,9 @@ func play_context(context: String, loop: bool = true) -> void:
 			_current_context = ""
 			play_context(LAYER_CONTEXT.get(LayerManager.current_layer_id, "theme")),
 			CONNECT_ONE_SHOT)
+
+func current_context() -> String:
+	return _current_context
 
 ## Racing scenes call this on entry/exit.
 func enter_racing() -> void: play_context("racing")
