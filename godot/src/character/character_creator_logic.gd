@@ -41,4 +41,5 @@ static func apply_creation(race_id: String, faction: String, frame_id: String, n
 	for c in companions:
 		if c not in PlayerProfile.active_companion_ids:
 			PlayerProfile.active_companion_ids.append(c)
+	PlayerProfile.has_expedition = true
 	PlayerProfile.profile_updated.emit()

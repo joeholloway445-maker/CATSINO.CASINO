@@ -256,13 +256,6 @@ func _build_hud() -> void:
 	name_lbl.modulate = Color(1, 1, 1, 0.7)
 	layer.add_child(name_lbl)
 
-	if layer_id == "liminal":
-		var timer_lbl := Label.new()
-		timer_lbl.name = "WanderTimer"
-		timer_lbl.position = Vector2(10, 68)
-		timer_lbl.modulate = Color(0.8, 0.6, 1.0)
-		layer.add_child(timer_lbl)
-
 func _in_pvp_zone() -> bool:
 	match layer_id:
 		"liminal": return true
@@ -392,11 +385,3 @@ func _process(_delta: float) -> void:
 					if _player_hp <= 0:
 						_on_player_died(pid.trim_prefix("ghost_").replace("_", " "))
 					break
-	if layer_id == "liminal":
-		var lbl: Label = get_node_or_null("CanvasLayer/WanderTimer")
-		if lbl == null:
-			for child in get_children():
-				if child is CanvasLayer:
-					lbl = child.get_node_or_null("WanderTimer")
-		if lbl:
-			lbl.text = "The Periliminal notices you in %d s" % int(LayerManager.wander_seconds_left())
