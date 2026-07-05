@@ -47,6 +47,37 @@ yourself (all free/CC0, no attribution required) and drop the models in:
 | Loot containers | KayKit Dungeon (chests) | `harvest_node.glb` |
 | Furniture (apartment) | Kenney "Furniture Kit" | `apartment_prop.glb` |
 
+### Mega-city assets (DFW Metroplex hubs)
+
+The mega-city is **fully functional procedurally today** — every hub
+(Dallas, Fort Worth, Denton, Arlington) builds a real city on entry:
+road grid, per-block buildings, streetlights + neon wired to the
+day/night rig, and a per-district sound bed. Drop these in to replace the
+procedural shells with real art — zero code changes (`MegaCityBuilder`
+asks `AssetLibrary` for each slot first):
+
+| Get this | From | Rename into `godot/assets/models/` as |
+|---|---|---|
+| Skyscrapers | **Kenney "City Kit (Commercial)"** / Quaternius "Ultimate Modular Buildings" | `city_tower.glb`, `city_lowrise.glb` |
+| Houses | Kenney "City Kit (Suburban)" | `city_house.glb` |
+| Warehouses | Kenney "City Kit" industrial pieces | `city_industrial.glb` |
+| Roads/sidewalks | Kenney "City Kit (Roads)" | `road_segment.glb`, `sidewalk.glb` |
+| Street lamps | Kenney "City Kit" props | `streetlight.glb` |
+| Signage | any neon/billboard prop | `neon_sign.glb` |
+| Benches/hydrants/bins | Kenney "City Kit" props | `city_prop.glb` |
+
+**Interchangeable textures** — drop PBR maps into `godot/assets/textures/`
+named `<slot>_albedo.png` (+ `_normal`, `_rough`, `_metallic`,
+`_emissive`). The city asks for: `facade_glass`, `facade_concrete`,
+`facade_brick`, `facade_metal`, `asphalt`, `sidewalk`, `neon`. Any that
+exist are used; the per-race identity lens still tints on top, so the same
+wall is a different material on every player's client.
+
+**Interchangeable sounds** — drop looped audio into `godot/assets/audio/`
+as `<slot>.ogg`: `city_traffic`, `city_crowd`, `neon_hum`, `machine_hum`.
+Absent slots are synthesized live (traffic rumble, crowd murmur, neon
+buzz, machine drone) so the city is never silent.
+
 Also worth grabbing (bigger lifts, still free):
 - **godotengine/tps-demo** (github) — reference-quality character
   controller + IK setup to graft onto `player_cat.glb`.
