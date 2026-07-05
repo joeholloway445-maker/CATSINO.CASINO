@@ -51,7 +51,11 @@ func _try_connect_socket() -> bool:
 			return false
 		_socket = client.create_socket()
 		_socket.received_match_state.connect(_on_match_state)
-		await _socket.connect_async(AccountManager.get_nakama_session())
+		var result = await _socket.connect_async(AccountManager.get_nakama_session())
+		if result.is_exception():
+			push_warning("PresenceManager: socket connect failed: %s" % result.get_exception().message)
+			_socket = null
+			return false
 	return _socket.is_connected_to_host()
 
 ## Layer scenes call this every frame with the local player's position.
