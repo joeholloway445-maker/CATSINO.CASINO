@@ -90,7 +90,16 @@ func _ready() -> void:
 	var e := Environment.new()
 	e.background_mode = Environment.BG_COLOR
 	e.background_color = Color(0.05, 0.04, 0.09)
+	e.tonemap_mode = Environment.TONE_MAPPER_ACES
+	e.tonemap_white = 5.0
 	e.glow_enabled = true
+	e.glow_intensity = 0.9
+	e.glow_bloom = 0.15
+	e.glow_blend_mode = Environment.GLOW_BLEND_MODE_SOFTLIGHT
+	e.ssao_enabled = true
+	e.adjustment_enabled = true
+	e.adjustment_contrast = 1.08
+	e.adjustment_saturation = 1.15
 	env.environment = e
 	_preview_vp.add_child(env)
 	_preview_pivot = Node3D.new()

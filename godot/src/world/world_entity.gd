@@ -25,6 +25,12 @@ const CATEGORY_GLOW := {
 	"Gravity": Color(0.3, 0.4, 0.9), "Matter": Color(0.55, 0.45, 0.3),
 	"Psyche": Color(0.8, 0.3, 0.9), "Quantum": Color(0.3, 0.9, 0.85),
 }
+## Category -> PerceptionSystem alignment, so the RPS aura system reads
+## entities the same way it reads players (ALIGNMENT_AURAS tint + menace).
+const CATEGORY_ALIGNMENT := {
+	"Energy": "radiant", "Entropy": "umbral", "Gravity": "neutral",
+	"Matter": "neutral", "Psyche": "umbral", "Quantum": "radiant",
+}
 
 var line: Dictionary = {}
 var stage_info: Dictionary = {}
@@ -37,6 +43,7 @@ var _bite_cd := 0.0
 var _target: Node3D
 var _visual: Node3D
 var _label: Label3D
+var _loadout_visible := true
 
 func setup(dex_line: Dictionary, stage: int, target: Node3D) -> void:
 	line = dex_line
@@ -57,12 +64,29 @@ func setup(dex_line: Dictionary, stage: int, target: Node3D) -> void:
 	_visual = BlueprintMesh.build(bp)
 	add_child(_visual)
 
+	# Same asymmetric RPS the game reads players through (SovereignCrown >
+	# WildlandsAscendant > VeiledCurrent > SovereignCrown; Factionless
+	# beats nothing): a rival-faction entity looms bigger and auras harder
+	# on YOUR client than the same entity does for its own faction.
+	var entity_profile := {
+		"level": stage * 20, "faction": str(line.get("faction", "Factionless")),
+		"alignment": CATEGORY_ALIGNMENT.get(category, "neutral"),
+		"stats": {"pow": damage * 4},
+	}
+	var view: Dictionary = PerceptionSystem.perceive(PerceptionSystem.local_profile(), entity_profile)
+	_visual.scale *= view.apparent_scale
+	if view.aura_intensity > 0.3 or stage >= 3:
+		# Apex form always gets a real visual tell; a rival-faction line
+		# gets one too, scaled by how outmatched the RPS says you are.
+		SkillVFX.add_aura_shell(_visual, view.aura_color, 0.06 + view.aura_intensity * 0.08)
+
 	_label = Label3D.new()
 	_label.billboard = BaseMaterial3D.BILLBOARD_ENABLED
 	_label.position.y = 1.8 + stage * 0.4
 	_label.font_size = 38
 	_label.outline_size = 6
-	_label.text = "%s  (Stage %d)" % [str(stage_info.get("name", "?")), stage]
+	_loadout_visible = view.loadout_visible
+	_label.text = "%s  (Stage %d)" % [str(stage_info.get("name", "?")), stage] if _loadout_visible else "???"
 	_label.modulate = CATEGORY_GLOW.get(category, Color.WHITE)
 	add_child(_label)
 
@@ -85,7 +109,8 @@ func _physics_process(delta: float) -> void:
 func take_hit(amount: int) -> void:
 	hp -= amount
 	if _label:
-		_label.text = "%s  %d/%d" % [str(stage_info.get("name", "?")), maxi(hp, 0), max_hp]
+		var shown := str(stage_info.get("name", "?")) if _loadout_visible else "???"
+		_label.text = "%s  %d/%d" % [shown, maxi(hp, 0), max_hp]
 	if _target and is_instance_valid(_target):
 		var away := (global_position - _target.global_position).normalized()
 		global_position += away * 1.0
