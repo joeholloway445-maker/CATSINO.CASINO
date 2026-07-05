@@ -84,6 +84,9 @@ func _transfer_crown(crown: Dictionary, new_holder: String) -> void:
 	if crowns_of(new_holder).size() >= 3:
 		triple_crown.emit(new_holder)
 	NotificationUI.notify_info("👑 %s takes the %s!" % [new_holder, crown.name])
+	if new_holder == "local_player":
+		# Charges: quests, leaderboards, achievements — never the casino.
+		EconomyManager.earn_currency("charges", 25, "crown_%s" % crown.id)
 
 func crowns_of(player_id: String) -> Array[int]:
 	var r: Array[int] = []

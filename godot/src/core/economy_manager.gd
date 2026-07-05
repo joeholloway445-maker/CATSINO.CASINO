@@ -42,7 +42,7 @@ const CURRENCIES: Dictionary = {
 	},
 	"charges": {
 		name="Charges", icon="⚡",
-		earned_by="primarily quests and achievements; secondarily from the casino",
+		earned_by="quests, leaderboard placements (Crown takeovers), and achievements — never the casino",
 		spent_on="leveling up companions and entities",
 	},
 	"prestige": {

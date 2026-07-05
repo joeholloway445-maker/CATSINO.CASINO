@@ -195,3 +195,7 @@ func _on_create_pressed() -> void:
 	CharacterCreatorLogic.apply_creation(race_id, faction, frame_id, cat_name)
 	PlayerProfile.set_mod(MorphRigData.RIGS[_mod_selector.selected].id)
 	character_created.emit(config)
+	# A new venture starts in the wilds, not the safety of the Subliminal —
+	# thrown straight into the Liminal to explore (and risk finding the
+	# Periliminal the hard way).
+	LayerManager.transition_to("liminal", true)

@@ -17,6 +17,11 @@ var selected_frame: String = "veil"
 ## Second frame, chosen at Champion ascension (level 50+). Empty until then.
 var ascended_frame: String = ""
 var selected_mod: String = ""
+## True once CharacterCreatorLogic.apply_creation has actually run — the
+## title screen's "Continue Expedition" only lights up once this is true;
+## a fresh install always starts at "Start New Venture" no matter what
+## selected_race_id's default happens to be.
+var has_expedition: bool = false
 var active_companion_ids: Array[String] = []
 var titles: Array[String] = []
 var active_title: String = ""
@@ -49,6 +54,12 @@ func _load() -> void:
 	active_companion_ids = Array(data.get("active_companions", []), TYPE_STRING, "", null)
 	titles = Array(data.get("titles", []), TYPE_STRING, "", null)
 	active_title = data.get("active_title", "")
+	# Migration: saves from before this flag existed still have a real
+	# character if they've clearly played (leveled up, left the default
+	# frame/mod, or picked up a companion) — don't lock returning players
+	# out of "Continue Expedition" just because the flag predates them.
+	has_expedition = bool(data.get("has_expedition",
+		level > 1 or selected_frame != "veil" or selected_mod != "" or not active_companion_ids.is_empty()))
 	playtime_seconds = float(data.get("playtime_seconds", 0))
 
 func _save() -> void:
@@ -62,6 +73,7 @@ func _save() -> void:
 		"selected_frame": selected_frame,
 		"ascended_frame": ascended_frame,
 		"selected_mod": selected_mod,
+		"has_expedition": has_expedition,
 		"active_companions": active_companion_ids,
 		"titles": titles,
 		"active_title": active_title,

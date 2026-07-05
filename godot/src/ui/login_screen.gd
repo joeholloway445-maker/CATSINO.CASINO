@@ -44,7 +44,9 @@ func _on_register_pressed() -> void:
 
 func _on_authenticated() -> void:
 	_set_status("Authenticated! Loading world…")
-	GameManager.transition_to(GameManager.GameState.WORLD)
+	# GameManager's own AccountManager.authenticated listener owns the
+	# actual scene transition (to the title screen) — this call used to
+	# reference a nonexistent GameManager.transition_to() and errored.
 
 func _on_auth_failed(reason: String) -> void:
 	_set_status("Error: " + reason, true)

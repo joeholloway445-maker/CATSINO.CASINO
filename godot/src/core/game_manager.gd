@@ -120,9 +120,10 @@ func _init_social_manager() -> void:
 func _on_authenticated(_session: Dictionary) -> void:
 	if game_state == GameState.LOGIN:
 		_set_state(GameState.WORLD)
-		# Every session begins in YOUR Subliminal — the calm room with the
-		# mode selector. The casino is one layer of six, not the front door.
-		get_tree().change_scene_to_file("res://scenes/layers/subliminal.tscn")
+		# The actual front door: title screen with Start New Venture /
+		# Continue Expedition. New ventures go to the Liminal (race/frame/
+		# mod selection first); continuing goes straight to the Subliminal.
+		get_tree().change_scene_to_file("res://scenes/ui/title_screen.tscn")
 
 func _on_session_expired() -> void:
 	_set_state(GameState.LOGIN)

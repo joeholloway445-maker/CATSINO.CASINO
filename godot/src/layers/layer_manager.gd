@@ -4,15 +4,19 @@ extends Node
 ## into the Periliminal.
 
 signal layer_changed(from_id: String, to_id: String)
-signal periliminal_pull_warning(seconds_left: float)
 signal pulled_into_periliminal()
 
-const WANDER_PULL_SECONDS := 600.0 # 10 min of liminal wandering
-const WANDER_WARN_SECONDS := 120.0 # warn for the last 2 min
+## No fixed threshold and no warning, on purpose: the whole point of the
+## Periliminal is that you never know until it's too late. Consistency is
+## what it rewards — not morality, race, gender, frame, mod, creed, or
+## age — so the roll is per-visit and identical for everyone regardless
+## of who they are; only HOW LONG you keep wandering the Liminal matters.
+const WANDER_MIN_SECONDS := 420.0  # 7 min
+const WANDER_MAX_SECONDS := 900.0  # 15 min
 
 var current_layer_id: String = "hyperliminal"
 var _liminal_wander := 0.0
-var _warned := false
+var _pull_threshold := 0.0
 
 func _process(delta: float) -> void:
 	if current_layer_id != "liminal":
@@ -20,12 +24,7 @@ func _process(delta: float) -> void:
 	# Currentborn (Veiled Current passive): the between tolerates you longer.
 	var rate := 0.75 if PlayerProfile.faction == "VeiledCurrent" else 1.0
 	_liminal_wander += delta * rate
-	var left := WANDER_PULL_SECONDS - _liminal_wander
-	if left <= WANDER_WARN_SECONDS and not _warned:
-		_warned = true
-		periliminal_pull_warning.emit(left)
-		NotificationUI.notify_info("The walls are getting thinner... 👁️")
-	if left <= 0.0:
+	if _liminal_wander >= _pull_threshold:
 		pulled_into_periliminal.emit()
 		transition_to("periliminal", true)
 
@@ -52,9 +51,11 @@ func transition_to(layer_id: String, pulled: bool = false) -> bool:
 			return false
 	var from := current_layer_id
 	current_layer_id = layer_id
-	if layer_id != "liminal":
+	if layer_id == "liminal":
+		# Re-rolled every time you step in — a fresh, unknowable threshold
+		# each visit, same distribution for every player alive.
 		_liminal_wander = 0.0
-		_warned = false
+		_pull_threshold = randf_range(WANDER_MIN_SECONDS, WANDER_MAX_SECONDS)
 	layer_changed.emit(from, layer_id)
 	var scene: String = str(RealityLayers.by_id(layer_id).get("scene", ""))
 	if scene != "" and ResourceLoader.exists(scene):
@@ -68,6 +69,3 @@ func is_pvp_here(world_pos: Vector3 = Vector3.ZERO) -> bool:
 		"liminal": return true
 		"supraliminal": return TerritoryControl.is_pvp_at(world_pos)
 		_: return false
-
-func wander_seconds_left() -> float:
-	return maxf(WANDER_PULL_SECONDS - _liminal_wander, 0.0)

@@ -18,6 +18,10 @@ var _last_bearing := 0.0
 var _open_count := 0
 var _resolved := false
 var _panel: MeshInstance3D
+## Fixed per door location (not per player) — the same door is locked to
+## the same influence tier for everyone. Not every door in the Liminal is
+## meant to open for you; that's what equivalent exchange is for.
+var _required_tier := 0
 
 const BEHIND_TABLE := [
 	{kind="loot", desc="a room of unclaimed winnings"},
@@ -31,12 +35,20 @@ const BEHIND_TABLE := [
 func _ready() -> void:
 	if door_id == "":
 		door_id = "door_%d_%d" % [int(global_position.x), int(global_position.z)]
+	# ~40% of doors ask nothing; the rest sit behind tiers 1-3 of
+	# equivalent exchange, fixed by location so it's the same lock for
+	# every player who finds this particular door.
+	var lock_roll := absi(hash(door_id)) % 5
+	_required_tier = maxi(lock_roll - 1, 0) # 0,0,1,2,3
 	_panel = MeshInstance3D.new()
 	var box := BoxMesh.new()
 	box.size = Vector3(1.6, 3.0, 0.15)
 	_panel.mesh = box
 	_panel.position.y = 1.5
-	_panel.material_override = IdentityLens.world_material(Color(0.4, 0.35, 0.3), 0.4)
+	var panel_color := Color(0.4, 0.35, 0.3) if _required_tier == 0 else Color(0.45, 0.3, 0.5)
+	_panel.material_override = IdentityLens.world_material(panel_color, 0.4)
+	if _required_tier > 0:
+		SkillVFX.add_aura_shell(self, Color(0.7, 0.4, 0.9), 0.03 * _required_tier)
 	add_child(_panel)
 	var cs := CollisionShape3D.new()
 	var sph := SphereShape3D.new()
@@ -89,6 +101,15 @@ func _walk_through() -> void:
 		approach = "lingered"
 	elif hesitated > 2.0:
 		approach = "peeked"
+
+	if _required_tier > 0 and EconomyManager.influence_level() < _required_tier * 10:
+		# Not every door opens for everyone. Influence earned through play
+		# opens it free; otherwise it's equivalent exchange, on the spot,
+		# or the door stays shut — no in-between.
+		if not await EconomyManager.equivalent_exchange("liminal_door_%s" % door_id, _required_tier):
+			_resolve("locked", null)
+			return
+
 	# What's behind is seeded by WHO opens it — same door, different truths.
 	var seed_val := PerceptionEngine.generation_seed(
 		PlayerProfile.selected_race_id, EconomyManager.influence_level(),
