@@ -89,7 +89,7 @@ func _build_ui() -> void:
 	new_btn.text = "⚔️  Start New Venture"
 	new_btn.custom_minimum_size = Vector2(320, 56)
 	new_btn.pressed.connect(func():
-		get_tree().change_scene_to_file("res://scenes/ui/character_creator.tscn"))
+		get_tree().change_scene_to_file("res://scenes/ui/venture_wizard.tscn"))
 	middle.add_child(new_btn)
 
 	var continue_btn := Button.new()
