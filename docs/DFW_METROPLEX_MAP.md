@@ -1,5 +1,32 @@
 # DFW Metroplex — map plan (Superliminal layer)
 
+## The mega-city is now built, not just planned
+
+`godot/src/world/city/` builds a **fully functional mega-city** for each
+hub the first time the player enters it (`layer_world._ensure_city`):
+
+- **`CityData`** — the blueprint: per-hub district floor plans (downtown /
+  market / residential / industrial / faction-core), building profiles,
+  block/road dimensions, light rig, and sound bed. Every hard-mesh part
+  names the AssetLibrary model + texture + sound slot it depends on.
+- **`MegaCityBuilder`** — assembles a hub: road grid, sidewalks, one
+  building per block, streetlights, neon signage, plaza gaps, props.
+  Deterministic per hub (same city every visit).
+- **`BuildingBuilder`** — one building, real asset or procedural shell,
+  with emissive window bands.
+- **`CityLighting`** — rides every window / streetlight / neon on the
+  day/night curve (dark by day, lit at dusk).
+- **`CityAmbience`** — per-district layered soundscape (real audio if
+  installed, synthesized traffic/crowd/neon/machine beds otherwise).
+
+Every surface routes through `AssetLibrary` (models + textures) and
+`IdentityLens` (per-race tint), so the whole city upgrades to real art by
+dropping asset packs in — no code change. See `docs/SHIPPING.md` for the
+exact slot names.
+
+The rest of this doc is the deeper real-world-geography plan for a future
+pass that swaps procedural hub blocks for OSM-derived real street grids.
+
 ## What exists today
 
 `godot/src/data/hub_region_data.gd` hand-authors four fixed regions on the

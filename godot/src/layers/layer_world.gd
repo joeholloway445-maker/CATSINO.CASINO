@@ -104,6 +104,27 @@ func _on_bot_cast(pid: String, skill: Dictionary) -> void:
 	if _player_hp <= 0:
 		_on_player_died(pid.trim_prefix("ghost_").replace("_", " "))
 
+## Mega-city: built once per hub the first time the player sets foot in it,
+## anchored to the hub's world-space corner. Deterministic per hub, so it's
+## the same city every visit; freed when leaving the layer with the scene.
+var _cities_built: Dictionary = {} # hub_id -> Node3D
+
+func _ensure_city(hub_id: String) -> void:
+	if hub_id == "" or _cities_built.has(hub_id):
+		return
+	var hub := HubRegionData.by_id(hub_id)
+	if hub.is_empty():
+		return
+	var b: Dictionary = hub["chunk_bounds"]
+	var size := float(HubRegionData.CHUNK_SIZE)
+	# City origin: a little inset from the hub's near corner so it sits
+	# inside the hub bounds rather than straddling the edge.
+	var origin := Vector3((b.x + 0.5) * size, 0.0, (b.y + 0.5) * size)
+	var city := MegaCityBuilder.build(hub_id, origin, _sky,
+		func(x, z): return _terrain.height_at(x, z))
+	add_child(city)
+	_cities_built[hub_id] = city
+
 func _reality_bend_baseline() -> float:
 	match layer_id:
 		"liminal": return 0.30
@@ -150,6 +171,7 @@ func _supraliminal_enter(coord: Vector2i) -> void:
 	if chunk.is_hub:
 		NotificationUI.notify_info("Entering %s — PvE sanctuary." % chunk.hub_id.capitalize())
 		MusicManager.play_context("sanctuary")
+		_ensure_city(str(chunk.hub_id))
 		return
 	if MusicManager.current_context() == "sanctuary":
 		MusicManager.play_context("overworld")

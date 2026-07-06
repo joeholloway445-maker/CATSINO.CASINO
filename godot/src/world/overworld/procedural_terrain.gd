@@ -37,8 +37,11 @@ func _ready() -> void:
 func height_at(world_x: float, world_z: float) -> float:
 	var coord := DiscoveryManager.world_pos_to_chunk(Vector3(world_x, 0, world_z))
 	var chunk := DiscoveryManager.get_or_generate_chunk(coord)
-	var base: float = 0.0 if chunk.is_hub else float(chunk.biome.get("elevation", 0.0))
-	return base + _noise.get_noise_2d(world_x, world_z) * HEIGHT_SCALE
+	# Hub chunks are flat: the mega-city sits on a graded plaza foundation,
+	# not rolling noise. Everywhere else keeps its biome elevation + noise.
+	if chunk.is_hub:
+		return 0.0
+	return float(chunk.biome.get("elevation", 0.0)) + _noise.get_noise_2d(world_x, world_z) * HEIGHT_SCALE
 
 ## Ensure all chunks within VIEW_RADIUS of coord exist; drop the rest.
 func stream_around(coord: Vector2i) -> void:
