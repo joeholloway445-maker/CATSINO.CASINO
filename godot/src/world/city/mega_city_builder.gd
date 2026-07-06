@@ -13,7 +13,7 @@ class_name MegaCityBuilder
 ##   add_child(city)
 
 static func build(hub_id: String, origin: Vector3, sky: DayNightSky,
-		height_at: Callable) -> Node3D:
+		height_at: Callable, player: Node3D = null) -> Node3D:
 	var layout: Dictionary = CityData.HUB_LAYOUT.get(hub_id, CityData.HUB_LAYOUT["arlington"])
 	var faction := str(layout.faction)
 	var accent := CityData.accent_for(faction)
@@ -36,6 +36,15 @@ static func build(hub_id: String, origin: Vector3, sky: DayNightSky,
 		var local := Vector3(dcell.x * CityData.CELL, 0, dcell.y * CityData.CELL)
 		var world := origin + local
 		_build_district(root, str(entry.type), local, world, accent, rng, height_at)
+
+	# The skyline anchors — each real city's recognizable silhouettes —
+	# and the civic set (market/bank/armorer/blacksmith/stockyards/wager
+	# hall). Soulless Sanctuary's landmark list alone carries the Arena,
+	# College, and Space Station.
+	var city_base_y := _sample(height_at, origin.x, origin.z)
+	LandmarkBuilder.place_all(root, hub_id, accent, city_base_y)
+	if player != null:
+		CityVenues.place_all(root, accent, city_base_y, player)
 
 	# Ambience follows the FIRST/most-prominent district's bed (the hub's
 	# dominant character); each district also has its own local sound.
@@ -183,18 +192,18 @@ static func _add_neon(building: Node3D, accent: Color, rng: RandomNumberGenerato
 		if mesh != null and mesh.material_override is StandardMaterial3D:
 			CityLighting.register_neon(mesh, 2.0)
 		return
-	var sign := MeshInstance3D.new()
+	var sign_mesh := MeshInstance3D.new()
 	var box := BoxMesh.new()
 	box.size = Vector3(rng.randf_range(3.0, 6.0), rng.randf_range(1.2, 2.4), 0.3)
-	sign.mesh = box
+	sign_mesh.mesh = box
 	var mat := AssetLibrary.material("neon", hue, 0.0, 0.0, 0.3)
 	mat.emission_enabled = true
 	mat.emission = hue
 	mat.emission_energy_multiplier = 2.0
-	sign.material_override = mat
-	sign.position = pos
-	building.add_child(sign)
-	CityLighting.register_neon(sign, 2.0)
+	sign_mesh.material_override = mat
+	sign_mesh.position = pos
+	building.add_child(sign_mesh)
+	CityLighting.register_neon(sign_mesh, 2.0)
 
 static func _first_mesh(node: Node) -> MeshInstance3D:
 	if node is MeshInstance3D:

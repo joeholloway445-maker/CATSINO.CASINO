@@ -2,8 +2,9 @@ extends Node
 ## Autoloaded as "StoryVote". The Arena's development referendum: players
 ## vote on where the main storyline, DLCs, and expansions go next. This is
 ## the "they made it happen" machine — ballots are proposed by the devs
-## (or promoted from UGC submissions), one vote per account per ballot,
-## results feed the roadmap. Server-side tally goes through Nakama when
+## (or promoted from UGC submissions). Voting has NO hard cap — a soft
+## one instead: one vote per ballot per SERVER DAY (4 hours). Consistency
+## compounds: showing up every server day literally weighs the roadmap. Server-side tally goes through Nakama when
 ## connected; local tally keeps it functional offline.
 
 signal voted(ballot_id: String, option: String)
@@ -29,20 +30,35 @@ const BALLOTS: Array[Dictionary] = [
 	},
 ]
 
-var _my_votes: Dictionary = {}  # ballot_id -> option index
-var _tallies: Dictionary = {}   # ballot_id -> {option_index: count}
+const SERVER_DAY_SECONDS := 4 * 3600 # one server day = 4 hours
+
+var _my_votes: Dictionary = {}       # ballot_id -> latest option index
+var _last_vote_at: Dictionary = {}   # ballot_id -> unix time of last vote
+var _tallies: Dictionary = {}        # ballot_id -> {option_index: count}
 
 func _ready() -> void:
 	_load()
 
+## Soft cap: you can always vote again — just not within the same server day.
+func vote_cooldown_left(ballot_id: String) -> int:
+	var last := int(_last_vote_at.get(ballot_id, 0))
+	var elapsed := int(Time.get_unix_time_from_system()) - last
+	return maxi(SERVER_DAY_SECONDS - elapsed, 0)
+
+func can_vote(ballot_id: String) -> bool:
+	return vote_cooldown_left(ballot_id) == 0
+
+## Kept for old callers: "has a vote in" (not "is locked out forever").
 func has_voted(ballot_id: String) -> bool:
 	return _my_votes.has(ballot_id)
 
 func vote(ballot_id: String, option_index: int) -> bool:
-	if has_voted(ballot_id):
-		NotificationUI.notify_error("One vote per account. Yours is cast.")
+	if not can_vote(ballot_id):
+		var mins := vote_cooldown_left(ballot_id) / 60
+		NotificationUI.notify_error("The floor heard you. Next vote in %d min (one per server day)." % mins)
 		return false
 	_my_votes[ballot_id] = option_index
+	_last_vote_at[ballot_id] = int(Time.get_unix_time_from_system())
 	var t: Dictionary = _tallies.get_or_add(ballot_id, {})
 	t[option_index] = t.get(option_index, 0) + 1
 	_save()
@@ -58,7 +74,7 @@ func tally(ballot_id: String) -> Dictionary:
 
 func _save() -> void:
 	var f := FileAccess.open(SAVE_PATH, FileAccess.WRITE)
-	if f: f.store_string(JSON.stringify({"mine": _my_votes, "tallies": _tallies}))
+	if f: f.store_string(JSON.stringify({"mine": _my_votes, "tallies": _tallies, "last_at": _last_vote_at}))
 
 func _load() -> void:
 	if not FileAccess.file_exists(SAVE_PATH): return
@@ -68,3 +84,4 @@ func _load() -> void:
 	if d is Dictionary:
 		_my_votes = d.get("mine", {})
 		_tallies = d.get("tallies", {})
+		_last_vote_at = d.get("last_at", {})
