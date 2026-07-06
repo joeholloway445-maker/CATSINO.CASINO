@@ -41,6 +41,14 @@ func _build_ui() -> void:
 	upper.alignment = BoxContainer.ALIGNMENT_CENTER
 	root.add_child(upper)
 
+	# The emblem: shadow-god in the broken 9-point star, twin ouroboros.
+	# Procedural until final key art lands at assets/ui/logo.png.
+	var emblem_center := CenterContainer.new()
+	upper.add_child(emblem_center)
+	var emblem := LogoEmblem.new()
+	emblem.custom_minimum_size = Vector2(300, 300)
+	emblem_center.add_child(emblem)
+
 	var title := Label.new()
 	title.text = "PERILIMINAL.SPACE"
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER

@@ -278,6 +278,71 @@ static func liminal_arts() -> Dictionary:
 		],
 	}
 
+## ── WEAPON DISCIPLINES: trained, not born ──────────────────────────────────
+## Unlike frame/race/faction lines (what you ARE), disciplines are what you
+## PRACTICE — leveled at any city's Stockyards on the training dummies.
+## The mix: ESO-style weapon lines, Marvel-flavored superhuman unarmed,
+## CoD-flavored gunplay. Same active/ultimate/morph shape as every line.
+static func unarmed_way() -> Dictionary:
+	return {
+		"id": "line_disc_unarmed", "name": "The Unarmed Way",
+		"source": "discipline", "source_id": "unarmed",
+		"actives": [
+			{"id": "una_a0", "name": "Palm Meteor", "kind": "damage", "shape": "single", "radius": 3.0,
+			 "power": 1.15, "cost": 18, "cooldown": 3.5,
+			 "lore": "No steel, no sigil — a straight palm that lands like something falling from orbit.",
+			 "morphs": _morphs_for("Palm Meteor", "damage")},
+			{"id": "una_a1", "name": "Hurricane Sweep", "kind": "damage", "shape": "aoe", "radius": 5.0,
+			 "power": 0.75, "cost": 22, "cooldown": 6.0,
+			 "lore": "One turned heel, everyone within reach airborne. The body is the whole armory.",
+			 "morphs": _morphs_for("Hurricane Sweep", "damage")},
+			{"id": "una_a2", "name": "Iron Breath", "kind": "shield", "shape": "self", "radius": 0.0,
+			 "power": 1.1, "cost": 20, "cooldown": 9.0,
+			 "lore": "Exhale, settle, harden. Skin remembers it used to be stone.",
+			 "morphs": _morphs_for("Iron Breath", "shield")},
+		],
+		"ultimate": {
+			"id": "una_ult", "name": "Hundred Fists",
+			"kind": "damage", "shape": "single", "radius": 3.0,
+			"power": 4.5, "ult_cost": 180, "cooldown": 1.0,
+			"lore": "For two seconds your hands are a rumor. Witnesses disagree on how many of you there were.",
+		},
+		"passives": [
+			{"id": "una_p0", "name": "Open Hand", "desc": "+10%% damage while no weapon blueprint is equipped."},
+			{"id": "una_p1", "name": "Rooted", "desc": "Knockback against you is reduced 30%%."},
+		],
+	}
+
+static func gunplay() -> Dictionary:
+	return {
+		"id": "line_disc_gunplay", "name": "Gunplay",
+		"source": "discipline", "source_id": "guns",
+		"actives": [
+			{"id": "gun_a0", "name": "Deadeye Round", "kind": "damage", "shape": "line", "radius": 14.0,
+			 "power": 1.3, "cost": 20, "cooldown": 4.0,
+			 "lore": "One shot, one lane. The between makes excellent sightlines.",
+			 "morphs": _morphs_for("Deadeye Round", "damage")},
+			{"id": "gun_a1", "name": "Suppressing Arc", "kind": "damage", "shape": "aoe", "radius": 8.0,
+			 "power": 0.6, "cost": 26, "cooldown": 7.0,
+			 "lore": "Nobody moves through a wall of lead. Nobody polite, anyway.",
+			 "morphs": _morphs_for("Suppressing Arc", "damage")},
+			{"id": "gun_a2", "name": "Combat Slide", "kind": "mobility", "shape": "self", "radius": 0.0,
+			 "power": 0.9, "cost": 16, "cooldown": 5.0,
+			 "lore": "Reload on the way down, up before the shells land.",
+			 "morphs": _morphs_for("Combat Slide", "mobility")},
+		],
+		"ultimate": {
+			"id": "gun_ult", "name": "Killstreak",
+			"kind": "damage", "shape": "aoe", "radius": 10.0,
+			"power": 4.0, "ult_cost": 200, "cooldown": 1.0,
+			"lore": "Everything you've landed this fight comes back at once, from above, uninvited.",
+		},
+		"passives": [
+			{"id": "gun_p0", "name": "Steady Hands", "desc": "Line skills reach 15%% further."},
+			{"id": "gun_p1", "name": "Quickdraw", "desc": "First cast each fight costs no flux."},
+		],
+	}
+
 ## Every skill refracts at rank IV: one morph deepens the effect (the skill
 ## sees a weapon when it looks at you), one bends it to utility (it sees a
 ## survivor).
@@ -301,4 +366,7 @@ static func lines_for(race_id: String, frame_id: String, ascended: String, facti
 	out.append(race_line(race_id))
 	out.append(faction_line(faction))
 	out.append(liminal_arts())
+	# Disciplines are universal too — everyone can walk into a Stockyards.
+	out.append(unarmed_way())
+	out.append(gunplay())
 	return out

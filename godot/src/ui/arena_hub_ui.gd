@@ -70,9 +70,9 @@ func _ready() -> void:
 		bd.modulate = Color(0.7, 0.7, 0.75)
 		bd.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		bcard.add_child(bd)
-		if StoryVote.has_voted(ballot.id):
+		if not StoryVote.can_vote(ballot.id):
 			var done := Label.new()
-			done.text = "✅ Your vote is in."
+			done.text = "✅ Vote in. The floor reopens to you in %d min (one per server day)." % (StoryVote.vote_cooldown_left(ballot.id) / 60)
 			done.modulate = Color(0.5, 0.9, 0.5)
 			bcard.add_child(done)
 		else:

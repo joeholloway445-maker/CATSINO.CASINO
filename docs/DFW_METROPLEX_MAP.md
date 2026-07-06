@@ -1,5 +1,47 @@
 # DFW Metroplex — map plan (Superliminal layer)
 
+## City names (canon)
+
+| In-game name | Real city | Faction |
+|---|---|---|
+| New Dallas | Dallas | Sovereign Crown |
+| Hell's Half Acre | Fort Worth | Veiled Current |
+| Sky Fjord | Denton | Wildlands Ascendant |
+| Soulless Sanctuary | Arlington | Neutral (factionless start) |
+
+"Hell's Half Acre" is the historical name of Fort Worth's 19th-century
+red-light quarter — a real public-domain place name, reclaimed as canon.
+Ids in code stay `dallas` / `fort_worth` / `denton` / `arlington`
+(display names only changed), so saves and references are untouched.
+
+## Inner metroplex vs. outskirts (the generation boundary)
+
+- **Inside hub bounds**: hand-authored city (MegaCityBuilder blueprint +
+  LandmarkBuilder skyline anchors + CityVenues civic set) — the "as close
+  to 1:1 as the blueprint allows" zone, differing per player only through
+  texture/light/sound packs and the identity lens. The future OSM pass
+  (below) upgrades these streets to literal real-street-grid replicas.
+- **Outside hub bounds**: fully procedural (DiscoveryManager +
+  ProceduralRegionGenerator), and PLAYER-COMPILED — every visitor's
+  influence pack repaints the chunk's dominant texture tint over repeated
+  visits (see `register_party_visit` / `dominant_pack`), so the wilds are
+  literally composed of the races/mods of whoever walked them first and
+  whoever keeps coming back. Light/sound personalization out there rides
+  each client's own lens (frame sensorium + race material), on top of the
+  shared influence paint.
+
+## Civic set per city
+
+Every city carries: Market(s), Bank(s), Armorer(s), Blacksmith(s),
+Stockyards (combat training — melee, ranged, UNARMED, GUNS disciplines),
+and a Wager Hall (storyline/DLC referendum, one vote per ballot per
+server day — 4h — no hard cap). **Soulless Sanctuary alone** adds the
+Arena, the College, and the Space Station. The Hyperliminal (Catsino)
+carries the same civic set in cat form: Shop = market, Bank & Guild =
+bank/services, Arena hub = arena games, Wager Hall button on the main
+menu = the same referendum floor.
+
+
 ## The mega-city is now built, not just planned
 
 `godot/src/world/city/` builds a **fully functional mega-city** for each

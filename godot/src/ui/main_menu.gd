@@ -64,6 +64,7 @@ func _build_ui() -> void:
 		{label="👑 Crown Hall", sig="", scene="res://scenes/ui/crown_hall.tscn"},
 		{label="📖 Skills", sig="", scene="res://scenes/ui/skill_tree.tscn"},
 		{label="🏦 Bank & Guild", sig="", scene="res://scenes/ui/city_services.tscn"},
+		{label="🗳️ Wager Hall", sig="", scene="res://scenes/ui/arena_hub.tscn"},
 		{label="⚙️ Settings", sig="open_settings"},
 	]:
 		var btn = Button.new()

@@ -121,7 +121,7 @@ func _ensure_city(hub_id: String) -> void:
 	# inside the hub bounds rather than straddling the edge.
 	var origin := Vector3((b.x + 0.5) * size, 0.0, (b.y + 0.5) * size)
 	var city := MegaCityBuilder.build(hub_id, origin, _sky,
-		func(x, z): return _terrain.height_at(x, z))
+		func(x, z): return _terrain.height_at(x, z), _player)
 	add_child(city)
 	_cities_built[hub_id] = city
 
@@ -169,7 +169,8 @@ func _supraliminal_enter(coord: Vector2i) -> void:
 	var already_known := DiscoveryManager.has_chunk(coord)
 	var chunk := DiscoveryManager.get_or_generate_chunk(coord)
 	if chunk.is_hub:
-		NotificationUI.notify_info("Entering %s — PvE sanctuary." % chunk.hub_id.capitalize())
+		var hub_name := str(HubRegionData.by_id(chunk.hub_id).get("name", chunk.hub_id.capitalize()))
+		NotificationUI.notify_info("Entering %s — PvE sanctuary." % hub_name)
 		MusicManager.play_context("sanctuary")
 		_ensure_city(str(chunk.hub_id))
 		return
