@@ -22,6 +22,36 @@ class_name SkillData
 ##  and 4 allegiances have complete lines with consistent depth — then
 ##  hand-tuned entries can override any generated one later.
 
+## ── ELEMENTS: the six entity forces, channelable by EVERY line ────────────
+## The Marvel principle: a skill line is a fighting STYLE; the element is
+## the superhuman FORCE behind it. Any line — unarmed, gunplay, frame,
+## race, faction, liminal — can be attuned to any of the six entity
+## categories, changing its color, sound, and combat rider. Attunement is
+## per-line, swappable outside combat (SkillManager.attune_line).
+const ELEMENTS := {
+	"energy": {
+		"name": "Energy", "color": Color(1.0, 0.9, 0.3),
+		"rider": "burn", "desc": "Raw output. Hits burn hotter (+15%% damage)."},
+	"entropy": {
+		"name": "Entropy", "color": Color(0.75, 0.2, 0.2),
+		"rider": "decay", "desc": "Everything ends. Hits echo — a second decay tick lands a beat later."},
+	"gravity": {
+		"name": "Gravity", "color": Color(0.35, 0.45, 0.95),
+		"rider": "pull", "desc": "Space bends your way. Hits drag the target toward you."},
+	"matter": {
+		"name": "Matter", "color": Color(0.6, 0.5, 0.35),
+		"rider": "harden", "desc": "Substance answers you. Landing hits grants a skin of shield."},
+	"psyche": {
+		"name": "Psyche", "color": Color(0.8, 0.3, 0.9),
+		"rider": "stagger", "desc": "The mind is a surface. Struck enemies falter, their next swing weakened."},
+	"quantum": {
+		"name": "Quantum", "color": Color(0.3, 0.9, 0.85),
+		"rider": "flicker", "desc": "Probability is negotiable. Hits sometimes land twice — the timeline disagrees."},
+}
+
+static func element(id: String) -> Dictionary:
+	return ELEMENTS.get(id, {})
+
 ## Ability archetypes by dominant stat — verbs, costs, and effect shapes.
 const ARCHETYPES := {
 	"pow": {verbs=["Strike", "Rend", "Crush", "Overload", "Detonate"], kind="damage",  base_power=1.2, cost=22, cooldown=4.0},

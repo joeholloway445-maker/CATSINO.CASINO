@@ -47,6 +47,31 @@ func _build_line(list: VBoxContainer, line: Dictionary) -> void:
 	header.modulate = Color(0.85, 0.8, 1.0)
 	list.add_child(header)
 
+	# ATTUNEMENT: every line can channel one of the six entity forces —
+	# your unarmed strikes can bend gravity, your gunplay can carry
+	# entropy. The element rides every cast of the line (color, sound,
+	# and a combat rider — see SkillData.ELEMENTS).
+	var att_row := HBoxContainer.new()
+	att_row.add_theme_constant_override("separation", 6)
+	list.add_child(att_row)
+	var att_lbl := Label.new()
+	var current := SkillManager.attunement_of(str(line.id))
+	att_lbl.text = "Attunement: %s" % (str(SkillData.element(current).get("name", "")) if current != "" else "none")
+	att_lbl.custom_minimum_size.x = 170
+	att_row.add_child(att_lbl)
+	for eid in SkillData.ELEMENTS:
+		var e: Dictionary = SkillData.ELEMENTS[eid]
+		var eb := Button.new()
+		eb.text = str(e.name)
+		eb.tooltip_text = str(e.desc)
+		eb.modulate = e.color if eid != current else Color.WHITE
+		var line_id := str(line.id)
+		var element_id := str(eid)
+		eb.pressed.connect(func():
+			SkillManager.attune_line(line_id, element_id if SkillManager.attunement_of(line_id) != element_id else "")
+			get_tree().reload_current_scene())
+		att_row.add_child(eb)
+
 	for a in line.actives:
 		_build_skill(list, a, false)
 	_build_skill(list, line.ultimate, true)

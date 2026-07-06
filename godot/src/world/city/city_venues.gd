@@ -52,6 +52,12 @@ static func _venue(kind: String, label: String, icon: String, pos: Vector3,
 		shell = mi
 	root.add_child(shell)
 
+	# A real opening door on the storefront face.
+	var door := CityDoor.new()
+	door.accent = tint
+	door.position = Vector3(0, 0, 6.2)
+	root.add_child(door)
+
 	# Signage — emissive, on the night curve like every neon.
 	var sign_label := Label3D.new()
 	sign_label.text = "%s  %s" % [icon, label]

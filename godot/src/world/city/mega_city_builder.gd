@@ -46,6 +46,12 @@ static func build(hub_id: String, origin: Vector3, sky: DayNightSky,
 	LandmarkBuilder.place_all(root, hub_id, accent, city_base_y)
 	if player != null:
 		CityVenues.place_all(root, accent, city_base_y, player)
+		# One claimable guild hideout per city — its claim mirrors into the
+		# Extraliminal as the guild's hall there.
+		var hideout := GuildHideout.new()
+		hideout.setup(hub_id, accent, player)
+		hideout.position = Vector3(5.5 * CityData.CELL, city_base_y, 0.5 * CityData.CELL)
+		root.add_child(hideout)
 
 	# Ambience follows the FIRST/most-prominent district's bed (the hub's
 	# dominant character); each district also has its own local sound.
@@ -284,20 +290,12 @@ static func _first_mesh(node: Node) -> MeshInstance3D:
 	return null
 
 static func _build_plaza(holder: Node3D, center: Vector3, accent: Color, rng: RandomNumberGenerator) -> void:
-	# A small open square with a couple of props instead of a building.
+	# A small open square of DEMOLISHABLE props instead of a building —
+	# break them for salvage, rebuild them with fragments (BreakableProp).
 	for i in rng.randi_range(2, 4):
-		var real := AssetLibrary.instance("city_prop")
-		var prop: Node3D
-		if real != null:
-			prop = real
-		else:
-			prop = MeshInstance3D.new()
-			var box := BoxMesh.new()
-			box.size = Vector3(rng.randf_range(0.6, 1.4), rng.randf_range(0.5, 1.2), rng.randf_range(0.6, 1.4))
-			(prop as MeshInstance3D).mesh = box
-			(prop as MeshInstance3D).material_override = AssetLibrary.material(
-				"city_prop", accent.darkened(0.5), 0.25, 0.3, 0.7)
-		prop.position = center + Vector3(rng.randf_range(-6, 6), 0.5, rng.randf_range(-6, 6))
+		var prop := BreakableProp.new()
+		prop.accent = accent
+		prop.position = center + Vector3(rng.randf_range(-6, 6), 0.0, rng.randf_range(-6, 6))
 		holder.add_child(prop)
 
 static func _sample(height_at: Callable, x: float, z: float) -> float:
