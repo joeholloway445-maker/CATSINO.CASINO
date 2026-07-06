@@ -45,6 +45,7 @@ func _ready() -> void:
 	add_child(hotbar)
 	add_child(HopeUI.new()) # Hope is always on YOUR screen
 	add_child(ChatUI.new()) # T toggles; five channels
+	add_child(TouchControls.new()) # mobile: frees itself on non-touch devices
 	# B opens the Blueprint Forge anywhere in the open world.
 	set_process_unhandled_key_input(true)
 	var stats := CharacterCreatorLogic.build_starting_stats(
@@ -327,6 +328,15 @@ func _on_cast(sk: Dictionary) -> void:
 			pass
 	var dmg := int(_attack_damage * power)
 	var reach := maxf(radius, 4.0)
+	# Element rider — the entity force this line channels (SkillData.ELEMENTS).
+	var elem := str(sk.get("element", ""))
+	if elem == "energy":
+		dmg = int(dmg * 1.15)
+	# Demolishable city props are fair game for any cast.
+	for node in get_tree().get_nodes_in_group("breakable"):
+		if node is BreakableProp and is_instance_valid(node):
+			if node.global_position.distance_to(_player.global_position) <= reach:
+				node.take_hit(dmg)
 	# World-threat wildlife lands regardless of PvP zone — entities aren't
 	# players, hitting them was never a PvP question.
 	for iid in _entities.keys().duplicate():
@@ -334,6 +344,7 @@ func _on_cast(sk: Dictionary) -> void:
 		if not is_instance_valid(ent): continue
 		if ent.global_position.distance_to(_player.global_position) > reach: continue
 		ent.take_hit(dmg)
+		_apply_element_rider(elem, ent, dmg)
 		SkillManager.gain_ultimate(4.0)
 	if not _in_pvp_zone():
 		if _entities.is_empty():
@@ -345,9 +356,35 @@ func _on_cast(sk: Dictionary) -> void:
 		if rp.global_position.distance_to(_player.global_position) > reach: continue
 		_peer_hp[pid] = _peer_hp.get(pid, 80 + randi() % 60) - dmg
 		SkillVFX.hit_spark(self, rp.global_position)
+		_apply_element_rider(elem, rp, dmg)
+		if elem == "quantum" and randf() < 0.2:
+			# The timeline disagrees: the hit lands twice.
+			_peer_hp[pid] -= dmg
+			SkillVFX.hit_spark(self, rp.global_position)
+		elif elem == "entropy":
+			# Decay echo: a second tick a beat later.
+			get_tree().create_timer(1.0).timeout.connect(func():
+				if _peer_hp.has(pid):
+					_peer_hp[pid] -= int(dmg * 0.4))
 		SkillManager.gain_ultimate(6.0)
 		if _peer_hp[pid] <= 0:
 			_on_peer_killed(pid, rp)
+	if elem == "matter":
+		# Substance answers you: landing casts skins you in shield.
+		_shield = maxi(_shield, _shield + 8)
+
+## Physical element effects that act on a target's transform.
+func _apply_element_rider(elem: String, target: Node3D, _dmg: int) -> void:
+	match elem:
+		"gravity":
+			# Space bends your way: drag the target 3m toward you.
+			var toward := (_player.global_position - target.global_position).normalized()
+			target.global_position += toward * 3.0
+		"psyche":
+			# The mind falters: knock their facing wide.
+			target.rotation.y += randf_range(-1.2, 1.2)
+		_:
+			pass
 
 func _on_peer_killed(pid: String, rp: RemotePlayer) -> void:
 	_peers.erase(pid)

@@ -96,7 +96,8 @@ func _ready() -> void:
 	e.glow_intensity = 0.9
 	e.glow_bloom = 0.15
 	e.glow_blend_mode = Environment.GLOW_BLEND_MODE_SOFTLIGHT
-	e.ssao_enabled = true
+	if not RenderCaps.is_compatibility():
+		e.ssao_enabled = true
 	e.adjustment_enabled = true
 	e.adjustment_contrast = 1.08
 	e.adjustment_saturation = 1.15

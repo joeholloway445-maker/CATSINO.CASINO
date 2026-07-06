@@ -33,6 +33,9 @@ var bars: Array = [ # two bars: 5 active slot ids + ultimate id ("" = empty)
 	{"actives": ["", "", "", "", ""], "ultimate": ""},
 ]
 var active_bar := 0
+## line_id -> element id ("energy".."quantum", "" = unattuned). Every line
+## can channel any of the six entity forces — see SkillData.ELEMENTS.
+var _attunements: Dictionary = {}
 var ultimate_charge := 0.0
 var flux := 100.0
 var flux_max := 100.0
@@ -138,10 +141,36 @@ func choose_morph(skill_id: String, morph_id: String) -> bool:
 	return true
 
 ## Effective numbers for a skill including rank scaling (+8%/rank) & morph.
+## Attune a whole line to one of the six entity forces (or "" to clear).
+func attune_line(line_id: String, element_id: String) -> void:
+	if element_id != "" and not SkillData.ELEMENTS.has(element_id):
+		return
+	_attunements[line_id] = element_id
+	_save()
+	var ename := str(SkillData.element(element_id).get("name", "nothing"))
+	NotificationUI.notify_info("⚡ %s now channels %s." % [line_id.trim_prefix("line_"), ename])
+
+func attunement_of(line_id: String) -> String:
+	return str(_attunements.get(line_id, ""))
+
+## Which element a specific skill carries (via its line's attunement).
+func element_of_skill(skill_id: String) -> String:
+	for line in known_lines():
+		for a in line.get("actives", []):
+			if a.get("id", "") == skill_id:
+				return attunement_of(str(line.id))
+		if line.get("ultimate", {}).get("id", "") == skill_id:
+			return attunement_of(str(line.id))
+	return ""
+
 func resolved(skill_id: String) -> Dictionary:
 	var sk := find_skill(skill_id).duplicate()
 	if sk.is_empty():
 		return sk
+	# The element rides on every cast of an attuned line.
+	var elem := element_of_skill(skill_id)
+	if elem != "":
+		sk["element"] = elem
 	var rank := maxi(rank_of(skill_id), 1)
 	sk.power = sk.get("power", 1.0) * (1.0 + 0.08 * (rank - 1))
 	var m := morph_of(skill_id)
@@ -219,6 +248,7 @@ func _save() -> void:
 	if f:
 		f.store_string(JSON.stringify({
 			"points": skill_points, "ranks": _ranks, "unlocked": _unlocked, "bars": bars,
+			"attunements": _attunements,
 		}))
 
 func _load() -> void:
@@ -234,3 +264,4 @@ func _load() -> void:
 	var loaded: Array = d.get("bars", [])
 	if loaded.size() == 2:
 		bars = loaded
+	_attunements = d.get("attunements", {})

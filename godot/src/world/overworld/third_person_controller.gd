@@ -104,6 +104,9 @@ func _physics_process(delta: float) -> void:
 	velocity.y -= _gravity * delta
 
 	var input_2d := Input.get_vector("ui_left", "ui_right", "ui_up", "ui_down")
+	# Touch devices: the virtual joystick overrides/merges with keys.
+	if TouchControls.move_vector.length() > 0.05:
+		input_2d = TouchControls.move_vector
 	var cam_basis := Basis(Vector3.UP, _cam_yaw)
 	var dir := (cam_basis * Vector3(input_2d.x, 0.0, input_2d.y)).normalized()
 
@@ -117,8 +120,15 @@ func _physics_process(delta: float) -> void:
 	velocity.x = flat.x
 	velocity.z = flat.z
 
-	if is_on_floor() and Input.is_action_just_pressed("ui_accept"):
+	if is_on_floor() and (Input.is_action_just_pressed("ui_accept") or TouchControls.consume_jump()):
 		velocity.y = JUMP_VELOCITY
+	# Touch E: replay as a real key event so every venue/door/hideout
+	# interaction hears it without knowing about touch.
+	if TouchControls.consume_interact():
+		var ev := InputEventKey.new()
+		ev.keycode = KEY_E
+		ev.pressed = true
+		Input.parse_input_event(ev)
 
 	if dir.length() > 0.1 and is_instance_valid(_body_mesh):
 		var target_yaw := atan2(dir.x, dir.z)

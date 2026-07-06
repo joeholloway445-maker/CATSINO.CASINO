@@ -93,6 +93,11 @@ ui_accept={
 ]
 }
 
+[input_devices]
+
+pointing/emulate_mouse_from_touch=true
+pointing/emulate_touch_from_mouse=false
+
 [network]
 
 limits/debugger/max_chars_per_second=32768
@@ -103,7 +108,8 @@ common/physics_ticks_per_second=60
 
 [rendering]
 
-renderer/rendering_method="forward_plus"
+renderer/rendering_method="gl_compatibility"
+renderer/rendering_method.mobile="gl_compatibility"
 textures/vram_compression/import_etc2_astc=true
 anti_aliasing/quality/msaa_2d=2
 anti_aliasing/quality/msaa_3d=2
