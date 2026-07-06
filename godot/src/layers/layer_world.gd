@@ -53,6 +53,27 @@ func _ready() -> void:
 	_attack_damage = 14 + int(stats.pow) / 2 + PlayerProfile.level
 	_build_hud()
 	_wire_presence()
+	# Every space off the Liminal keeps a clear, obvious door back into it —
+	# only the Periliminal withholds its exit (the blessing door, below).
+	if layer_id in ["extraliminal", "subliminal"]:
+		var back_door := LayerExitDoor.new()
+		back_door.target_layer = "liminal"
+		back_door.position = Vector3(8, 0, 8)
+		back_door.position.y = _terrain.height_at(8.0, 8.0)
+		add_child(back_door)
+	# The Extraliminal carries its own guild hideout sites — same registry,
+	# same exclusion radii and defender rules as the city sites.
+	if layer_id == "extraliminal":
+		var xr := RandomNumberGenerator.new()
+		xr.seed = hash("extraliminal_hideouts")
+		for s in 4:
+			var pos := Vector3(xr.randf_range(-300.0, 300.0), 0, xr.randf_range(40.0, 600.0))
+			pos.y = _terrain.height_at(pos.x, pos.z)
+			var hideout := GuildHideout.new()
+			hideout.setup("extra_s%d" % s, "extraliminal", "extraliminal",
+				Color(0.75, 0.35, 0.95), _player, pos)
+			hideout.position = pos
+			add_child(hideout)
 
 var _peers: Dictionary = {} # peer_id -> RemotePlayer
 var _peer_hp: Dictionary = {} # peer_id -> hp (open-PvP wilds)
@@ -164,7 +185,26 @@ func _on_chunk_changed(coord: Vector2i) -> void:
 			_liminal_enter(coord)
 		"periliminal":
 			PeriliminalRuns.advance_depth()
+			_maybe_bless(coord)
 	_prev_chunk = coord
+
+## The Periliminal's one exit: no door exists until the run has gone deep
+## enough (personal — PeriliminalRuns.blessing_ready reads your Hope
+## profile), and then one simply IS there, radiant, like it was sent.
+var _blessing_spawned := false
+
+func _maybe_bless(coord: Vector2i) -> void:
+	if _blessing_spawned or not PeriliminalRuns.blessing_ready():
+		return
+	_blessing_spawned = true
+	var door := LayerExitDoor.new()
+	door.blessing = true
+	var size := float(HubRegionData.CHUNK_SIZE)
+	door.position = Vector3(coord.x * size + size * 0.5, 0, coord.y * size + size * 0.45)
+	door.position.y = _terrain.height_at(door.position.x, door.position.z)
+	add_child(door)
+	NotificationUI.notify_win("✦ Light, where there has never been light. A door stands open ahead.")
+	Hope.record("blessing_door", {"depth": PeriliminalRuns.depth})
 
 func _supraliminal_enter(coord: Vector2i) -> void:
 	var already_known := DiscoveryManager.has_chunk(coord)
@@ -214,6 +254,26 @@ func _liminal_enter(coord: Vector2i) -> void:
 	door.position = Vector3(coord.x * size + size * 0.3, 0, coord.y * size + size * 0.6)
 	door.position.y = _terrain.height_at(door.position.x, door.position.z)
 	add_child(door)
+	# The obvious exits: most liminal chunks also carry a clearly-marked
+	# archway out. Weighted so the Hyperliminal (the Catsino) is the easy
+	# find; the Periliminal is NEVER on this list — it takes you, you
+	# don't walk in.
+	var exit_rng := RandomNumberGenerator.new()
+	exit_rng.seed = hash("liminal_exit_%d_%d" % [coord.x, coord.y])
+	if exit_rng.randf() < 0.6:
+		var r := exit_rng.randf()
+		var target := "hyperliminal" # 40% — easy to find
+		if r >= 0.4 and r < 0.65:
+			target = "supraliminal"
+		elif r >= 0.65 and r < 0.85:
+			target = "subliminal"
+		elif r >= 0.85:
+			target = "extraliminal" # guild-war grounds
+		var exit_door := LayerExitDoor.new()
+		exit_door.target_layer = target
+		exit_door.position = Vector3(coord.x * size + size * 0.7, 0, coord.y * size + size * 0.25)
+		exit_door.position.y = _terrain.height_at(exit_door.position.x, exit_door.position.z)
+		add_child(exit_door)
 	_maybe_spawn_entity(coord)
 
 ## World-threat wildlife from EntityDexData — separate from player/bot
@@ -227,14 +287,24 @@ const ENTITY_SPAWN_CHANCE := 0.35
 const MAX_CONCURRENT_ENTITIES := 3
 
 func _maybe_spawn_entity(coord: Vector2i) -> void:
-	if _entities.size() >= MAX_CONCURRENT_ENTITIES or randf() > ENTITY_SPAWN_CHANCE:
+	# The Periliminal spawns to YOUR measure: PeriliminalRuns.difficulty()
+	# folds Hope's playstyle read and your word-of-mouth reputation into
+	# the spawn rate and the stages the layer sends at you.
+	var spawn_chance := ENTITY_SPAWN_CHANCE
+	var max_stage := 2 if layer_id == "supraliminal" else 3
+	var min_stage := 1
+	if layer_id == "periliminal":
+		var diff := PeriliminalRuns.difficulty()
+		spawn_chance = clampf(ENTITY_SPAWN_CHANCE * diff, 0.15, 0.9)
+		if diff > 1.6:
+			min_stage = 2 # the hard cases never see a Stage 1 down here
+	if _entities.size() >= MAX_CONCURRENT_ENTITIES or randf() > spawn_chance:
 		return
 	var faction := CompanionRegistry.normalize_faction(PlayerProfile.faction)
 	var line := EntityDexData.random_line(faction)
 	if line.is_empty():
 		return
-	var max_stage := 2 if layer_id == "supraliminal" else 3
-	var stage := randi_range(1, max_stage)
+	var stage := randi_range(min_stage, max_stage)
 	var ent := WorldEntity.new()
 	var size := float(HubRegionData.CHUNK_SIZE)
 	var spawn_pos := Vector3(coord.x * size + randf_range(0.2, 0.8) * size, 0,

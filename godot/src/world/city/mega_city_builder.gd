@@ -46,12 +46,35 @@ static func build(hub_id: String, origin: Vector3, sky: DayNightSky,
 	LandmarkBuilder.place_all(root, hub_id, accent, city_base_y)
 	if player != null:
 		CityVenues.place_all(root, accent, city_base_y, player)
-		# One claimable guild hideout per city — its claim mirrors into the
-		# Extraliminal as the guild's hall there.
-		var hideout := GuildHideout.new()
-		hideout.setup(hub_id, accent, player)
-		hideout.position = Vector3(5.5 * CityData.CELL, city_base_y, 0.5 * CityData.CELL)
-		root.add_child(hideout)
+		# SEVERAL claimable hideout sites per city (HideoutRegistry owns the
+		# guild-exclusion radii, banners, and defender garrisons). Seeded, so
+		# the same sites stand in the same places every visit.
+		var site_rng := RandomNumberGenerator.new()
+		site_rng.seed = hash("hideout_" + hub_id)
+		var site_count := 2 + site_rng.randi() % 2 # 2-3 sites per city
+		for s in site_count:
+			var local_pos := Vector3(
+				site_rng.randf_range(1.5, 6.5) * CityData.CELL, city_base_y,
+				(0.5 + s * 3.0) * CityData.CELL)
+			var hideout := GuildHideout.new()
+			hideout.setup("%s_s%d" % [hub_id, s], "supraliminal", hub_id,
+				accent, player, origin + local_pos)
+			hideout.position = local_pos
+			root.add_child(hideout)
+		# HIDDEN DOORS: 1-3 per city, seeded, visually identical to every
+		# other street door — walking through one drops you into the Liminal.
+		# No tells, no map marker: finding one is the whole reward.
+		var hd_rng := RandomNumberGenerator.new()
+		hd_rng.seed = hash("hidden_" + hub_id)
+		for i in 1 + hd_rng.randi() % 3:
+			var hd := HiddenDoor.new()
+			hd.door_id = "%s_h%d" % [hub_id, i]
+			hd.accent = accent
+			hd.position = Vector3(
+				hd_rng.randf_range(0.5, 7.0) * CityData.CELL, city_base_y,
+				hd_rng.randf_range(0.5, 7.0) * CityData.CELL)
+			hd.rotation.y = hd_rng.randf_range(0.0, TAU)
+			root.add_child(hd)
 
 	# Ambience follows the FIRST/most-prominent district's bed (the hub's
 	# dominant character); each district also has its own local sound.
