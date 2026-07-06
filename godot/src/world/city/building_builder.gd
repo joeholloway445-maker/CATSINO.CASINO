@@ -51,11 +51,18 @@ static func _procedural(p: Dictionary, profile_name: String, origin: Vector3,
 		shell.material_override = facade_mat
 		shell.position.y = built + seg_h / 2.0
 		root.add_child(shell)
-		# window light band per segment (emissive; driven by CityLighting)
-		_add_window_band(root, seg_w, seg_d, built, seg_h, accent, float(p.window_glow))
+		# Per-floor window strips with deterministic lit/dark scatter — the
+		# difference between "a glowing box" and "a building people are in".
+		_add_floor_windows(root, seg_w, seg_d, built, seg_floors, floor_h, accent, float(p.window_glow), rng)
+		# Corner pilasters: vertical trim that catches rim light and breaks
+		# the flat-slab silhouette.
+		_add_pilasters(root, seg_w, seg_d, built, seg_h, facade_mat)
 		built += seg_h
 		seg_w *= rng.randf_range(0.6, 0.8)
 		seg_d *= rng.randf_range(0.6, 0.8)
+
+	# Ground floor reads as street-level: taller glass storefront band.
+	_add_storefront(root, fw, fd, floor_h, accent, rng)
 
 	# ---- roof feature ----
 	_add_roof(root, str(p.roof), seg_w, seg_d, built, accent, rng)
@@ -71,26 +78,74 @@ static func _procedural(p: Dictionary, profile_name: String, origin: Vector3,
 	root.add_child(body)
 	return root
 
-## The emissive window strip — one MeshInstance3D wrapping the tower with a
-## glass/neon material. Registered with CityLighting so its emission energy
-## rides the day/night curve (bright at night, near-black at noon).
-static func _add_window_band(root: Node3D, w: float, d: float, y0: float,
-		h: float, accent: Color, glow: float) -> void:
-	var band := MeshInstance3D.new()
-	band.name = "Windows"
+## Per-floor window strips. Each strip is a thin emissive band just outside
+## the shell; a deterministic scatter leaves some floors dark, some dim,
+## some bright — the organic lit-office pattern every real skyline has.
+## Tall towers band every other floor to keep node counts sane.
+static func _add_floor_windows(root: Node3D, w: float, d: float, y0: float,
+		floor_count: int, floor_h: float, accent: Color, glow: float,
+		rng: RandomNumberGenerator) -> void:
+	var step := 1 if floor_count <= 20 else 2
+	for f in range(0, floor_count, step):
+		var strip := MeshInstance3D.new()
+		strip.name = "Windows"
+		var box := BoxMesh.new()
+		box.size = Vector3(w * 1.01, floor_h * 0.45, d * 1.01)
+		strip.mesh = box
+		strip.position.y = y0 + f * floor_h + floor_h * 0.55
+		var mat := AssetLibrary.material("facade_glass", accent.darkened(0.45), 0.1, 0.2, 0.1)
+		mat.emission_enabled = true
+		mat.emission = accent
+		mat.emission_energy_multiplier = 0.0 # CityLighting drives this
+		strip.material_override = mat
+		# Lit-floor scatter: ~15% dark, ~35% dim, the rest full.
+		var roll := rng.randf()
+		var floor_glow := 0.0 if roll < 0.15 else (glow * 0.35 if roll < 0.5 else glow)
+		strip.set_meta("night_glow", floor_glow)
+		root.add_child(strip)
+		CityLighting.register_window(strip)
+
+static func _add_pilasters(root: Node3D, w: float, d: float, y0: float,
+		h: float, facade_mat: Material) -> void:
+	for corner in [Vector2(-1, -1), Vector2(1, -1), Vector2(1, 1), Vector2(-1, 1)]:
+		var pil := MeshInstance3D.new()
+		var box := BoxMesh.new()
+		box.size = Vector3(0.6, h, 0.6)
+		pil.mesh = box
+		pil.position = Vector3(corner.x * (w / 2.0), y0 + h / 2.0, corner.y * (d / 2.0))
+		pil.material_override = facade_mat
+		root.add_child(pil)
+
+## Street level: a taller glass band (the lobby/storefront) plus a thin
+## colored awning line — makes the ground floor read as inhabited retail
+## instead of tower-meets-dirt.
+static func _add_storefront(root: Node3D, w: float, d: float, floor_h: float,
+		accent: Color, rng: RandomNumberGenerator) -> void:
+	var glass := MeshInstance3D.new()
 	var box := BoxMesh.new()
-	box.size = Vector3(w * 1.005, h, d * 1.005) # skin just outside the shell
-	band.mesh = box
-	band.position.y = y0 + h / 2.0
-	var mat := AssetLibrary.material("facade_glass",
-		accent.darkened(0.4), 0.1, 0.2, 0.1)
+	box.size = Vector3(w * 1.02, floor_h * 0.8, d * 1.02)
+	glass.mesh = box
+	glass.position.y = floor_h * 0.45
+	var mat := AssetLibrary.material("facade_glass", Color(0.15, 0.17, 0.2), 0.1, 0.3, 0.05)
 	mat.emission_enabled = true
-	mat.emission = accent
-	mat.emission_energy_multiplier = 0.0 # CityLighting sets this
-	band.material_override = mat
-	band.set_meta("night_glow", glow)
-	root.add_child(band)
-	CityLighting.register_window(band)
+	mat.emission = Color(1.0, 0.95, 0.85)
+	mat.emission_energy_multiplier = 0.0
+	glass.material_override = mat
+	glass.set_meta("night_glow", 0.9) # storefronts stay lit late
+	root.add_child(glass)
+	CityLighting.register_window(glass)
+	var awning := MeshInstance3D.new()
+	var abox := BoxMesh.new()
+	abox.size = Vector3(w * 1.06, 0.25, d * 1.06)
+	awning.mesh = abox
+	awning.position.y = floor_h * 0.9
+	var amat := AssetLibrary.material("neon", accent.lerp(Color.from_hsv(rng.randf(), 0.7, 0.9), 0.4), 0.0, 0.0, 0.4)
+	amat.emission_enabled = true
+	amat.emission = amat.albedo_color
+	amat.emission_energy_multiplier = 1.2
+	awning.material_override = amat
+	root.add_child(awning)
+	CityLighting.register_neon(awning, 1.2)
 
 static func _register_real_windows(node: Node, accent: Color) -> void:
 	for child in node.get_children():
