@@ -21,6 +21,7 @@ static func build(hub_id: String, origin: Vector3, sky: DayNightSky,
 	var root := Node3D.new()
 	root.name = "MegaCity_%s" % hub_id
 	root.position = origin
+	root.set_meta("sky", sky) # districts' traffic ribbons read this
 
 	# One light-rig driver + one ambience node for the whole city.
 	var lighting := CityLighting.begin(sky)
@@ -103,10 +104,22 @@ static func _build_district(root: Node3D, dtype: String, local: Vector3,
 	# ---- streetlights along the road grid ----
 	_build_streetlights(holder, grid, base_y, int(d.streetlight_spacing))
 
+	# ---- night traffic: light streaks along the street grid ----
+	var traffic := TrafficRibbons.new()
+	traffic.name = "Traffic_%s" % dtype
+	traffic.grid = grid
+	traffic.base_y = base_y
+	traffic.sky = _sky_of(root)
+	holder.add_child(traffic)
+
 	# ---- district sound bed (local, position-independent stereo) ----
 	var amb := CityAmbience.new()
 	holder.add_child(amb)
 	amb.setup(dtype)
+
+## The sky reference travels via metadata on the city root (set in build()).
+static func _sky_of(root: Node3D) -> DayNightSky:
+	return root.get_meta("sky") if root.has_meta("sky") else null
 
 static func _build_roads(holder: Node3D, grid: Vector2i, base_y: float) -> void:
 	var road_mat := AssetLibrary.material("asphalt", Color(0.08, 0.08, 0.09), 0.15, 0.0, 0.85)
@@ -121,6 +134,62 @@ static func _build_roads(holder: Node3D, grid: Vector2i, base_y: float) -> void:
 		var strip := _road_strip(Vector3(grid.x * CityData.CELL / 2.0, base_y - 0.15, z),
 			Vector3(grid.x * CityData.CELL, 0.1, CityData.STREET_WIDTH), road_mat)
 		holder.add_child(strip)
+	_build_lane_markings(holder, grid, base_y)
+	_build_sidewalks(holder, grid, base_y)
+
+## Lane dashes down every street center — one MultiMesh per district keeps
+## hundreds of dashes at a single draw call.
+static func _build_lane_markings(holder: Node3D, grid: Vector2i, base_y: float) -> void:
+	var dash_mesh := BoxMesh.new()
+	dash_mesh.size = Vector3(0.35, 0.05, 2.2)
+	var mat := StandardMaterial3D.new()
+	mat.albedo_color = Color(0.85, 0.8, 0.35)
+	mat.emission_enabled = true
+	mat.emission = Color(0.85, 0.8, 0.35)
+	mat.emission_energy_multiplier = 0.25
+	dash_mesh.material = mat
+	var transforms: Array[Transform3D] = []
+	var dash_step := 6.0
+	# dashes along Z-running streets
+	for gx in range(grid.x + 1):
+		var x := gx * CityData.CELL - CityData.STREET_WIDTH / 2.0
+		var z := 0.0
+		while z < grid.y * CityData.CELL:
+			transforms.append(Transform3D(Basis.IDENTITY, Vector3(x, base_y - 0.07, z)))
+			z += dash_step
+	# dashes along X-running streets (rotated 90°)
+	var rot := Basis(Vector3.UP, PI / 2.0)
+	for gy in range(grid.y + 1):
+		var z := gy * CityData.CELL - CityData.STREET_WIDTH / 2.0
+		var x := 0.0
+		while x < grid.x * CityData.CELL:
+			transforms.append(Transform3D(rot, Vector3(x, base_y - 0.07, z)))
+			x += dash_step
+	var mm := MultiMesh.new()
+	mm.transform_format = MultiMesh.TRANSFORM_3D
+	mm.mesh = dash_mesh
+	mm.instance_count = transforms.size()
+	for i in transforms.size():
+		mm.set_instance_transform(i, transforms[i])
+	var mmi := MultiMeshInstance3D.new()
+	mmi.multimesh = mm
+	holder.add_child(mmi)
+
+## A raised curb plate under every block lot — the sidewalk ring that
+## separates street asphalt from building ground.
+static func _build_sidewalks(holder: Node3D, grid: Vector2i, base_y: float) -> void:
+	var walk_mat := AssetLibrary.material("sidewalk", Color(0.32, 0.32, 0.35), 0.15, 0.0, 0.8)
+	for gx in grid.x:
+		for gy in grid.y:
+			var pad := MeshInstance3D.new()
+			var box := BoxMesh.new()
+			box.size = Vector3(CityData.BLOCK_SIZE + 3.0, 0.18, CityData.BLOCK_SIZE + 3.0)
+			pad.mesh = box
+			pad.position = Vector3(
+				gx * CityData.CELL + CityData.CELL / 2.0, base_y - 0.05,
+				gy * CityData.CELL + CityData.CELL / 2.0)
+			pad.material_override = walk_mat
+			holder.add_child(pad)
 
 static func _road_strip(pos: Vector3, size: Vector3, mat: Material) -> MeshInstance3D:
 	var mi := MeshInstance3D.new()
