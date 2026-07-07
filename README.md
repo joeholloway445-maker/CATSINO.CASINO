@@ -4,6 +4,11 @@ This used to be split across two GitHub repos (`THE-HDV-CORE` and
 `CATSINO.CASINO`), which made it impossible to tell where any given piece of
 work actually lived. Everything now lives here, in one place.
 
+This account also has several other repos that touch the same universe
+(a Godot combat-AI reference, an AI world-model fork, an LLM inference
+fork, and sister web apps). See [`docs/ECOSYSTEM.md`](docs/ECOSYSTEM.md)
+for how they all relate to this monorepo.
+
 ## Layout
 
 - `apps/catsino-casino/` — the cat-themed casino web skin (Next.js).
