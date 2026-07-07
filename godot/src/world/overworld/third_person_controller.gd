@@ -9,6 +9,7 @@ signal chunk_changed(coord: Vector2i)
 
 const MAX_SPEED := 6.0
 const SPRINT_SPEED := 10.5
+const CROUCH_SPEED := 2.6
 const ACCEL := 14.0
 const DEACCEL := 14.0
 const AIR_ACCEL_FACTOR := 0.5
@@ -26,15 +27,21 @@ var _last_chunk := Vector2i(2147483647, 2147483647)
 var _spring: SpringArm3D
 var _camera: Camera3D
 var _body_mesh: MeshInstance3D
+var _visual: Node3D
+var _crouched := false
 
 func _ready() -> void:
 	_build_body()
 	_build_camera()
 
 func _build_body() -> void:
+	# All visuals hang off one root so posture changes (crouching) can
+	# squash the body without touching the physics capsule.
+	_visual = Node3D.new()
+	add_child(_visual)
 	var real := AssetLibrary.instance("player_cat")
 	if real != null:
-		add_child(real)
+		_visual.add_child(real)
 		var cshape := CollisionShape3D.new()
 		var ccap := CapsuleShape3D.new()
 		ccap.radius = 0.4
@@ -61,7 +68,7 @@ func _build_body() -> void:
 	mat.albedo_color = Color(0.95, 0.6, 0.25) # tabby orange
 	mat.roughness = 0.8
 	_body_mesh.material_override = mat
-	add_child(_body_mesh)
+	_visual.add_child(_body_mesh)
 
 	# Ears — two small cones so the capsule reads as a cat from a distance.
 	for side in [-1.0, 1.0]:
@@ -73,7 +80,7 @@ func _build_body() -> void:
 		ear.mesh = cone
 		ear.material_override = mat
 		ear.position = Vector3(0.18 * side, 1.3, 0.0)
-		add_child(ear)
+		_visual.add_child(ear)
 
 func _build_camera() -> void:
 	_spring = SpringArm3D.new()
@@ -110,7 +117,18 @@ func _physics_process(delta: float) -> void:
 	var cam_basis := Basis(Vector3.UP, _cam_yaw)
 	var dir := (cam_basis * Vector3(input_2d.x, 0.0, input_2d.y)).normalized()
 
+	# Crouch: hold Ctrl/C (or the touch posture button). Slower, lower.
+	var want_crouch := Input.is_key_pressed(KEY_CTRL) or Input.is_key_pressed(KEY_C) \
+		or TouchControls.crouch_held
+	if want_crouch != _crouched:
+		_crouched = want_crouch
+		if is_instance_valid(_visual):
+			var tw := create_tween()
+			tw.tween_property(_visual, "scale:y", 0.55 if _crouched else 1.0, 0.12)
+
 	var target_speed := SPRINT_SPEED if Input.is_key_pressed(KEY_SHIFT) else MAX_SPEED
+	if _crouched:
+		target_speed = CROUCH_SPEED
 	var accel := (ACCEL if dir.dot(Vector3(velocity.x, 0, velocity.z)) > 0.0 else DEACCEL)
 	if not is_on_floor():
 		accel *= AIR_ACCEL_FACTOR
@@ -120,7 +138,8 @@ func _physics_process(delta: float) -> void:
 	velocity.x = flat.x
 	velocity.z = flat.z
 
-	if is_on_floor() and (Input.is_action_just_pressed("ui_accept") or TouchControls.consume_jump()):
+	if is_on_floor() and not _crouched \
+			and (Input.is_action_just_pressed("ui_accept") or TouchControls.consume_jump()):
 		velocity.y = JUMP_VELOCITY
 	# Touch E: replay as a real key event so every venue/door/hideout
 	# interaction hears it without knowing about touch.
@@ -136,6 +155,12 @@ func _physics_process(delta: float) -> void:
 		_spring.rotation = Vector3(_cam_pitch, _cam_yaw - rotation.y, 0.0)
 
 	move_and_slide()
+
+	# Body memory: gait, turns and posture feed Proprioception every frame.
+	Proprioception.feed(delta, _cam_yaw,
+		Vector2(velocity.x, velocity.z).length(),
+		input_2d.y > 0.5, input_2d.y < -0.5,
+		_crouched, is_on_floor())
 
 	var coord := DiscoveryManager.world_pos_to_chunk(global_position)
 	if coord != _last_chunk:

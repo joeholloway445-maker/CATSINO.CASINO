@@ -10,6 +10,7 @@ extends CanvasLayer
 ## menus.
 
 static var move_vector := Vector2.ZERO
+static var crouch_held := false # hold-to-crouch posture button
 static var _jump_queued := false
 static var _interact_queued := false
 
@@ -61,10 +62,15 @@ func _ready() -> void:
 	# ---- right: action buttons ----
 	var col := VBoxContainer.new()
 	col.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_RIGHT)
-	col.position += Vector2(-140, -320)
+	col.position += Vector2(-140, -424)
 	col.add_theme_constant_override("separation", 16)
 	add_child(col)
 	col.add_child(_action_button("⤴", func(): TouchControls._jump_queued = true))
+	# Posture: hold to crouch, release to stand.
+	var crouch_btn := _action_button("⤵", func(): pass)
+	crouch_btn.button_down.connect(func(): TouchControls.crouch_held = true)
+	crouch_btn.button_up.connect(func(): TouchControls.crouch_held = false)
+	col.add_child(crouch_btn)
 	col.add_child(_action_button("E", func(): TouchControls._interact_queued = true))
 	col.add_child(_action_button("⚔", func():
 		# Fire hotbar slot 1 by injecting the key event the HotbarUI reads.
@@ -72,6 +78,11 @@ func _ready() -> void:
 		ev.keycode = KEY_1
 		ev.pressed = true
 		Input.parse_input_event(ev)))
+
+func _exit_tree() -> void:
+	# Never let a held control outlive its scene.
+	TouchControls.crouch_held = false
+	TouchControls.move_vector = Vector2.ZERO
 
 func _action_button(label: String, on_press: Callable) -> Button:
 	var b := Button.new()
