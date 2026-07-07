@@ -87,8 +87,10 @@ func _build_camera() -> void:
 	_spring.add_child(_camera)
 	_update_camera_rotation()
 
+const TOUCH_LOOK_SENSITIVITY := 0.006
+
 func _unhandled_input(event: InputEvent) -> void:
-	if event is InputEventMouseButton and event.pressed:
+	if event is InputEventMouseButton and event.pressed and not TouchControls.active():
 		Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 	elif event.is_action_pressed("ui_cancel"):
 		Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
@@ -97,10 +99,24 @@ func _unhandled_input(event: InputEvent) -> void:
 		_cam_pitch = clampf(_cam_pitch - event.relative.y * MOUSE_SENSITIVITY, -1.2, 0.4)
 		_update_camera_rotation()
 
+## Touch look — read once a frame from TouchControls.look_delta, so mobile
+## can pan the camera with a right-thumb drag without ever needing mouse
+## capture. Consumed here so no other reader competes for the same drag.
+func _apply_touch_look() -> void:
+	if not TouchControls.active():
+		return
+	var d := TouchControls.consume_look_delta()
+	if d.length_squared() < 1.0:
+		return
+	_cam_yaw -= d.x * TOUCH_LOOK_SENSITIVITY
+	_cam_pitch = clampf(_cam_pitch - d.y * TOUCH_LOOK_SENSITIVITY, -1.2, 0.4)
+	_update_camera_rotation()
+
 func _update_camera_rotation() -> void:
 	_spring.rotation = Vector3(_cam_pitch, _cam_yaw, 0.0)
 
 func _physics_process(delta: float) -> void:
+	_apply_touch_look()
 	velocity.y -= _gravity * delta
 
 	var input_2d := Input.get_vector("ui_left", "ui_right", "ui_up", "ui_down")
@@ -110,7 +126,8 @@ func _physics_process(delta: float) -> void:
 	var cam_basis := Basis(Vector3.UP, _cam_yaw)
 	var dir := (cam_basis * Vector3(input_2d.x, 0.0, input_2d.y)).normalized()
 
-	var target_speed := SPRINT_SPEED if Input.is_key_pressed(KEY_SHIFT) else MAX_SPEED
+	var sprinting := Input.is_key_pressed(KEY_SHIFT) or TouchControls.sprint_held
+	var target_speed := SPRINT_SPEED if sprinting else MAX_SPEED
 	var accel := (ACCEL if dir.dot(Vector3(velocity.x, 0, velocity.z)) > 0.0 else DEACCEL)
 	if not is_on_floor():
 		accel *= AIR_ACCEL_FACTOR

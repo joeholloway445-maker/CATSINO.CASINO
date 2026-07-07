@@ -47,18 +47,13 @@ func spawn_wild_entity(landmark_id: String) -> Dictionary:
 	entity_spotted.emit(entity, landmark_id)
 	return entity
 
-## Catch chance scales with luck stat and sigil lures; caught entities join
-## the roster as unlocked AND become UGC blueprints (EntityBlueprint).
-func attempt_catch(entity: Dictionary, use_lure: bool = false) -> bool:
-	var base := 0.35 + 0.10 * (6 - clampi(int(entity.get("rarity", 3)), 1, 5))
-	if use_lure and await EconomyManager.spend_currency("fragments", 5, "entity_lure"):
-		base += 0.25
-	if randf() < base:
-		CompanionSystem.unlock_companion(entity.get("id", ""))
-		EconomyManager.earn_currency("charges", int(entity.get("rarity", 1)), "entity_caught")
-		entity_caught.emit(entity)
-		CrownManager.add_score("Top Wildlife Tames", "local_player", 1)
-		return true
+## Wild entities can no longer be "caught" by tossing a ball at them.
+## They must be DEFEATED first — CaptureSystem then rolls the bond at
+## the moment of the kill. This wrapper stays here so any older UI that
+## invokes an Extraliminal "attempt_catch" gets routed through the new
+## rule instead of silently unlocking an entity that was never fought.
+func attempt_catch(_entity: Dictionary, _use_lure: bool = false) -> bool:
+	NotificationUI.notify_info("The bond only forms after a real fight. Defeat it first — Hope can help.")
 	return false
 
 func landmark_owner(landmark_id: String) -> String:

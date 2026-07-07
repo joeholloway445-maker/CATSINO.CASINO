@@ -126,6 +126,20 @@ intended bypass for gated content.
   hideouts in Supraliminal AND Extraliminal, 220m guild-exclusion radius,
   optional banners, PoGo-style entity defenders (a defending entity is
   REMOVED from the party until recalled — keep that invariant).
+- **Capture-by-defeat**: `src/companion/capture_system.gd` (autoload
+  `CaptureSystem`) — wild entities can ONLY be bonded by defeating them.
+  Called from `layer_world._on_entity_died` with the player's remaining
+  HP ratio. Base chance by category, minus a stage penalty, plus health
+  and Hope-bond bonuses, minus a Periliminal-difficulty penalty. Never
+  auto-unlock an entity anywhere else; if legacy UI wants to, route it
+  through this system. Never add a "catch a wild entity without fighting"
+  path — the whole design invariant is that captures stay rare.
+- **Breeding**: `src/companion/companion_breeding.gd` (autoload
+  `CompanionBreeding`) — pair two UNLOCKED entities, 6h gestation,
+  parents locked out of other pairings while gestating. Offspring
+  always Stage 1, same-category pairs bias to that category,
+  cross-faction pairs sometimes yield Factionless "orphan" lines.
+  Charges pay both the initial cost and hurry-through.
 - **Psychology**: `src/companion/hope.gd` (autoload; observes everything,
   feeds Supabase `hope_telemetry`), `src/social/word_of_mouth.gd`
   (autoload; per-NPC firsthand memory + hash-seeded gossip spread — word
@@ -234,4 +248,10 @@ persistent world/economy of its own (`arena_modes.gd` header explains).
 - Determinism matters: anything world-placed is seeded
   (`rng.seed = hash("thing_" + id)`) so every visit rebuilds identically.
 - Mobile: gate Forward+ features on `RenderCaps`, read
-  `TouchControls.move_vector/consume_*` statics, never require hover.
+  `TouchControls.move_vector` / `look_delta` (consume once/frame) /
+  `sprint_held` / `consume_jump()` / `consume_interact()` statics, never
+  require hover. Left thumb = joystick, right half of screen = camera
+  drag, right column = JUMP / E / cast slot 1 / SPRINT (hold).
+  MOBILE IS THE FIRST-CLASS TEST TARGET — verify any new HUD/UI element
+  at phone aspect ratios (portrait 9:16 and landscape 16:9) and respect
+  safe-area insets before shipping.
