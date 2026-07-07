@@ -332,6 +332,11 @@ func _on_entity_died(ent: WorldEntity) -> void:
 	_entities.erase(ent.get_instance_id())
 	EconomyManager.earn_currency("fragments", ent.bounty(), "world_entity_kill")
 	QuestManager.update_progress("defeat_entity")
+	# The only way to bond with an entity is to defeat it — solo, or with
+	# Hope's help. CaptureSystem rolls the moment: your remaining HP is
+	# the "you earned this" input, so a clean win reads clean.
+	var hp_ratio := clampf(float(_player_hp) / 100.0, 0.0, 1.0)
+	CaptureSystem.on_defeated(ent, hp_ratio)
 
 func _build_hud() -> void:
 	var layer := CanvasLayer.new()
