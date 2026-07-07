@@ -1,30 +1,37 @@
 # AI context for Periliminal.Space (the Godot project in CATSINO.CASINO)
 
-This file is the FIRST thing any AI working on this project must read —
-Claude Code in a terminal, an in-editor MCP plugin, anything. It says what
-the game is, what already exists, what order to build/fix things in, and
-the conventions that keep 100+ GDScript files consistent.
+This file is the FIRST thing any AI or agent working on this project must
+read — Ziva, Claude Code, an in-editor MCP plugin, anything. It is written
+to be tool-agnostic: no step below assumes a specific assistant, only that
+you can read files, edit files, and see the Godot editor's error output.
+It says what the game is, what already exists, what order to build/fix
+things in, and the conventions that keep 100+ GDScript files consistent.
 
-## How to get an AI working on this project (in-engine options)
+## EXACT operating procedure for any AI agent (follow verbatim)
 
-Godot has no first-party AI panel. Real options, best first:
-
-1. **Claude Code pointed at this folder** (`cd godot && claude`, or the
-   desktop app / claude.ai/code with this repo). It reads this file
-   automatically, can edit every `.gd`, and can run
-   `godot --headless --check-only --script <file>` or open the project with
-   `godot --headless --editor --quit` to harvest the full error list.
-   This is the recommended workflow: **copy the editor's error output and
-   paste it to Claude Code** — that beats any in-engine plugin today.
-2. **Godot MCP plugin for in-editor chat** — install a community
-   Godot-MCP bridge (e.g. `godot-mcp` on GitHub, or "AI Assistant Hub"
-   from the AssetLib) into `addons/`, connect it to Claude via MCP. This
-   gives a dock panel inside the editor that can inspect the scene tree
-   live. Community-maintained; verify it targets Godot **4.3** before
-   installing.
-3. **External editor mode** — set VS Code/Cursor as Godot's external
-   script editor (Editor Settings → Text Editor → External) and run an AI
-   there; Godot hot-reloads scripts on save.
+1. Read this entire file before touching any code.
+2. Open the project from `godot/project.godot` in **Godot 4.3** (no other
+   major version — 4.2 and 4.4+ have different APIs and will produce
+   false errors).
+3. Collect the CURRENT error list: Editor bottom panel → "Errors" tab
+   (or run `godot --headless --editor --quit 2>errors.txt` from the
+   `godot/` folder). Do not fix from memory of an old list.
+4. Group the errors BY FILE, then order the files by layer:
+   `src/data/` → `src/core/` → `src/identity|character|skills/` →
+   `src/world/` → `src/layers/` → `src/companion|social|multiplayer/` →
+   `src/ui/`. Fix in that order only — most UI errors are cascade
+   symptoms of one broken upstream file (details in the next section).
+5. Make the SMALLEST edit that fixes each error. Never rewrite a system,
+   never rename public functions/signals other files call, never delete a
+   feature to silence an error. The design invariants below are law.
+6. After each file batch: Project → Reload Current Project, re-collect
+   errors, confirm the count dropped. If a fix didn't drop the count,
+   revert it and rediagnose.
+7. When the project loads with ZERO script errors, proceed to the
+   numbered **Build order** section — do its steps in order, one at a
+   time, verifying each in the running game (F5) before the next.
+8. Commit after every green step with a message naming the step.
+   Never commit with the error count higher than you found it.
 
 ## Fixing a large error count (READ THIS BEFORE FIXING ANYTHING)
 
@@ -142,6 +149,43 @@ intended bypass for gated content.
   texture/light/sound packs and the race IdentityLens swap in without
   touching geometry code. Keep new world code on this path.
 
+## Game modes (NOT lost — here is where each one lives or goes)
+
+Existing code — extend these, never create parallel systems:
+
+| mode | status | code |
+|---|---|---|
+| 1v1 duels | built (trial context) | `src/ascension/ascension_trial.gd` + `trial_arena.gd` — Round II/III duels vs Knoll built from Hope's profile; generalize this into open 1v1 |
+| 5v5 MOBA ("Paws of the Ancients") | defined, lobby-level | `src/data/arena_modes.gd` (`moba`) via Arena hub (`src/ui/arena_hub_ui.gd`) |
+| Team deathmatch / large team battle | defined, lobby-level | `arena_modes.gd` (`conflict`, team_size=12) |
+| Survival (shrinking zone) | defined, lobby-level | `arena_modes.gd` (`survival`) |
+| Zombies / horde co-op | defined, lobby-level | `arena_modes.gd` (`zombies` — waves of feral entities) |
+| CTF + arena racing | defined, lobby-level | `arena_modes.gd` (`ctf`, `race_arena`) |
+| PvXC open pit (Ark-style) | built | `src/pvxc/pvxc_manager.gd`, `pvxc_zone.gd`, `pvxc_gate_ui.gd` |
+| Open-world PvP + bots | built | `src/layers/layer_world.gd` + `src/multiplayer/presence_manager.gd` |
+| Guild wars | built | `ExtraliminalManager.open_liminal_door` + `HideoutRegistry.contest` |
+
+Planned — NOT yet in code (build in this order, inside the systems named):
+
+1. **2v2** — add `{id="duel_2v2", team_size=2}` to `ArenaModes.MODES`;
+   matchmaking rides the same Arena lobby as 1v1.
+2. **Zone bosses** — Stage-3 `WorldEntity` elites at seeded landmarks per
+   city; spawn from `LandmarkBuilder`/`layer_world`, announce via
+   NotificationUI, pay fragments + charges.
+3. **World bosses** — one server-wide Stage-3+ entity on a StoryVote-able
+   schedule; extend `WorldEntity` with a boss health pool and phase
+   triggers; rewards through `EconomyManager` + `CrownManager`.
+4. **Dungeons** — instanced party runs: reuse the Periliminal's
+   generated-then-static seed pattern (`PeriliminalRuns._seed_ledger`)
+   but WITHOUT the wipe rule; entry doors as `LiminalDoor` variants.
+5. **PvP campaigns** (ESO/WoW-style) — chained `QuestManager` arcs whose
+   stages are contested `TerritoryControl` chunks; faction score through
+   `CrownManager`.
+
+Rule: arena-hosted things are MODES of Soulless Sanctuary's Arena (lobby
+hop), not new reality layers. Promote a mode to a layer only if it gains a
+persistent world/economy of its own (`arena_modes.gd` header explains).
+
 ## Build order (do these IN ORDER — each gates the next)
 
 1. **Make it parse.** Open the editor, fix errors per the cascade
@@ -159,10 +203,13 @@ intended bypass for gated content.
    site) on the internet.
 5. **Combat/economy pass in-engine**: skills bars, element riders,
    hideout claim/defend flow, casino games, StoryVote.
-6. **Content**: dialogue JSON, dex descriptions, blueprint presets,
+6. **Game modes** (in the order listed in the Game modes section:
+   2v2 → zone bosses → world bosses → dungeons → PvP campaigns), each
+   playable end-to-end before starting the next.
+7. **Content**: dialogue JSON, dex descriptions, blueprint presets,
    audio packs (Suno-generated songs slot in via AssetLibrary sound
    slots), city texture/light/sound packs per race.
-7. **Real multiplayer**: wire NetworkManager/Nakama beyond presence bots.
+8. **Real multiplayer**: wire NetworkManager/Nakama beyond presence bots.
 
 ## Conventions
 
