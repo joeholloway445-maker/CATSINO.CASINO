@@ -39,7 +39,8 @@ func _ready() -> void:
 	_player.global_position = Vector3(RIM - 10.0, 3.0, 0)
 	# Player attack power scales with build + entities.
 	var stats := CharacterCreatorLogic.build_starting_stats(
-		PlayerProfile.selected_race_id, PlayerProfile.faction, PlayerProfile.selected_frame)
+		PlayerProfile.selected_race_id, PlayerProfile.faction,
+		PlayerProfile.selected_frame, PlayerProfile.selected_mod)
 	_attack_damage = 14 + int(stats.pow) / 2 + PlayerProfile.level
 	_attack_damage_base = _attack_damage
 	var rng2 := RandomNumberGenerator.new()

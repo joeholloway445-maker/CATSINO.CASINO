@@ -1,7 +1,7 @@
 class_name CharacterCreatorLogic
 # Pure logic for the character creator — no UI dependency
 
-static func build_starting_stats(race_id: String, faction: String, frame_id: String) -> Dictionary:
+static func build_starting_stats(race_id: String, faction: String, frame_id: String, mod_id: String = "") -> Dictionary:
 	var base := {pow=10, res=10, spd=10, lck=10, sty=10}
 	var race_bonuses := RaceDataCharacter.get_stat_bonuses(race_id)
 	for stat in race_bonuses.keys():
@@ -9,10 +9,11 @@ static func build_starting_stats(race_id: String, faction: String, frame_id: Str
 	var faction_bonuses := FactionSystem.get_stat_bonuses(faction)
 	for stat in faction_bonuses.keys():
 		base[stat] = base.get(stat, 0) + faction_bonuses.get(stat, 0)
-	var frame_data := FrameModData.get_frame(frame_id)
-	if not frame_data.is_empty():
-		for stat in ["pow", "res", "spd", "lck", "sty"]:
-			base[stat] = frame_data.get(stat, base[stat])
+	# Frames and mods carry their stats in `stat_bonus` and ADD to the base —
+	# they never replace the race/faction contributions.
+	base = FrameModData.apply_frame_stats(frame_id, base)
+	if not mod_id.is_empty():
+		base = FrameModData.apply_mod_stats(mod_id, base)
 	return base
 
 static func validate_name(name: String) -> bool:

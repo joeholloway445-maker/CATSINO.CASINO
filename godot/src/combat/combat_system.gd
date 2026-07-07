@@ -37,8 +37,8 @@ class CombatResult:
 # We map FrameClass to combat type; Mods that are "tech" shift resolution
 const TECH_MODS := [
 	CharacterData.Mod.VOID_CORE, CharacterData.Mod.NULL,
-	CharacterData.Mod.GLITCH if "GLITCH" in CharacterData.Mod else CharacterData.Mod.ENTROPY,
-	CharacterData.Mod.PHASE,  CharacterData.Mod.SINGULARITY,
+	CharacterData.Mod.ENTROPY, CharacterData.Mod.PHASE,
+	CharacterData.Mod.SINGULARITY,
 ]
 const BURST_LCK_THRESHOLD   := 80
 const BURST_SYNERGY_THRESHOLD := 0.20

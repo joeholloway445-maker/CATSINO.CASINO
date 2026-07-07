@@ -28,7 +28,8 @@ func _ready() -> void:
 	add_child(_player)
 	_player.global_position = Vector3(0, 2, ARENA_R * 0.6)
 	var stats := CharacterCreatorLogic.build_starting_stats(
-		PlayerProfile.selected_race_id, PlayerProfile.faction, PlayerProfile.selected_frame)
+		PlayerProfile.selected_race_id, PlayerProfile.faction,
+		PlayerProfile.selected_frame, PlayerProfile.selected_mod)
 	_attack_damage = 16 + int(stats.pow) / 2 + PlayerProfile.level
 
 	var hotbar := HotbarUI.new()
@@ -111,7 +112,8 @@ func _next_wave() -> void:
 ## The shadow: Knoll in your silhouette, biased by Hope's read on you.
 func _spawn_shadow(shadow_frame: String) -> void:
 	var stats := CharacterCreatorLogic.build_starting_stats(
-		PlayerProfile.selected_race_id, PlayerProfile.faction, shadow_frame)
+		PlayerProfile.selected_race_id, PlayerProfile.faction,
+		shadow_frame, PlayerProfile.selected_mod)
 	var bias: Dictionary = Hope.combat_profile()
 	var shadow_entity := {
 		"id": "knoll", "name": "Knoll (you)",
