@@ -10,9 +10,14 @@ things in, and the conventions that keep 100+ GDScript files consistent.
 ## EXACT operating procedure for any AI agent (follow verbatim)
 
 1. Read this entire file before touching any code.
-2. Open the project from `godot/project.godot` in **Godot 4.3** (no other
-   major version — 4.2 and 4.4+ have different APIs and will produce
-   false errors).
+2. Open the project from `godot/project.godot` in the **newest stable
+   Godot 4.x** available (4.3 or later — 4.7 recommended in mid-2026).
+   If the version is older than 4.3, STOP and tell the user to upgrade:
+   this code uses APIs (typed dictionaries, `class_name` statics,
+   `ProceduralSkyMaterial` fields, `MultiMesh.transform_format`, etc.)
+   that were not stable pre-4.3. Godot 3.x will NOT work at all — the
+   language is different. Never downgrade the project to satisfy a
+   version constraint; upgrade the editor instead.
 3. Collect the CURRENT error list: Editor bottom panel → "Errors" tab
    (or run `godot --headless --editor --quit 2>errors.txt` from the
    `godot/` folder). Do not fix from memory of an old list.
@@ -45,9 +50,10 @@ usually 5–15 root-cause files. Procedure:
 2. After each batch of fixes: Project → Reload Current Project. The count
    should drop by dozens per real fix.
 3. The most likely root-cause classes in this codebase, in order:
-   - **API drift vs Godot 4.3** — this code was written without a compiler
-     available; property/method names were pattern-matched. Typical fixes
-     are one-line renames.
+   - **API drift** — this code was written without a compiler available;
+     property/method names were pattern-matched against Godot 4.3 docs
+     and may need one-line renames on newer 4.x versions. Check the
+     current API in the Godot docs before assuming an error is real.
    - **Typed-dictionary/array inference** — `:=` with a `.get(...)`
      result; fix by adding an explicit type or `str()/int()/float()` cast.
    - **Autoload order** — autoloads must not touch OTHER autoloads in
@@ -61,9 +67,11 @@ usually 5–15 root-cause files. Procedure:
 - **Game**: Periliminal.Space — a six-reality-layer psychology XRMMORPG.
   The casino ("Catsino") is ONE feature inside it (the Hyperliminal),
   not the game. Cat-themed skins are presentation only.
-- **Engine**: Godot **4.3**, renderer **gl_compatibility** (mobile + web
-  friendly). Forward+-only features (SSAO/SSIL/SSR/volumetric fog) must be
-  gated behind `RenderCaps.is_compatibility()` — never used bare.
+- **Engine**: newest stable **Godot 4.x** (4.3 minimum; 4.7 recommended
+  in mid-2026 — always use the newest stable that still parses this
+  project). Renderer **gl_compatibility** (mobile + web friendly).
+  Forward+-only features (SSAO/SSIL/SSR/volumetric fog) must be gated
+  behind `RenderCaps.is_compatibility()` — never used bare.
 - **Companion site**: Next.js app in `apps/catsino-casino` (deployed on
   Vercel). It is the website, NOT the game. The game ships as a Godot Web
   export (preset target `builds/html5` — the one-time export preset must
