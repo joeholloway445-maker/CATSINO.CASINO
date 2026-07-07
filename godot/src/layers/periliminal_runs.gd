@@ -56,6 +56,30 @@ func advance_depth() -> void:
 		_save_ledger()
 	depth_advanced.emit(depth, preview_reward())
 
+## Personalized difficulty — the Periliminal reads WHO you've been, not
+## just how deep you are. Micro decisions (Hope's playstyle axes: rushing,
+## hoarding, hesitating) and macro decisions (how you treat the world's
+## people, via WordOfMouth) both weigh in. Cruel, greedy, reckless players
+## get a hotter hell; careful, kind ones get a survivable one.
+func difficulty() -> float:
+	var p := Hope.combat_profile()
+	var d := 1.0
+	d += float(p.get("aggression", 0.5)) * 0.5
+	d += float(p.get("greed", 0.5)) * 0.4
+	d -= float(p.get("caution", 0.5)) * 0.3
+	d += WordOfMouth.mean_ratio() * 0.4
+	d += float(depth) * 0.05
+	return clampf(d, 0.6, 2.5)
+
+## The blessing door — the ONLY way out — is earned, not found. The depth
+## it demands scales with your personal difficulty: the layer makes the
+## hard cases walk further through their own hell before mercy arrives.
+func blessing_depth() -> int:
+	return 2 + int(round(difficulty() * 2.0))
+
+func blessing_ready() -> bool:
+	return active and depth >= blessing_depth()
+
 func preview_reward() -> int:
 	# 3, 9, 18, 30, 45... — quadratic-ish so deep runs feel earned.
 	return FRAGMENTS_PER_DEPTH * depth * (depth + 1) / 2
