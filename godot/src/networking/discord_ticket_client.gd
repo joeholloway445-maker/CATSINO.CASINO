@@ -2,12 +2,29 @@ extends Node
 ## Posts UGC mod-review tickets to a Discord webhook. This is the lightest
 ## real integration possible without a hosted bot/token: a Discord webhook
 ## URL (created in the target channel's Integrations settings) accepts
-## plain POSTs, no bot process required. Set webhook_url before calling
-## (e.g. via an environment-specific autoload override or .env-loaded
-## config) — left blank by default since it's a per-server secret that
-## doesn't belong committed to the repo.
+## plain POSTs, no bot process required.
+##
+## The webhook URL is loaded from res://server_config.json ("discord_webhook_url"
+## key) at startup so it never needs to be committed to the repo.  It can also
+## be set at runtime via `DiscordTicketClient.webhook_url = "https://..."` or
+## overridden in the Godot editor via the exported property.
 
 @export var webhook_url: String = ""
+
+func _ready() -> void:
+	_load_webhook_from_config()
+
+func _load_webhook_from_config() -> void:
+	if not webhook_url.is_empty():
+		return  # already set (editor override or previous call)
+	if not ResourceLoader.exists("res://server_config.json"):
+		return
+	var f := FileAccess.open("res://server_config.json", FileAccess.READ)
+	if not f:
+		return
+	var cfg = JSON.parse_string(f.get_as_text())
+	if cfg is Dictionary and cfg.has("discord_webhook_url"):
+		webhook_url = cfg["discord_webhook_url"]
 
 ## Posts a new ticket message and returns the submission's discord_ticket_url
 ## (the channel link), or "" if posting failed/was skipped (no webhook configured).

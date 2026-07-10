@@ -1,10 +1,18 @@
 # Periliminal.Space full stack — Nakama + Postgres (Nakama's own),
-# Next.js landing/API, and the exported Godot HTML5 client behind nginx.
+# two Next.js web skins, the exported Godot HTML5 client, and an nginx
+# reverse proxy that routes all three domains.
 # Supabase runs hosted (lamdemoaszkilguvkvcd) — self-host later with
-# `supabase start` or the supabase/docker compose if needed.
+# `supabase start` if needed.
+#
+# Required .env at repo root (copy .env.example and fill in values):
+#   SUPABASE_URL, SUPABASE_ANON_KEY, SUPABASE_SERVICE_KEY
+#   NAKAMA_SERVER_KEY
+#   ANTHROPIC_API_KEY, GEMINI_API_KEY, NEXT_PUBLIC_GOOGLE_CLIENT_ID
+#   CATSINO_DOMAIN, HDV_DOMAIN, PLAY_DOMAIN  (e.g. catsino.casino, periliminal.space, play.catsino.casino)
 services:
   nakama-db:
     image: postgres:15-alpine
+    restart: unless-stopped
     environment:
       POSTGRES_PASSWORD: nakama
       POSTGRES_DB: nakama
@@ -12,6 +20,7 @@ services:
 
   nakama:
     image: registry.heroiclabs.com/heroiclabs/nakama:3.21.1
+    restart: unless-stopped
     depends_on: [nakama-db]
     entrypoint:
       - "/bin/sh"
@@ -22,20 +31,59 @@ services:
         --socket.server_key "${NAKAMA_SERVER_KEY:-defaultkey}" --runtime.js_entrypoint "index.js"
     volumes:
       - ./godot/src/networking/nakama_modules/build:/nakama/data/modules
-    ports: ["7350:7350", "7351:7351"]
+    # Not exposed publicly — nginx proxies /nakama/ to port 7350.
+    # Port 7351 (Nakama console) is intentionally not exposed; access via SSH tunnel.
+    expose: ["7350", "7351"]
 
+  # Catsino Casino web skin (Next.js)
   web:
     build: ./apps/catsino-casino
+    restart: unless-stopped
     environment:
       NEXT_PUBLIC_SUPABASE_URL: ${SUPABASE_URL}
       NEXT_PUBLIC_SUPABASE_ANON_KEY: ${SUPABASE_ANON_KEY}
-    ports: ["3000:3000"]
+      NEXT_PUBLIC_NAKAMA_HOST: ${CATSINO_DOMAIN:-localhost}
+      NEXT_PUBLIC_NAKAMA_PORT: "443"
+      NEXT_PUBLIC_NAKAMA_SSL: "true"
+    expose: ["3000"]
+    depends_on: [nakama]
 
+  # HDV Core web skin (Next.js) — separate domain, same Supabase DB
+  web-hdv:
+    build: ./apps/hdv-core
+    restart: unless-stopped
+    environment:
+      NEXT_PUBLIC_SUPABASE_URL: ${SUPABASE_URL}
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: ${SUPABASE_ANON_KEY}
+      SUPABASE_SERVICE_ROLE_KEY: ${SUPABASE_SERVICE_KEY}
+      NEXT_PUBLIC_NAKAMA_HOST: ${HDV_DOMAIN:-localhost}
+      NEXT_PUBLIC_NAKAMA_PORT: "443"
+      NEXT_PUBLIC_NAKAMA_SSL: "true"
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY}
+      GEMINI_API_KEY: ${GEMINI_API_KEY}
+      NEXT_PUBLIC_GOOGLE_CLIENT_ID: ${NEXT_PUBLIC_GOOGLE_CLIENT_ID}
+    expose: ["3000"]
+    depends_on: [nakama]
+
+  # Exported Godot HTML5 build served as static files
   game:
     image: nginx:alpine
+    restart: unless-stopped
     volumes:
-      - ./builds/html5:/usr/share/nginx/html:ro
-    ports: ["8080:80"]
+      - ./build/web:/usr/share/nginx/html:ro
+      - ./nginx/game.conf:/etc/nginx/conf.d/default.conf:ro
+    expose: ["80"]
+
+  # Nginx reverse proxy — routes all three domains, terminates HTTPS via certbot
+  proxy:
+    image: nginx:alpine
+    restart: unless-stopped
+    ports: ["80:80", "443:443"]
+    volumes:
+      - ./nginx/proxy.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./nginx/certs:/etc/letsencrypt:ro
+      - ./nginx/certbot-webroot:/var/www/certbot:ro
+    depends_on: [web, web-hdv, game, nakama]
 
   psychology:
     build: ./services/psychology

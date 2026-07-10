@@ -79,6 +79,7 @@ PvxcManager="*res://src/pvxc/pvxc_manager.gd"
 BlueprintManager="*res://src/blueprints/blueprint_manager.gd"
 Marketplace="*res://src/economy/marketplace.gd"
 MusicManager="*res://src/audio/music_manager.gd"
+IAPManager="*res://src/core/iap_manager.gd"
 Proprioception="*res://src/core/proprioception.gd"
 
 [display]
