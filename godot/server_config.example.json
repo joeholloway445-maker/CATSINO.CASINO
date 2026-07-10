@@ -1,0 +1,6 @@
+{
+  "nakama_host": "play.catsino.casino",
+  "nakama_port": 443,
+  "nakama_server_key": "REPLACE_WITH_YOUR_NAKAMA_SERVER_KEY",
+  "discord_webhook_url": "https://discord.com/api/webhooks/REPLACE_WITH_YOUR_WEBHOOK_URL"
+}
