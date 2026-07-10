@@ -11,6 +11,7 @@ extends CanvasLayer
 ##   TouchControls.move_vector      Vector2 in [-1, 1]
 ##   TouchControls.look_delta       Vector2 pixels since last frame; consume
 ##   TouchControls.sprint_held      bool while the sprint button is pressed
+##   TouchControls.crouch_held      bool while the posture button is held
 ##   TouchControls.consume_jump()   true once, resets
 ##   TouchControls.consume_interact() true once, resets
 ##
@@ -19,6 +20,7 @@ extends CanvasLayer
 ## indicators, and the joystick's own footprint.
 
 static var move_vector := Vector2.ZERO
+static var crouch_held := false # hold-to-crouch posture button
 static var look_delta := Vector2.ZERO
 static var sprint_held := false
 static var _jump_queued := false
@@ -83,10 +85,15 @@ func _ready() -> void:
 	# ---- right: action buttons ----
 	var col := VBoxContainer.new()
 	col.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_RIGHT)
-	col.position += Vector2(-(safe.y + BUTTON_SIZE + 32), -(safe.w + BUTTON_SIZE * 4 + 80))
+	col.position += Vector2(-(safe.y + BUTTON_SIZE + 32), -(safe.w + BUTTON_SIZE * 5 + 80))
 	col.add_theme_constant_override("separation", 18)
 	add_child(col)
 	col.add_child(_action_button("⤴", func(): TouchControls._jump_queued = true))
+	# Posture: hold to crouch, release to stand.
+	var crouch_btn := _action_button("⤵", func(): pass)
+	crouch_btn.button_down.connect(func(): TouchControls.crouch_held = true)
+	crouch_btn.button_up.connect(func(): TouchControls.crouch_held = false)
+	col.add_child(crouch_btn)
 	col.add_child(_action_button("E", func(): TouchControls._interact_queued = true))
 	col.add_child(_action_button("⚔", func():
 		var ev := InputEventKey.new()
@@ -94,6 +101,11 @@ func _ready() -> void:
 		ev.pressed = true
 		Input.parse_input_event(ev)))
 	col.add_child(_hold_button("»»", func(held: bool): TouchControls.sprint_held = held))
+
+func _exit_tree() -> void:
+	# Never let a held control outlive its scene.
+	TouchControls.crouch_held = false
+	TouchControls.move_vector = Vector2.ZERO
 
 func _action_button(label: String, on_press: Callable) -> Button:
 	var b := Button.new()
