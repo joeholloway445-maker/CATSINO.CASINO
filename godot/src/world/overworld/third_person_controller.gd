@@ -133,7 +133,6 @@ func _physics_process(delta: float) -> void:
 	var cam_basis := Basis(Vector3.UP, _cam_yaw)
 	var dir := (cam_basis * Vector3(input_2d.x, 0.0, input_2d.y)).normalized()
 
-<<<<<<< HEAD
 	# Crouch: hold Ctrl/C (or the touch posture button). Slower, lower.
 	var want_crouch := Input.is_key_pressed(KEY_CTRL) or Input.is_key_pressed(KEY_C) \
 		or TouchControls.crouch_held
@@ -143,13 +142,10 @@ func _physics_process(delta: float) -> void:
 			var tw := create_tween()
 			tw.tween_property(_visual, "scale:y", 0.55 if _crouched else 1.0, 0.12)
 
-	var target_speed := SPRINT_SPEED if Input.is_key_pressed(KEY_SHIFT) else MAX_SPEED
-	if _crouched:
-		target_speed = CROUCH_SPEED
-=======
 	var sprinting := Input.is_key_pressed(KEY_SHIFT) or TouchControls.sprint_held
 	var target_speed := SPRINT_SPEED if sprinting else MAX_SPEED
->>>>>>> origin/main
+	if _crouched:
+		target_speed = CROUCH_SPEED
 	var accel := (ACCEL if dir.dot(Vector3(velocity.x, 0, velocity.z)) > 0.0 else DEACCEL)
 	if not is_on_floor():
 		accel *= AIR_ACCEL_FACTOR

@@ -135,7 +135,6 @@ intended bypass for gated content.
   hideouts in Supraliminal AND Extraliminal, 220m guild-exclusion radius,
   optional banners, PoGo-style entity defenders (a defending entity is
   REMOVED from the party until recalled — keep that invariant).
-<<<<<<< HEAD
 - **Body memory**: `src/core/proprioception.gd` (autoload) — tracks gait/
   turns/posture from `ThirdPersonController` and holds the game's one
   fully unlabeled secret, the **Recall Walk**: 7 paces backward → 180°
@@ -149,7 +148,6 @@ intended bypass for gated content.
   registers + auto-accepts the discoverer-only `recall_*` quest chain.
   Crouch is a real movement feature (Ctrl/C, or the touch posture
   button) so the final ingredient looks unremarkable.
-=======
 - **Capture-by-defeat**: `src/companion/capture_system.gd` (autoload
   `CaptureSystem`) — wild entities can ONLY be bonded by defeating them.
   Called from `layer_world._on_entity_died` with the player's remaining
@@ -164,7 +162,6 @@ intended bypass for gated content.
   always Stage 1, same-category pairs bias to that category,
   cross-faction pairs sometimes yield Factionless "orphan" lines.
   Charges pay both the initial cost and hurry-through.
->>>>>>> origin/main
 - **Psychology**: `src/companion/hope.gd` (autoload; observes everything,
   feeds Supabase `hope_telemetry`), `src/social/word_of_mouth.gd`
   (autoload; per-NPC firsthand memory + hash-seeded gossip spread — word
