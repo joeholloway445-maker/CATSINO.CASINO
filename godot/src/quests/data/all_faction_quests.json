@@ -1,0 +1,352 @@
+[
+  {
+    "id": "veiled_act1_q1_dreamwalk",
+    "title": "The Dreamwalk",
+    "faction": "VeiledCurrent",
+    "description": "Enter the liminal dream-state and retrieve a stolen memory shard",
+    "prerequisites": {"min_level": 1},
+    "stages": [
+      {
+        "title": "Prepare for Dreamwalk",
+        "objectives": {
+          "gather_materials": {"target": 3, "type": "item_collect", "items": ["material_spirit_dust"]}
+        }
+      },
+      {
+        "title": "Enter the Dream",
+        "objectives": {
+          "dream_journey": {"target": 1, "type": "location_visit", "location_id": "dream_sanctum"}
+        }
+      }
+    ],
+    "rewards": {
+      "xp": 300,
+      "currency": 120,
+      "faction_rep": {"VeiledCurrent": 75},
+      "entity_unlock": ["VC-EN1"]
+    }
+  },
+  {
+    "id": "veiled_act1_q2_prophecy",
+    "title": "The Prophecy",
+    "faction": "VeiledCurrent",
+    "prerequisites": {"requires_quests": ["veiled_act1_q1_dreamwalk"]},
+    "description": "Uncover a hidden prophecy that troubles the Veiled Current",
+    "stages": [
+      {
+        "title": "Find the Prophecy",
+        "objectives": {
+          "investigate_sites": {"target": 3, "type": "location_visit"}
+        }
+      },
+      {
+        "title": "Choose Your Truth",
+        "objectives": {
+          "prophecy_choice": {"target": 1, "type": "dialogue_choice", "choice_ids": ["reveal_prophecy", "hide_prophecy", "alter_prophecy"]}
+        },
+        "branches": {
+          "reveal_prophecy": {
+            "rewards": {
+              "xp": 350,
+              "currency": 150,
+              "faction_rep": {"VeiledCurrent": 100},
+              "ability_unlock": "prophecy_sight"
+            }
+          },
+          "hide_prophecy": {
+            "rewards": {
+              "xp": 300,
+              "currency": 100,
+              "faction_rep": {"VeiledCurrent": 50}
+            }
+          },
+          "alter_prophecy": {
+            "rewards": {
+              "xp": 400,
+              "currency": 200,
+              "faction_rep": {"VeiledCurrent": 75, "SovereignCrown": -50}
+            }
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "veiled_act1_q3_ascension",
+    "title": "The Ascension",
+    "faction": "VeiledCurrent",
+    "prerequisites": {"requires_quests": ["veiled_act1_q2_prophecy"]},
+    "description": "Ascend to higher understanding within the Veiled Current",
+    "stages": [
+      {
+        "title": "Complete Rituals",
+        "objectives": {
+          "complete_rituals": {"target": 3, "type": "task"}
+        }
+      },
+      {
+        "title": "Final Trial",
+        "objectives": {
+          "defeat_trial_guardian": {"target": 1, "type": "entity_defeat", "entity_id": "VC-P1"}
+        }
+      },
+      {
+        "title": "Accept Your Path",
+        "objectives": {
+          "final_choice": {"target": 1, "type": "dialogue_choice", "choice_ids": ["accept_veil", "reject_veil", "transcend_veil"]}
+        },
+        "branches": {
+          "accept_veil": {
+            "rewards": {
+              "xp": 500,
+              "currency": 300,
+              "faction_rep": {"VeiledCurrent": 200},
+              "title": "Veiled Voice"
+            }
+          },
+          "reject_veil": {
+            "rewards": {
+              "xp": 400,
+              "currency": 200,
+              "faction_rep": {"VeiledCurrent": -100}
+            }
+          },
+          "transcend_veil": {
+            "rewards": {
+              "xp": 600,
+              "currency": 400,
+              "faction_rep": {"VeiledCurrent": 150},
+              "title": "Surrendered",
+              "ability_unlock": "temporal_loop"
+            }
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "wildlands_act1_q1_awakening",
+    "title": "The Awakening",
+    "faction": "WildlandsAscendant",
+    "description": "Awaken the primal forces within yourself",
+    "prerequisites": {"min_level": 1},
+    "stages": [
+      {
+        "title": "Commune with Nature",
+        "objectives": {
+          "commune": {"target": 1, "type": "location_visit", "location_id": "primal_grove"}
+        }
+      },
+      {
+        "title": "Defeat Primal Creatures",
+        "objectives": {
+          "defeat_creatures": {"target": 5, "type": "entity_defeat"}
+        }
+      }
+    ],
+    "rewards": {
+      "xp": 300,
+      "currency": 120,
+      "faction_rep": {"WildlandsAscendant": 75},
+      "entity_unlock": ["WA-EN1"]
+    }
+  },
+  {
+    "id": "wildlands_act1_q2_evolution",
+    "title": "The Evolution",
+    "faction": "WildlandsAscendant",
+    "prerequisites": {"requires_quests": ["wildlands_act1_q1_awakening"]},
+    "description": "Evolve beyond your current limitations",
+    "stages": [
+      {
+        "title": "Seek Evolutionary Trials",
+        "objectives": {
+          "complete_trials": {"target": 3, "type": "task"}
+        }
+      },
+      {
+        "title": "Choose Your Form",
+        "objectives": {
+          "evolution_choice": {"target": 1, "type": "dialogue_choice", "choice_ids": ["aggressive_evolution", "defensive_evolution", "adaptive_evolution"]}
+        },
+        "branches": {
+          "aggressive_evolution": {
+            "rewards": {
+              "xp": 350,
+              "currency": 150,
+              "faction_rep": {"WildlandsAscendant": 100},
+              "stat_boost": {"strength": 20}
+            }
+          },
+          "defensive_evolution": {
+            "rewards": {
+              "xp": 350,
+              "currency": 150,
+              "faction_rep": {"WildlandsAscendant": 100},
+              "stat_boost": {"defense": 20}
+            }
+          },
+          "adaptive_evolution": {
+            "rewards": {
+              "xp": 400,
+              "currency": 180,
+              "faction_rep": {"WildlandsAscendant": 120},
+              "stat_boost": {"agility": 20}
+            }
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "wildlands_act1_q3_symbiosis",
+    "title": "The Symbiosis",
+    "faction": "WildlandsAscendant",
+    "prerequisites": {"requires_quests": ["wildlands_act1_q2_evolution"]},
+    "description": "Form a perfect symbiosis with a primal companion",
+    "stages": [
+      {
+        "title": "Find Your Companion",
+        "objectives": {
+          "find_companion": {"target": 1, "type": "entity_capture"}
+        }
+      },
+      {
+        "title": "Bond With Companion",
+        "objectives": {
+          "bonding": {"target": 100, "type": "progression", "stat": "companion_affection"}
+        }
+      },
+      {
+        "title": "Ultimate Symbiosis",
+        "objectives": {
+          "symbiosis_choice": {"target": 1, "type": "dialogue_choice", "choice_ids": ["full_symbiosis", "partial_symbiosis", "reject_symbiosis"]}
+        },
+        "branches": {
+          "full_symbiosis": {
+            "rewards": {
+              "xp": 500,
+              "currency": 300,
+              "faction_rep": {"WildlandsAscendant": 200},
+              "title": "Evolved",
+              "stat_boost": {"all": 25}
+            }
+          },
+          "partial_symbiosis": {
+            "rewards": {
+              "xp": 400,
+              "currency": 200,
+              "faction_rep": {"WildlandsAscendant": 100}
+            }
+          },
+          "reject_symbiosis": {
+            "rewards": {
+              "xp": 300,
+              "currency": 150,
+              "faction_rep": {"WildlandsAscendant": 25}
+            }
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "daily_entity_hunt",
+    "title": "Daily Entity Hunt",
+    "faction": "Factionless",
+    "description": "Defeat 5 entities to earn daily rewards",
+    "repeatable": "daily",
+    "stages": [
+      {
+        "title": "Hunt Entities",
+        "objectives": {
+          "defeat_entities": {"target": 5, "type": "entity_defeat"}
+        }
+      }
+    ],
+    "rewards": {
+      "xp": 200,
+      "currency": 100,
+      "materials": {"material_crystal_shard": 5}
+    }
+  },
+  {
+    "id": "daily_quest_gathering",
+    "title": "Daily Gathering",
+    "faction": "Factionless",
+    "description": "Collect crafting materials across the layers",
+    "repeatable": "daily",
+    "stages": [
+      {
+        "title": "Gather Materials",
+        "objectives": {
+          "gather": {"target": 10, "type": "item_collect"}
+        }
+      }
+    ],
+    "rewards": {
+      "xp": 150,
+      "currency": 75,
+      "experience_multiplier": 1.1
+    }
+  },
+  {
+    "id": "weekly_faction_war",
+    "title": "Weekly Faction Challenge",
+    "faction": "Factionless",
+    "description": "Participate in weekly faction battles for massive rewards",
+    "repeatable": "weekly",
+    "stages": [
+      {
+        "title": "Enter Battle",
+        "objectives": {
+          "participate": {"target": 1, "type": "task"}
+        }
+      }
+    ],
+    "rewards": {
+      "xp": 1000,
+      "currency": 500,
+      "faction_rep": {"your_faction": 100}
+    }
+  },
+  {
+    "id": "season_1_main_objective",
+    "title": "Season 1: Rise of the Chosen",
+    "faction": "Factionless",
+    "season": 1,
+    "description": "Complete the Season 1 battle pass main objectives",
+    "stages": [
+      {
+        "title": "First Trial",
+        "objectives": {
+          "reach_level": {"target": 20, "type": "progression"}
+        }
+      },
+      {
+        "title": "Faction Trials",
+        "objectives": {
+          "join_faction": {"target": 1, "type": "task"}
+        }
+      },
+      {
+        "title": "Entity Mastery",
+        "objectives": {
+          "collect_entities": {"target": 50, "type": "progression"}
+        }
+      },
+      {
+        "title": "Season Victory",
+        "objectives": {
+          "win": {"target": 1, "type": "task"}
+        }
+      }
+    ],
+    "rewards": {
+      "xp": 5000,
+      "currency": 2000,
+      "cosmetic": "title_season_1_victor",
+      "battle_pass_tier": 50
+    }
+  }
+]
