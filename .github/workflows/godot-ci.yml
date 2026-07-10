@@ -1,0 +1,78 @@
+# Godot Web export + gdUnit4 tests via godot-ci. Runs on push to any
+# branch that touches the godot/ folder, plus on every PR. The Web
+# export lands in builds/html5/ — the same path the existing nginx
+# `game` service expects, and the same path `godot/AGENTS.md` documents.
+name: godot
+
+on:
+  push:
+    branches: [main]
+    paths: ['godot/**', '.github/workflows/godot-ci.yml']
+  pull_request:
+    paths: ['godot/**', '.github/workflows/godot-ci.yml']
+  workflow_dispatch: {}
+
+env:
+  GODOT_VERSION: 4.3.0
+  # Bumping this rebuilds the export-templates cache.
+  EXPORT_NAME: periliminal-space
+
+jobs:
+  export-web:
+    name: Export Web (HTML5)
+    runs-on: ubuntu-22.04
+    container:
+      # barichello/godot-ci ships the editor + all export templates
+      # pre-installed for the pinned Godot version.
+      image: barichello/godot-ci:4.3
+    steps:
+      - uses: actions/checkout@v4
+        with: { lfs: true }
+
+      - name: Locate export templates
+        # barichello/godot-ci:4.3 ships templates inside the image but the
+        # exact path varies between image revisions. Find where they live
+        # and link them to the container's runtime HOME so the editor
+        # picks them up without a wrong-path `mv` that fails the job.
+        run: |
+          set -e
+          TEMPLATE_SRC="$(find / -maxdepth 6 -type d -name '*.stable' -path '*/export_templates/*' 2>/dev/null | head -n1 || true)"
+          if [ -z "$TEMPLATE_SRC" ]; then
+            echo "No export templates found in image — cannot Web-export." >&2
+            exit 1
+          fi
+          echo "Templates found at: $TEMPLATE_SRC"
+          mkdir -p ~/.local/share/godot/export_templates
+          ln -sfn "$TEMPLATE_SRC" ~/.local/share/godot/export_templates/"$(basename "$TEMPLATE_SRC")"
+
+      - name: Web export
+        # `--import` runs a headless import pass first so shaders/textures
+        # are baked before the export attempts to reference them.
+        run: |
+          mkdir -v -p builds/html5
+          cd godot
+          godot --headless --verbose --import || true
+          godot --headless --verbose --export-release "Web" ../builds/html5/index.html
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.EXPORT_NAME }}-html5
+          path: builds/html5
+          if-no-files-found: error
+
+  test-gdunit4:
+    name: gdUnit4 unit tests
+    runs-on: ubuntu-22.04
+    container:
+      image: barichello/godot-ci:4.3
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run gdUnit4 (skipped if addon not installed yet)
+        run: |
+          if [ -d godot/addons/gdUnit4 ] && [ -d godot/test ]; then
+            cd godot
+            bash addons/gdUnit4/runtest.sh -a test/
+          else
+            echo "gdUnit4 addon or godot/test not present — skipping."
+          fi

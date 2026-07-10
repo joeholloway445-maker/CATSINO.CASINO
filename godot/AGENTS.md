@@ -9,10 +9,22 @@ things in, and the conventions that keep 100+ GDScript files consistent.
 
 ## EXACT operating procedure for any AI agent (follow verbatim)
 
+0. Install the addon stack ONCE per fresh clone:
+   `bash scripts/install_addons.sh` from the repo root (see
+   `docs/ADDONS.md`). Pure-GDScript addons only, so the Web export
+   target keeps working — never add a GDExtension addon without
+   confirming a web binary ships. If the script fails on a specific
+   addon, install the others and note the failure; do not skip this
+   step entirely.
 1. Read this entire file before touching any code.
-2. Open the project from `godot/project.godot` in **Godot 4.3** (no other
-   major version — 4.2 and 4.4+ have different APIs and will produce
-   false errors).
+2. Open the project from `godot/project.godot` in the **newest stable
+   Godot 4.x** available (4.3 or later — 4.7 recommended in mid-2026).
+   If the version is older than 4.3, STOP and tell the user to upgrade:
+   this code uses APIs (typed dictionaries, `class_name` statics,
+   `ProceduralSkyMaterial` fields, `MultiMesh.transform_format`, etc.)
+   that were not stable pre-4.3. Godot 3.x will NOT work at all — the
+   language is different. Never downgrade the project to satisfy a
+   version constraint; upgrade the editor instead.
 3. Collect the CURRENT error list: Editor bottom panel → "Errors" tab
    (or run `godot --headless --editor --quit 2>errors.txt` from the
    `godot/` folder). Do not fix from memory of an old list.
@@ -45,9 +57,10 @@ usually 5–15 root-cause files. Procedure:
 2. After each batch of fixes: Project → Reload Current Project. The count
    should drop by dozens per real fix.
 3. The most likely root-cause classes in this codebase, in order:
-   - **API drift vs Godot 4.3** — this code was written without a compiler
-     available; property/method names were pattern-matched. Typical fixes
-     are one-line renames.
+   - **API drift** — this code was written without a compiler available;
+     property/method names were pattern-matched against Godot 4.3 docs
+     and may need one-line renames on newer 4.x versions. Check the
+     current API in the Godot docs before assuming an error is real.
    - **Typed-dictionary/array inference** — `:=` with a `.get(...)`
      result; fix by adding an explicit type or `str()/int()/float()` cast.
    - **Autoload order** — autoloads must not touch OTHER autoloads in
@@ -61,9 +74,11 @@ usually 5–15 root-cause files. Procedure:
 - **Game**: Periliminal.Space — a six-reality-layer psychology XRMMORPG.
   The casino ("Catsino") is ONE feature inside it (the Hyperliminal),
   not the game. Cat-themed skins are presentation only.
-- **Engine**: Godot **4.3**, renderer **gl_compatibility** (mobile + web
-  friendly). Forward+-only features (SSAO/SSIL/SSR/volumetric fog) must be
-  gated behind `RenderCaps.is_compatibility()` — never used bare.
+- **Engine**: newest stable **Godot 4.x** (4.3 minimum; 4.7 recommended
+  in mid-2026 — always use the newest stable that still parses this
+  project). Renderer **gl_compatibility** (mobile + web friendly).
+  Forward+-only features (SSAO/SSIL/SSR/volumetric fog) must be gated
+  behind `RenderCaps.is_compatibility()` — never used bare.
 - **Companion site**: Next.js app in `apps/catsino-casino` (deployed on
   Vercel). It is the website, NOT the game. The game ships as a Godot Web
   export (preset target `builds/html5` — the one-time export preset must
@@ -120,6 +135,7 @@ intended bypass for gated content.
   hideouts in Supraliminal AND Extraliminal, 220m guild-exclusion radius,
   optional banners, PoGo-style entity defenders (a defending entity is
   REMOVED from the party until recalled — keep that invariant).
+<<<<<<< HEAD
 - **Body memory**: `src/core/proprioception.gd` (autoload) — tracks gait/
   turns/posture from `ThirdPersonController` and holds the game's one
   fully unlabeled secret, the **Recall Walk**: 7 paces backward → 180°
@@ -133,6 +149,22 @@ intended bypass for gated content.
   registers + auto-accepts the discoverer-only `recall_*` quest chain.
   Crouch is a real movement feature (Ctrl/C, or the touch posture
   button) so the final ingredient looks unremarkable.
+=======
+- **Capture-by-defeat**: `src/companion/capture_system.gd` (autoload
+  `CaptureSystem`) — wild entities can ONLY be bonded by defeating them.
+  Called from `layer_world._on_entity_died` with the player's remaining
+  HP ratio. Base chance by category, minus a stage penalty, plus health
+  and Hope-bond bonuses, minus a Periliminal-difficulty penalty. Never
+  auto-unlock an entity anywhere else; if legacy UI wants to, route it
+  through this system. Never add a "catch a wild entity without fighting"
+  path — the whole design invariant is that captures stay rare.
+- **Breeding**: `src/companion/companion_breeding.gd` (autoload
+  `CompanionBreeding`) — pair two UNLOCKED entities, 6h gestation,
+  parents locked out of other pairings while gestating. Offspring
+  always Stage 1, same-category pairs bias to that category,
+  cross-faction pairs sometimes yield Factionless "orphan" lines.
+  Charges pay both the initial cost and hurry-through.
+>>>>>>> origin/main
 - **Psychology**: `src/companion/hope.gd` (autoload; observes everything,
   feeds Supabase `hope_telemetry`), `src/social/word_of_mouth.gd`
   (autoload; per-NPC firsthand memory + hash-seeded gossip spread — word
@@ -241,4 +273,10 @@ persistent world/economy of its own (`arena_modes.gd` header explains).
 - Determinism matters: anything world-placed is seeded
   (`rng.seed = hash("thing_" + id)`) so every visit rebuilds identically.
 - Mobile: gate Forward+ features on `RenderCaps`, read
-  `TouchControls.move_vector/consume_*` statics, never require hover.
+  `TouchControls.move_vector` / `look_delta` (consume once/frame) /
+  `sprint_held` / `consume_jump()` / `consume_interact()` statics, never
+  require hover. Left thumb = joystick, right half of screen = camera
+  drag, right column = JUMP / E / cast slot 1 / SPRINT (hold).
+  MOBILE IS THE FIRST-CLASS TEST TARGET — verify any new HUD/UI element
+  at phone aspect ratios (portrait 9:16 and landscape 16:9) and respect
+  safe-area insets before shipping.
