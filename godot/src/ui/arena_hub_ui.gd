@@ -112,7 +112,8 @@ func _launch(mode_id: String) -> void:
 func _simulate_match(mode_id: String) -> void:
 	var mode := ArenaModes.by_id(mode_id)
 	var stats := CharacterCreatorLogic.build_starting_stats(
-		PlayerProfile.selected_race_id, PlayerProfile.faction, PlayerProfile.selected_frame)
+		PlayerProfile.selected_race_id, PlayerProfile.faction,
+		PlayerProfile.selected_frame, PlayerProfile.selected_mod)
 	var entity_boost := 0
 	for cid in PlayerProfile.active_companion_ids:
 		var e := CompanionRegistry.get_by_id(str(cid))

@@ -49,7 +49,8 @@ func _ready() -> void:
 	# B opens the Blueprint Forge anywhere in the open world.
 	set_process_unhandled_key_input(true)
 	var stats := CharacterCreatorLogic.build_starting_stats(
-		PlayerProfile.selected_race_id, PlayerProfile.faction, PlayerProfile.selected_frame)
+		PlayerProfile.selected_race_id, PlayerProfile.faction,
+		PlayerProfile.selected_frame, PlayerProfile.selected_mod)
 	_attack_damage = 14 + int(stats.pow) / 2 + PlayerProfile.level
 	_build_hud()
 	_wire_presence()
@@ -446,7 +447,7 @@ func _on_cast(sk: Dictionary) -> void:
 			_on_peer_killed(pid, rp)
 	if elem == "matter":
 		# Substance answers you: landing casts skins you in shield.
-		_shield = maxi(_shield, _shield + 8)
+		_shield += 8
 
 ## Physical element effects that act on a target's transform.
 func _apply_element_rider(elem: String, target: Node3D, _dmg: int) -> void:

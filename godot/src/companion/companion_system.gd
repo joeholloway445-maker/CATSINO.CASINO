@@ -149,7 +149,7 @@ func _generate_roster() -> void:
 	roster.clear()
 	_companion_index.clear()
 	var rng := RandomNumberGenerator.new()
-	rng.seed = 0xCATS1N0  # deterministic
+	rng.seed = hash("catsino_roster")  # deterministic — same roster every boot
 
 	# Name fragments for procedural generation
 	var prefixes := ["Shadow", "Storm", "Ember", "Frost", "Neon", "Void", "Solar",

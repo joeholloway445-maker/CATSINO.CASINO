@@ -87,6 +87,14 @@ static func get_race_spd_bonus(faction: String) -> int:
 	var data = get_faction_data(faction)
 	return int(data.get("race_spd_bonus", 0))
 
+## Flat stat adds folded into CharacterCreatorLogic.build_starting_stats.
+## Only SPD carries a flat faction bonus (race_spd_bonus); the other faction
+## perks stay MULTIPLIERS (get_combat_mult / get_slot_mult / synergy) so
+## they never double-dip through the stat block.
+static func get_stat_bonuses(faction: String) -> Dictionary:
+	var spd := get_race_spd_bonus(faction)
+	return {} if spd == 0 else {"spd": spd}
+
 static func _get_companion_faction(companion_id: String) -> String:
 	if companion_id.begins_with("SC"): return "SovereignCrown"
 	if companion_id.begins_with("WA"): return "WildlandsAscendant"

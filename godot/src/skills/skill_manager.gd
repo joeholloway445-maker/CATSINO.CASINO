@@ -49,7 +49,8 @@ func _ready() -> void:
 
 func _recompute_pools() -> void:
 	var stats := CharacterCreatorLogic.build_starting_stats(
-		PlayerProfile.selected_race_id, PlayerProfile.faction, PlayerProfile.selected_frame)
+		PlayerProfile.selected_race_id, PlayerProfile.faction,
+		PlayerProfile.selected_frame, PlayerProfile.selected_mod)
 	flux_max = 100.0 + float(stats.sty) * 2.0 + float(stats.res)
 	flux_regen = 8.0 + float(stats.spd) * 0.25
 	flux = minf(flux, flux_max)

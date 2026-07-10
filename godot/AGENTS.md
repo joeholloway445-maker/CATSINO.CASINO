@@ -101,8 +101,10 @@ usually 5–15 root-cause files. Procedure:
 | **Extraliminal** | Pokémon-GO-style landmark overlay; guild wars | Liminal archway | obvious door back |
 | **Periliminal** | the psychology gauntlet | ONLY the 7–15 min randomized Liminal pull (`LayerManager._pull_threshold`, re-rolled per entry, NO warnings ever) | ONLY the blessing door (`LayerExitDoor.blessing`), which appears after `PeriliminalRuns.blessing_ready()` |
 
-NEVER add: a Periliminal entrance door, a pull countdown/warning, or a
-visual tell on HiddenDoor. These are core design invariants.
+NEVER add: a Periliminal entrance door, a pull countdown/warning, a
+visual tell on HiddenDoor, or ANY label/hint/tutorial/achievement text
+that reveals the Recall Walk (see Body memory below). These are core
+design invariants.
 
 Cities (ids unchanged): New Dallas (`dallas`), Hell's Half Acre
 (`fort_worth`), Sky Fjord (`denton`), Soulless Sanctuary (`arlington` —
@@ -133,6 +135,19 @@ intended bypass for gated content.
   hideouts in Supraliminal AND Extraliminal, 220m guild-exclusion radius,
   optional banners, PoGo-style entity defenders (a defending entity is
   REMOVED from the party until recalled — keep that invariant).
+- **Body memory**: `src/core/proprioception.gd` (autoload) — tracks gait/
+  turns/posture from `ThirdPersonController` and holds the game's one
+  fully unlabeled secret, the **Recall Walk**: 7 paces backward → 180°
+  left → 3 paces backward → 180° right → crouch (holdable indefinitely;
+  every other stage times out) → rise ⇒ instant return to the player's
+  own Subliminal from ANY layer, Periliminal included
+  (`PeriliminalRuns.recall_escape()` — run ends unbanked AND unwiped).
+  First-ever performance queues a durable report to
+  `/api/secret/discovery` (Supabase `secret_discoveries` + optional
+  `DISCORD_SECRET_WEBHOOK_URL` owner ping, server-side env only) and
+  registers + auto-accepts the discoverer-only `recall_*` quest chain.
+  Crouch is a real movement feature (Ctrl/C, or the touch posture
+  button) so the final ingredient looks unremarkable.
 - **Capture-by-defeat**: `src/companion/capture_system.gd` (autoload
   `CaptureSystem`) — wild entities can ONLY be bonded by defeating them.
   Called from `layer_world._on_entity_died` with the player's remaining

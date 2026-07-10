@@ -93,6 +93,14 @@ func exit_alive() -> void:
 	active = false
 	LayerManager.transition_to("liminal", true)
 
+## Slipping out the unwitnessed way (Proprioception's recall): the run just
+## ends. No blessing, no banked fragments — escape pays nothing — but no
+## wipe either. The blessing door stays the only exit that REWARDS.
+func recall_escape() -> void:
+	if not active:
+		return
+	active = false
+
 ## ANY party member dying wipes the whole party: entities, inventory, and
 ## every balance except prestige.
 func member_died(player_id: String) -> void:
