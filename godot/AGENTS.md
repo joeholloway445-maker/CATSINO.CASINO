@@ -9,6 +9,13 @@ things in, and the conventions that keep 100+ GDScript files consistent.
 
 ## EXACT operating procedure for any AI agent (follow verbatim)
 
+0. Install the addon stack ONCE per fresh clone:
+   `bash scripts/install_addons.sh` from the repo root (see
+   `docs/ADDONS.md`). Pure-GDScript addons only, so the Web export
+   target keeps working — never add a GDExtension addon without
+   confirming a web binary ships. If the script fails on a specific
+   addon, install the others and note the failure; do not skip this
+   step entirely.
 1. Read this entire file before touching any code.
 2. Open the project from `godot/project.godot` in the **newest stable
    Godot 4.x** available (4.3 or later — 4.7 recommended in mid-2026).
