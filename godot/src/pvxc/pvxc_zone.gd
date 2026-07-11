@@ -20,6 +20,7 @@ var _player: ThirdPersonController
 var _hud_mult: Label
 var _hud_loot: Label
 var _hud_hp: Label
+var _hud_phase: Label
 var _core_light: OmniLight3D
 var _creatures: Array[PvxcCreature] = []
 var _player_hp := PLAYER_MAX_HP
@@ -27,6 +28,9 @@ var _shield := 0
 var _attack_cd := 0.0
 var _attack_damage := 20
 var _attack_damage_base := 20
+var _peers: Dictionary = {} # peer_id -> RemotePlayer
+var _peer_hp: Dictionary = {}
+var _presence_wired := false
 
 func _ready() -> void:
 	if not PvxcManager.in_run:
@@ -37,6 +41,9 @@ func _ready() -> void:
 	_player = ThirdPersonController.new()
 	add_child(_player)
 	_player.global_position = Vector3(RIM - 10.0, 3.0, 0)
+	# Match the live global phase on entry (cats in PvE, identity in PvP).
+	_apply_phase(PvxcManager.combat_phase, false)
+	PvxcManager.phase_changed.connect(_on_phase_changed)
 	# Player attack power scales with build + entities.
 	var stats := CharacterCreatorLogic.build_starting_stats(
 		PlayerProfile.selected_race_id, PlayerProfile.faction, PlayerProfile.selected_frame)
@@ -56,6 +63,99 @@ func _ready() -> void:
 	hotbar.cast_requested.connect(_on_cast)
 	add_child(hotbar)
 	_build_hud()
+	_set_creatures_active(not PvxcManager.is_pvp_phase())
+	if PvxcManager.is_pvp_phase():
+		_ensure_presence()
+
+func _on_phase_changed(phase: String) -> void:
+	_apply_phase(phase, true)
+
+func _apply_phase(phase: String, announce_fx: bool) -> void:
+	var pvp := phase == "pvp"
+	if is_instance_valid(_player):
+		_player.set_visual_mode("identity" if pvp else "cat")
+	_set_creatures_active(not pvp)
+	for pid in _peers.keys():
+		var rp: RemotePlayer = _peers[pid]
+		if is_instance_valid(rp):
+			rp.set_visual_mode("identity" if pvp else "cat")
+	if pvp:
+		_ensure_presence()
+	if announce_fx and is_instance_valid(_player):
+		SkillVFX.aoe_ring(self, _player.global_position, 3.5,
+			Color(1.0, 0.2, 0.25) if pvp else Color(1.0, 0.7, 0.3))
+
+func _set_creatures_active(active: bool) -> void:
+	for c in _creatures:
+		if not is_instance_valid(c):
+			continue
+		c.visible = active
+		c.set_process(active)
+		c.set_physics_process(active)
+		# Park wildlife during PvP so the floor is for fighters.
+		if not active:
+			c.global_position.y = -20.0
+		elif c.global_position.y < -5.0:
+			c.global_position.y = 0.0
+
+func _ensure_presence() -> void:
+	if _presence_wired:
+		return
+	_presence_wired = true
+	PresenceManager.peer_joined.connect(_on_peer_joined)
+	PresenceManager.peer_updated.connect(_on_peer_updated)
+	PresenceManager.peer_left.connect(_on_peer_left)
+	PresenceManager.bot_wants_cast.connect(_on_bot_cast)
+	PresenceManager.join_layer("pvxc")
+
+func _on_peer_joined(pid: String, prof: Dictionary) -> void:
+	if _peers.has(pid):
+		return
+	var rp := RemotePlayer.new()
+	rp.setup(pid, prof, "identity" if PvxcManager.is_pvp_phase() else "cat")
+	# Scatter peers inside the rim, away from the extraction lip.
+	var a := hash(pid) % 360 * TAU / 360.0
+	var r := 40.0 + (hash(pid + "r") % 50)
+	rp.global_position = Vector3(cos(a) * r, 0.1, sin(a) * r)
+	add_child(rp)
+	_peers[pid] = rp
+	_peer_hp[pid] = 80 + randi() % 60
+
+func _on_peer_updated(pid: String, pos: Vector3) -> void:
+	if not _peers.has(pid):
+		_on_peer_joined(pid, PresenceManager.peer_profile(pid))
+	if _peers.has(pid) and is_instance_valid(_peers[pid]):
+		# Flat crater — no terrain heightmap.
+		var flat := pos
+		flat.y = 0.1
+		_peers[pid].move_to(flat, null)
+
+func _on_peer_left(pid: String) -> void:
+	if _peers.has(pid):
+		_peers[pid].queue_free()
+		_peers.erase(pid)
+	_peer_hp.erase(pid)
+
+func _on_bot_cast(pid: String, skill: Dictionary) -> void:
+	if not PvxcManager.is_pvp_phase():
+		return
+	if not _peers.has(pid) or not is_instance_valid(_peers[pid]):
+		return
+	var rp: RemotePlayer = _peers[pid]
+	SkillVFX.cast_flash(self, rp.global_position)
+	if rp.global_position.distance_to(_player.global_position) > 5.0:
+		return
+	var hit := 4 + randi() % 8
+	if _shield > 0:
+		var ab := mini(_shield, hit)
+		_shield -= ab
+		hit -= ab
+	_player_hp -= hit
+	SkillVFX.hit_spark(self, _player.global_position)
+	PresenceManager.report_bot_hit_landed(pid)
+	if _player_hp <= 0:
+		_on_player_bitten_fatal(pid.trim_prefix("ghost_").replace("_", " "))
+
 
 func _build_arena() -> void:
 	# Environment: windowless casino-basement dark, red bleed from the core.
@@ -267,10 +367,13 @@ func _on_cast(sk: Dictionary) -> void:
 			if kind == "chance":
 				dmg = int(dmg * (2.0 if randf() < 0.35 else 0.6)) # gambler's spread
 			var hit := 0
-			for c in _targets_for(shape, radius):
-				c.take_hit(dmg)
-				SkillVFX.hit_spark(self, c.global_position)
-				hit += 1
+			if PvxcManager.is_pvp_phase():
+				hit = _hit_peers(shape, radius, dmg)
+			else:
+				for c in _targets_for(shape, radius):
+					c.take_hit(dmg)
+					SkillVFX.hit_spark(self, c.global_position)
+					hit += 1
 			if hit > 0:
 				SkillManager.gain_ultimate(6.0 * hit)
 			else:
@@ -317,7 +420,7 @@ func _targets_for(shape: String, radius: float) -> Array[PvxcCreature]:
 	var origin := _player.global_position
 	var fwd := -_player.global_transform.basis.z
 	for c in _creatures:
-		if not is_instance_valid(c):
+		if not is_instance_valid(c) or not c.visible:
 			continue
 		var d := c.dist_to(origin)
 		match shape:
@@ -334,7 +437,41 @@ func _targets_for(shape: String, radius: float) -> Array[PvxcCreature]:
 					out.append(c)
 	return out
 
+func _hit_peers(shape: String, radius: float, dmg: int) -> int:
+	var hit := 0
+	var origin := _player.global_position
+	var fwd := -_player.global_transform.basis.z
+	for pid in _peers.keys():
+		var rp: RemotePlayer = _peers[pid]
+		if not is_instance_valid(rp):
+			continue
+		var d: float = rp.global_position.distance_to(origin)
+		var lands := false
+		match shape:
+			"single":
+				lands = d < radius
+			"aoe", "self":
+				lands = d < radius
+			"line":
+				var rel := rp.global_position - origin
+				lands = d < radius and rel.normalized().dot(fwd) > 0.6
+			_:
+				lands = d < radius
+		if not lands:
+			continue
+		_peer_hp[pid] = int(_peer_hp.get(pid, 100)) - dmg
+		SkillVFX.hit_spark(self, rp.global_position)
+		hit += 1
+		if int(_peer_hp[pid]) <= 0:
+			PvxcManager.record_kill(pid, 40 + randi() % 80, rp.global_position)
+			rp.queue_free()
+			_peers.erase(pid)
+			_peer_hp.erase(pid)
+	return hit
+
 func _on_player_bitten(damage: int) -> void:
+	if PvxcManager.is_pvp_phase():
+		return # wildlife sleeps during PvP
 	SkillManager.gain_ultimate(3.0) # taking hits charges the ultimate too
 	if _shield > 0:
 		var absorbed := mini(_shield, damage)
@@ -346,14 +483,17 @@ func _on_player_bitten(damage: int) -> void:
 		var killer := "the PVXC"
 		var best := 999999.0
 		for c in _creatures:
-			if is_instance_valid(c):
+			if is_instance_valid(c) and c.visible:
 				var d: float = c.dist_to(_player.global_position)
 				if d < best:
 					best = d
 					killer = str(c.entity.get("name", killer))
-		PvxcManager.record_death(killer)
-		MusicManager.exit_racing()
-		get_tree().change_scene_to_file("res://scenes/pvxc/pvxc_gate.tscn")
+		_on_player_bitten_fatal(killer)
+
+func _on_player_bitten_fatal(killer: String) -> void:
+	PvxcManager.record_death(killer)
+	MusicManager.exit_racing()
+	get_tree().change_scene_to_file("res://scenes/pvxc/pvxc_gate.tscn")
 
 ## ── Faction skill structures ────────────────────────────────────────────────
 const CROWN_BUFF := 1.5 # Mandate of Stone: Crown structures last longer, hit harder
@@ -478,15 +618,19 @@ func _build_hud() -> void:
 	_hud_mult.position = Vector2(10, 10)
 	_hud_mult.add_theme_font_size_override("font_size", 20)
 	layer.add_child(_hud_mult)
+	_hud_phase = Label.new()
+	_hud_phase.position = Vector2(10, 36)
+	_hud_phase.add_theme_font_size_override("font_size", 16)
+	layer.add_child(_hud_phase)
 	_hud_loot = Label.new()
-	_hud_loot.position = Vector2(10, 40)
+	_hud_loot.position = Vector2(10, 60)
 	layer.add_child(_hud_loot)
 	_hud_hp = Label.new()
-	_hud_hp.position = Vector2(10, 88)
+	_hud_hp.position = Vector2(10, 108)
 	_hud_hp.add_theme_font_size_override("font_size", 18)
 	layer.add_child(_hud_hp)
 	var target := Label.new()
-	target.position = Vector2(10, 64)
+	target.position = Vector2(10, 84)
 	target.modulate = Color(1, 0.4, 0.4)
 	var t := PvxcManager.my_target()
 	target.text = "⚔️ Revenge target inside: %s" % t if t != "" else ""
@@ -495,10 +639,21 @@ func _build_hud() -> void:
 func _process(_delta: float) -> void:
 	if _player == null or not is_instance_valid(_player):
 		return
+	if _presence_wired:
+		PresenceManager.report_position(_player.global_position)
 	var m := PvxcManager.mult_at(_player.global_position)
 	var red := PvxcManager.in_red_core(_player.global_position)
 	_hud_mult.text = "🔴 RED CORE — x12" if red else "PVXC — x%d" % int(m)
 	_hud_mult.modulate = Color(1, 0.15, 0.2) if red else Color(1, 0.8, 0.3)
+	var secs := int(PvxcManager.phase_seconds_left())
+	var mm := secs / 60
+	var ss := secs % 60
+	if PvxcManager.is_pvp_phase():
+		_hud_phase.text = "⚔️ PvP layer — fight as yourself  ·  %d:%02d until cats" % [mm, ss]
+		_hud_phase.modulate = Color(1.0, 0.35, 0.4)
+	else:
+		_hud_phase.text = "🐱 PvE layer — house cats vs wildlife  ·  %d:%02d until PvP" % [mm, ss]
+		_hud_phase.modulate = Color(1.0, 0.85, 0.45)
 	_hud_loot.text = "Carried loot: %d  (die and it's the house's)" % PvxcManager.carried_loot
 	if is_instance_valid(_core_light):
 		_core_light.light_energy = 3.0 + sin(Time.get_ticks_msec() / 300.0) * 1.2

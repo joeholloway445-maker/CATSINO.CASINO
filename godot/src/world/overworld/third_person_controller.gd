@@ -26,30 +26,88 @@ var _last_chunk := Vector2i(2147483647, 2147483647)
 var _spring: SpringArm3D
 var _camera: Camera3D
 var _body_mesh: MeshInstance3D
+## "cat" = casino house skin (PvE). "identity" = race/frame/mod rig (PvP).
+var visual_mode := "cat"
+var _visual_root: Node3D
+var _collision: CollisionShape3D
 
 func _ready() -> void:
+	_ensure_collision()
 	_build_body()
 	_build_camera()
 
-func _build_body() -> void:
-	var real := AssetLibrary.instance("player_cat")
-	if real != null:
-		add_child(real)
-		var cshape := CollisionShape3D.new()
-		var ccap := CapsuleShape3D.new()
-		ccap.radius = 0.4
-		ccap.height = 1.2
-		cshape.shape = ccap
-		cshape.position.y = 0.6
-		add_child(cshape)
+## Swap between house-cat presentation and the player's true identity form.
+## Used by the PVXC 15-minute PvE ↔ PvP rotation.
+func set_visual_mode(mode: String) -> void:
+	if mode != "cat" and mode != "identity":
+		mode = "cat"
+	if mode == visual_mode and _visual_root != null and is_instance_valid(_visual_root):
 		return
-	var shape := CollisionShape3D.new()
+	visual_mode = mode
+	_clear_visual()
+	_ensure_collision()
+	_build_body()
+
+func _clear_visual() -> void:
+	if _visual_root != null and is_instance_valid(_visual_root):
+		_visual_root.queue_free()
+	_visual_root = null
+	_body_mesh = null
+	# Drop leftover ear/mesh children from older builds (keep camera + collider).
+	for c in get_children():
+		if c == _spring or c == _collision:
+			continue
+		if c is SpringArm3D or c is CollisionShape3D:
+			continue
+		c.queue_free()
+
+func _ensure_collision() -> void:
+	if _collision != null and is_instance_valid(_collision):
+		return
+	_collision = CollisionShape3D.new()
 	var capsule := CapsuleShape3D.new()
 	capsule.radius = 0.4
 	capsule.height = 1.2
-	shape.shape = capsule
-	shape.position.y = 0.6
-	add_child(shape)
+	_collision.shape = capsule
+	_collision.position.y = 0.6
+	add_child(_collision)
+
+func _build_body() -> void:
+	if visual_mode == "identity":
+		_build_identity_body()
+		return
+	_build_cat_body()
+
+func _build_identity_body() -> void:
+	var rig := CharacterRig.new()
+	var loadout := CharacterCreatorLogic.build_loadout(
+		PlayerProfile.selected_race_id,
+		PlayerProfile.selected_frame,
+		PlayerProfile.selected_mod)
+	rig.build_from_loadout(loadout.race, loadout.frame, loadout.mod)
+	_visual_root = rig
+	add_child(rig)
+	# Identity rig is taller — stretch the collider so PvP hits feel fair.
+	if _collision != null and _collision.shape is CapsuleShape3D:
+		var cap := _collision.shape as CapsuleShape3D
+		cap.height = 1.6
+		cap.radius = 0.35
+		_collision.position.y = 0.9
+
+func _build_cat_body() -> void:
+	if _collision != null and _collision.shape is CapsuleShape3D:
+		var cap := _collision.shape as CapsuleShape3D
+		cap.height = 1.2
+		cap.radius = 0.4
+		_collision.position.y = 0.6
+	var real := AssetLibrary.instance("player_cat")
+	if real != null:
+		_visual_root = real as Node3D
+		if _visual_root == null:
+			_visual_root = Node3D.new()
+			_visual_root.add_child(real)
+		add_child(_visual_root)
+		return
 
 	_body_mesh = MeshInstance3D.new()
 	var mesh := CapsuleMesh.new()
@@ -61,8 +119,8 @@ func _build_body() -> void:
 	mat.albedo_color = Color(0.95, 0.6, 0.25) # tabby orange
 	mat.roughness = 0.8
 	_body_mesh.material_override = mat
-	add_child(_body_mesh)
-
+	_visual_root = Node3D.new()
+	_visual_root.add_child(_body_mesh)
 	# Ears — two small cones so the capsule reads as a cat from a distance.
 	for side in [-1.0, 1.0]:
 		var ear := MeshInstance3D.new()
@@ -73,7 +131,8 @@ func _build_body() -> void:
 		ear.mesh = cone
 		ear.material_override = mat
 		ear.position = Vector3(0.18 * side, 1.3, 0.0)
-		add_child(ear)
+		_visual_root.add_child(ear)
+	add_child(_visual_root)
 
 func _build_camera() -> void:
 	_spring = SpringArm3D.new()

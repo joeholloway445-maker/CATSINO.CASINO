@@ -1,3 +1,4 @@
+class_name CharacterRig
 extends Node3D
 ## Procedural PBR humanoid rig — Godot-native counterpart to buildFigure()
 ## in CharacterPreview3DCanvas.tsx. Builds primitive body parts sized by

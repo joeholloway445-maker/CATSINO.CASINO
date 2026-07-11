@@ -15,6 +15,10 @@ extends Node
 ##  MULTIPLIERS: all reward rates x6 inside the zone; x12 in the permanent
 ##  RED CORE at the center, where the risk never turns off.
 ##
+##  LAYER ROTATION (15 min): PvE = house-cat skins vs wildlife; PvP =
+##  race/frame/mod identity forms so fighters meet as themselves. Global
+##  clock via combat_phase / phase_changed.
+##
 ##  Later: a "light" spectator/gamble-on-it version outside the zone
 ##  (possible web-app spinoff) — bet on runs without entering. Hooks:
 ##  run_started/run_ended/kill_recorded are the events that version needs.
@@ -22,12 +26,17 @@ extends Node
 signal run_started(stake: int)
 signal run_ended(extracted: bool, loot: int)
 signal kill_recorded(killer: String, victim: String, revenge: bool)
+## Global combat layer for everyone in the pit. PvE = house-cat skins vs
+## wildlife; PvP = race/frame/mod identity forms, player-vs-player.
+signal phase_changed(phase: String)
 
 const ZONE_MULT := 6.0        # reward multiplier anywhere in the PVXC
 const RED_CORE_MULT := 12.0   # the permanently red center
 const HOUSE_DEATH_CUT := 0.4  # house's share of a victim's carried loot
 const EXTRACT_FEE := 0.10     # house fee on successful extraction
 const MIN_STAKE := 100        # chips
+## Server-wide PvE ↔ PvP rotation (seconds). Same clock for every run.
+const PHASE_DURATION := 900.0
 
 ## Radii in world units (the zone scene mirrors these).
 const ZONE_RADIUS := 120.0
@@ -40,6 +49,9 @@ var carried_loot := 0
 var revenge_ledger: Dictionary = {}
 ## Lifetime house recovery (chips) — the casino's ledger.
 var house_take := 0
+## "pve" (cats vs wildlife) or "pvp" (identity forms, fight each other).
+var combat_phase := "pve"
+var _phase_elapsed := 0.0
 
 ## Multiplier at a world position inside the zone scene (center = origin).
 func mult_at(pos: Vector3) -> float:
@@ -127,8 +139,33 @@ func extract() -> void:
 func my_target() -> String:
 	return revenge_ledger.get("local_player", "")
 
+func is_pvp_phase() -> bool:
+	return combat_phase == "pvp"
+
+func phase_seconds_left() -> float:
+	return maxf(PHASE_DURATION - _phase_elapsed, 0.0)
+
+func phase_label() -> String:
+	if combat_phase == "pvp":
+		return "PvP — fight as yourself"
+	return "PvE — house cats vs the pit"
+
 ## PVXC time is provisional-PvP time: every second in a run feeds the
-## Champion trial clock (CrownManager wants hours).
+## Champion trial clock (CrownManager wants hours). The 15-minute layer
+## flip runs whenever anyone is inside so the floor stays synchronized.
 func _process(delta: float) -> void:
+	_advance_phase(delta)
 	if in_run:
 		CrownManager.log_provisional_pvp("local_player", delta / 3600.0)
+
+func _advance_phase(delta: float) -> void:
+	_phase_elapsed += delta
+	if _phase_elapsed < PHASE_DURATION:
+		return
+	_phase_elapsed = 0.0
+	combat_phase = "pvp" if combat_phase == "pve" else "pve"
+	phase_changed.emit(combat_phase)
+	if combat_phase == "pvp":
+		NotificationUI.notify_info("🔴 PVXC flips — PvP. Shed the house cat. Fight as yourself.")
+	else:
+		NotificationUI.notify_info("🐱 PVXC flips — PvE. House skins on. The wildlife hunts again.")
