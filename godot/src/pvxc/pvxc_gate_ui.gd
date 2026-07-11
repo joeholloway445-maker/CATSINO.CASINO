@@ -22,12 +22,21 @@ func _ready() -> void:
 	rules.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	rules.text = ("Survival pit under the casino floor. Everything inside pays 6x. " +
 		"The red core at the center pays 12x and is never, ever safe. " +
+		"Every 15 minutes the floor flips: PvE you're house cats hunting wildlife; " +
+		"PvP you shed the cat skin and fight as your race/frame/mod — yourselves. " +
 		"Your stake is the house's the moment you walk in. Die and everything you " +
 		"carry is seized — the house takes its cut, your killer takes the rest, " +
 		"and the PVXC remembers who did it to you. Kill your killer for a double share. " +
 		"Extraction gates are on the rim; the house keeps 10%% of whatever walks out.")
 	rules.modulate = Color(0.85, 0.75, 0.75)
 	root.add_child(rules)
+
+	var phase := Label.new()
+	var secs := int(PvxcManager.phase_seconds_left())
+	phase.text = "Now: %s  ·  flips in %d:%02d" % [
+		PvxcManager.phase_label(), secs / 60, secs % 60]
+	phase.modulate = Color(1.0, 0.45, 0.4) if PvxcManager.is_pvp_phase() else Color(1.0, 0.85, 0.5)
+	root.add_child(phase)
 
 	root.add_child(HSeparator.new())
 

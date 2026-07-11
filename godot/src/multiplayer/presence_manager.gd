@@ -195,6 +195,9 @@ func _spawn_ghosts(layer_id: String) -> void:
 			"faction": CompanionRegistry.normalize_faction(str(e.get("faction", ""))),
 			"alignment": ["radiant", "neutral", "umbral", "feral"][randi() % 4],
 			"stats": {"pow": e.get("pow", 40), "spd": e.get("spd", 40)},
+			"race_id": PlayerProfile.selected_race_id if randf() < 0.35 else "tabby",
+			"frame_id": ["veil", "bastion", "zephyr", "viper"][randi() % 4],
+			"mod_id": "",
 		}
 		var tier := _roll_tier()
 		var aggression := 0.5
