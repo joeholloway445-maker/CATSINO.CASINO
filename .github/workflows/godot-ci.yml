@@ -38,18 +38,40 @@ jobs:
           ln -sfn "$TEMPLATE_SRC" ~/.local/share/godot/export_templates/"$(basename "$TEMPLATE_SRC")"
 
       - name: Web export
+        # `--import` bakes shaders/textures first. Godot 4.3 headless often
+        # SIGSEGV/SIGILL on shutdown AFTER a successful pack (exit 132/139).
+        # Treat builds/html5/index.html as the source of truth.
         run: |
+          set -e
           mkdir -v -p builds/html5
           cd godot
           godot --headless --verbose --import || true
+          set +e
           godot --headless --verbose --export-release "Web" ../builds/html5/index.html
+          EXPORT_EXIT=$?
+          set -e
+          if [ -f ../builds/html5/index.html ]; then
+            echo "Web export OK (artifacts present; godot exit=${EXPORT_EXIT})"
+            ls -lah ../builds/html5 | head -30
+            exit 0
+          fi
+          # Preset path fallback if CLI path was ignored
+          if [ -f build/web/index.html ]; then
+            echo "Found preset path build/web — copying to builds/html5"
+            mkdir -p ../builds/html5
+            cp -a build/web/. ../builds/html5/
+            ls -lah ../builds/html5 | head -30
+            exit 0
+          fi
+          echo "Web export failed — no index.html (godot exit=${EXPORT_EXIT})" >&2
+          exit 1
 
       - name: Upload build artifact
         uses: actions/upload-artifact@v4
         with:
           name: ${{ env.EXPORT_NAME }}-html5
           path: builds/html5
-          if-no-files-found: warn
+          if-no-files-found: error
 
   test-gdunit4:
     name: gdUnit4 unit tests

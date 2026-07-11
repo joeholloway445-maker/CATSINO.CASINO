@@ -72,6 +72,11 @@ hideout dump.
 (via `barichello/godot-ci`) exports Web → `builds/html5/` and runs
 gdUnit4 when `godot/addons/gdUnit4` + `godot/test/` exist.
 
+Godot 4.3 headless often crashes on shutdown after a successful pack
+(exit 132/139). The workflow treats `builds/html5/index.html` as success.
+The Web export preset excludes `gdUnit4`, `panku_console`, and addon
+`examples/` / `test/` / `docs/` so editor-only tooling is not shipped.
+
 ## Licenses
 
 Stack addons are MIT / CC0 / MPL-2.0 — keep each addon's `LICENSE` file
