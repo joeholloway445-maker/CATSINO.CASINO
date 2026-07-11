@@ -59,6 +59,7 @@ create_structure() {
     "scenes/character"
     "addons"
     "shaders"
+    "test"
   )
 
   for d in "${dirs[@]}"; do
@@ -87,7 +88,7 @@ create_structure() {
     "scenes/world/districts" "scenes/games/slots" "scenes/games/racing"
     "scenes/games/sports" "scenes/games/cards" "scenes/games/puzzle"
     "scenes/games/arcade" "scenes/ui/hud" "scenes/ui/menus"
-    "scenes/character" "shaders"
+    "scenes/character" "shaders" "test"
   )
   for d in "${keep_dirs[@]}"; do
     touch "$GODOT_DIR/$d/.gitkeep"
@@ -95,74 +96,13 @@ create_structure() {
   success "Directory structure complete"
 }
 
-# ── Git Submodules ─────────────────────────────────────────────────────────────
-add_submodule() {
-  local url="$1" path="$2" name="$3"
-  if [[ -d "$GODOT_DIR/addons/$path/.git" ]] || git -C "$REPO_ROOT" submodule status "godot/addons/$path" &>/dev/null 2>&1; then
-    warn "Submodule already exists: $name"
-    return 0
-  fi
-  info "Adding submodule: $name"
-  git -C "$REPO_ROOT" submodule add --force "$url" "godot/addons/$path" 2>&1 | tail -1 || {
-    warn "git submodule add failed for $name — trying plain clone"
-    git clone --depth 1 "$url" "$GODOT_DIR/addons/$path"
-  }
-  success "Added: $name -> godot/addons/$path"
-}
-
+# ── Curated Godot addons (web-safe GDScript only) ─────────────────────────────
 clone_addons() {
-  header "Cloning External Addons"
-
-  # Ensure we're in a git repo
-  if [[ ! -d "$REPO_ROOT/.git" ]]; then
-    warn "Not a git repo — initializing"
-    git -C "$REPO_ROOT" init
-    git -C "$REPO_ROOT" commit --allow-empty -m "chore: init repo"
-  fi
-
-  # Heroic Labs — Nakama server (Go backend, for reference)
-  add_submodule \
-    "https://github.com/heroiclabs/nakama" \
-    "nakama-server" \
-    "Nakama Server"
-
-  # Heroic Labs — Godot 4 client
-  add_submodule \
-    "https://github.com/heroiclabs/nakama-godot-4" \
-    "nakama-godot-4" \
-    "Nakama Godot 4 Client"
-
-  # Slot Machine prototype
-  add_submodule \
-    "https://github.com/CadanoX/Godot-Slot-Machine" \
-    "godot-slot-machine" \
-    "Godot Slot Machine"
-
-  # Talo analytics / backend
-  add_submodule \
-    "https://github.com/TaloDev/backend" \
-    "talo-backend" \
-    "Talo Backend"
-
-  # LiveKit (WebRTC)
-  add_submodule \
-    "https://github.com/livekit/livekit" \
-    "livekit" \
-    "LiveKit"
-
-  # PostHog analytics
-  add_submodule \
-    "https://github.com/PostHog/posthog" \
-    "posthog" \
-    "PostHog"
-
-  # Dialogue manager
-  add_submodule \
-    "https://github.com/nathanhoad/godot_dialogue_manager" \
-    "dialogue-manager" \
-    "Godot Dialogue Manager"
-
-  success "All addons processed"
+  header "Installing curated Godot addons (web-safe)"
+  info "Pins and enable steps: docs/ADDONS.md"
+  info "Shopping list: docs/ASSET_SHOPPING_LIST.md"
+  bash "$SCRIPT_DIR/install_addons.sh"
+  success "Addon install finished (Nakama stub left untouched)"
 }
 
 # ── Docker Compose (Nakama) ────────────────────────────────────────────────────
@@ -244,9 +184,9 @@ main() {
   echo -e "\n${GREEN}${BOLD}✓ CATSINO.CASINO scaffold ready!${NC}"
   echo -e "  Godot project: ${CYAN}$GODOT_DIR${NC}"
   echo -e "  Next steps:"
-  echo -e "    1. Open $GODOT_DIR in Godot 4.x"
-  echo -e "    2. cd docker/nakama && docker compose up -d"
-  echo -e "    3. Enable addons in Project > Project Settings > Plugins"
+  echo -e "    1. Open $GODOT_DIR in Godot 4.3+"
+  echo -e "    2. Enable addons in Project > Project Settings > Plugins (see docs/ADDONS.md)"
+  echo -e "    3. cd docker/nakama && docker compose up -d"
 }
 
 main
