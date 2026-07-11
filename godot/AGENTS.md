@@ -230,7 +230,11 @@ persistent world/economy of its own (`arena_modes.gd` header explains).
    playable end-to-end before starting the next.
 7. **Content**: dialogue JSON, dex descriptions, blueprint presets,
    audio packs (Suno-generated songs slot in via AssetLibrary sound
-   slots), city texture/light/sound packs per race.
+   slots), city texture/light/sound packs per race. External
+   writer-friendly dialogue (Dialogue Manager) and other community
+   addons: see `docs/ADDONS.md` / `docs/ASSET_SHOPPING_LIST.md` —
+   install with `bash scripts/install_addons.sh`; enable plugins only
+   after a zero-error smoke open. Prefer pure-GDScript (web export).
 8. **Real multiplayer**: wire NetworkManager/Nakama beyond presence bots.
 
 ## Conventions

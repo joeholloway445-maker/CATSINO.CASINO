@@ -28,6 +28,10 @@ song playing. Every feature is reachable from the main menu.
 
 ## 3. AAA graphics — the asset drop (no code changes needed)
 
+Full shopping list (addons, shaders, audio, web-vs-native rules):
+`docs/ASSET_SHOPPING_LIST.md`. Install web-safe Godot addons with
+`bash scripts/install_addons.sh` (see `docs/ADDONS.md`).
+
 The engine-side pipeline is done: `AssetLibrary` checks
 `assets/models/<slot>.glb` for every visual slot and upgrades the whole
 game automatically, keeping the identity-lens shading. The environment
