@@ -7,8 +7,13 @@ class_name AssetLibrary
 ## file names each slot expects.
 ##
 ## Slot -> expected file (first that exists wins):
-##   player_cat        assets/models/player_cat.glb
-##   npc_cat           assets/models/npc_cat.glb
+##   metahuman_player   MetaHuman GLB export (identity — preferred)
+##   metahuman_npc      MetaHuman GLB for NPCs / peers
+##   metahuman_<race>   optional per-race MetaHuman variant
+##   player_human       interim humanoid (TPS demo) until MetaHuman lands
+##   npc_human          interim NPC humanoid
+##   player_cat         optional Catsino house skin
+##   npc_cat            optional Catsino NPC skin
 ##   creature          assets/models/creature.glb
 ##   tree              assets/models/tree.glb
 ##   crystal           assets/models/crystal.glb
@@ -29,17 +34,7 @@ class_name AssetLibrary
 ##   neon_sign         a signage board (its emissive is driven by us)
 ##   city_prop         benches/planters/hydrants/bins
 ##
-## Texture slots (for interchangeable PBR on procedural hard mesh — used by
-## `material()` below, alongside the per-race IdentityLens tint):
-##   assets/textures/<slot>_albedo.png / _normal.png / _rough.png
-##   e.g. facade_glass, facade_concrete, asphalt, sidewalk, neon
-##
-## Sound slots (dependency-injected ambience/one-shots; synth fallback if
-## absent) via `sound()`:
-##   assets/audio/<slot>.ogg / .wav / .mp3
-##   e.g. city_traffic, city_crowd, neon_hum, machine_hum, footstep_concrete
-##
-## Also checks assets/models/<slot>.gltf and .tscn variants.
+## See docs/VISUAL_DIRECTION_ESO.md for MetaHuman + Terrain3D pipeline.
 
 const SEARCH_EXTENSIONS := ["glb", "gltf", "tscn"]
 const AUDIO_EXTENSIONS := ["ogg", "wav", "mp3"]
@@ -65,9 +60,16 @@ static func instance(slot: String) -> Node3D:
 	_cache[slot] = null
 	return null
 
+## True if a real (non-procedural) asset file exists for the slot (no instantiate).
+static func has_asset(slot: String) -> bool:
+	for ext in SEARCH_EXTENSIONS:
+		if ResourceLoader.exists("res://assets/models/%s.%s" % [slot, ext]):
+			return true
+	return false
+
 ## True if a real (non-procedural) asset is installed for the slot.
 static func has(slot: String) -> bool:
-	return instance(slot) != null
+	return has_asset(slot)
 
 ## Convenience: try the slot; if absent, call `fallback` (a Callable that
 ## returns Node3D). Applies the identity lens material to real assets'
