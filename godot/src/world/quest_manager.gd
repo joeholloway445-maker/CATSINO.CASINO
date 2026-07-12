@@ -275,6 +275,35 @@ func is_active(quest_id: String) -> bool:
 func is_complete(quest_id: String) -> bool:
 	return quest_id in _completed
 
+func get_quest(quest_id: String) -> Dictionary:
+	return _find_quest(quest_id).duplicate(true)
+
+func get_active_quest_ids() -> Array[String]:
+	var ids: Array[String] = []
+	for quest_id in _active.keys():
+		ids.append(str(quest_id))
+	return ids
+
+func get_completed_quest_ids() -> Array[String]:
+	var ids: Array[String] = []
+	ids.assign(_completed)
+	return ids
+
+func get_progress(quest_id: String) -> Dictionary:
+	if quest_id not in _active:
+		return {}
+	var progress: Dictionary = _active[quest_id].get("progress", {})
+	return progress.duplicate(true)
+
+func abandon(quest_id: String) -> bool:
+	if quest_id not in _active:
+		return false
+	_active[quest_id]["state"] = QuestState.FAILED
+	quest_failed.emit(quest_id)
+	_active.erase(quest_id)
+	_save_quest_state()
+	return true
+
 func _find_quest(quest_id: String) -> Dictionary:
 	for q in all_quests():
 		if q.id == quest_id:
