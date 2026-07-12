@@ -1,24 +1,19 @@
 extends Node3D
-## Shared scene script for the explorable layers. Reuses the overworld kit
-## (ProceduralTerrain + DayNightSky + ThirdPersonController) with per-layer
-## rules from RealityLayers. One script, five moods:
-##  - supraliminal: persistent chunks (DiscoveryManager), hubs PvE, wilds PvP
-##  - liminal: NEVER static — chunks dissolve behind you; wander timer runs
-##  - periliminal: generated-then-static from the run's recorded seed
-##  - extraliminal/subliminal get placeholder grounds until their bespoke
-##    scenes land (landmark overlay / apartment interior).
+## Shared scene script for the explorable layers. TerrainBridge (Terrain3D
+## desktop / ProceduralTerrain web) + DayNightSky + MetaHuman/humanoid player.
 
 @export var layer_id: String = "supraliminal"
 
-var _terrain: ProceduralTerrain
+var _terrain: TerrainBridge
 var _sky: DayNightSky
 var _player: ThirdPersonController
 
 func _ready() -> void:
 	LayerManager.current_layer_id = layer_id
 
-	_terrain = ProceduralTerrain.new()
+	_terrain = TerrainBridge.new()
 	add_child(_terrain)
+	await _terrain.ensure_built(layer_id)
 
 	_sky = DayNightSky.new()
 	match layer_id:
@@ -31,6 +26,7 @@ func _ready() -> void:
 	add_child(_sky)
 
 	_player = ThirdPersonController.new()
+	_player.visual_mode = "identity"
 	add_child(_player)
 
 	var spawn := _spawn_point()

@@ -28,6 +28,7 @@ GameManager="*res://src/core/game_manager.gd"
 EconomyManager="*res://src/core/economy_manager.gd"
 AccountManager="*res://src/core/account_manager.gd"
 AchievementManager="*res://src/core/achievement_manager.gd"
+AchievementToast="*res://src/ui/achievement_toast.gd"
 ShopManager="*res://src/core/shop_manager.gd"
 TournamentManager="*res://src/core/tournament_manager.gd"
 DailyRewards="*res://src/core/daily_rewards.gd"
@@ -39,6 +40,7 @@ LiveOpsManager="*res://src/liveops/liveops_manager.gd"
 CompanionSystem="*res://src/companion/companion_system.gd"
 CompanionManager="*res://src/companion/companion_system.gd"
 CombatSystem="*res://src/combat/combat_system.gd"
+CombatRealtime="*res://src/systems/combat_system_realtime.gd"
 GameFactory="*res://src/games/game_factory.gd"
 DistrictManager="*res://src/world/district_manager.gd"
 InventoryManager="*res://src/inventory/inventory_manager.gd"
@@ -113,8 +115,9 @@ common/physics_ticks_per_second=60
 
 [rendering]
 
-renderer/rendering_method="gl_compatibility"
+renderer/rendering_method="forward_plus"
 renderer/rendering_method.mobile="gl_compatibility"
+renderer/rendering_method.web="gl_compatibility"
 textures/vram_compression/import_etc2_astc=true
 anti_aliasing/quality/msaa_2d=2
 anti_aliasing/quality/msaa_3d=2
@@ -128,4 +131,4 @@ gdscript/warnings/inferred_declaration=0
 
 [editor_plugins]
 
-enabled=PackedStringArray()
+enabled=PackedStringArray("res://addons/terrain_3d/plugin.cfg")

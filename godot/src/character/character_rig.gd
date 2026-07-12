@@ -5,9 +5,9 @@ extends Node3D
 ## frame_type (light/heavy) and shaded per race texture_type, using real
 ## Forward+ lighting/SSAO/glow instead of three.js's basic renderer.
 ##
-## TODO(assets): swap build_from_loadout()'s primitive meshes for rigged
-## glTF imports (Mixamo/Kenney/Quaternius) once available outside the
-## sandbox's network restrictions — keep race/frame id plumbing identical.
+## TODO(assets): MetaHuman GLB exports replace primitive meshes via
+## MetahumanCharacter — keep race/frame id plumbing identical.
+## Procedural rig remains last-resort only.
 
 const TextureMaterials = preload("res://src/character/texture_materials.gd")
 

@@ -1,10 +1,13 @@
 # Shipping checklist — plug, play, market
 
+**v0.1 goal = AAA Game of the Year** for Periliminal.Space — realistic ESO
+visual bar (`docs/VISUAL_DIRECTION_ESO.md`). Gate table: [`docs/V01_GOTY.md`](V01_GOTY.md).
+
 ## 1. Open it
 
-Open `godot/project.godot` in **Godot 4.3+** (Forward+). First open imports
-the MP3s and icon; hit Play. Boot flow: splash → login → main menu, theme
-song playing. Every feature is reachable from the main menu.
+Open `godot/project.godot` in **Godot 4.3+** (**Forward+** on desktop). First
+open imports assets; hit Play. Boot: splash → login (or Play Offline) → title.
+Drop MetaHuman GLBs into `godot/assets/models/` per the visual direction doc.
 
 ## 2. What's fully playable today
 

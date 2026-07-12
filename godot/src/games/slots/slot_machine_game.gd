@@ -30,7 +30,7 @@ const PAYOUT_MULTIPLIERS: Dictionary = {
 @onready var bet_input: SpinBox = $ControlPanel/BetInput
 @onready var result_label: Label = $ResultLabel
 @onready var balance_label: Label = $ControlPanel/BalanceLabel
-@onready var http_client: HTTPClient = $HTTPClientNode  # HttpClient autoload/child
+@onready var http_client: Node = $HTTPClientNode  # optional HTTP helper child (not engine HTTPClient)
 
 # Internal
 var _spinning: bool = false

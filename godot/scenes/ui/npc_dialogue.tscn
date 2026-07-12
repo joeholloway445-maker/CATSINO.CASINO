@@ -20,18 +20,41 @@ name = "Portrait"
 text = "🐱"
 horizontal_alignment = 1
 
-[node name="NameLabel" type="Label" parent="Panel/VBox"]
-name = "NameLabel"
+[node name="NPCName" type="Label" parent="Panel/VBox"]
+name = "NPCName"
 text = "NPC Name"
 horizontal_alignment = 1
 
-[node name="DialogueLabel" type="Label" parent="Panel/VBox"]
-name = "DialogueLabel"
+[node name="DispositionRow" type="HBoxContainer" parent="Panel/VBox"]
+name = "DispositionRow"
+
+[node name="DispositionLabel" type="Label" parent="Panel/VBox/DispositionRow"]
+name = "DispositionLabel"
+text = "Disposition: Neutral"
+
+[node name="DispositionBar" type="ProgressBar" parent="Panel/VBox/DispositionRow"]
+name = "DispositionBar"
+size_flags_horizontal = 3
+max_value = 200.0
+value = 100.0
+show_percentage = false
+
+[node name="DialogueText" type="RichTextLabel" parent="Panel/VBox"]
+name = "DialogueText"
+custom_minimum_size = Vector2(0, 96)
+bbcode_enabled = true
 text = "Dialogue goes here..."
+fit_content = true
+scroll_active = false
 autowrap_mode = 3
 
 [node name="Options" type="VBoxContainer" parent="Panel/VBox"]
 name = "Options"
+
+[node name="TypewriterToggle" type="CheckButton" parent="Panel/VBox"]
+name = "TypewriterToggle"
+button_pressed = true
+text = "Typewriter"
 
 [node name="CloseBtn" type="Button" parent="Panel/VBox"]
 name = "CloseBtn"

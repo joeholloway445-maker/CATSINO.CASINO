@@ -50,12 +50,16 @@ Enable only in editor/debug exports. Never include in the shipped Web
 release. Useful commands to wire later: layer pull force, economy grant,
 hideout dump.
 
-## Native-only (do not install for Web)
+## Native-only (desktop AAA — Web keeps GDScript fallbacks)
 
 | Addon | Repo | Fallback |
 |---|---|---|
-| Terrain3D | [TokisanGames/Terrain3D](https://github.com/TokisanGames/Terrain3D) | `ProceduralTerrain` |
+| **Terrain3D** (vendored `addons/terrain_3d`, Godot 4.3 build) | [TokisanGames/Terrain3D](https://github.com/TokisanGames/Terrain3D) | `ProceduralTerrain` via `TerrainBridge` |
 | LimboAI | [limbonaut/limboai](https://github.com/limbonaut/limboai) | Beehave |
+
+**Characters:** MetaHuman exports (UE Creator → GLB). Shaders from community
+[MetaHumanGodot](https://github.com/ibrews/MetaHumanGodot) under
+`assets/shaders/metahuman/`. See [`VISUAL_DIRECTION_ESO.md`](VISUAL_DIRECTION_ESO.md).
 
 ## Skip / assets-only
 
