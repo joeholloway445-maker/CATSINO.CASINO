@@ -1,5 +1,4 @@
 extends Node
-class_name CombatSystem
 
 # ── Signals ────────────────────────────────────────────────────────────────────
 signal combat_started(attacker_id: String, defender_id: String)
@@ -37,8 +36,8 @@ class CombatResult:
 # We map FrameClass to combat type; Mods that are "tech" shift resolution
 const TECH_MODS := [
 	CharacterData.Mod.VOID_CORE, CharacterData.Mod.NULL,
-	CharacterData.Mod.GLITCH if "GLITCH" in CharacterData.Mod else CharacterData.Mod.ENTROPY,
-	CharacterData.Mod.PHASE,  CharacterData.Mod.SINGULARITY,
+	CharacterData.Mod.ENTROPY, CharacterData.Mod.PHASE,
+	CharacterData.Mod.SINGULARITY,
 ]
 const BURST_LCK_THRESHOLD   := 80
 const BURST_SYNERGY_THRESHOLD := 0.20
@@ -65,9 +64,9 @@ func resolve_encounter(attacker: CharacterData, defender: CharacterData) -> Comb
 	# ── Base damage formula ───────────────────────────────────────────────────
 	# Damage = (Pow * clash_mult) - (Res * 0.5) + (Spd * 0.2 * speed_advantage)
 	var speed_adv := 1.0 + clampf((atk_stats["spd"] - def_stats["spd"]) / 100.0, -0.5, 0.5)
-	var raw_damage := (atk_stats["pow"] * clash_mult * BASE_DAMAGE_SCALE) \
-	               - (def_stats["res"] * 0.5 * BASE_DAMAGE_SCALE) \
-	               + (atk_stats["spd"] * 0.2 * speed_adv * BASE_DAMAGE_SCALE)
+	var raw_damage: float = (float(atk_stats["pow"]) * clash_mult * BASE_DAMAGE_SCALE) \
+	               - (float(def_stats["res"]) * 0.5 * BASE_DAMAGE_SCALE) \
+	               + (float(atk_stats["spd"]) * 0.2 * speed_adv * BASE_DAMAGE_SCALE)
 	raw_damage = maxf(raw_damage, 1.0)
 
 	# Synergy multiplier
@@ -93,7 +92,7 @@ func resolve_encounter(attacker: CharacterData, defender: CharacterData) -> Comb
 	result.damage = int(raw_damage)
 
 	# ── Outcome ───────────────────────────────────────────────────────────────
-	var defender_hp := def_stats["res"] * 10
+	var defender_hp: int = int(def_stats["res"]) * 10
 	if result.damage >= defender_hp:
 		result.outcome = "win"
 	elif result.damage <= 0:

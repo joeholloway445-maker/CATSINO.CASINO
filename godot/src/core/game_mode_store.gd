@@ -22,7 +22,7 @@ func purchase(mode_id: String) -> bool:
 		purchase_completed.emit(mode_id, true)
 		return true
 	var cost := price_gems(mode_id)
-	var success := cost == 0 or EconomyManager.spend_gems(cost, "game_mode:" + mode_id)
+	var success: bool = cost == 0 or await EconomyManager.spend_gems(cost, "game_mode:" + mode_id)
 	if success:
 		GameModeManager.grant(mode_id)
 	purchase_completed.emit(mode_id, success)

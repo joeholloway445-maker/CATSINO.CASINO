@@ -1,5 +1,4 @@
 extends Node
-class_name EventManager
 # Live events: double XP, jackpot hour, faction wars, bonus spin windows
 
 signal event_started(event: Dictionary)

@@ -1,5 +1,4 @@
 extends Node
-class_name DistrictManager
 
 # ── Signals ────────────────────────────────────────────────────────────────────
 signal district_transition_started(from: District, to: District)

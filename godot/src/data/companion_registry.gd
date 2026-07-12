@@ -1,18 +1,22 @@
 class_name CompanionRegistry
-# Unified registry combining all companion rosters
-# SC001-SC150, WA001-WA150, VC001-VC150, FL001-FL100 = 550 (first 500 are canonical)
+# Unified registry combining all companion rosters.
+# Uses each roster file's real API (static funcs / const arrays).
 
 static func get_all() -> Array[Dictionary]:
 	var all: Array[Dictionary] = []
-	all.append_array(CompanionRoster.SC_COMPANIONS)
-	all.append_array(CompanionRosterExtended.SC_COMPANIONS_2 if "SC_COMPANIONS_2" in CompanionRosterExtended else [])
-	all.append_array(CompanionRosterExtended.WA_COMPANIONS if "WA_COMPANIONS" in CompanionRosterExtended else [])
-	all.append_array(CompanionRosterExtended2.WA_COMPANIONS_2 if ClassDB.class_exists("CompanionRosterExtended2") else [])
-	all.append_array(CompanionRosterExtended3.FL_COMPANIONS if ClassDB.class_exists("CompanionRosterExtended3") else [])
-	all.append_array(CompanionRosterExtended4.SC_COMPANIONS_3 if ClassDB.class_exists("CompanionRosterExtended4") else [])
-	all.append_array(CompanionRosterExtended5.WA_COMPANIONS_3 if ClassDB.class_exists("CompanionRosterExtended5") else [])
-	all.append_array(CompanionRosterExtended6.VC_COMPANIONS_3 if ClassDB.class_exists("CompanionRosterExtended6") else [])
-	all.append_array(CompanionRosterExtended7.FL_COMPANIONS_3 if ClassDB.class_exists("CompanionRosterExtended7") else [])
+	all.append_array(CompanionRoster.get_sovereign_crown_roster())
+	all.append_array(CompanionRoster.get_wildlands_ascendant_roster())
+	all.append_array(CompanionRoster.get_veiled_current_roster())
+	all.append_array(CompanionRoster.get_factionless_roster())
+	all.append_array(CompanionRosterExtended.get_sovereign_crown_extended())
+	all.append_array(CompanionRosterExtended2.WILDLANDS_EXTENDED)
+	all.append_array(CompanionRosterExtended2.VEILED_EXTENDED)
+	all.append_array(CompanionRosterExtended3.FACTIONLESS_EXTENDED)
+	all.append_array(CompanionRosterExtended4.SC_SECOND_CENTURY)
+	all.append_array(CompanionRosterExtended5.WA_THIRD_FIFTY)
+	all.append_array(CompanionRosterExtended6.VC_COMPANIONS_3)
+	all.append_array(CompanionRosterExtended7.FL_COMPANIONS_3)
+	all.append_array(CompanionRosterExtended8.PRESTIGE_COMPANIONS)
 	return all
 
 static func get_by_id(companion_id: String) -> Dictionary:
@@ -42,25 +46,11 @@ static func accessible_roster(player_faction: String) -> Array[Dictionary]:
 			result.append(c)
 	return result
 
-static func get_by_faction(faction: String) -> Array[Dictionary]:
-	var result: Array[Dictionary] = []
-	for c in get_all():
-		if c.get("faction") == faction:
-			result.append(c.duplicate())
-	return result
-
-static func get_by_rarity(rarity: String) -> Array[Dictionary]:
-	var result: Array[Dictionary] = []
-	for c in get_all():
-		if c.get("rarity") == rarity:
-			result.append(c.duplicate())
-	return result
-
-static func get_random(faction: String = "") -> Dictionary:
-	var pool := get_by_faction(faction) if faction != "" else get_all()
+static func get_random(player_faction: String = "") -> Dictionary:
+	var pool := accessible_roster(player_faction) if not player_faction.is_empty() else get_all()
 	if pool.is_empty():
 		return {}
 	return pool[randi() % pool.size()].duplicate()
 
-static func get_total_count() -> int:
-	return get_all().size()
+static func get_by_faction(faction: String) -> Array[Dictionary]:
+	return accessible_roster(faction)

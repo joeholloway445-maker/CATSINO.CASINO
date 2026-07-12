@@ -1,5 +1,4 @@
 extends Node
-class_name SocialManager
 
 # ── Signals ────────────────────────────────────────────────────────────────────
 signal friend_online(user_id: String, username: String)
@@ -51,7 +50,7 @@ func join_channel(channel: String) -> void:
 	if not _socket:
 		return
 	var channel_id := _channel_id(channel)
-	var result = await _socket.join_chat_async(channel_id, NakamaSocket.ChannelType.Room, false, false)
+	var result = await _socket.join_chat_async(channel_id, NakamaSocket.ChannelType.ROOM, false, false)
 	if result.is_exception():
 		push_error("SocialManager: join_channel %s failed: %s" % [channel, result.get_exception().message])
 
@@ -166,9 +165,9 @@ func _group_to_dict(group) -> Dictionary:
 	}
 
 func _on_channel_message(message) -> void:
-	var channel := message.channel_id
-	var sender  := message.sender_id
-	var content := message.content
+	var channel: String = str(message.channel_id)
+	var sender: String = str(message.sender_id)
+	var content = message.content
 	if not channel in chat_history:
 		chat_history[channel] = []
 	chat_history[channel].append({

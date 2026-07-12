@@ -1,5 +1,4 @@
 extends Node
-class_name PlayerProfile
 # Persistent player data — level, XP, faction, frame, active companions
 
 signal profile_updated()

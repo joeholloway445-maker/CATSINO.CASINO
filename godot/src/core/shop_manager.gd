@@ -53,16 +53,16 @@ func purchase(item_id: String) -> Dictionary:
 	if item.is_empty():
 		return {success=false, reason="Item not found"}
 
-	var remaining = _daily_stock.get(item_id, item.get("stock", 1))
+	var remaining: int = int(_daily_stock.get(item_id, item.get("stock", 1)))
 	if remaining <= 0:
 		return {success=false, reason="Out of stock"}
 
 	var price_coins: int = item.get("price_coins", 0)
 	var price_gems: int = item.get("price_gems", 0)
 
-	if price_coins > 0 and not EconomyManager.spend_coins(price_coins):
+	if price_coins > 0 and not await EconomyManager.spend_coins(price_coins):
 		return {success=false, reason="Insufficient coins"}
-	if price_gems > 0 and not EconomyManager.spend_gems(price_gems):
+	if price_gems > 0 and not await EconomyManager.spend_gems(price_gems):
 		# Refund coins if gems failed
 		if price_coins > 0: EconomyManager.add_coins(price_coins)
 		return {success=false, reason="Insufficient gems"}

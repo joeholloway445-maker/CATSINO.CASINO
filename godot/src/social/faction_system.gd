@@ -1,5 +1,4 @@
 extends Node
-class_name FactionSystem
 # Faction allegiance and synergy bonus calculation
 
 const FACTIONS = {
@@ -86,6 +85,12 @@ static func get_slot_mult(faction: String) -> float:
 static func get_race_spd_bonus(faction: String) -> int:
 	var data = get_faction_data(faction)
 	return int(data.get("race_spd_bonus", 0))
+
+static func get_stat_bonuses(faction: String) -> Dictionary:
+	var spd := get_race_spd_bonus(faction)
+	if spd == 0:
+		return {}
+	return {"spd": spd}
 
 static func _get_companion_faction(companion_id: String) -> String:
 	if companion_id.begins_with("SC"): return "SovereignCrown"
