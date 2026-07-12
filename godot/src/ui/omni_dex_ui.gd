@@ -60,7 +60,7 @@ func _ready() -> void:
 func _refresh_list() -> void:
 	_list.clear()
 	_detail.text = ""
-	var faction := FACTIONS[_faction_tabs.current_tab]
+	var faction: String = str(FACTIONS[_faction_tabs.current_tab])
 	for line in EntityDexData.by_faction(faction):
 		var apex: Dictionary = EntityDexData.stage_for(line, 3)
 		var shown := str(apex.get("name", line.get("id", "?")))

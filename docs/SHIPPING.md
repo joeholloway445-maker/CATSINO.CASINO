@@ -1,10 +1,15 @@
 # Shipping checklist — plug, play, market
 
+**v0.1 goal = AAA Game of the Year** for Periliminal.Space. Gate table and
+definition: [`docs/V01_GOTY.md`](V01_GOTY.md). Older “MVP complete” language
+in other docs is historical; do not ship a hollow slice under that excuse.
+
 ## 1. Open it
 
 Open `godot/project.godot` in **Godot 4.3+** (Forward+). First open imports
-the MP3s and icon; hit Play. Boot flow: splash → login → main menu, theme
-song playing. Every feature is reachable from the main menu.
+the MP3s and icon; hit Play. Boot flow: splash → login (or Play Offline) →
+title screen, theme song playing. Every feature is reachable from the main
+menu / layer spine.
 
 ## 2. What's fully playable today
 
