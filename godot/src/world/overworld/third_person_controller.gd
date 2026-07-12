@@ -1,9 +1,8 @@
 class_name ThirdPersonController
 extends CharacterBody3D
-## Third-person overworld controller. Movement feel (accel/deaccel constants,
-## camera-relative input, sharp-turn handling) adapted from the Godot
-## platformer/TPS demos, stripped of their scene-specific animation rigs so
-## it runs on a procedurally-built capsule cat with zero imported assets.
+## Third-person overworld controller. Movement feel adapted from Godot TPS
+## demos. Visuals resolve through MetahumanCharacter (MetaHuman GLB → interim
+## humanoid → CharacterRig) — never the old orange capsule on the ESO bar.
 
 signal chunk_changed(coord: Vector2i)
 
@@ -26,8 +25,9 @@ var _last_chunk := Vector2i(2147483647, 2147483647)
 var _spring: SpringArm3D
 var _camera: Camera3D
 var _body_mesh: MeshInstance3D
-## "cat" = casino house skin (PvE). "identity" = race/frame/mod rig (PvP).
-var visual_mode := "cat"
+## Default to identity (humanoid / MetaHuman). Cat mode is the optional
+## Catsino house skin when player_cat.glb is present.
+var visual_mode := "identity"
 var _visual_root: Node3D
 var _collision: CollisionShape3D
 
@@ -79,15 +79,10 @@ func _build_body() -> void:
 	_build_cat_body()
 
 func _build_identity_body() -> void:
-	var rig := CharacterRig.new()
-	var loadout := CharacterCreatorLogic.build_loadout(
-		PlayerProfile.selected_race_id,
-		PlayerProfile.selected_frame,
-		PlayerProfile.selected_mod)
-	rig.build_from_loadout(loadout.race, loadout.frame, loadout.mod)
-	_visual_root = rig
-	add_child(rig)
-	# Identity rig is taller — stretch the collider so PvP hits feel fair.
+	var body := MetahumanCharacter.build_player("identity")
+	_visual_root = body
+	add_child(body)
+	# Humanoid collider
 	if _collision != null and _collision.shape is CapsuleShape3D:
 		var cap := _collision.shape as CapsuleShape3D
 		cap.height = 1.6
@@ -95,44 +90,22 @@ func _build_identity_body() -> void:
 		_collision.position.y = 0.9
 
 func _build_cat_body() -> void:
+	var body := MetahumanCharacter.build_player("cat")
+	_visual_root = body
+	add_child(body)
+	var humanoid := body is CharacterRig or AssetLibrary.has_asset("player_human") \
+		or AssetLibrary.has_asset("metahuman_player")
 	if _collision != null and _collision.shape is CapsuleShape3D:
 		var cap := _collision.shape as CapsuleShape3D
-		cap.height = 1.2
-		cap.radius = 0.4
-		_collision.position.y = 0.6
-	var real := AssetLibrary.instance("player_cat")
-	if real != null:
-		_visual_root = real as Node3D
-		if _visual_root == null:
-			_visual_root = Node3D.new()
-			_visual_root.add_child(real)
-		add_child(_visual_root)
-		return
+		if humanoid and not AssetLibrary.has_asset("player_cat"):
+			cap.height = 1.6
+			cap.radius = 0.35
+			_collision.position.y = 0.9
+		else:
+			cap.height = 1.2
+			cap.radius = 0.4
+			_collision.position.y = 0.6
 
-	_body_mesh = MeshInstance3D.new()
-	var mesh := CapsuleMesh.new()
-	mesh.radius = 0.4
-	mesh.height = 1.2
-	_body_mesh.mesh = mesh
-	_body_mesh.position.y = 0.6
-	var mat := StandardMaterial3D.new()
-	mat.albedo_color = Color(0.95, 0.6, 0.25) # tabby orange
-	mat.roughness = 0.8
-	_body_mesh.material_override = mat
-	_visual_root = Node3D.new()
-	_visual_root.add_child(_body_mesh)
-	# Ears — two small cones so the capsule reads as a cat from a distance.
-	for side in [-1.0, 1.0]:
-		var ear := MeshInstance3D.new()
-		var cone := CylinderMesh.new()
-		cone.top_radius = 0.0
-		cone.bottom_radius = 0.12
-		cone.height = 0.3
-		ear.mesh = cone
-		ear.material_override = mat
-		ear.position = Vector3(0.18 * side, 1.3, 0.0)
-		_visual_root.add_child(ear)
-	add_child(_visual_root)
 
 func _build_camera() -> void:
 	_spring = SpringArm3D.new()

@@ -1,25 +1,24 @@
 extends Node3D
-## The explorable 3D overworld: procedural terrain + day/night sky + a
-## third-person cat. Walking into a chunk you've never generated before
-## fires the discover mechanic (influence painting) and advances the
-## "Cartographer's Call" quest — same rules as cat_forest_scene's
-## explore_chunk(), just driven by actually walking around.
+## The explorable 3D overworld: TerrainBridge (Terrain3D or procedural) +
+## day/night sky + third-person MetaHuman/humanoid controller.
 
 const PLAYER_ID := "local_player"
 
-var _terrain: ProceduralTerrain
+var _terrain: TerrainBridge
 var _sky: DayNightSky
 var _player: ThirdPersonController
 
 func _ready() -> void:
-	_terrain = ProceduralTerrain.new()
+	_terrain = TerrainBridge.new()
 	add_child(_terrain)
+	await _terrain.ensure_built("overworld")
 
 	_sky = DayNightSky.new()
 	IdentityLens.tune_sky(_sky)
 	add_child(_sky)
 
 	_player = ThirdPersonController.new()
+	_player.visual_mode = "identity"
 	add_child(_player)
 
 	# Spawn just outside the Arlington hub bounds so wild chunks are a short

@@ -65,7 +65,7 @@ func _ready() -> void:
 	_stick_base = Control.new()
 	_stick_base.custom_minimum_size = Vector2(STICK_RADIUS * 2, STICK_RADIUS * 2)
 	_stick_base.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_LEFT)
-	_stick_base.position += Vector2(safe.x + 32, -(safe.w + STICK_RADIUS * 2 + 60))
+	_stick_base.position += Vector2(safe.position.x + 32, -(safe.size.y + STICK_RADIUS * 2 + 60))
 	add_child(_stick_base)
 	var base_ring := ColorRect.new()
 	base_ring.color = Color(1, 1, 1, 0.10)
@@ -83,7 +83,7 @@ func _ready() -> void:
 	# ---- right: action buttons ----
 	var col := VBoxContainer.new()
 	col.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_RIGHT)
-	col.position += Vector2(-(safe.y + BUTTON_SIZE + 32), -(safe.w + BUTTON_SIZE * 4 + 80))
+	col.position += Vector2(-(safe.position.y + BUTTON_SIZE + 32), -(safe.size.y + BUTTON_SIZE * 4 + 80))
 	col.add_theme_constant_override("separation", 18)
 	add_child(col)
 	col.add_child(_action_button("⤴", func(): TouchControls._jump_queued = true))
@@ -120,7 +120,7 @@ func _center_knob() -> void:
 
 func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventScreenTouch:
-		var inside_stick := event.position.distance_to(_stick_center) <= STICK_RADIUS * 1.6
+		var inside_stick: bool = event.position.distance_to(_stick_center) <= STICK_RADIUS * 1.6
 		# Left thumb → joystick; anything on the RIGHT half that isn't a
 		# button click becomes a camera-look drag.
 		if event.pressed:
