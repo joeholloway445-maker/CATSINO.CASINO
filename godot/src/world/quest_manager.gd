@@ -295,4 +295,8 @@ func _load_quest_state() -> void:
 		var parsed = JSON.parse_string(file.get_as_text())
 		if parsed is Dictionary:
 			_active = parsed.get("active", {})
-			_completed = parsed.get("completed", [])
+			_completed.clear()
+			var completed_raw = parsed.get("completed", [])
+			if completed_raw is Array:
+				for id in completed_raw:
+					_completed.append(str(id))

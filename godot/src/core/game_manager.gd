@@ -117,7 +117,9 @@ func _init_social_manager() -> void:
 
 # ── Handlers ──────────────────────────────────────────────────────────────────
 func _on_authenticated(_session: Dictionary) -> void:
-	if game_state == GameState.LOGIN:
+	# LOGIN is the normal post-init state. LOADING covers restored sessions
+	# that authenticate while initialize() is still running (or splash is up).
+	if game_state == GameState.LOGIN or game_state == GameState.LOADING:
 		_set_state(GameState.WORLD)
 		# The actual front door: title screen with Start New Venture /
 		# Continue Expedition. New ventures go to the Liminal (race/frame/

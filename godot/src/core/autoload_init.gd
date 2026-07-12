@@ -4,9 +4,9 @@ const VERSION := "0.1.0"
 
 func _ready() -> void:
 	print("╔══════════════════════════════════════════╗")
-	print("║        CATSINO.CASINO  v%s           ║" % VERSION)
-	print("║  Free-to-play Cat Coins only — no real  ║")
-	print("║  money, no sweeps, no redemption.        ║")
+	print("║     PERILIMINAL.SPACE  v%s           ║" % VERSION)
+	print("║  Six realities. One of you.  Cat Coins   ║")
+	print("║  only — no real money / sweeps.          ║")
 	print("╚══════════════════════════════════════════╝")
 	# Applied before any UI exists — every Control created anywhere after
 	# this inherits it automatically (nothing sets its own theme).

@@ -107,7 +107,9 @@ func _build_ui() -> void:
 	if not PlayerProfile.has_expedition:
 		continue_btn.tooltip_text = "No expedition yet — start a new venture first."
 	continue_btn.pressed.connect(func():
-		get_tree().change_scene_to_file("res://scenes/layers/subliminal.tscn"))
+		if not LayerManager.transition_to("subliminal"):
+			# Fallback if can_enter blocks — still honor Continue for local play.
+			get_tree().change_scene_to_file("res://scenes/layers/subliminal.tscn"))
 	middle.add_child(continue_btn)
 
 	var spacer := Control.new()

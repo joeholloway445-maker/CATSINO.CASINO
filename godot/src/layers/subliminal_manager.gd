@@ -86,6 +86,9 @@ func _ready() -> void:
 	_load()
 
 func has_apartment_access() -> bool:
+	# Expeditions own a Subliminal berth; Continue Expedition must work at L1.
+	if PlayerProfile.has_expedition:
+		return true
 	# You're in if you were invited, or you're already established (any
 	# progression implies you got in somehow — keeps old saves working).
 	return _invited_by != "" or PlayerProfile.level > 1 or not apartment_slots.is_empty()

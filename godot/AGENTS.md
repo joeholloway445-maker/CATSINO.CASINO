@@ -214,6 +214,9 @@ persistent world/economy of its own (`arena_modes.gd` header explains).
 
 ## Build order (do these IN ORDER — each gates the next)
 
+**v0.1 goal = AAA GOTY.** See `docs/V01_GOTY.md`. Do not redefine
+ship as a thin MVP while this goal is locked.
+
 1. **Make it parse.** Open the editor, fix errors per the cascade
    procedure above until the project loads with zero script errors.
 2. **Boot path.** Confirm: title screen loads → New Venture → race/frame/

@@ -1,6 +1,10 @@
 # Periliminal.Space: Complete Launch Checklist & Competitive Roadmap
 
-**Date**: July 10, 2026 | **Status**: MVP COMPLETE ✅ | **Next Milestone**: Launch Polish (12 weeks)
+## Date: July 12, 2026 | **Status**: v0.1 = AAA GOTY (locked) | See `docs/V01_GOTY.md`
+
+**Goal lock:** Periliminal.Space **v0.1 is AAA Game of the Year**, not an MVP slice.
+Use `godot/AGENTS.md` build order + `docs/V01_GOTY.md` gates. Inventory below
+remains useful; do not use “MVP COMPLETE” as permission to ship unfinished spine.
 
 ---
 
