@@ -13,6 +13,7 @@ interface InventoryItem {
 
 const TYPE_ICONS: Record<string, string> = {
   frame: "🤖",
+  cosmetic_frame: "🖼️",
   mod: "⚙️",
   consumable: "🧪",
   cosmetic: "✨",

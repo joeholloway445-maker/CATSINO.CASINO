@@ -1,6 +1,7 @@
 import type { Frame } from '@/types/character'
 
 export const FRAMES: Frame[] = [
+  // OmniDex identity frames — exactly 20. Shop cosmetics are not frames.
   {
     id: 'skirmisher',
     name: 'Skirmisher',

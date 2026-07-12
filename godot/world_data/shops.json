@@ -1,6 +1,6 @@
 {
   "_comment": "CATSINO.CASINO Shops — add items by copying any item block and changing the id. Prices are in Cat Coins (virtual only).",
-  "_guide": "shop_id must match an NPC's shop_id. item type: consumable, frame, mod, companion_item, equipment",
+  "_guide": "shop_id must match an NPC's shop_id. item type: consumable, cosmetic_frame, mod, companion_item, equipment. OmniDex identity frames are exactly 20 — never sell extras as type=frame.",
   "shops": [
     {
       "shop_id": "paw_vegas_consumables",
@@ -19,10 +19,10 @@
       "shop_name": "Aqua Merchant",
       "district": "paw_vegas",
       "items": [
-        {"item_id": "chrome_frame", "name": "Chrome Frame", "type": "frame", "price": 2000, "description": "+5 POW, +3 RES", "emoji": "🖼️"},
-        {"item_id": "neon_frame", "name": "Neon Frame", "type": "frame", "price": 2500, "description": "+8 SPD, -2 RES", "emoji": "💡"},
-        {"item_id": "gold_frame", "name": "Gold Frame", "type": "frame", "price": 5000, "description": "+10 LCK, +5 STY", "emoji": "✨"},
-        {"item_id": "shadow_frame", "name": "Shadow Frame", "type": "frame", "price": 3500, "description": "+7 POW, stealth bonus in combat", "emoji": "🌑"},
+        {"item_id": "chrome_frame", "name": "Chrome Frame", "type": "cosmetic_frame", "price": 2000, "description": "+5 POW, +3 RES", "emoji": "🖼️"},
+        {"item_id": "neon_frame", "name": "Neon Frame", "type": "cosmetic_frame", "price": 2500, "description": "+8 SPD, -2 RES", "emoji": "💡"},
+        {"item_id": "gold_frame", "name": "Gold Frame", "type": "cosmetic_frame", "price": 5000, "description": "+10 LCK, +5 STY", "emoji": "✨"},
+        {"item_id": "shadow_frame", "name": "Shadow Frame", "type": "cosmetic_frame", "price": 3500, "description": "+7 POW, stealth bonus in combat", "emoji": "🌑"},
         {"item_id": "crystal_mod", "name": "Crystal Mod", "type": "mod", "price": 1500, "description": "+15% coin earnings for 1 hour", "emoji": "💎"}
       ]
     },
@@ -43,7 +43,7 @@
       "shop_name": "Arena Armory",
       "district": "cat_coliseum",
       "items": [
-        {"item_id": "battle_frame", "name": "Battle Frame", "type": "frame", "price": 4000, "description": "+15 POW, +10 RES, -5 SPD", "emoji": "⚔️"},
+        {"item_id": "battle_frame", "name": "Battle Frame", "type": "cosmetic_frame", "price": 4000, "description": "+15 POW, +10 RES, -5 SPD", "emoji": "⚔️"},
         {"item_id": "champions_badge", "name": "Champion's Badge", "type": "equipment", "price": 6000, "description": "+20 to all stats for coliseum fights", "emoji": "🏆"},
         {"item_id": "rage_mod", "name": "Rage Mod", "type": "mod", "price": 2800, "description": "+25% damage when HP < 50%", "emoji": "😡"},
         {"item_id": "recovery_kit", "name": "Recovery Kit", "type": "consumable", "price": 400, "description": "Restores 50% HP between fights", "emoji": "💊"}

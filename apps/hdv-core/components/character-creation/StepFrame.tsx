@@ -35,7 +35,7 @@ export default function StepFrame({ value, onChange }: { value: string | null; o
     <div>
       <h2 className="font-mono text-lg text-slate-200 mb-1 tracking-wider">CHOOSE YOUR FRAME</h2>
       <p className="font-mono text-xs text-slate-500 mb-4">
-        Frame determines your light, sound, mobility, and combat math. 20 frames available.
+        Frame determines your light, sound, mobility, and combat math. Exactly 20 OmniDex frames.
       </p>
 
       <input

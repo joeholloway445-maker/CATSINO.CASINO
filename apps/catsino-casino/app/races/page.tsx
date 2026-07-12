@@ -2,20 +2,36 @@ import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import Navbar from "@/components/Navbar";
 
+/** OmniDex identity frames only — exactly 20. Shop cosmetics are not listed. */
+const FRAMES = [
+  { id: "skirmisher", name: "Skirmisher", spd: 16 },
+  { id: "strider", name: "Strider", spd: 18 },
+  { id: "skybound", name: "Skybound", spd: 17 },
+  { id: "flicker", name: "Flicker", spd: 18 },
+  { id: "marshal", name: "Marshal", spd: 12 },
+  { id: "bloom", name: "Bloom", spd: 14 },
+  { id: "rewind", name: "Rewind", spd: 14 },
+  { id: "conduit", name: "Conduit", spd: 13 },
+  { id: "shade", name: "Shade", spd: 16 },
+  { id: "fabricator", name: "Fabricator", spd: 12 },
+  { id: "bastion", name: "Bastion", spd: 6 },
+  { id: "juggernaut", name: "Juggernaut", spd: 7 },
+  { id: "gravemind", name: "Gravemind", spd: 6 },
+  { id: "riftbreaker", name: "Riftbreaker", spd: 6 },
+  { id: "sovereign", name: "Sovereign", spd: 5 },
+  { id: "worldroot", name: "Worldroot", spd: 5 },
+  { id: "epoch", name: "Epoch", spd: 6 },
+  { id: "overlord", name: "Overlord", spd: 4 },
+  { id: "obscura", name: "Obscura", spd: 6 },
+  { id: "architect", name: "Architect", spd: 4 },
+] as const;
+
 const TRACKS = [
   { id: "neon_canal", name: "Neon Canal Circuit", district: "Neon Alley", laps: 3, entry_fee: 200, difficulty: "Beginner", emoji: "🌊" },
   { id: "paw_strip", name: "Paw Vegas Strip", district: "Paw Vegas", laps: 1, entry_fee: 500, difficulty: "Intermediate", emoji: "🎰" },
   { id: "forest_path", name: "Forest Wild Run", district: "Cat Forest", laps: 2, entry_fee: 400, difficulty: "Intermediate", emoji: "🌿" },
   { id: "coliseum_track", name: "Coliseum Grand Prix", district: "Cat Coliseum", laps: 5, entry_fee: 1000, difficulty: "Expert", emoji: "⚔️" },
   { id: "galaxy_circuit", name: "Arcade Galaxy Dash", district: "Arcade Galaxy", laps: 1, entry_fee: 100, difficulty: "Beginner", emoji: "🕹️" },
-];
-
-const FRAMES = [
-  { id: "basic", name: "Basic Frame", spd: 10 },
-  { id: "bolt", name: "Bolt Frame", spd: 18 },
-  { id: "storm", name: "Storm Frame", spd: 20 },
-  { id: "wind", name: "Wind Frame", spd: 25 },
-  { id: "ghost", name: "Ghost Frame", spd: 14 },
 ];
 
 const DIFF_COLORS: Record<string, string> = {
@@ -42,11 +58,13 @@ export default async function RacesPage() {
       <Navbar />
       <main className="max-w-5xl mx-auto px-4 py-12">
         <h1 className="text-4xl font-bold text-center text-cyan-400 mb-2">🏁 Races</h1>
-        <p className="text-center text-gray-400 mb-4">Choose a track, pick your frame, and race for glory</p>
+        <p className="text-center text-gray-400 mb-4">Choose a track, pick your OmniDex frame, and race for glory</p>
         <p className="text-center text-yellow-400 mb-10">Balance: 🪙 {coins.toLocaleString()}</p>
 
         <div className="mb-8">
-          <h2 className="text-xl font-bold text-gray-300 mb-4">🤖 Available Frames</h2>
+          <h2 className="text-xl font-bold text-gray-300 mb-4">
+            OmniDex Frames ({FRAMES.length}/20)
+          </h2>
           <div className="flex flex-wrap gap-3">
             {FRAMES.map(f => (
               <div key={f.id} className="bg-gray-800 border border-gray-600 rounded-xl px-4 py-2 text-sm">
