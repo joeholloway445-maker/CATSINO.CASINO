@@ -1,0 +1,248 @@
+{
+  "_comment": "NPC Templates for Periliminal.Space — realistic human appearance generation",
+  "_guide": "5 archetypes × 6 layers = 30 base templates. Each template defines trait ranges: age, build, hair color/style, skin tone, outfit. Generator uses these to create 1000+ unique NPCs.",
+  "archetypes": [
+    {
+      "id": "barista",
+      "name": "Barista",
+      "description": "Service-oriented, warm, observant. They remember everyone's order.",
+      "role": "shopkeeper",
+      "traits": {
+        "age": {"min": 20, "max": 45},
+        "build": ["slim", "athletic"],
+        "hair_colors": ["brown", "blonde", "black", "auburn"],
+        "hair_styles": ["short", "ponytail", "waves"],
+        "skin_tones": ["fair", "olive", "tan", "medium"],
+        "outfit_base": "apron",
+        "friendly": 0.9,
+        "patience": 0.85
+      }
+    },
+    {
+      "id": "archivist",
+      "name": "Archivist",
+      "description": "Keeper of knowledge. Quiet, methodical, deeply knowledgeable.",
+      "role": "quest_giver",
+      "traits": {
+        "age": {"min": 30, "max": 70},
+        "build": ["slim", "average"],
+        "hair_colors": ["grey", "brown", "black"],
+        "hair_styles": ["neat", "long", "pulled_back"],
+        "skin_tones": ["fair", "medium", "olive"],
+        "outfit_base": "robes",
+        "wisdom": 0.95,
+        "patience": 0.90
+      }
+    },
+    {
+      "id": "authority",
+      "name": "Authority",
+      "description": "Leaders and enforcers. Confident, commanding presence.",
+      "role": "faction_rep",
+      "traits": {
+        "age": {"min": 35, "max": 65},
+        "build": ["athletic", "muscular"],
+        "hair_colors": ["black", "brown", "grey"],
+        "hair_styles": ["short", "neat", "slicked"],
+        "skin_tones": ["fair", "tan", "medium", "dark"],
+        "outfit_base": "uniform",
+        "confidence": 0.95,
+        "authority": 0.90
+      }
+    },
+    {
+      "id": "lover",
+      "name": "Lover",
+      "description": "Charming, magnetic, persuasive. They make connections.",
+      "role": "merchant",
+      "traits": {
+        "age": {"min": 25, "max": 50},
+        "build": ["slim", "athletic", "average"],
+        "hair_colors": ["brown", "blonde", "red", "black"],
+        "hair_styles": ["long", "waves", "styled"],
+        "skin_tones": ["fair", "olive", "tan", "medium"],
+        "outfit_base": "fashionable",
+        "charisma": 0.95,
+        "empathy": 0.85
+      }
+    },
+    {
+      "id": "reflection",
+      "name": "Reflection",
+      "description": "Introspective, mysterious, artistic. They see what others miss.",
+      "role": "lore_keeper",
+      "traits": {
+        "age": {"min": 22, "max": 60},
+        "build": ["slim", "average"],
+        "hair_colors": ["black", "purple", "dark_red", "grey"],
+        "hair_styles": ["long", "artistic", "asymmetrical"],
+        "skin_tones": ["fair", "pale", "olive"],
+        "outfit_base": "artistic",
+        "insight": 0.90,
+        "creativity": 0.95
+      }
+    }
+  ],
+  "layer_variants": [
+    {
+      "layer": "subliminal",
+      "name": "Subliminal — Private Haven",
+      "setting": "intimate domestic spaces",
+      "outfit_modifiers": {
+        "barista": ["casual", "comfortable", "home_attire"],
+        "archivist": ["reading_clothes", "study_wear", "relaxed"],
+        "authority": ["off_duty", "casual_leadership", "home_clothes"],
+        "lover": ["intimate_wear", "relaxed", "sensual"],
+        "reflection": ["creative_casual", "artistic_home", "cozy"]
+      },
+      "color_palette": ["warm", "soft", "intimate"],
+      "lighting": "soft_warm",
+      "personality_shift": 0.3
+    },
+    {
+      "layer": "liminal",
+      "name": "Liminal — Between-Spaces",
+      "setting": "transitional zones, doorways, passages",
+      "outfit_modifiers": {
+        "barista": ["traveling", "transit_attire", "mobile"],
+        "archivist": ["portable_collections", "transit_wear", "mobile_library"],
+        "authority": ["patrol", "security", "transit_formal"],
+        "lover": ["traveling", "transit_elegant", "in_motion"],
+        "reflection": ["nomadic", "traveling_artist", "ephemeral"]
+      },
+      "color_palette": ["neutral", "transitional", "ethereal"],
+      "lighting": "twilight",
+      "personality_shift": 0.5
+    },
+    {
+      "layer": "supraliminal",
+      "name": "Supraliminal — Open World",
+      "setting": "urban streets, parks, outdoor venues",
+      "outfit_modifiers": {
+        "barista": ["street_cafe", "outdoor_vendor", "casual_professional"],
+        "archivist": ["museum", "library", "academic"],
+        "authority": ["public_official", "guard", "civic_leader"],
+        "lover": ["social_butterfly", "fashionable_public", "crowd_ready"],
+        "reflection": ["street_artist", "urban_nomad", "visible_outsider"]
+      },
+      "color_palette": ["natural", "civic", "vibrant"],
+      "lighting": "daylight",
+      "personality_shift": 0.0
+    },
+    {
+      "layer": "hyperliminal",
+      "name": "Hyperliminal — Catsino",
+      "setting": "casino, games, entertainment venues",
+      "outfit_modifiers": {
+        "barista": ["bartender", "casino_staff", "service_formal"],
+        "archivist": ["pit_boss", "records_keeper", "management"],
+        "authority": ["security", "enforcer", "casino_authority"],
+        "lover": ["dealer", "host", "glamorous_staff"],
+        "reflection": ["fortune_teller", "mysterious_staff", "enigma"]
+      },
+      "color_palette": ["gold", "black", "neon", "glamorous"],
+      "lighting": "artificial_bright",
+      "personality_shift": 0.4
+    },
+    {
+      "layer": "extraliminal",
+      "name": "Extraliminal — Guild Territory",
+      "setting": "guild hideouts, contested zones, outdoor strongholds",
+      "outfit_modifiers": {
+        "barista": ["camp_cook", "mobile_vendor", "supply_handler"],
+        "archivist": ["scribe", "records_master", "lore_keeper"],
+        "authority": ["general", "commander", "warlord"],
+        "lover": ["strategist", "commander", "charismatic_leader"],
+        "reflection": ["scout", "mysterious_guide", "shadowy_figure"]
+      },
+      "color_palette": ["tactical", "worn", "earthy"],
+      "lighting": "natural_variable",
+      "personality_shift": 0.6
+    },
+    {
+      "layer": "periliminal",
+      "name": "Periliminal — Psychology Gauntlet",
+      "setting": "abstract, surreal, shifting environments",
+      "outfit_modifiers": {
+        "barista": ["ephemeral_server", "dream_attire", "shifting"],
+        "archivist": ["memory_keeper", "void_scribe", "ethereal"],
+        "authority": ["inner_conflict", "shadow_self", "primal"],
+        "lover": ["idealized", "desired", "perfected"],
+        "reflection": ["true_self", "shadow_mirror", "authentic"]
+      },
+      "color_palette": ["surreal", "dreamlike", "archetypal"],
+      "lighting": "impossible",
+      "personality_shift": 1.0
+    }
+  ],
+  "name_pools": {
+    "first_names_neutral": [
+      "Alex", "Casey", "Jordan", "Morgan", "Riley", "Taylor", "Morgan", "Quinn",
+      "Sage", "River", "Sky", "Phoenix", "Storm", "Asher", "Rowan", "Finley",
+      "Harper", "Skylar", "Avery", "Charlie", "Madison", "Cameron", "Bailey", "Dakota"
+    ],
+    "first_names_feminine": [
+      "Emma", "Olivia", "Sophia", "Isabella", "Ava", "Mia", "Charlotte", "Amelia",
+      "Elise", "Zara", "Maya", "Iris", "Aurora", "Luna", "Stella", "Nova",
+      "Elena", "Victoria", "Grace", "Sophia", "Aria", "Nadia", "Sofia", "Elena"
+    ],
+    "first_names_masculine": [
+      "Liam", "Noah", "Oliver", "Elijah", "James", "Benjamin", "Lucas", "Henry",
+      "Alexander", "Marcus", "Leo", "Ethan", "Nathan", "Samuel", "Gabriel", "Michael",
+      "David", "Joseph", "Charles", "Daniel", "Viktor", "Adrian", "Silas"
+    ],
+    "last_names": [
+      "Sage", "Stone", "Rivers", "Walker", "Turner", "Anderson", "Bennett", "Carter",
+      "Cooper", "Davis", "Evans", "Foster", "Graham", "Harrison", "Hunter", "Jackson",
+      "Kennedy", "Lawrence", "Martin", "Murray", "Nelson", "Peterson", "Quinn", "Roberts",
+      "Sanders", "Taylor", "Thompson", "Tucker", "Underwood", "Valencia", "Warren",
+      "Wells", "Wheeler", "Wright", "Young", "Zimmerman", "Adams", "Blake", "Brooks",
+      "Burns", "Chapman", "Clarke", "Coleman", "Collins", "Crawford", "Daniels",
+      "Davidson", "Dawson", "Delgado", "Dennis", "Diaz", "Dickson", "Dixon"
+    ]
+  },
+  "dispositions": [
+    {"mood": "cheerful", "greeting_shift": 0.3, "quest_availability": 1.0},
+    {"mood": "neutral", "greeting_shift": 0.0, "quest_availability": 0.8},
+    {"mood": "reserved", "greeting_shift": -0.2, "quest_availability": 0.6},
+    {"mood": "suspicious", "greeting_shift": -0.4, "quest_availability": 0.3},
+    {"mood": "melancholy", "greeting_shift": -0.3, "quest_availability": 0.5}
+  ],
+  "daily_schedules": [
+    {
+      "name": "vendor",
+      "description": "Works a shop or stall",
+      "hours": "8-18",
+      "location_variance": 0.1,
+      "availability": 0.95
+    },
+    {
+      "name": "wanderer",
+      "description": "Travels between locations",
+      "hours": "daylight",
+      "location_variance": 0.8,
+      "availability": 0.7
+    },
+    {
+      "name": "sleeper",
+      "description": "Only active at night",
+      "hours": "20-8",
+      "location_variance": 0.3,
+      "availability": 0.8
+    },
+    {
+      "name": "sociable",
+      "description": "Gathers at popular spots",
+      "hours": "varies",
+      "location_variance": 0.6,
+      "availability": 0.75
+    },
+    {
+      "name": "recluse",
+      "description": "Avoids crowds",
+      "hours": "off-peak",
+      "location_variance": 0.2,
+      "availability": 0.5
+    }
+  ]
+}
