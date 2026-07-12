@@ -1,0 +1,49 @@
+{
+  "hub_id": "arlington",
+  "name": "Soulless Sanctuary",
+  "real_world": "Arlington",
+  "source": "OpenStreetMap via Overpass API",
+  "attribution": "\u00a9 OpenStreetMap contributors (ODbL)",
+  "bbox_wgs84": {
+    "south": 32.74,
+    "west": -97.1,
+    "north": 32.76,
+    "east": -97.07
+  },
+  "origin_wgs84": {
+    "lat": 32.75,
+    "lon": -97.085
+  },
+  "scale": 0.075277,
+  "span": 280.0,
+  "size": {
+    "x": 280.0,
+    "z": 208.71
+  },
+  "landmarks": [
+    {
+      "id": "sanctuary_dome",
+      "query": "AT&T Stadium",
+      "name": "Dallas Stadium",
+      "x": 98.8,
+      "z": 104.3,
+      "kind": "building"
+    },
+    {
+      "id": "star_bowl",
+      "query": "Globe Life Field",
+      "name": "Globe Life Field (Texas Rangers Stadium)",
+      "x": 159.65,
+      "z": 107.45,
+      "kind": "building"
+    },
+    {
+      "id": "space_station",
+      "query": "Esports Stadium Arlington",
+      "name": "Esports Stadium Arlington",
+      "x": 178.32,
+      "z": 43.15,
+      "kind": "poi"
+    }
+  ]
+}

@@ -1,9 +1,11 @@
 class_name LandmarkBuilder
 ## The skyline anchors: procedural homages to each real city's most
-## recognizable silhouettes, placed at fixed spots in each hub so the
-## skyline reads as THAT city at a glance — same bones as the real thing,
-## differing only through the texture/light/sound packs and the per-race
-## identity lens. Every landmark checks AssetLibrary for a real model
+## recognizable silhouettes. When OpenStreetMap data is present
+## (`OsmCityLayout`), each landmark is placed at its real downtown
+## coordinates so the skyline reads as THAT city at a glance — same bones
+## as the real thing, differing only through texture/light/sound packs and
+## the per-race identity lens. Falls back to fixed city-cell offsets when
+## no OSM snap exists. Every landmark checks AssetLibrary for a real model
 ## first (slot "landmark_<id>"); the procedural build is the fallback.
 ##
 ## These are original constructions evoking public skyline silhouettes —
@@ -34,7 +36,13 @@ const CITY_LANDMARKS := {
 
 static func place_all(city_root: Node3D, hub_id: String, accent: Color, base_y: float) -> void:
 	for lm in CITY_LANDMARKS.get(hub_id, []):
-		var pos := Vector3(float(lm.cell.x) * CityData.CELL, base_y, float(lm.cell.y) * CityData.CELL)
+		var osm := OsmCityLayout.landmark_pos(hub_id, str(lm.id))
+		var pos: Vector3
+		if osm.x != INF:
+			# Real OSM snap — landmark sits on its real downtown coordinates.
+			pos = Vector3(osm.x, base_y, osm.y)
+		else:
+			pos = Vector3(float(lm.cell.x) * CityData.CELL, base_y, float(lm.cell.y) * CityData.CELL)
 		var node := AssetLibrary.instance("landmark_%s" % lm.id)
 		if node == null:
 			node = _build(str(lm.id), accent)

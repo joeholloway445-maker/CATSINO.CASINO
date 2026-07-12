@@ -1,0 +1,41 @@
+{
+  "hub_id": "dallas",
+  "name": "New Dallas",
+  "real_world": "Dallas",
+  "source": "OpenStreetMap via Overpass API",
+  "attribution": "\u00a9 OpenStreetMap contributors (ODbL)",
+  "bbox_wgs84": {
+    "south": 32.775,
+    "west": -96.812,
+    "north": 32.792,
+    "east": -96.79
+  },
+  "origin_wgs84": {
+    "lat": 32.783500000000004,
+    "lon": -96.801
+  },
+  "scale": 0.084042,
+  "span": 280.0,
+  "size": {
+    "x": 280.0,
+    "z": 222.68
+  },
+  "landmarks": [
+    {
+      "id": "reunion_spire",
+      "query": "Reunion Tower",
+      "name": "Reunion Tower",
+      "x": 73.16,
+      "z": 180.82,
+      "kind": "poi"
+    },
+    {
+      "id": "emerald_slab",
+      "query": "Bank of America Plaza",
+      "name": "Bank of America Plaza",
+      "x": 112.83,
+      "z": 137.25,
+      "kind": "building"
+    }
+  ]
+}

@@ -122,4 +122,4 @@ func _toggle_omni_dex() -> void:
 	add_child(dex)
 
 func _show_info() -> void:
-	NotificationUI.notify_info("Periliminal.Space — a psychology XRMMORPG across six reality layers. The Catsino is one of them, not the main game.")
+	NotificationUI.notify_info("Periliminal.Space — a psychology XRMMORPG across six reality layers. The Catsino is one of them, not the main game. City streets: © OpenStreetMap contributors (ODbL).")
