@@ -16,11 +16,15 @@ Ids in code stay `dallas` / `fort_worth` / `denton` / `arlington`
 
 ## Inner metroplex vs. outskirts (the generation boundary)
 
-- **Inside hub bounds**: hand-authored city (MegaCityBuilder blueprint +
-  LandmarkBuilder skyline anchors + CityVenues civic set) — the "as close
-  to 1:1 as the blueprint allows" zone, differing per player only through
-  texture/light/sound packs and the identity lens. The future OSM pass
-  (below) upgrades these streets to literal real-street-grid replicas.
+- **Inside hub bounds**: OpenStreetMap-derived downtown clone
+  (`godot/world_data/osm/<hub>.json` via `OsmCityLayout` +
+  `MegaCityBuilder._build_osm_city`) — real street polylines and building
+  footprints for each DFW core, uniformly rescaled to the hub footprint.
+  LandmarkBuilder snaps skyline anchors to real OSM coordinates when
+  known; CityVenues prefer real bank/market/etc. POIs. Differs per player
+  only through texture/light/sound packs and the identity lens. If an OSM
+  file is missing, falls back to the procedural `CityData.HUB_LAYOUT`
+  district grid.
 - **Outside hub bounds**: fully procedural (DiscoveryManager +
   ProceduralRegionGenerator), and PLAYER-COMPILED — every visitor's
   influence pack repaints the chunk's dominant texture tint over repeated
@@ -47,15 +51,17 @@ menu = the same referendum floor.
 `godot/src/world/city/` builds a **fully functional mega-city** for each
 hub the first time the player enters it (`layer_world._ensure_city`):
 
-- **`CityData`** — the blueprint: per-hub district floor plans (downtown /
-  market / residential / industrial / faction-core), building profiles,
-  block/road dimensions, light rig, and sound bed. Every hard-mesh part
-  names the AssetLibrary model + texture + sound slot it depends on.
-- **`MegaCityBuilder`** — assembles a hub: road grid, sidewalks, one
-  building per block, streetlights, neon signage, plaza gaps, props.
-  Deterministic per hub (same city every visit).
+- **`CityData`** — the blueprint: per-hub district floor plans (fallback
+  when OSM data is absent), building profiles, block/road dimensions,
+  light rig, and sound bed. Every hard-mesh part names the AssetLibrary
+  model + texture + sound slot it depends on.
+- **`OsmCityLayout`** — loads `world_data/osm/<hub>.json` (OpenStreetMap
+  downtown clones: streets, buildings, POIs, landmark snaps).
+- **`MegaCityBuilder`** — assembles a hub from OSM street polylines +
+  building footprints when present, else the procedural road grid;
+  streetlights, neon signage, plazas, props. Deterministic per hub.
 - **`BuildingBuilder`** — one building, real asset or procedural shell,
-  with emissive window bands.
+  with emissive window bands (`build_osm` respects real footprint/floors).
 - **`CityLighting`** — rides every window / streetlight / neon on the
   day/night curve (dark by day, lit at dusk).
 - **`CityAmbience`** — per-district layered soundscape (real audio if
@@ -66,8 +72,8 @@ Every surface routes through `AssetLibrary` (models + textures) and
 dropping asset packs in — no code change. See `docs/SHIPPING.md` for the
 exact slot names.
 
-The rest of this doc is the deeper real-world-geography plan for a future
-pass that swaps procedural hub blocks for OSM-derived real street grids.
+The rest of this doc covers relative metroplex placement and how the
+OSM import pipeline works (refresh, attribution, compression).
 
 ## What exists today
 
@@ -88,11 +94,13 @@ deterministically per chunk coordinate. That boundary — hub rectangle vs.
 everywhere else — **is** the procedural-generation start line, and it
 already works today.
 
-The current placement is **directionally correct** (Fort Worth west,
-Dallas east, Denton north, Arlington between) but is a stylized
-abstraction, not to real-world scale or real street layouts.
+Hub **interiors** are no longer stylized grids: each loads a compressed
+1:1 clone of its real downtown from OpenStreetMap (`world_data/osm/`).
+Relative placement of the four hubs on the chunk grid stays directionally
+correct (Fort Worth west, Dallas east, Denton north, Arlington between)
+at compressed metro distances.
 
-## Real-world reference (for scaling/orientation, not literal import)
+## Real-world reference (for scaling/orientation)
 
 Approximate real distances between city centers, for calibrating relative
 placement if the grid is ever rescaled:
@@ -105,44 +113,40 @@ placement if the grid is ever rescaled:
 
 At the current `CHUNK_SIZE=64`, 1 chunk ≈ real-world scale is whatever
 feels good for on-foot traversal — this project is not aiming for
-1:1 real-world scale (that would make hub-to-hub travel take real hours of
-play time). The existing bounds compress ~30-40 real miles into a
-20-30 chunk span, which is the right instinct: keep the *relative
-directions and rough proportions* faithful, compress the *actual
-distances* for playability.
+1:1 real-world scale *between* hubs (that would make hub-to-hub travel
+take real hours of play time). The existing bounds compress ~30-40 real
+miles into a 20-30 chunk span. **Inside** each hub, streets and buildings
+*are* a uniform-scale clone of the real downtown core (see OSM pipeline).
 
-## Where real open map data comes in
+## OpenStreetMap downtown import (shipped)
 
-If/when the hub interiors get upgraded from procedural placeholder rooms
-to actually-DFW-flavored layouts, the source should be **OpenStreetMap**
-data via the Overpass API — it's free, open (ODbL-licensed, attribution
-required, no per-request cost), and has real street grids, block shapes,
-and points of interest for all four real cities. Recommended pipeline:
+Hub interiors come from **OpenStreetMap** via the Overpass API — free,
+open (ODbL-licensed, attribution required), with real street grids, block
+shapes, and points of interest for all four real cities.
 
-1. Query Overpass for each hub's real-world bounding box (e.g. downtown
-   Fort Worth's Sundance Square area, downtown Dallas's Arts District,
-   Arlington's entertainment district around the stadiums, Denton's
-   courthouse square) — `way["highway"]` for streets,
-   `way["building"]` for footprints.
-2. Convert the returned lat/lon geometry to local XZ meters (equirectangular
-   projection is accurate enough at this scale), then rescale to fit each
-   hub's existing chunk-bound footprint.
-3. Feed the street graph into `ProceduralTerrain`'s prop-scatter pass as a
-   road/plot mask instead of pure noise, so hub streets read as an actual
-   street grid while everything beyond the hub boundary stays procedural
-   fantasy terrain, exactly as it does today.
-4. Attribution: any shipped build using OSM-derived data needs a
-   `© OpenStreetMap contributors` credit (in `docs/`, a credits screen, or
-   both) per the ODbL.
+Pipeline (already wired):
 
-This is real, incremental work for a future pass — it slots into the
-existing hub/procedural boundary without changing that architecture.
+1. `scripts/fetch_osm_cities.py` queries Overpass for each hub's real-world
+   bounding box (downtown Dallas / Sundance Square / Arlington stadium
+   district / Denton courthouse square) — `way["highway"]` for streets,
+   `way["building"]` for footprints, named POIs for landmark snaps.
+2. Lat/lon → local XZ meters (equirectangular), then uniform rescale to a
+   ~280 m `TARGET_SPAN` that fits inside each hub's chunk bounds.
+3. JSON lands in `godot/world_data/osm/<hub>.json`. `OsmCityLayout` loads
+   it; `MegaCityBuilder` extrudes street polylines and places buildings on
+   real footprints (procedural shells via `BuildingBuilder.build_osm`,
+   real assets when AssetLibrary has them).
+4. Attribution: `godot/world_data/osm/ATTRIBUTION.md` + credits —
+   `© OpenStreetMap contributors` (ODbL). Refresh anytime with
+   `python3 scripts/fetch_osm_cities.py`.
 
-## Open questions before building the pipeline
+Outside hub bounds stays procedural fantasy terrain, exactly as before.
 
-- Which landmarks matter for gameplay (faction hub centerpieces, PvP
-  chokepoints, Liminal door placement density) vs. which are just flavor?
-- Target hub footprint in chunks — the table above uses 6-8 chunk widths
-  today; real downtown cores are much larger relative to the surrounding
-  metro than that ratio implies, so some deliberate compression choice is
-  needed either way.
+## Open questions / next sharpening
+
+- Landmark coverage: some silhouettes (Margaret Hunt Hill Bridge, Fort
+  Worth Stockyards, Denton water tower, UTA campus) sit outside the
+  current downtown bboxes — widen a hub bbox in the fetch script and
+  re-run to snap them.
+- Target hub footprint vs. real downtown size — `TARGET_SPAN` is the
+  compression knob; raise it if hubs feel too small relative to the wilds.

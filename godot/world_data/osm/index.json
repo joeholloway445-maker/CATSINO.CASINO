@@ -1,0 +1,95 @@
+{
+  "attribution": "\u00a9 OpenStreetMap contributors (ODbL)",
+  "source": "OpenStreetMap via Overpass API",
+  "target_span": 280.0,
+  "hubs": {
+    "dallas": {
+      "file": "dallas.json",
+      "real_world": "Dallas",
+      "streets": 180,
+      "buildings": 220,
+      "landmarks": [
+        {
+          "id": "reunion_spire",
+          "query": "Reunion Tower",
+          "name": "Reunion Tower",
+          "x": 73.16,
+          "z": 180.82,
+          "kind": "poi"
+        },
+        {
+          "id": "emerald_slab",
+          "query": "Bank of America Plaza",
+          "name": "Bank of America Plaza",
+          "x": 112.83,
+          "z": 137.25,
+          "kind": "building"
+        }
+      ]
+    },
+    "fort_worth": {
+      "file": "fort_worth.json",
+      "real_world": "Fort Worth",
+      "streets": 180,
+      "buildings": 220,
+      "landmarks": [
+        {
+          "id": "acre_clocktower",
+          "query": "Tarrant County Courthouse",
+          "name": "Tarrant County Courthouse",
+          "x": 60.02,
+          "z": 119.74,
+          "kind": "building"
+        }
+      ]
+    },
+    "arlington": {
+      "file": "arlington.json",
+      "real_world": "Arlington",
+      "streets": 180,
+      "buildings": 220,
+      "landmarks": [
+        {
+          "id": "sanctuary_dome",
+          "query": "AT&T Stadium",
+          "name": "Dallas Stadium",
+          "x": 98.8,
+          "z": 104.3,
+          "kind": "building"
+        },
+        {
+          "id": "star_bowl",
+          "query": "Globe Life Field",
+          "name": "Globe Life Field (Texas Rangers Stadium)",
+          "x": 159.65,
+          "z": 107.45,
+          "kind": "building"
+        },
+        {
+          "id": "space_station",
+          "query": "Esports Stadium Arlington",
+          "name": "Esports Stadium Arlington",
+          "x": 178.32,
+          "z": 43.15,
+          "kind": "poi"
+        }
+      ]
+    },
+    "denton": {
+      "file": "denton.json",
+      "real_world": "Denton",
+      "streets": 180,
+      "buildings": 220,
+      "landmarks": [
+        {
+          "id": "fjord_dome",
+          "query": "Denton County Courthouse",
+          "name": "Historic Denton County Courthouse",
+          "x": 111.56,
+          "z": 181.47,
+          "kind": "building"
+        }
+      ]
+    }
+  }
+}

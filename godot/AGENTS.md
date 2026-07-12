@@ -117,11 +117,15 @@ intended bypass for gated content.
   `periliminal_runs.gd` (runs, wipe, `difficulty()`, blessing),
   `layer_exit_door.gd`, `extraliminal_manager.gd`, `src/world/door.gd`
   (prestige LiminalDoor).
-- **City stack**: `src/world/city/` — `city_data.gd`, `mega_city_builder.gd`
-  (also seeds hideout sites + hidden doors), `building_builder.gd`,
+- **City stack**: `src/world/city/` — `city_data.gd`, `osm_city_layout.gd`
+  (OpenStreetMap downtown clones in `world_data/osm/`),
+  `mega_city_builder.gd` (OSM streets/buildings when present; also seeds
+  hideout sites + hidden doors), `building_builder.gd`,
   `landmark_builder.gd`, `city_venues.gd`, `city_lighting.gd`,
   `city_ambience.gd`, `traffic_ribbons.gd`, `city_door.gd`,
   `hidden_door.gd`, `breakable_prop.gd`, `guild_hideout.gd`.
+  Refresh OSM data with `python3 scripts/fetch_osm_cities.py`
+  (© OpenStreetMap contributors, ODbL).
 - **Territory**: `src/social/hideout_registry.gd` (autoload) — multi-site
   hideouts in Supraliminal AND Extraliminal, 220m guild-exclusion radius,
   optional banners, PoGo-style entity defenders (a defending entity is

@@ -28,10 +28,18 @@ const VENUE_COLORS := {
 	"stockyards": Color(0.55, 0.4, 0.25), "wager_hall": Color(0.7, 0.4, 0.9),
 }
 
-static func place_all(city_root: Node3D, accent: Color, base_y: float, player: Node3D) -> void:
+static func place_all(city_root: Node3D, accent: Color, base_y: float, player: Node3D,
+		hub_id: String = "") -> void:
+	var i := 0
 	for v in VENUES:
-		var pos := Vector3(float(v.cell.x) * CityData.CELL, base_y, float(v.cell.y) * CityData.CELL)
+		var pos: Vector3
+		var osm := OsmCityLayout.venue_pos(hub_id, str(v.kind), i) if hub_id != "" else Vector2.INF
+		if osm.x != INF:
+			pos = Vector3(osm.x, base_y, osm.y)
+		else:
+			pos = Vector3(float(v.cell.x) * CityData.CELL, base_y, float(v.cell.y) * CityData.CELL)
 		city_root.add_child(_venue(str(v.kind), str(v.label), str(v.icon), pos, accent, player))
+		i += 1
 
 static func _venue(kind: String, label: String, icon: String, pos: Vector3,
 		accent: Color, player: Node3D) -> Node3D:
