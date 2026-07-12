@@ -10,24 +10,49 @@
 
 ### 1. **Main Menu**
 - New Game | Continue | Settings | Credits | Exit
-- Background: Animated liminal space
-- Logo center
-- Music: Ambient layer theme
+- Background: **[USER CUSTOM BACKGROUND PROVIDED]**
+- Logo: **[USER CUSTOM LOGO PROVIDED]**
+- Music: **[USER CUSTOM THEME SONG PROVIDED]**
+- Status: ✅ CUSTOM ASSETS READY, BUILD IMPLEMENTATION
 
 ### 2. **Character Creator**
-- Race selection (20 races, 3-option preview per race)
-- Frame selection (20 frames, visual overlay)
-- Mod selection (20 mods, final appearance preview)
-- Full body preview (real-time update as selections change)
-- Name input field
-- Confirm / Back buttons
+**ARCHITECTURE**: Races → Frames → Mods (strictly segregated)
+
+**RACES (20 cat types - TEXTURE DRIVERS)**
+- Texture type, color, fur pattern, size modifier
+- Each race has cat type (Tabby, Siamese, Bengal, etc.)
+- Synced with OmniDex for consistency
+- Preview: Full 3D cat model with race textures
+
+**FRAMES (20 classes - ABILITY & SOUND DRIVERS)**
+- Light color and intensity (visual identity in-game)
+- Sound theme (voice effects, ability SFX)
+- Class abilities (Warrior: slash/shield, Mage: fireball/frost, etc.)
+- Stat bonuses: power, resistance, speed
+- Frame selection changes HUD lighting and ability bar layout
+
+**MODS (20 physical modifications - MATH & MOBILITY DRIVERS)**
+- Stat modifiers (in-game damage/defense/speed calculations)
+- Mobility multiplier (sprint speed, dodge distance)
+- Damage multiplier (all damage output)
+- Defense multiplier (damage reduction)
+- Armor visual (appearance in-game)
+
+**FLOW**: Race selected → Preview cat texture | Frame selected → Preview lighting + ability bar | Mod selected → Preview stat adjustments + armor overlay
+
+**FINAL PREVIEW**: Real-time 3D character with:
+- Race texture + fur pattern
+- Frame lighting effects
+- Mod armor visual
+- Ability bar layout
+- Estimated stat values
 
 ### 3. **Main HUD (In-Game Overlay)**
 - Health bar (top-left)
 - Mana bar (top-left, below health)
 - Energy bar (top-left, below mana)
-- Current level (top-right)
-- Current XP progress (top-right, below level)
+- **Current Perception** (top-right) — CHANGED FROM "Current Level"
+- **Current Prestige** (top-right, below Perception) — CHANGED FROM "Current XP Progress"
 - Minimap (top-right corner)
 - Ability hotbar (bottom, 8 slots for abilities 1-8)
 - Status effects display (small icons, right side below abilities)
@@ -61,15 +86,25 @@ Tab System:
 - Abandon quest button
 - Branch visualization (if quest has multiple paths)
 
-### 7. **Combat UI**
-- Initiative order display (top-center, shows turn sequence)
-- Enemy health bar (center, above enemy sprite)
-- Player health/mana/energy (left side, large bars)
-- Ability icons (bottom, 8-slot hotbar with cooldown rings)
-- Damage numbers (floating text when hits land)
-- Status effects on player/enemy (icon display)
-- Turn indicator (whose turn is it?)
-- Special attack warning (red highlight when under attack)
+### 7. **Combat UI (LIVE ACTION - NO TURNS)**
+**ARCHITECTURE**: Real-time action-based combat with cooldowns
+
+- **Enemy health bar** (above enemy, real-time updates)
+- **Player health/mana/energy** (left side, large bars with continuous regen visualization)
+- **Ability hotbar** (bottom, 8-slot with COOLDOWN RINGS not turn order)
+  - Each ability shows: remaining cooldown, range indicator
+  - Ability unavailable: grayed out + cooldown timer
+  - Ability ready: glowing green
+- **Energy system** (replaces turn cost):
+  - Abilities cost energy (depletes on use)
+  - Energy regenerates over time (10/sec in combat)
+  - Full recharge: ~10 seconds
+- **Damage numbers** (floating text, color-coded: white=normal, gold=crit, red=miss)
+- **Status effects** (icon display, duration bar per effect)
+- **Range indicator** (shows if target is in ability range)
+- **Positioning** (shows distance to enemy, affects ability availability)
+- **Casting bar** (if ability has cast time > 0.3s)
+- **No turn indicator** - actions are simultaneous/parallel
 
 ### 8. **Dialogue UI**
 - NPC portrait (left side)
@@ -107,13 +142,30 @@ Tab System:
 - Faction-specific perks/unlocks at each tier
 - Reputation change log (recent actions that affected rep)
 
-### 12. **Cosmetics Shop**
-- Category tabs (Transmog, Auras, Particles, Titles)
-- Item grid (cosmetics with prices)
-- Purchase button + currency validation
-- Equipped cosmetic indicator (checkmark)
-- Preview on player model
-- Filter by rarity/type
+### 12. **Cosmetics Shop (1,000+ COSMETICS)**
+- **Category tabs**: 
+  - Transmog (armor/outfits, 400+ variants)
+  - Auras (energy effects, 150+ variants)
+  - Particles (ability VFX, 200+ variants)
+  - Titles (stat-boosting cosmetics, 100+ variants)
+  - Emotes (character animations, 150+ variants)
+  - Pets (companion cosmetics)
+- **Item grid** (1,000+ cosmetics with prices)
+- **Price tiers**: 
+  - Common: 100 gems
+  - Rare: 500 gems
+  - Epic: 2000 gems
+  - Legendary: 5000 gems
+- **Purchase button** + currency validation
+- **Equipped indicator** (gold star, checkmark)
+- **Preview on player model** (real-time update)
+- **Filter/search**:
+  - By category
+  - By rarity
+  - By price
+  - By name (search bar)
+- **Favorites system** (star icon to bookmark)
+- **Limited edition tracker** (time-limited cosmetics with countdown)
 
 ### 13. **Settings Menu**
 - **Audio**: Master volume, SFX volume, Music volume, Voice volume, Mute option
@@ -236,35 +288,40 @@ Tab System:
 
 ## Implementation Priority
 
-**Week 1** (screens 1-10):
-- Main Menu
-- Character Creator
-- Main HUD
+**STATUS**: PARALLEL BUILD - ALL SCREENS SIMULTANEOUSLY (not sequential)
+
+**CRITICAL PATH (Launch blockers - must ship day 1)**:
+1. Main Menu (custom assets ready)
+2. Character Creator (identity system complete)
+3. Main HUD (live action overlay)
+4. Combat UI (live action real-time)
+5. Inventory UI (item equip/management)
+6. Quest Log (objective tracking)
+7. Ability Hotbar (linked to combat system)
+
+**SECONDARY (Ship week 1-2)**:
 - Character Sheet
-- Inventory
-- Quest Log
-- Combat UI
 - Dialogue UI
 - PvP Ranking
 - Achievement Notifications
-
-**Week 2** (screens 11-18):
 - Faction Reputation
-- Cosmetics Shop
+- Cosmetics Shop (1,000+ items)
 - Settings
-- Crafting
-- Status Effects
+- Crafting UI
+- Status Effects Display
 - World Map
 - Level Up Screen
 - Game Over Screen
 
-**Week 3+** (screens 19-24):
+**TERTIARY (Nice to have, post-launch)**:
 - Notifications Panel
 - Trading Interface
 - Guild Interface
 - Friend List
 - Options Menu
 - Loading Screen
+
+**BUILD STRATEGY**: Deploy **parallel agent teams** per screen (not sequential weeks)
 
 ---
 
