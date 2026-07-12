@@ -1,5 +1,4 @@
 extends Node
-class_name BattlePass
 # Seasonal battle pass with free and premium tracks
 
 signal tier_unlocked(tier: int, reward: Dictionary, is_premium: bool)

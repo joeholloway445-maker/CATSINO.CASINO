@@ -1,5 +1,4 @@
 extends Node
-class_name CompanionSystem
 
 # ── Signals ────────────────────────────────────────────────────────────────────
 signal companion_evolved(companion_id: int, new_level: int)
@@ -149,7 +148,7 @@ func _generate_roster() -> void:
 	roster.clear()
 	_companion_index.clear()
 	var rng := RandomNumberGenerator.new()
-	rng.seed = 0xCATS1N0  # deterministic
+	rng.seed = hash("CATSINO")  # deterministic
 
 	# Name fragments for procedural generation
 	var prefixes := ["Shadow", "Storm", "Ember", "Frost", "Neon", "Void", "Solar",
@@ -160,7 +159,7 @@ func _generate_roster() -> void:
 	                  "Scratch", "Hiss", "Sprint", "Lunge", "Dash", "Glide", "Pounce"]
 
 	for i in range(MAX_COMPANIONS):
-		var faction := FACTIONS[rng.randi() % FACTIONS.size()]
+		var faction: String = FACTIONS[rng.randi() % FACTIONS.size()]
 		var rarity_roll := rng.randf()
 		var rarity: String
 		if   rarity_roll < 0.40: rarity = "Common"
@@ -168,8 +167,8 @@ func _generate_roster() -> void:
 		elif rarity_roll < 0.85: rarity = "Rare"
 		elif rarity_roll < 0.95: rarity = "Epic"
 		else:                    rarity = "Legendary"
-		var name_str := prefixes[rng.randi() % prefixes.size()] + \
-		               suffixes[rng.randi() % suffixes.size()]
+		var name_str: String = str(prefixes[rng.randi() % prefixes.size()]) + \
+		               str(suffixes[rng.randi() % suffixes.size()])
 		var c := CompanionData.new(i, name_str, faction, rarity)
 		roster.append(c)
 		_companion_index[i] = c

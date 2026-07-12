@@ -79,6 +79,7 @@ PvxcManager="*res://src/pvxc/pvxc_manager.gd"
 BlueprintManager="*res://src/blueprints/blueprint_manager.gd"
 Marketplace="*res://src/economy/marketplace.gd"
 MusicManager="*res://src/audio/music_manager.gd"
+CasinoHTTPClient="*res://src/networking/http_client.gd"
 
 [display]
 
@@ -117,6 +118,13 @@ renderer/rendering_method.mobile="gl_compatibility"
 textures/vram_compression/import_etc2_astc=true
 anti_aliasing/quality/msaa_2d=2
 anti_aliasing/quality/msaa_3d=2
+
+[debug]
+
+gdscript/warnings/treat_warnings_as_errors=false
+gdscript/warnings/inference_on_variant=0
+gdscript/warnings/untyped_declaration=0
+gdscript/warnings/inferred_declaration=0
 
 [editor_plugins]
 

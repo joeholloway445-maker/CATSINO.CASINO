@@ -1,5 +1,5 @@
 extends Node
-class_name CombatSystem
+class_name LegacyCombatSystem
 
 # Real-time turn-based combat with abilities, status effects, and tactical positioning
 

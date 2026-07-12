@@ -1,5 +1,4 @@
 extends Node
-class_name EconomyManager
 
 # ── Signals ────────────────────────────────────────────────────────────────────
 signal balance_changed(currency: String, old_balance: int, new_balance: int)
@@ -240,7 +239,7 @@ func can_claim_daily_bonus() -> bool:
 
 # ── Private ────────────────────────────────────────────────────────────────────
 func _adjust_balance(currency: String, delta: int) -> void:
-	var old := _balances[currency]
+	var old: int = int(_balances[currency])
 	_balances[currency] = maxi(0, old + delta)
 	emit_signal("balance_changed", currency, old, _balances[currency])
 	_save_local_cache()
@@ -284,7 +283,7 @@ func _load_local_cache() -> void:
 	var f := FileAccess.open("user://economy_cache.json", FileAccess.READ)
 	if not f:
 		return
-	var parsed := JSON.parse_string(f.get_as_text())
+	var parsed = JSON.parse_string(f.get_as_text())
 	if parsed is Dictionary:
 		if "balances" in parsed:
 			_balances.merge(parsed["balances"], true)
@@ -294,13 +293,13 @@ func _load_local_cache() -> void:
 func _sync_balances_from_server() -> void:
 	if not _nakama_client:
 		return
-	var result := await _rpc("economy/get_balances", {})
+	var result = await _rpc("economy/get_balances", {})
 	if result and "balances" in result:
 		for currency in result["balances"]:
 			if currency in _balances:
 				var server_val: int = result["balances"][currency]
 				if server_val != _balances[currency]:
-					var old := _balances[currency]
+					var old: int = int(_balances[currency])
 					_balances[currency] = server_val
 					emit_signal("balance_changed", currency, old, server_val)
 		_save_local_cache()

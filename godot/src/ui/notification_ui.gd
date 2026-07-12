@@ -1,5 +1,4 @@
 extends CanvasLayer
-class_name NotificationUI
 # Toast notification system — shows brief messages in the corner
 
 const DURATION = 3.0

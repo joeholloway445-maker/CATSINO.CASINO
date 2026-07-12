@@ -48,7 +48,7 @@ const SYNERGY_RULES: Array[Dictionary] = [
 	{"races": [Race.IGNI, Race.FEROX], "frames": [Frame.IGNIS, Frame.CINDER], "stat": "pow", "bonus": 0.20},
 	{"races": [Race.NYX, Race.GLYPHE], "mods": [Mod.VOID_CORE, Mod.NULL],     "stat": "spd", "bonus": 0.15},
 	{"races": [Race.AQUIS, Race.KRYOS],"frames": [Frame.GLACIAL, Frame.GLACI],"stat": "res", "bonus": 0.18},
-	{"races": [Race.VOLT, Race.GEARA], "mods": [Mod.KINETIC, Mod.VOLT],       "stat": "spd", "bonus": 0.22},
+	{"races": [Race.VOLT, Race.GEARA], "mods": [Mod.KINETIC, Mod.VOLATILE],  "stat": "spd", "bonus": 0.22},
 	{"races": [Race.LUMARI, Race.ASTRA],"mods": [Mod.PRIME, Mod.ALPHA],       "stat": "lck", "bonus": 0.15},
 	{"races": [Race.CHIMERA],           "mods": [Mod.PRISM, Mod.ENTROPY],     "stat": "sty", "bonus": 0.25},
 ]
@@ -74,11 +74,11 @@ func get_frame_class() -> FrameClass:
 func compute_synergy_bonus() -> float:
 	var total_bonus := 0.0
 	for rule: Dictionary in SYNERGY_RULES:
-		var race_match  := "races"  not in rule or race  in rule["races"]
-		var frame_match := "frames" not in rule or frame in rule["frames"]
-		var mod_match   := "mods"   not in rule or mod   in rule["mods"]
+		var race_match: bool = ("races" not in rule) or (race in rule["races"])
+		var frame_match: bool = ("frames" not in rule) or (frame in rule["frames"])
+		var mod_match: bool = ("mods" not in rule) or (mod in rule["mods"])
 		if race_match and frame_match and mod_match:
-			total_bonus += rule["bonus"]
+			total_bonus += float(rule["bonus"])
 	# Generic same-class bonus: +15% if frame class matches a race affinity
 	if get_frame_class() == FrameClass.LIGHT and race in [Race.SYLVA, Race.NYX, Race.LUMARI, Race.GLYPHE]:
 		total_bonus += 0.15

@@ -1,5 +1,4 @@
 extends Node
-class_name NetworkManager
 # Nakama RPC dispatcher — delegates to AccountManager's authenticated client
 # and session rather than holding its own. AccountManager owns the single
 # Nakama client/session for this game (created in _init_nakama_client(),
