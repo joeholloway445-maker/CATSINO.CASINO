@@ -2,7 +2,7 @@
 import { useEffect, useState } from 'react'
 
 const DISTRICTS = ['paw_vegas','neon_alley','cat_coliseum','cat_forest','arcade_galaxy']
-const ITEM_TYPES = ['consumable','frame','mod','equipment','companion_item']
+const ITEM_TYPES = ['consumable','cosmetic_frame','mod','equipment','companion_item']
 
 type Item = { item_id: string; name: string; type: string; price: number; description: string; emoji: string }
 type Shop = { shop_id: string; shop_name: string; district: string; items: Item[] }
