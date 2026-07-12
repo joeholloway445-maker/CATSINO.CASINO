@@ -1,5 +1,4 @@
 extends Node
-class_name LiveOpsManager
 
 # ── Signals ────────────────────────────────────────────────────────────────────
 signal event_started(event: Dictionary)
@@ -130,7 +129,7 @@ func claim_battlepass_reward(tier: int, premium: bool) -> Dictionary:
 	claimed_list.append(tier)
 	var tier_data := battlepass_tiers[tier] if tier < battlepass_tiers.size() else {}
 	var reward_key := "premium_rewards" if premium else "free_rewards"
-	var rewards    := tier_data.get(reward_key, [])
+	var rewards = tier_data.get(reward_key, [])
 	# Distribute rewards via EconomyManager
 	for reward: Dictionary in rewards:
 		if reward.get("type") == "coins":

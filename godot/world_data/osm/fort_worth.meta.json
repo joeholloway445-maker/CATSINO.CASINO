@@ -1,0 +1,33 @@
+{
+  "hub_id": "fort_worth",
+  "name": "Hell's Half Acre",
+  "real_world": "Fort Worth",
+  "source": "OpenStreetMap via Overpass API",
+  "attribution": "\u00a9 OpenStreetMap contributors (ODbL)",
+  "bbox_wgs84": {
+    "south": 32.748,
+    "west": -97.335,
+    "north": 32.76,
+    "east": -97.32
+  },
+  "origin_wgs84": {
+    "lat": 32.754,
+    "lon": -97.32749999999999
+  },
+  "scale": 0.131667,
+  "span": 280.0,
+  "size": {
+    "x": 264.5,
+    "z": 280.0
+  },
+  "landmarks": [
+    {
+      "id": "acre_clocktower",
+      "query": "Tarrant County Courthouse",
+      "name": "Tarrant County Courthouse",
+      "x": 60.02,
+      "z": 119.74,
+      "kind": "building"
+    }
+  ]
+}

@@ -1,5 +1,4 @@
 extends Node
-class_name GameManager
 
 # ── Signals ────────────────────────────────────────────────────────────────────
 signal state_changed(old_state: GameState, new_state: GameState)

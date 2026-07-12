@@ -60,12 +60,12 @@ func stage() -> Dictionary:
 	return current
 
 func gain_bond(amount: int, why: String = "") -> void:
-	var before := stage().name
+	var before: String = str(stage().get("name", ""))
 	bond += amount
 	_save()
-	if stage().name != before:
-		NotificationUI.notify_win("💛 Hope grew: %s — %s" % [stage().name, stage().desc])
-	bond_gained.emit(bond, stage().name)
+	if str(stage().get("name", "")) != before:
+		NotificationUI.notify_win("💛 Hope grew: %s — %s" % [stage().get("name", ""), stage().get("desc", "")])
+	bond_gained.emit(bond, str(stage().get("name", "")))
 
 ## Hope's synergy skill lines — derived from race/frame/mod + playstyle,
 ## never chosen. Two actives + one synergy per growth stage unlocked.
@@ -146,11 +146,8 @@ func record(event: String, context: Dictionary) -> void:
 func _try_flush() -> void:
 	if _queue.is_empty():
 		return
-	var client := CasinoHTTPClient.new()
-	add_child(client)
 	var batch := _queue.duplicate()
-	var response: Dictionary = await client.post_json(TELEMETRY_ENDPOINT, {"rows": batch})
-	client.queue_free()
+	var response: Dictionary = await CasinoHTTPClient.post_json(TELEMETRY_ENDPOINT, {"rows": batch})
 	if response.get("ok", false):
 		_queue = _queue.slice(batch.size())
 		_save_queue()

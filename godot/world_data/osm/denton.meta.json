@@ -1,0 +1,33 @@
+{
+  "hub_id": "denton",
+  "name": "Sky Fjord",
+  "real_world": "Denton",
+  "source": "OpenStreetMap via Overpass API",
+  "attribution": "\u00a9 OpenStreetMap contributors (ODbL)",
+  "bbox_wgs84": {
+    "south": 33.21,
+    "west": -97.14,
+    "north": 33.22,
+    "east": -97.125
+  },
+  "origin_wgs84": {
+    "lat": 33.215,
+    "lon": -97.1325
+  },
+  "scale": 0.103675,
+  "span": 280.0,
+  "size": {
+    "x": 247.01,
+    "z": 280.0
+  },
+  "landmarks": [
+    {
+      "id": "fjord_dome",
+      "query": "Denton County Courthouse",
+      "name": "Historic Denton County Courthouse",
+      "x": 111.56,
+      "z": 181.47,
+      "kind": "building"
+    }
+  ]
+}
