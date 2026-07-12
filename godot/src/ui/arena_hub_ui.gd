@@ -7,6 +7,10 @@ extends Control
 ## scores the Gladiator crown board.
 
 var _log: VBoxContainer
+var _pvp: PvPArenaSystem
+var _rating_label: Label
+var _tier_label: Label
+var _ranking_overlay: PanelContainer
 
 func _ready() -> void:
 	var root := VBoxContainer.new()
@@ -23,6 +27,9 @@ func _ready() -> void:
 	sub.modulate = Color(0.7, 0.7, 0.7)
 	root.add_child(sub)
 
+	_setup_pvp()
+	root.add_child(HSeparator.new())
+	_add_pvp_summary(root)
 	root.add_child(HSeparator.new())
 
 	var scroll := ScrollContainer.new()
@@ -96,6 +103,86 @@ func _ready() -> void:
 	back.pressed.connect(func(): get_tree().change_scene_to_file("res://scenes/ui/main_menu.tscn"))
 	root.add_child(back)
 
+func _setup_pvp() -> void:
+	_pvp = PvPRankingUI.get_or_create_arena_system(self)
+	if not _pvp.ranked_rating_updated.is_connected(_on_pvp_rating_updated):
+		_pvp.ranked_rating_updated.connect(_on_pvp_rating_updated)
+	if not _pvp.match_ended.is_connected(_on_pvp_match_ended):
+		_pvp.match_ended.connect(_on_pvp_match_ended)
+
+func _add_pvp_summary(root: VBoxContainer) -> void:
+	var card := HBoxContainer.new()
+	card.add_theme_constant_override("separation", 14)
+	root.add_child(card)
+
+	var label := Label.new()
+	label.text = "PvP standing"
+	label.add_theme_font_size_override("font_size", 16)
+	card.add_child(label)
+
+	_rating_label = Label.new()
+	_rating_label.custom_minimum_size = Vector2(140, 0)
+	card.add_child(_rating_label)
+
+	_tier_label = Label.new()
+	_tier_label.custom_minimum_size = Vector2(140, 0)
+	_tier_label.modulate = Color(1.0, 0.85, 0.45)
+	card.add_child(_tier_label)
+
+	var open_rankings := Button.new()
+	open_rankings.text = "View ladder"
+	open_rankings.pressed.connect(_show_pvp_rankings)
+	card.add_child(open_rankings)
+
+	_refresh_pvp_summary()
+
+func _refresh_pvp_summary() -> void:
+	if _pvp == null or _rating_label == null or _tier_label == null:
+		return
+	var player_id := PvPRankingUI.LOCAL_PLAYER_ID
+	_rating_label.text = "Rating: %d" % _pvp.get_player_rating(player_id)
+	_tier_label.text = "Tier: %s" % _pvp.get_player_tier(player_id).capitalize()
+
+func _show_pvp_rankings() -> void:
+	if _ranking_overlay != null and is_instance_valid(_ranking_overlay):
+		return
+
+	_ranking_overlay = PanelContainer.new()
+	_ranking_overlay.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	add_child(_ranking_overlay)
+
+	var margin := MarginContainer.new()
+	margin.add_theme_constant_override("margin_left", 48)
+	margin.add_theme_constant_override("margin_top", 48)
+	margin.add_theme_constant_override("margin_right", 48)
+	margin.add_theme_constant_override("margin_bottom", 48)
+	_ranking_overlay.add_child(margin)
+
+	var box := VBoxContainer.new()
+	box.add_theme_constant_override("separation", 10)
+	margin.add_child(box)
+
+	var header := HBoxContainer.new()
+	box.add_child(header)
+
+	var title := Label.new()
+	title.text = "Arena PvP ladder"
+	title.add_theme_font_size_override("font_size", 20)
+	title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	header.add_child(title)
+
+	var close := Button.new()
+	close.text = "Close"
+	close.pressed.connect(func():
+		if _ranking_overlay != null:
+			_ranking_overlay.queue_free()
+			_ranking_overlay = null)
+	header.add_child(close)
+
+	var ranking := PvPRankingUI.new()
+	ranking.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	box.add_child(ranking)
+
 func _launch(mode_id: String) -> void:
 	match mode_id:
 		"race_arena":
@@ -132,6 +219,25 @@ func _simulate_match(mode_id: String) -> void:
 		EconomyManager.earn_prestige(3, "arena_loss")
 		line.text = "💥 %s: eliminated. The arena remembers effort too (+3 🌟)." % mode.name
 		line.modulate = Color(1.0, 0.5, 0.4)
+	_record_pvp_result(mode_id, won)
 	_log.add_child(line)
 	if _log.get_child_count() > 5:
 		_log.get_child(0).queue_free()
+
+func _record_pvp_result(mode_id: String, won: bool) -> void:
+	if _pvp == null:
+		return
+	var player_id := PvPRankingUI.LOCAL_PLAYER_ID
+	var opponent_id := "arena_%s_field" % mode_id
+	var match_id := _pvp.create_match(player_id, opponent_id, mode_id)
+	_pvp.start_match(match_id)
+	_pvp.end_match(match_id, player_id if won else opponent_id)
+	PvPRankingUI.save_arena_state(_pvp)
+	_refresh_pvp_summary()
+
+func _on_pvp_rating_updated(player_id: String, _new_rating: int) -> void:
+	if player_id == PvPRankingUI.LOCAL_PLAYER_ID:
+		_refresh_pvp_summary()
+
+func _on_pvp_match_ended(_match_id: String, _winner_id: String) -> void:
+	_refresh_pvp_summary()

@@ -59,6 +59,9 @@ const SYNERGY_RULES: Array[Dictionary] = [
 @export var frame:   Frame   = Frame.VEIL
 @export var mod:     Mod     = Mod.CATALYST
 @export var faction: Faction = Faction.FACTIONLESS
+@export var identity_race_id: String = ""
+@export var identity_frame_id: String = ""
+@export var identity_mod_id: String = ""
 
 # Base stats
 @export var base_pow: int = 10
@@ -111,6 +114,9 @@ func to_dict() -> Dictionary:
 		"race":    Race.keys()[race],
 		"frame":   Frame.keys()[frame],
 		"mod":     Mod.keys()[mod],
+		"identity_race_id": identity_race_id,
+		"identity_frame_id": identity_frame_id,
+		"identity_mod_id": identity_mod_id,
 		"faction": Faction.keys()[faction],
 		"stats":   compute_total_stats(),
 	}
