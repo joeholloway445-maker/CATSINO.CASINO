@@ -16,36 +16,49 @@
 - Status: ✅ CUSTOM ASSETS READY, BUILD IMPLEMENTATION
 
 ### 2. **Character Creator**
-**ARCHITECTURE**: Races → Frames → Mods (strictly segregated)
+**ARCHITECTURE**: Races → Frames → Mods (strictly segregated), sourced from the
+canonical OmniDex registry (`OmniDexRegistry`, `RaceDataCharacter`,
+`CanonRaces`, `MorphRigData`) — this is the actual shipped data, not a
+placeholder.
 
-**RACES (20 cat types - TEXTURE DRIVERS)**
-- Texture type, color, fur pattern, size modifier
-- Each race has cat type (Tabby, Siamese, Bengal, etc.)
-- Synced with OmniDex for consistency
+**RACES (20 canon races, each order-mapped 1:1 to a cat type - TEXTURE DRIVERS)**
+- 20 canon Periliminal race names (Keth, Lumari, Vex, Ferox, Azhul, Sylva,
+  Geara, Nyx, Aquis, Igni, Kryos, Myco, Volt, Petra, Sanguis, Chimera,
+  Astra, Ferros, Etherea, Glyphe), each rendered in the Hyperliminal casino
+  as a specific cat breed (Tabby, Siamese, Maine Coon, ... Savannah) —
+  `CanonRaces.canon_for_id()` does the mapping
+- Texture type, primary color, fur pattern, size modifier come from the
+  cat-breed record (`RaceDataCharacter`); display name comes from the
+  canon race (`OmniDexRegistry.race_display_name`)
 - Preview: Full 3D cat model with race textures
 
-**FRAMES (20 classes - ABILITY & SOUND DRIVERS)**
-- Light color and intensity (visual identity in-game)
-- Sound theme (voice effects, ability SFX)
-- Class abilities (Warrior: slash/shield, Mage: fireball/frost, etc.)
-- Stat bonuses: power, resistance, speed
-- Frame selection changes HUD lighting and ability bar layout
+**FRAMES (20 Periliminal identity frames = our classes - ROLE DRIVERS)**
+- Skirmisher, Strider, Skybound, Flicker, Marshal, Bloom, Rewind, Conduit,
+  Shade, Fabricator (light type) + Bastion, Juggernaut, Gravemind,
+  Riftbreaker, Sovereign, Worldroot, Epoch, Overlord, Obscura, Architect
+  (heavy type)
+- Each frame has a distinct role (Duelist, Scout, Aerialist, Tactician,
+  Bruiser, Controller, Territory Holder, Time Warden, Detonator,
+  Veilkeeper, Fortifier, etc.) — this is the class layer, not a visual
+  reskin
+- Frame selection changes HUD identity and available ability kit
 
-**MODS (20 physical modifications - MATH & MOBILITY DRIVERS)**
-- Stat modifiers (in-game damage/defense/speed calculations)
-- Mobility multiplier (sprint speed, dodge distance)
-- Damage multiplier (all damage output)
-- Defense multiplier (damage reduction)
-- Armor visual (appearance in-game)
+**MODS (20 morphological rigs - PHYSICAL/MOBILITY/COMBAT-MATH DRIVERS)**
+- Heavy Siege, Swiftburner, Multi-Limbed, Towering, Compact, Elastic,
+  Floating Core, Split Form, Inverted Spine, Modular, Armored, Lithe,
+  Tendril, Rooted, Hover Strider, Centroid, Shardform, Quadruped,
+  Serpentine, Colossus
+- Each mod is a body plan: one bonus, one drawback (e.g. Heavy Siege:
+  +Stability / -Momentum) that drives mobility and combat math — this is
+  the physical layer, distinct from Race (texture) and Frame (class)
 
-**FLOW**: Race selected → Preview cat texture | Frame selected → Preview lighting + ability bar | Mod selected → Preview stat adjustments + armor overlay
+**FLOW**: Race selected → Preview cat texture | Frame selected → Preview role + kit | Mod selected → Preview bonus/drawback + silhouette
 
 **FINAL PREVIEW**: Real-time 3D character with:
 - Race texture + fur pattern
-- Frame lighting effects
-- Mod armor visual
-- Ability bar layout
-- Estimated stat values
+- Frame role/identity
+- Mod bonus/drawback + silhouette
+- Estimated combined stat values
 
 ### 3. **Main HUD (In-Game Overlay)**
 - Health bar (top-left)
