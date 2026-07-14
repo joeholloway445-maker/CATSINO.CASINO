@@ -253,11 +253,15 @@ static func _head_color(fp: Dictionary, phi: float, theta: float) -> Color:
 	var flushm: float = _bump(phi, -0.4, 0.22) * (_bump(theta, 0.6, 0.3) + _bump(theta, -0.6, 0.3))
 	col = col.lerp(Color(1.0, 0.82, 0.80), clampf(flushm * redness * 0.35, 0.0, 1.0))
 
+	# Freckles double as the generic "marking" channel: race/mod archetypes
+	# (star-flecks, mineral veining, plate seams, sigils, ...) drive the
+	# same speckle scatter tinted by marking_color instead of plain brown.
 	var freckles := dna.get_gene("freckles")
 	if freckles > 0.01:
 		var hash_v := absf(fposmod(sin(phi * 127.1 + theta * 311.7) * 43758.5453, 1.0))
-		if hash_v < freckles * 0.35 and absf(phi + 0.25) < 0.45 and absf(theta) < 1.0:
-			col = col.lerp(Color(0.72, 0.60, 0.52), 0.5)
+		if hash_v < freckles * 0.35 and absf(phi + 0.15) < 0.9 and absf(theta) < 1.3:
+			var mark_col := dna.marking_color if dna.marking_color.a > 0.0 else Color(0.72, 0.60, 0.52)
+			col = col.lerp(mark_col, 0.5)
 	return col
 
 # ------------------------------------------------------------------ body parts

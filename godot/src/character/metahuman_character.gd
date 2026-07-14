@@ -89,21 +89,31 @@ static func _as_root(n: Node) -> Node3D:
 	return root
 
 ## Native PeriHuman for the local player: the genome they authored in the
-## Character Studio, or a neutral default human if they never opened it.
+## Character Studio if they opened it, otherwise one composed from their
+## actual race/frame/mod selection (HumanIdentity), otherwise a neutral
+## default human.
 static func _native_player() -> Node3D:
 	var rig := PeriHumanRig.new()
 	if PlayerProfile and not PlayerProfile.perihuman_dna.is_empty():
 		rig.dna = HumanDNA.from_dict(PlayerProfile.perihuman_dna)
+	elif PlayerProfile and not str(PlayerProfile.selected_race_id).is_empty():
+		rig.dna = HumanIdentity.build(
+			PlayerProfile.selected_race_id, PlayerProfile.selected_frame,
+			PlayerProfile.selected_mod, PlayerProfile.username.hash())
 	else:
 		rig.dna = HumanPresets.get_preset(0)
 	rig.auto_lod = true
 	return rig
 
-## Native PeriHuman for an NPC: the race id hashes to a deterministic
-## genome, so the same citizen always wears the same face on every client.
-static func _native_npc(race_id: String) -> Node3D:
+## Native PeriHuman for an NPC: race (+ frame/mod if the NPC has them) is
+## composed via HumanIdentity so their species reads correctly, seeded off
+## the race id so the same citizen always wears the same face everywhere.
+static func _native_npc(race_id: String, frame_id: String = "", mod_id: String = "") -> Node3D:
 	var rig := PeriHumanRig.new()
-	rig.dna = HumanDNA.random(race_id.hash() if not race_id.is_empty() else 1337)
+	if not race_id.is_empty():
+		rig.dna = HumanIdentity.build(race_id, frame_id, mod_id, race_id.hash())
+	else:
+		rig.dna = HumanDNA.random(1337)
 	rig.auto_lod = true
 	return rig
 

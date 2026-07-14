@@ -31,6 +31,9 @@ var _hair_option: OptionButton
 var _blend_options: Array[OptionButton] = []
 var _blend_sliders: Array[HSlider] = []
 var _saved_list: ItemList
+var _race_option: OptionButton
+var _frame_option: OptionButton
+var _mod_option: OptionButton
 
 var _cam_yaw := 0.0
 var _cam_pitch := 0.05
@@ -106,6 +109,7 @@ func _build_ui() -> void:
 	tabs.custom_minimum_size = Vector2(430, 0)
 	tabs.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	root.add_child(tabs)
+	_build_identity_tab(tabs)
 	_build_presets_tab(tabs)
 	_build_gene_tab(tabs, "Body", ["Body"])
 	_build_gene_tab(tabs, "Face", ["Head", "Brow", "Eyes", "Nose", "Cheeks", "Mouth", "Jaw"])
@@ -174,6 +178,80 @@ func _build_stage() -> void:
 	_rig = PeriHumanRig.new()
 	_rig.dna = _dna
 	stage.add_child(_rig)
+
+## Generates a human from the player's actual gameplay identity (race,
+## sensorium frame, mod) via HumanIdentity, instead of hand-sculpting.
+## This is what a citizen wearing your race/frame/mod actually looks like.
+func _build_identity_tab(tabs: TabContainer) -> void:
+	var vbox := _scroll_vbox(tabs, "Identity")
+	_section(vbox, "GENERATE FROM RACE / FRAME / MOD")
+	var note := Label.new()
+	note.text = "Builds a human from the same race, sensorium\nframe, and mod your character sheet uses —\nstill editable afterward on every other tab."
+	note.modulate = Color(1, 1, 1, 0.6)
+	vbox.add_child(note)
+
+	var race_row := HBoxContainer.new()
+	vbox.add_child(race_row)
+	var race_lbl := Label.new()
+	race_lbl.text = "Race"
+	race_lbl.custom_minimum_size = Vector2(80, 0)
+	race_row.add_child(race_lbl)
+	_race_option = OptionButton.new()
+	for race in RaceDataCharacter.RACES:
+		_race_option.add_item(str(race.name))
+	race_row.add_child(_race_option)
+
+	var frame_row := HBoxContainer.new()
+	vbox.add_child(frame_row)
+	var frame_lbl := Label.new()
+	frame_lbl.text = "Frame"
+	frame_lbl.custom_minimum_size = Vector2(80, 0)
+	frame_row.add_child(frame_lbl)
+	_frame_option = OptionButton.new()
+	for frame in FrameModData.FRAMES:
+		_frame_option.add_item("%s (%s)" % [str(frame.name), str(frame.type)])
+	frame_row.add_child(_frame_option)
+
+	var mod_row := HBoxContainer.new()
+	vbox.add_child(mod_row)
+	var mod_lbl := Label.new()
+	mod_lbl.text = "Mod"
+	mod_lbl.custom_minimum_size = Vector2(80, 0)
+	mod_row.add_child(mod_lbl)
+	_mod_option = OptionButton.new()
+	_mod_option.add_item("None")
+	for mod in FrameModData.MODS:
+		_mod_option.add_item(str(mod.name))
+	mod_row.add_child(_mod_option)
+
+	_race_option.selected = 0
+	_frame_option.selected = 0
+	_mod_option.selected = 0
+	if PlayerProfile:
+		_select_by_id(_race_option, RaceDataCharacter.RACES, PlayerProfile.selected_race_id)
+		_select_by_id(_frame_option, FrameModData.FRAMES, PlayerProfile.selected_frame)
+		_select_by_id(_mod_option, FrameModData.MODS, PlayerProfile.selected_mod, 1)
+
+	_add_button(vbox, "🧬 Generate", _on_generate_identity)
+
+func _select_by_id(option: OptionButton, table: Array, id: String, index_offset: int = 0) -> void:
+	for i in table.size():
+		if table[i].id == id:
+			option.selected = i + index_offset
+			return
+
+func _on_generate_identity() -> void:
+	var race_id := ""
+	if _race_option.selected >= 0:
+		race_id = str(RaceDataCharacter.RACES[_race_option.selected].id)
+	var frame_id := ""
+	if _frame_option.selected >= 0:
+		frame_id = str(FrameModData.FRAMES[_frame_option.selected].id)
+	var mod_id := ""
+	if _mod_option.selected >= 1:
+		mod_id = str(FrameModData.MODS[_mod_option.selected - 1].id)
+	var seed_value := (PlayerProfile.username.hash() if PlayerProfile else 0) ^ race_id.hash()
+	_load_dna(HumanIdentity.build(race_id, frame_id, mod_id, seed_value))
 
 func _build_presets_tab(tabs: TabContainer) -> void:
 	var vbox := _scroll_vbox(tabs, "Presets")

@@ -91,7 +91,12 @@ for how they all relate to this monorepo.
     live sculpt sliders); "Use This Human" stores the genome on
     `PlayerProfile` and `MetahumanCharacter` resolves it as the player's
     body (real Unreal GLB exports still win if dropped in; the capsule
-    rig is now the absolute last resort).
+    rig is now the absolute last resort). An Identity tab additionally
+    composes a genome straight from the character creator's own race
+    (20 canon species, each with lore-driven body/skin/eye traits),
+    sensorium frame (light/heavy build), and mod (small augment accents)
+    selection via `HumanIdentity` — so citizens and un-customized players
+    look like their lore instead of a generic default.
   - **3D overworld** (`src/world/overworld/`) — a walkable third-person
     overworld: streamed procedural heightmap terrain (one mesh per
     DiscoveryManager chunk, biome-tinted, low-poly props from each chunk's

@@ -27,13 +27,33 @@ static func skin_tone(dna: HumanDNA) -> Color:
 	var grey := (tone.r + tone.g + tone.b) / 3.0
 	return tone.lerp(Color(grey, grey, grey), dna.get_gene("age") * 0.18)
 
+## dna.skin_tint/skin_material/emissive_boost (set by HumanIdentity from a
+## race/frame/mod selection) let a species read as crystalline, molten,
+## void-dark, metallic, translucent, etc. A freeform Character Studio
+## sculpt leaves them at their sentinel values and gets the plain melanin
+## ramp below, unchanged from before these existed.
 static func skin(dna: HumanDNA) -> StandardMaterial3D:
 	var mat := StandardMaterial3D.new()
-	mat.albedo_color = skin_tone(dna)
+	var tone := dna.skin_tint if dna.skin_tint.a > 0.0 else skin_tone(dna)
+	mat.albedo_color = tone
 	mat.vertex_color_use_as_albedo = true  # face paint / base layer live in vertex color
-	mat.roughness = lerpf(0.55, 0.78, dna.get_gene("age"))
-	mat.metallic = 0.0
-	mat.subsurf_scatter_enabled = true
+	var sm: Dictionary = dna.skin_material
+	mat.roughness = float(sm.get("roughness", lerpf(0.55, 0.78, dna.get_gene("age"))))
+	mat.metallic = float(sm.get("metallic", 0.0))
+	if sm.get("transparent", false):
+		mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+		mat.albedo_color.a = float(sm.get("opacity", 0.85))
+	var emissive: float = float(sm.get("emissive_strength", 0.0)) + dna.emissive_boost
+	if emissive > 0.0:
+		mat.emission_enabled = true
+		if dna.marking_color.a > 0.0:
+			mat.emission = dna.marking_color
+		elif sm.has("emissive_color"):
+			mat.emission = Color.from_string(str(sm.emissive_color), tone)
+		else:
+			mat.emission = tone
+		mat.emission_energy_multiplier = emissive
+	mat.subsurf_scatter_enabled = not sm.get("transparent", false)
 	mat.subsurf_scatter_strength = lerpf(0.10, 0.04, dna.get_gene("skin_melanin"))
 	mat.cull_mode = BaseMaterial3D.CULL_DISABLED
 	return mat

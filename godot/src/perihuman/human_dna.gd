@@ -80,6 +80,17 @@ const GENES := [
 ## id -> 0..1. Only genes that differ from default need to be present.
 @export var genes: Dictionary = {}
 
+## Species-level material/marking overrides, set by HumanIdentity from a
+## race/frame/mod selection (see human_race_archetypes.gd and friends).
+## Left at their sentinel values for a freeform Character Studio sculpt.
+## skin_tint alpha 0 = "unset, use the melanin ramp"; skin_material keys
+## (roughness/metallic/transparent/opacity/emissive_strength/emissive_color)
+## are the same shape as TextureMaterials.TEXTURE_MATERIAL entries.
+@export var skin_tint: Color = Color(0, 0, 0, 0)
+@export var marking_color: Color = Color(0, 0, 0, 0)
+@export var skin_material: Dictionary = {}
+@export var emissive_boost: float = 0.0
+
 static var _defaults_cache: Dictionary = {}
 
 static func gene_default(id: String) -> float:
@@ -94,6 +105,11 @@ func get_gene(id: String) -> float:
 func set_gene(id: String, value: float) -> void:
 	genes[id] = clampf(value, 0.0, 1.0)
 
+## Additive tweak, e.g. a race/frame/mod archetype pushing "muscle" up a
+## touch from wherever it currently sits (clamped same as set_gene).
+func nudge_gene(id: String, delta: float) -> void:
+	set_gene(id, get_gene(id) + delta)
+
 ## Convenience: map a gene onto a real-world range.
 func gene_lerp(id: String, from: float, to: float) -> float:
 	return lerpf(from, to, get_gene(id))
@@ -106,7 +122,7 @@ func to_dict() -> Dictionary:
 		var v: float = get_gene(def.id)
 		if not is_equal_approx(v, float(def.default)):
 			g[def.id] = snappedf(v, 0.001)
-	return {
+	var out := {
 		"version": GENOME_VERSION,
 		"name": display_name,
 		"eye_color": eye_color.to_html(false),
@@ -114,6 +130,15 @@ func to_dict() -> Dictionary:
 		"hair_style": hair_style,
 		"genes": g,
 	}
+	if skin_tint.a > 0.0:
+		out["skin_tint"] = skin_tint.to_html(false)
+	if marking_color.a > 0.0:
+		out["marking_color"] = marking_color.to_html(false)
+	if not skin_material.is_empty():
+		out["skin_material"] = skin_material.duplicate()
+	if not is_zero_approx(emissive_boost):
+		out["emissive_boost"] = emissive_boost
+	return out
 
 static func from_dict(data: Dictionary) -> HumanDNA:
 	var dna := HumanDNA.new()
@@ -128,6 +153,16 @@ static func from_dict(data: Dictionary) -> HumanDNA:
 	var g: Dictionary = data.get("genes", {})
 	for id in g:
 		dna.set_gene(str(id), float(g[id]))
+	if data.has("skin_tint"):
+		var t := Color.from_string(str(data.get("skin_tint")), Color(0, 0, 0, 0))
+		dna.skin_tint = Color(t.r, t.g, t.b, 1.0)
+	if data.has("marking_color"):
+		var m := Color.from_string(str(data.get("marking_color")), Color(0, 0, 0, 0))
+		dna.marking_color = Color(m.r, m.g, m.b, 1.0)
+	var sm = data.get("skin_material", {})
+	if sm is Dictionary:
+		dna.skin_material = (sm as Dictionary).duplicate()
+	dna.emissive_boost = float(data.get("emissive_boost", 0.0))
 	return dna
 
 func duplicate_dna() -> HumanDNA:
@@ -164,6 +199,12 @@ static func blend(parents: Array) -> HumanDNA:
 			best_w = w
 			out.hair_style = parent.hair_style
 			out.display_name = parent.display_name + " Blend"
+			# Species-level material traits don't blend meaningfully — the
+			# dominant parent's identity wins outright.
+			out.skin_tint = parent.skin_tint
+			out.marking_color = parent.marking_color
+			out.skin_material = parent.skin_material.duplicate()
+			out.emissive_boost = parent.emissive_boost
 	out.eye_color = Color(eye.r, eye.g, eye.b)
 	out.hair_color = Color(hair.r, hair.g, hair.b)
 	return out

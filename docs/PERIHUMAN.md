@@ -16,6 +16,10 @@ materials — is grown from it procedurally at runtime.
 | Body/face mesh + morphs | `godot/src/perihuman/human_mesh_builder.gd` |
 | Skin / eye / hair materials | `godot/src/perihuman/human_materials.gd` |
 | Runtime character node | `godot/src/perihuman/peri_human_rig.gd` |
+| Race archetypes (20 canon races) | `godot/src/perihuman/human_race_archetypes.gd` |
+| Frame archetypes (20 sensorium frames) | `godot/src/perihuman/human_frame_archetypes.gd` |
+| Mod archetypes (20 legacy mods) | `godot/src/perihuman/human_mod_archetypes.gd` |
+| Identity composer (race+frame+mod → genome) | `godot/src/perihuman/human_identity.gd` |
 | Character Studio UI | `godot/src/ui/perihuman_creator_ui.gd` + `godot/scenes/ui/perihuman_creator.tscn` |
 
 The Studio is reachable from the main menu ("🧬 Character Studio").
@@ -51,6 +55,51 @@ Face paint (lips, brow shadow, stubble, flush, freckles) and the neutral
 charcoal base layer live in vertex color, multiplied under the SSS skin
 material — no textures anywhere except the generated iris.
 
+## Race / frame / mod identity
+
+The character creator already has its own race (20 cat breeds ->
+`RaceDataCharacter`, each mapped via `CanonRaces` to one of the 20 canon
+species with full lore in `RaceLore`), sensorium frame (20 light/heavy
+frames -> `FrameModData.FRAMES`), and mod (20 legacy augments ->
+`FrameModData.MODS`) selections. `HumanIdentity.build(race_id, frame_id,
+mod_id, seed)` turns that same selection into a PeriHuman genome, so a
+citizen looks like their lore before anyone touches a slider:
+
+- **Race** (`HumanRaceArchetypes`) sets species-level traits straight from
+  each race's blurb — a Ferox reads as a towering, scarred apex predator;
+  a Lumari as pale and crystalline with a bioluminescent glow; a Nyx with
+  light-swallowing black eyes and skin; an Igni running hot with an ember
+  emissive; a Petra stone-grey and ancient; and so on for all 20. A
+  handful of genes get nudged, eye/hair color and a default hairstyle are
+  set, and — where the lore calls for it — `skin_tint`, `marking_color`,
+  `skin_material` (roughness/metallic/transparency/emissive, the same
+  shape as `TextureMaterials.TEXTURE_MATERIAL`), and `emissive_boost` give
+  the skin its material identity. Chimera is the one exception: instead of
+  a fixed body it seed-jitters a wide gene spread and picks from a
+  deliberately unusual eye/hair palette, because "no two Chimera are
+  alike" is the whole point.
+- **Frame** (`HumanFrameArchetypes`) is worn architecture, not species, so
+  it only reshapes build along the light/heavy axis described in each
+  frame's lore (`veil` gossamer-thin, `bastion` a fortress, `bolt`
+  sacrifices everything for speed, `behemoth` maximum bulk, ...), plus a
+  small accent for the loudest frames (`ignis` runs hot, `phantom`
+  partially dematerializes).
+- **Mod** (`HumanModArchetypes`) is a small installed system layered last,
+  so its accent sits on top of the race/frame look: a subtle gene nudge
+  plus a marking/emissive touch (`berserker_chip` flushes red and scars,
+  `void_capacitor` darkens the eyes, `harmony_crystal` gets a soft
+  balanced glow).
+
+Layering order is always race → frame → mod: genes are additive nudges at
+each step, while colors/material keys from a later layer override the
+earlier one. The Character Studio's **Identity** tab exposes this
+directly — pick a race/frame/mod and hit Generate, then keep sculpting on
+every other tab as normal. `MetahumanCharacter._native_player()` /
+`_native_npc()` call `HumanIdentity.build()` automatically whenever a
+player hasn't authored a custom genome in the Studio (or an NPC has no
+authored one at all), using `PlayerProfile.selected_race_id` /
+`selected_frame` / `selected_mod`.
+
 ## Runtime usage
 
 ```gdscript
@@ -66,10 +115,12 @@ rig.set_lod(1)                                  # or rig.auto_lod = true
 `MetahumanCharacter` (the ESO-bar resolver) still lets a real Unreal
 MetaHuman GLB export win if one is dropped into `assets/models/`
 (`metahuman_player` etc.), because a film-quality scan beats procedural.
-PeriHuman replaces everything below that: the player's authored genome
-(saved on `PlayerProfile.perihuman_dna` via the Studio's "Use This Human"),
-and deterministic per-id genomes for NPCs. The old capsule `CharacterRig`
-remains only as the absolute last resort.
+PeriHuman replaces everything below that, in order: the player's authored
+genome (saved on `PlayerProfile.perihuman_dna` via the Studio's "Use This
+Human"); failing that, a genome composed from their race/frame/mod
+selection via `HumanIdentity`; failing that, a neutral default preset.
+NPCs always go through `HumanIdentity` off their race id. The old capsule
+`CharacterRig` remains only as the absolute last resort.
 
 ## Extending it
 
@@ -83,3 +134,8 @@ remains only as the absolute last resort.
   a response in `head_point()` — it becomes a blend shape on every LOD.
 - **Outfits**: the base layer is vertex-colored; a clothing system can
   either paint more of the body or parent meshes to the standard bones.
+- **New/changed race, frame, or mod lore**: edit the matching entry in
+  `HumanRaceArchetypes.RACES` / `HumanFrameArchetypes.FRAMES` /
+  `HumanModArchetypes.MODS` — gene deltas, colors, and the optional
+  `skin_tint`/`marking_color`/`skin_material`/`emissive_boost` keys are
+  all `HumanIdentity` needs to pick it up everywhere the identity is used.
