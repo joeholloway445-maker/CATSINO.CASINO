@@ -31,10 +31,63 @@ var visual_mode := "identity"
 var _visual_root: Node3D
 var _collision: CollisionShape3D
 
+## actor_id used for combat-system lookups; target_id is set by whatever
+## puts this controller into an encounter (lock-on, trigger volume).
+@export var actor_id: String = "player"
+var _ability_kit: Array[String] = []
+var _target_id: String = "target_dummy"
+
 func _ready() -> void:
+	add_to_group("player")
 	_ensure_collision()
 	_build_body()
 	_build_camera()
+	_refresh_ability_kit()
+	if has_node("/root/PlayerProfile"):
+		var profile := get_node("/root/PlayerProfile")
+		# PlayerProfile has no dedicated faction-changed signal — set_faction()
+		# emits the general profile_updated, so re-resolve on every update.
+		if profile.has_signal("profile_updated") and not profile.profile_updated.is_connected(_refresh_ability_kit):
+			profile.profile_updated.connect(_refresh_ability_kit)
+
+## Faction ability kit (slots 1-8, matching the combat UI hotbar and the
+## ability_1..ability_8 input actions). Kits currently hold 4 abilities
+## each (see CombatSystemRealtime.ABILITY_DATABASE), so slots 5-8 are
+## empty until multi-kit loadouts (companion/skill unlocks) land.
+func _refresh_ability_kit() -> void:
+	var faction := "Factionless"
+	if has_node("/root/PlayerProfile"):
+		faction = str(get_node("/root/PlayerProfile").get("faction"))
+	if faction == "":
+		faction = "Factionless"
+	_ability_kit = CombatSystemRealtime.abilities_for_faction(faction)
+	if _ability_kit.is_empty():
+		_ability_kit = CombatSystemRealtime.abilities_for_faction("Factionless")
+
+func _ability_id_for_slot(slot: int) -> String:
+	var index := slot - 1
+	if index < 0 or index >= _ability_kit.size():
+		return ""
+	return _ability_kit[index]
+
+## Set by whatever spawns/targets this controller in a real encounter.
+func set_target(target_id: String) -> void:
+	_target_id = target_id if target_id != "" else "target_dummy"
+
+func _use_ability_slot(slot: int) -> void:
+	var combat := get_node_or_null("/root/CombatRealtime")
+	if combat == null:
+		return
+	var ability_id := _ability_id_for_slot(slot)
+	if ability_id == "":
+		return
+	# CombatSystemRealtime models position abstractly as Vector2 (range/
+	# distance only, not physics) — project our forward-aim point onto the
+	# XZ plane rather than changing that system's type.
+	var aim_point := global_transform.origin + (-global_transform.basis.z * 3.0)
+	var target_pos_2d := Vector2(aim_point.x, aim_point.z)
+	combat.player_positions[actor_id] = Vector2(global_transform.origin.x, global_transform.origin.z)
+	combat.use_ability(actor_id, ability_id, _target_id, target_pos_2d)
 
 ## Swap between house-cat presentation and the player's true identity form.
 ## Used by the PVXC 15-minute PvE ↔ PvP rotation.
@@ -130,6 +183,10 @@ func _unhandled_input(event: InputEvent) -> void:
 		_cam_yaw -= event.relative.x * MOUSE_SENSITIVITY
 		_cam_pitch = clampf(_cam_pitch - event.relative.y * MOUSE_SENSITIVITY, -1.2, 0.4)
 		_update_camera_rotation()
+
+	for i in range(1, 9):
+		if event.is_action_pressed("ability_%d" % i):
+			_use_ability_slot(i)
 
 ## Touch look — read once a frame from TouchControls.look_delta, so mobile
 ## can pan the camera with a right-thumb drag without ever needing mouse

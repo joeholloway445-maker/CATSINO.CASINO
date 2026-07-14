@@ -1,6 +1,6 @@
 [gd_scene load_steps=9 format=3 uid="uid://bxk4m9qw2vtn7"]
 
-[ext_resource type="PackedScene" path="res://scenes/player/periliminal_player.tscn" id="1_player"]
+[ext_resource type="Script" path="res://src/world/playtest_arena.gd" id="1_root"]
 [ext_resource type="Script" path="res://src/world/arena_npc_spawner.gd" id="2_npcs"]
 
 [sub_resource type="BoxMesh" id="BoxMesh_ground"]
@@ -25,6 +25,8 @@ ambient_light_source = 3
 ambient_light_energy = 0.6
 
 [node name="PlaytestArena" type="Node3D"]
+script = ExtResource("1_root")
+spawn_position = Vector3(0, 2, 0)
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="."]
 environment = SubResource("Environment_1")
@@ -42,9 +44,6 @@ surface_material_override/0 = SubResource("StandardMaterial3D_ground")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="Ground"]
 shape = SubResource("BoxShape3D_ground")
-
-[node name="PeriliminalPlayer" parent="." instance=ExtResource("1_player")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2, 0)
 
 [node name="NPCCrowd" type="Node3D" parent="."]
 script = ExtResource("2_npcs")

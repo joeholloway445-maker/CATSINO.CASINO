@@ -13,14 +13,23 @@ extends Node3D
 @export var npc_count: int = 40
 @export var seed_key: String = "playtest_arena"
 @export var layer: String = "hyperliminal"
+## "cat" (mandatory in the Catsino — hyperliminal's catsino_main/catsino_vip
+## districts), "identity" (default everywhere else), or "" to auto-derive
+## from `layer` at _ready(). PvXC PvP phases override this via
+## set_visual_mode() on each spawned body's rig owner — not relevant to
+## this lightweight spawner, which only ever represents PvE crowds.
+@export var visual_mode: String = ""
 
 const INTERACTION_RADIUS := 2.5
+const CATSINO_LAYER := "hyperliminal"
 
 var _generator := NPCGenerator.new()
 var _spawned: Dictionary = {}  # npc_id -> Node3D
 
 func _ready() -> void:
 	add_to_group("npc_crowd_spawner")
+	if visual_mode == "":
+		visual_mode = "cat" if layer == CATSINO_LAYER else "identity"
 	var npcs := _generator.generate_npcs(npc_count, seed_key, layer)
 	for npc_data in npcs:
 		_create_npc(npc_data)
@@ -43,15 +52,12 @@ func _create_npc(data: Dictionary) -> void:
 	label.position = Vector3(0, 1.8, 0)
 	root.add_child(label)
 
-	# Simple procedural body so the crowd reads as bodies, not floating
-	# name tags — reuses the same cat rig every other character uses,
-	# with a random race so the crowd isn't visually uniform.
-	var rig := CharacterRig.new()
-	root.add_child(rig)
-	var race_ids: Array = RaceDataCharacter.RACES.map(func(r): return r.id)
-	var random_race := RaceDataCharacter.get_race(race_ids[randi() % race_ids.size()])
-	var random_frame := OmniDexRegistry.FRAMES[randi() % OmniDexRegistry.FRAMES.size()]
-	rig.build_from_loadout(random_race, random_frame, {})
+	# Body via the same resolver every other character uses (MetaHuman
+	# export -> interim humanoid -> Catsino cat GLB -> procedural rig
+	# fallback), respecting the cat-vs-identity rule: mandatory cat in the
+	# Catsino, identity by default elsewhere — never hardcoded to cat.
+	var body := MetahumanCharacter.build_npc(visual_mode)
+	root.add_child(body)
 
 	var area := Area3D.new()
 	var shape := CollisionShape3D.new()
