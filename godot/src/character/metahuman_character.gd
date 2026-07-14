@@ -7,12 +7,19 @@ extends RefCounted
 ##      metahuman_<race_id>
 ##   2. Interim humanoid GLBs — player_human / npc_human
 ##   3. House-cat GLB — player_cat / npc_cat (Catsino skin only)
-##   4. CharacterRig procedural humanoid (last resort)
+##   4. PeriHuman — the NATIVE parametric human (src/perihuman/): the
+##      player's authored HumanDNA genome, or a deterministic
+##      per-npc-id genome for NPCs. No Unreal, no assets, always works.
+##   5. CharacterRig procedural capsule humanoid (kept as the absolute
+##      last resort, e.g. if PeriHuman is ever disabled)
 ##
-## MetaHuman authoring happens in Unreal (Creator / Mesh-to-MetaHuman).
-## Export GLB via the UE→Blender→Godot pipeline documented in
-## docs/VISUAL_DIRECTION_ESO.md. Skin/eye/hair shaders from the community
-## MetaHumanGodot look-dev tool live under assets/shaders/metahuman/.
+## MetaHuman authoring can still happen in Unreal (Creator /
+## Mesh-to-MetaHuman) and win via the GLB slots — see
+## docs/VISUAL_DIRECTION_ESO.md — but the in-house pipeline is the
+## PeriHuman Character Studio (scenes/ui/perihuman_creator.tscn),
+## documented in docs/PERIHUMAN.md. Skin/eye/hair shaders from the
+## community MetaHumanGodot look-dev tool live under
+## assets/shaders/metahuman/.
 
 const META_PLAYER := "metahuman_player"
 const META_NPC := "metahuman_npc"
@@ -39,6 +46,9 @@ static func build_player(visual_mode: String = "identity") -> Node3D:
 	if meta != null:
 		_try_apply_metahuman_materials(meta)
 		return meta
+	var native := _native_player()
+	if native != null:
+		return native
 	return _rig_from_profile(false)
 
 ## Build a remote / NPC body.
@@ -56,6 +66,9 @@ static func build_npc(visual_mode: String = "identity", race_id: String = "") ->
 	if meta != null:
 		_try_apply_metahuman_materials(meta)
 		return meta
+	var native := _native_npc(race_id)
+	if native != null:
+		return native
 	return _rig_from_profile(true)
 
 static func _try_slots(slots: Array) -> Node3D:
@@ -74,6 +87,25 @@ static func _as_root(n: Node) -> Node3D:
 	var root := Node3D.new()
 	root.add_child(n)
 	return root
+
+## Native PeriHuman for the local player: the genome they authored in the
+## Character Studio, or a neutral default human if they never opened it.
+static func _native_player() -> Node3D:
+	var rig := PeriHumanRig.new()
+	if PlayerProfile and not PlayerProfile.perihuman_dna.is_empty():
+		rig.dna = HumanDNA.from_dict(PlayerProfile.perihuman_dna)
+	else:
+		rig.dna = HumanPresets.get_preset(0)
+	rig.auto_lod = true
+	return rig
+
+## Native PeriHuman for an NPC: the race id hashes to a deterministic
+## genome, so the same citizen always wears the same face on every client.
+static func _native_npc(race_id: String) -> Node3D:
+	var rig := PeriHumanRig.new()
+	rig.dna = HumanDNA.random(race_id.hash() if not race_id.is_empty() else 1337)
+	rig.auto_lod = true
+	return rig
 
 static func _rig_from_profile(perceived: bool) -> Node3D:
 	var rig := CharacterRig.new()

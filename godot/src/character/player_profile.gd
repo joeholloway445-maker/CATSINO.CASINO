@@ -22,6 +22,9 @@ var selected_mod: String = ""
 ## selected_race_id's default happens to be.
 var has_expedition: bool = false
 var active_companion_ids: Array[String] = []
+## The player's PeriHuman genome (HumanDNA.to_dict()). Empty means "no
+## custom human yet" — MetahumanCharacter then falls back down its chain.
+var perihuman_dna: Dictionary = {}
 var titles: Array[String] = []
 var active_title: String = ""
 var playtime_seconds: float = 0.0
@@ -51,6 +54,8 @@ func _load() -> void:
 	ascended_frame = data.get("ascended_frame", "")
 	selected_mod = data.get("selected_mod", "")
 	active_companion_ids = Array(data.get("active_companions", []), TYPE_STRING, "", null)
+	var dna = data.get("perihuman_dna", {})
+	perihuman_dna = dna if dna is Dictionary else {}
 	titles = Array(data.get("titles", []), TYPE_STRING, "", null)
 	active_title = data.get("active_title", "")
 	# Migration: saves from before this flag existed still have a real
@@ -74,6 +79,7 @@ func _save() -> void:
 		"selected_mod": selected_mod,
 		"has_expedition": has_expedition,
 		"active_companions": active_companion_ids,
+		"perihuman_dna": perihuman_dna,
 		"titles": titles,
 		"active_title": active_title,
 		"playtime_seconds": playtime_seconds,
@@ -126,6 +132,11 @@ func set_ascended_frame(frame_id: String) -> bool:
 	_save()
 	profile_updated.emit()
 	return true
+
+func set_perihuman_dna(dna: Dictionary) -> void:
+	perihuman_dna = dna
+	_save()
+	profile_updated.emit()
 
 func set_mod(mod_id: String) -> void:
 	selected_mod = mod_id

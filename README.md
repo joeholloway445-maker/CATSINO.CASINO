@@ -81,6 +81,17 @@ for how they all relate to this monorepo.
   pieces (`character_rig.gd`, `texture_materials.gd`) are shared rather
   than duplicated, since catsino's own rewired character preview uses
   them too.
+  - **PeriHuman** (`src/perihuman/`, `docs/PERIHUMAN.md`) — our own
+    MetaHumans, natively in Godot: a 40-gene JSON genome (`HumanDNA`)
+    grows a skinned parametric human (humanoid Skeleton3D, lofted
+    body/face mesh with blink/jaw/smile/brow blend shapes, SSS skin,
+    procedural irises, hairstyle shells, 3 LODs) with zero Unreal and
+    zero asset files. The "🧬 Character Studio" main-menu screen is the
+    MetaHuman-Creator equivalent (preset gallery, 3-way DNA blending,
+    live sculpt sliders); "Use This Human" stores the genome on
+    `PlayerProfile` and `MetahumanCharacter` resolves it as the player's
+    body (real Unreal GLB exports still win if dropped in; the capsule
+    rig is now the absolute last resort).
   - **3D overworld** (`src/world/overworld/`) — a walkable third-person
     overworld: streamed procedural heightmap terrain (one mesh per
     DiscoveryManager chunk, biome-tinted, low-poly props from each chunk's
