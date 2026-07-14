@@ -1,6 +1,7 @@
-[gd_scene load_steps=8 format=3 uid="uid://bxk4m9qw2vtn7"]
+[gd_scene load_steps=9 format=3 uid="uid://bxk4m9qw2vtn7"]
 
 [ext_resource type="PackedScene" path="res://scenes/player/periliminal_player.tscn" id="1_player"]
+[ext_resource type="Script" path="res://src/world/arena_npc_spawner.gd" id="2_npcs"]
 
 [sub_resource type="BoxMesh" id="BoxMesh_ground"]
 size = Vector3(100, 1, 100)
@@ -44,3 +45,9 @@ shape = SubResource("BoxShape3D_ground")
 
 [node name="PeriliminalPlayer" parent="." instance=ExtResource("1_player")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2, 0)
+
+[node name="NPCCrowd" type="Node3D" parent="."]
+script = ExtResource("2_npcs")
+npc_count = 40
+seed_key = "playtest_arena"
+layer = "hyperliminal"

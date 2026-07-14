@@ -162,8 +162,68 @@ const ABILITY_DATABASE = {
 		"cast_time": 1.1,
 		"aoe_radius": 8.0,
 		"description": "Unleash fury in an area around you"
+	},
+
+	# FACTIONLESS - unaligned starter kit. Every player can fight before
+	# (or without ever) pledging a faction; lore-consistent with
+	# FactionSystem's "no bonuses, no restrictions" Factionless entry.
+	"claw_strike": {
+		"name": "Claw Strike",
+		"faction": "Factionless",
+		"type": "damage",
+		"damage_base": 45,
+		"energy_cost": 12,
+		"cooldown": 1.0,
+		"range": 2.5,
+		"cast_time": 0.25,
+		"description": "A quick, unaugmented claw swipe"
+	},
+	"pounce": {
+		"name": "Pounce",
+		"faction": "Factionless",
+		"type": "damage",
+		"damage_base": 55,
+		"energy_cost": 18,
+		"cooldown": 2.0,
+		"range": 4.0,
+		"cast_time": 0.4,
+		"description": "Close distance fast and strike"
+	},
+	"scratch_guard": {
+		"name": "Scratch Guard",
+		"faction": "Factionless",
+		"type": "defense",
+		"damage_reduction": 0.25,
+		"energy_cost": 15,
+		"cooldown": 3.0,
+		"duration": 4.0,
+		"range": 0.0,
+		"cast_time": 0.5,
+		"description": "Brace and reduce incoming damage"
+	},
+	"hiss": {
+		"name": "Hiss",
+		"faction": "Factionless",
+		"type": "control",
+		"energy_cost": 10,
+		"cooldown": 3.5,
+		"range": 3.0,
+		"cast_time": 0.3,
+		"effect": "weakness",
+		"status_chance": 0.4,
+		"duration": 3.0,
+		"description": "Startle a target, weakening their next strike"
 	}
 }
+
+## Returns this faction's ability ids, sorted for stable hotbar-slot order.
+static func abilities_for_faction(faction: String) -> Array[String]:
+	var ids: Array[String] = []
+	for ability_id in ABILITY_DATABASE.keys():
+		if ABILITY_DATABASE[ability_id].get("faction", "") == faction:
+			ids.append(ability_id)
+	ids.sort()
+	return ids
 
 # Status effects dictionary
 const STATUS_EFFECTS = {
