@@ -80,7 +80,10 @@ func world_material(base_color: Color, strength: float = 0.35) -> StandardMateri
 	return mat
 
 ## How SOMEONE ELSE's mesh renders on YOUR client: their base look, pulled
-## through your race lens, scaled/aura'd by the RPS perception model.
+## through your race lens, scaled/aura'd by the RPS perception model, and
+## finished with your view-scale style (glitchy/holographic/shadowy/off —
+## see ViewScale; PerceptionSystem.perceive already resolved which style
+## actually applies, honoring their opt-out over yours if they have one).
 func perceive_being(their_profile: Dictionary, their_color: Color) -> Dictionary:
 	var view := PerceptionSystem.perceive(PerceptionSystem.local_profile(), their_profile)
 	var mat := world_material(their_color, 0.25)
@@ -88,6 +91,19 @@ func perceive_being(their_profile: Dictionary, their_color: Color) -> Dictionary
 		mat.emission_enabled = true
 		mat.emission = view.aura_color
 		mat.emission_energy_multiplier = view.aura_intensity
+	match str(view.get("style", "")):
+		"holographic":
+			mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+			mat.albedo_color.a = 0.82
+			mat.emission_enabled = true
+			if view.aura_intensity <= 0.0:
+				mat.emission = Color(0.5, 0.95, 1.0)
+			mat.emission_energy_multiplier = maxf(mat.emission_energy_multiplier, 0.35)
+		"shadowy":
+			mat.albedo_color = mat.albedo_color.darkened(0.55)
+			mat.roughness = 1.0
+			mat.metallic = 0.0
+			mat.emission_enabled = false
 	return {"material": mat, "scale": view.apparent_scale, "view": view}
 
 # ── The frame sensorium: how reality is lit and sounds ────────────────────────

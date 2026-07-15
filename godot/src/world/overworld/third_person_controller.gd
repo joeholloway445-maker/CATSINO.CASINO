@@ -6,12 +6,12 @@ extends CharacterBody3D
 
 signal chunk_changed(coord: Vector2i)
 
-const MAX_SPEED := 6.0
-const SPRINT_SPEED := 10.5
-const ACCEL := 14.0
-const DEACCEL := 14.0
+const BASE_MAX_SPEED := 6.0
+const BASE_SPRINT_SPEED := 10.5
+const BASE_ACCEL := 14.0
+const BASE_DEACCEL := 14.0
 const AIR_ACCEL_FACTOR := 0.5
-const JUMP_VELOCITY := 9.0
+const BASE_JUMP_VELOCITY := 9.0
 const CAM_DISTANCE := 5.0
 const CAM_HEIGHT := 2.2
 const MOUSE_SENSITIVITY := 0.004
@@ -31,10 +31,33 @@ var visual_mode := "identity"
 var _visual_root: Node3D
 var _collision: CollisionShape3D
 
+## The mod actually worn shapes how it feels to move — a turbo_injector
+## sprints noticeably faster and jumps higher, a shield_matrix trades a
+## little of both for its defensive bonus. See ModMechanics.mobility_for().
+var _max_speed := BASE_MAX_SPEED
+var _sprint_speed := BASE_SPRINT_SPEED
+var _accel := BASE_ACCEL
+var _deaccel := BASE_DEACCEL
+var _jump_velocity := BASE_JUMP_VELOCITY
+
 func _ready() -> void:
 	_ensure_collision()
 	_build_body()
 	_build_camera()
+	_refresh_mobility()
+	if PlayerProfile:
+		PlayerProfile.profile_updated.connect(_refresh_mobility)
+
+## Recomputes the mod-scaled movement constants. Called on ready and again
+## whenever the player's mod (or anything else on their profile) changes.
+func _refresh_mobility() -> void:
+	var mod_id := str(PlayerProfile.selected_mod) if PlayerProfile else ""
+	var mob := ModMechanics.mobility_for(mod_id)
+	_max_speed = BASE_MAX_SPEED * float(mob.move_mult)
+	_sprint_speed = BASE_SPRINT_SPEED * float(mob.move_mult)
+	_accel = BASE_ACCEL * float(mob.accel_mult)
+	_deaccel = BASE_DEACCEL * float(mob.accel_mult)
+	_jump_velocity = BASE_JUMP_VELOCITY * float(mob.jump_mult)
 
 ## Swap between house-cat presentation and the player's true identity form.
 ## Used by the PVXC 15-minute PvE ↔ PvP rotation.
@@ -159,8 +182,8 @@ func _physics_process(delta: float) -> void:
 	var dir := (cam_basis * Vector3(input_2d.x, 0.0, input_2d.y)).normalized()
 
 	var sprinting := Input.is_key_pressed(KEY_SHIFT) or TouchControls.sprint_held
-	var target_speed := SPRINT_SPEED if sprinting else MAX_SPEED
-	var accel := (ACCEL if dir.dot(Vector3(velocity.x, 0, velocity.z)) > 0.0 else DEACCEL)
+	var target_speed := _sprint_speed if sprinting else _max_speed
+	var accel := (_accel if dir.dot(Vector3(velocity.x, 0, velocity.z)) > 0.0 else _deaccel)
 	if not is_on_floor():
 		accel *= AIR_ACCEL_FACTOR
 
@@ -170,7 +193,7 @@ func _physics_process(delta: float) -> void:
 	velocity.z = flat.z
 
 	if is_on_floor() and (Input.is_action_just_pressed("ui_accept") or TouchControls.consume_jump()):
-		velocity.y = JUMP_VELOCITY
+		velocity.y = _jump_velocity
 	# Touch E: replay as a real key event so every venue/door/hideout
 	# interaction hears it without knowing about touch.
 	if TouchControls.consume_interact():

@@ -28,6 +28,12 @@ var perihuman_dna: Dictionary = {}
 var titles: Array[String] = []
 var active_title: String = ""
 var playtime_seconds: float = 0.0
+## How the identity-lens/RPS perception distortion renders for this player
+## — "glitchy" / "holographic" / "shadowy" / "off". Opt-in by default (see
+## ViewScale.DEFAULT_STYLE). "off" isn't just a local preference: any
+## OTHER client rendering this player, or this player's companions/tied
+## entities, also renders them undistorted — the opt-out travels with you.
+var view_scale_style: String = ""
 
 var _session_start: float = 0.0
 
@@ -58,6 +64,7 @@ func _load() -> void:
 	perihuman_dna = dna if dna is Dictionary else {}
 	titles = Array(data.get("titles", []), TYPE_STRING, "", null)
 	active_title = data.get("active_title", "")
+	view_scale_style = str(data.get("view_scale_style", ""))
 	# Migration: saves from before this flag existed still have a real
 	# character if they've clearly played (leveled up, left the default
 	# frame/mod, or picked up a companion) — don't lock returning players
@@ -83,6 +90,7 @@ func _save() -> void:
 		"titles": titles,
 		"active_title": active_title,
 		"playtime_seconds": playtime_seconds,
+		"view_scale_style": view_scale_style,
 	}))
 	f.close()
 
@@ -142,6 +150,18 @@ func set_mod(mod_id: String) -> void:
 	selected_mod = mod_id
 	_save()
 	profile_updated.emit()
+
+## "" resolves to ViewScale.DEFAULT_STYLE (opt-in); "off" opts out —
+## everywhere this player, and anything tied to them, gets rendered.
+func set_view_scale_style(style: String) -> void:
+	view_scale_style = style if (style.is_empty() or ViewScale.is_valid(style)) else ""
+	_save()
+	profile_updated.emit()
+
+## True once this player has opted the "view scale" perception distortion
+## off — companions/entities tied to them should render undistorted too.
+func view_scale_opted_out() -> bool:
+	return view_scale_style == "off"
 
 func add_title(title: String) -> void:
 	if title not in titles:

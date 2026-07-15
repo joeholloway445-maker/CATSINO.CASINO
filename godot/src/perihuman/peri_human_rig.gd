@@ -40,6 +40,12 @@ var _blink_phase := -1.0
 var _next_blink := 2.0
 var _next_saccade := 1.0
 var _lod_check := 0.0
+## Set by apply_perception() when this rig represents ANOTHER being on the
+## local player's client (see IdentityLens.perceive_being) — "" means this
+## is the local player's own body, rendered as-is with no view-scale style.
+var _perceived_style := ""
+var _glitch_mat: StandardMaterial3D
+var _glitch_base_energy := 0.0
 
 func _ready() -> void:
 	if dna == null:
@@ -155,6 +161,27 @@ func _build_eyes() -> void:
 		eye.add_child(iris)
 		_eyes.append(eye)
 
+# ------------------------------------------------------------ perception
+
+## Applies another client's view of THIS rig — the material + view-scale
+## style IdentityLens.perceive_being() already computed for this being on
+## the local viewer's screen (race lens, RPS aura, glitchy/holographic/
+## shadowy/off). Call after apply_dna() whenever this rig represents
+## someone else (a remote player, an NPC) rather than the local player's
+## own body. `mat` replaces the plain skin material outright, same as
+## CharacterRig's `perceived` path does for the capsule rig.
+##
+## Deliberately does NOT touch `scale` — apparent_scale (view.apparent_scale)
+## is the caller's to apply whichever way it already places this rig
+## (RemotePlayer, for one, scales its own root rather than the rig).
+func apply_perception(view: Dictionary, mat: StandardMaterial3D) -> void:
+	_perceived_style = str(view.get("style", ""))
+	if _body == null or mat == null:
+		return
+	_body.material_override = mat
+	_glitch_mat = mat if _perceived_style == "glitchy" else null
+	_glitch_base_energy = mat.emission_energy_multiplier if mat.emission_enabled else 0.0
+
 # ------------------------------------------------------------- expressions
 
 ## Persistent expression control, e.g. set_expression("smile", 0.7).
@@ -194,6 +221,14 @@ func _process(delta: float) -> void:
 			if cam != null:
 				var dist := cam.global_position.distance_to(global_position)
 				set_lod(0 if dist < 5.0 else (1 if dist < 12.0 else 2))
+	if _glitch_mat != null:
+		# Broken-signal flicker: emission jumps between dim and overbright
+		# on a jittery cadence — the one style with a live per-frame tell,
+		# since this rig already runs an idle process loop either way.
+		var jitter := sin(Time.get_ticks_msec() * 0.03 + get_instance_id() % 100) \
+			* sin(Time.get_ticks_msec() * 0.011)
+		_glitch_mat.emission_enabled = true
+		_glitch_mat.emission_energy_multiplier = maxf(0.0, _glitch_base_energy + jitter * 0.8)
 	if not auto_idle or _skeleton == null:
 		return
 	_time += delta

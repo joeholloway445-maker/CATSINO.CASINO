@@ -261,7 +261,10 @@ func use_ability(actor_id: String, ability_id: String, target_id: String, target
 
 	# Calculate damage with variance
 	var damage = calculate_damage(actor_id, ability, target_id)
-	var is_crit = randf() < ability.get("crit_chance", 0.05)
+	var crit_bonus := 0.0
+	if actor_id == "player" and PlayerProfile:
+		crit_bonus = float(ModMechanics.combat_for(PlayerProfile.selected_mod).crit_chance_bonus)
+	var is_crit = randf() < (float(ability.get("crit_chance", 0.05)) + crit_bonus)
 	if is_crit:
 		damage = int(damage * 1.5)
 
@@ -412,8 +415,17 @@ func move_actor(actor_id: String, new_position: Vector2) -> void:
 	player_positions[actor_id] = new_position
 
 func get_actor_stat(actor_id: String, stat_name: String) -> int:
-	"""Get actor stat (placeholder - would pull from character progression)"""
-	# TODO: Integration with CharacterProgression system
+	"""Get actor stat. The local player reads their real race/frame stat
+	sheet (CharacterCreatorLogic) with their mod's combat math layered on
+	top (ModMechanics); anything else (no CharacterProgression system for
+	NPCs/enemies yet) falls back to the flat placeholder."""
+	if actor_id == "player" and PlayerProfile:
+		var stats := CharacterCreatorLogic.build_starting_stats(
+			PlayerProfile.selected_race_id, PlayerProfile.faction, PlayerProfile.selected_frame)
+		var combat := ModMechanics.combat_for(PlayerProfile.selected_mod)
+		match stat_name:
+			"strength": return int(float(stats.get("pow", 10)) * float(combat.damage_mult))
+			"defense": return int(float(stats.get("res", 10)) * float(combat.defense_mult))
 	return 10  # Default stat value
 
 func get_energy_level(actor_id: String) -> float:

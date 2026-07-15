@@ -41,6 +41,15 @@ static func type_advantage(viewer_faction: String, target_faction: String) -> fl
 
 ## The contract: returns how `target` should be RENDERED ON `viewer`'s
 ## client. Symmetric calls give different answers by design.
+##
+## `viewer` is always the local player in this codebase's current call
+## sites (every caller passes local_profile()) — that invariant is what
+## lets this read PlayerProfile.view_scale_style directly below instead of
+## threading a style param through every caller. `target.opted_out` is the
+## one thing that overrides it: set true when target is a player, entity,
+## or companion TIED TO a player who has opted the view-scale style off
+## (see ViewScale) — wildlife/PVXC creatures have no owner, so they always
+## just follow the viewer's own style.
 static func perceive(viewer: Dictionary, target: Dictionary) -> Dictionary:
 	var vs := strength_of(viewer)
 	var ts := strength_of(target)
@@ -54,7 +63,7 @@ static func perceive(viewer: Dictionary, target: Dictionary) -> Dictionary:
 	var menace := clampf((ratio - 0.8) * 0.6 + maxf(-advantage, 0.0) * 0.4, 0.0, 1.0)
 	var aura: Color = ALIGNMENT_AURAS.get(str(target.get("alignment", "neutral")), ALIGNMENT_AURAS["neutral"])
 
-	return {
+	var raw := {
 		"apparent_scale": apparent_scale,
 		"aura_color": aura,
 		"aura_intensity": menace,
@@ -63,6 +72,9 @@ static func perceive(viewer: Dictionary, target: Dictionary) -> Dictionary:
 		# read a strong player's exact loadout, only the silhouette.
 		"loadout_visible": ratio < 1.5,
 	}
+	var viewer_style := str(PlayerProfile.view_scale_style) if PlayerProfile else ""
+	var style := ViewScale.resolve(viewer_style, bool(target.get("opted_out", false)))
+	return ViewScale.apply(raw, style)
 
 ## Convenience for the local player's profile dict.
 static func local_profile() -> Dictionary:

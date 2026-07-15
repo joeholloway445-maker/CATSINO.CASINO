@@ -34,7 +34,13 @@ func _rebuild_body() -> void:
 
 	var race_id := str(profile.get("race_id", ""))
 	var body := MetahumanCharacter.build_npc(visual_mode, race_id)
-	if body is MeshInstance3D:
+	# MetahumanCharacter.build_npc's default body is a PeriHumanRig (a whole
+	# skeleton+skin hierarchy, not a bare mesh) — `is MeshInstance3D` never
+	# matched it, so the perceived material/view-scale style silently never
+	# applied to remote PeriHumans. apply_perception() is the fix.
+	if body is PeriHumanRig:
+		body.apply_perception(seen.view, seen.material)
+	elif body is MeshInstance3D:
 		body.material_override = seen.material
 	_body_root = body
 	add_child(body)

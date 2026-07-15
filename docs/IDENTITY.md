@@ -38,7 +38,17 @@ entities, other players:
   it is very much going to kill you in the open Metroplex.
 
 Entry points: `IdentityLens.world_material()` (all hard mesh),
-`IdentityLens.perceive_being()` (other characters/NPCs/entities).
+`IdentityLens.perceive_being()` (other characters/NPCs/entities). Every
+procedural hard-surface builder routes through one of these two — terrain
+(`procedural_terrain.gd`), the mega-city (`mega_city_builder.gd`), and
+forged weapons/armor/entity bodies (`blueprint_mesh.gd`) alike — so a
+sword you forge, a creature you tame, and a wall you've never touched are
+all rendered in your race's material on your screen and someone else's on
+theirs. A few surfaces are deliberately left un-lensed on purpose: PVXC's
+danger ring, harvest-node color, and layer-exit door tint are gameplay
+*signals* (danger, exit, destination) that need to read identically for
+every player, so they're exempt from the "everyone sees something
+different" rule by design, not by omission.
 
 ## Frames — how reality is lit, and what it sounds like (20)
 
@@ -57,6 +67,35 @@ the mode and tempo match, the phrasing never does.
 
 Entry points: `IdentityLens.tune_sky()` (applied to every DayNightSky),
 `sound_profile()` (ambient audio generation contract).
+
+## Mods — how it feels to move, and how hard you hit (20)
+
+Frame and race are read-only, given at creation; a **mod** is the one
+build piece with a live, tunable mechanical effect
+(`frame_mod_data.gd`'s `stat_bonus`, translated into concrete numbers by
+`mod_mechanics.gd`'s `ModMechanics`). Rather than a second table to keep
+in sync by hand, the mechanics are *derived* straight from the stat bonus
+already on the mod — one source of truth:
+
+- **spd** bonus/penalty scales move speed, acceleration, and jump height
+  (`ThirdPersonController` reads this on ready and again on every
+  `PlayerProfile.profile_updated`) — a **Turbo Injector** pilot visibly
+  outpaces everyone else on foot; a **Shield Matrix** pilot is a hair
+  slower for the defense it buys.
+- **pow** bonus/penalty scales outgoing damage; **res** bonus/penalty
+  scales damage *taken* (inverted — more res, less gets through); **lck**
+  bonus/penalty nudges crit chance up or down on top of whatever the
+  ability already rolls (`CombatSystemRealtime.calculate_damage()` /
+  `use_ability()`). A **Berserker Chip** hits noticeably harder and takes
+  noticeably more; a **Harmony Crystal**'s five flat +5s round out to a
+  gentle, well-rounded bump across the board.
+
+This runs through the live-action combat system (`CombatSystemRealtime`,
+what the PVXC arena actually plays on) and the overworld movement
+controller — not the older turn-based Cat Coliseum encounter resolver
+(`combat_system.gd`), which is a self-contained minigame with its own
+canned opponent stats and predates the current race/frame/mod id scheme;
+unifying the two is a bigger, separate undertaking.
 
 ## Ascension — the second frame
 
@@ -82,6 +121,32 @@ At creation you are a once-in-8,000 build. Every threshold multiplies it.
 character creation and on the profile. Titles are the deliberate late-game
 multiplier: they only come from quests, crowns, and feats
 (`title_data.gd`), never the shop.
+
+## View scale — the perception style toggle
+
+The RPS distortion (apparent scale + aura from `PerceptionSystem.perceive`)
+is core to "no two players see the same game," but it's also a real
+visual-intensity preference, so it's opt-in-by-default rather than
+mandatory (`PlayerProfile.view_scale_style`, `ViewScale`
+`src/identity/view_scale.gd`):
+
+| Style | What it does |
+|---|---|
+| **Glitchy** | Aura shifts toward magenta/cyan and the material's emission live-flickers on a jittery cadence — the one style with real per-frame motion. |
+| **Holographic** *(default)* | Aura leans cyan-white, the surface goes semi-transparent with a soft emission floor — a projection, not flesh. |
+| **Shadowy** | No aura, darkened albedo, flattened roughness, apparent scale pulled slightly down — reads as a silhouette rather than a rendered being. |
+| **Off** | Plain lensed material, apparent scale locked to 1.0, no aura. Full opt-out. |
+
+Applies uniformly to players, entities, and companions, because all three
+funnel through the same `PerceptionSystem.perceive()` call. The one
+asymmetry: **opt-out travels with the subject, not the viewer.** If a
+player sets their own style to Off, they render undistorted on *every*
+client that looks at them — and so would anything tied to them (a
+companion, an owned entity), by passing `opted_out: true` in that
+subject's profile dict — not just their own screen. Wildlife and PVXC
+creatures have no owner, so that override never applies to them; they
+just always follow whichever style the local viewer has picked. Change it
+any time from Settings → 🌐 Identity Lens.
 
 ## How it connects to everything else
 

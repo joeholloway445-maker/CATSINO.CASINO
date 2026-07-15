@@ -13,12 +13,20 @@ static func build(bp: Dictionary) -> Node3D:
 		"entity": return _entity(bp)
 		_: return Node3D.new()
 
+## Route every blueprint surface through the viewer's race lens — the same
+## "hard mesh" contract as terrain/props (AssetLibrary.material()): the
+## authored base_color and intentional emission survive, but roughness/
+## metalness and hue pull toward the local race's texture_type/primary_color,
+## so the SAME sword/creature is a different material on every client.
 static func _mat(base: Color, metallic: float, roughness: float,
 		emission: float, emit_color: Color = Color.WHITE) -> StandardMaterial3D:
-	var m := StandardMaterial3D.new()
-	m.albedo_color = base
-	m.metallic = metallic
-	m.roughness = roughness
+	var m := IdentityLens.world_material(base, 0.3) if IdentityLens else StandardMaterial3D.new()
+	if not IdentityLens:
+		m.albedo_color = base
+	# Blend the item's own authored physicality with the lens' — a "0.9
+	# metallic" sword should still read metallic even under a rough lens.
+	m.metallic = clampf(lerpf(m.metallic, metallic, 0.6), 0.0, 1.0)
+	m.roughness = clampf(lerpf(m.roughness, roughness, 0.6), 0.0, 1.0)
 	# A thin rim light on every blueprint surface — the difference between
 	## "flat Godot primitive" and "this was lit for a screenshot."
 	m.rim_enabled = true
@@ -27,6 +35,10 @@ static func _mat(base: Color, metallic: float, roughness: float,
 	if metallic > 0.5:
 		m.clearcoat_enabled = true
 		m.clearcoat = 0.5
+	# Authored emission (glow edges, danger tells) always wins over the
+	# lens' own texture_type emissive — gameplay legibility beats flavor.
+	# Absent that, a naturally-emissive race (radiant, digital, ...) still
+	# shows through, same as it would on any other piece of hard mesh.
 	if emission > 0.01:
 		m.emission_enabled = true
 		m.emission = emit_color

@@ -56,6 +56,9 @@ func _build_ui() -> void:
 	_add_section(root, "🎮 GAMEPLAY")
 	_add_toggle(root, "Auto-Claim Daily Bonus", "auto_claim_daily")
 
+	_add_section(root, "🌐 IDENTITY LENS")
+	_add_view_scale_row(root)
+
 	var save_btn = Button.new()
 	save_btn.text = "SAVE SETTINGS"
 	save_btn.custom_minimum_size = Vector2(0, 48)
@@ -115,6 +118,38 @@ func _add_option(parent: VBoxContainer, label: String, key: String, options: Arr
 	opt.selected = _settings.get(key, 2)
 	opt.item_selected.connect(func(i): _settings[key] = i; _apply_settings())
 	row.add_child(opt)
+
+## "View scale" is a per-player identity preference (how the identity-lens/
+## RPS perception distortion renders — and whether it renders at all), so
+## unlike everything else on this screen it reads/writes PlayerProfile
+## directly instead of the local settings.json blob: other systems
+## (PerceptionSystem) already read PlayerProfile.view_scale_style, and an
+## opt-out needs to be visible to OTHER clients rendering this player, not
+## just remembered locally.
+func _add_view_scale_row(parent: VBoxContainer) -> void:
+	var row = HBoxContainer.new()
+	parent.add_child(row)
+	var lbl = Label.new()
+	lbl.text = "View Scale Style"
+	lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	row.add_child(lbl)
+	var opt = OptionButton.new()
+	var styles: Array = ViewScale.STYLES  # ["glitchy", "holographic", "shadowy", "off"]
+	for s in styles:
+		opt.add_item(str(s).capitalize())
+	var current := PlayerProfile.view_scale_style if PlayerProfile else ""
+	if current.is_empty():
+		current = ViewScale.DEFAULT_STYLE
+	opt.selected = maxi(0, styles.find(current))
+	opt.item_selected.connect(func(i: int):
+		if PlayerProfile:
+			PlayerProfile.set_view_scale_style(styles[i]))
+	row.add_child(opt)
+	var hint = Label.new()
+	hint.text = "How other beings' identity distortion renders on your screen. Off opts you out everywhere — your own body, companions, and anything tied to you render undistorted for everyone."
+	hint.autowrap_mode = TextServer.AUTOWRAP_WORD
+	hint.modulate = Color(1, 1, 1, 0.6)
+	parent.add_child(hint)
 
 func _apply_settings() -> void:
 	AudioServer.set_bus_volume_db(0, linear_to_db(_settings.get("audio_master", 1.0)))
