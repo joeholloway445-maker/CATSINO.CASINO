@@ -107,7 +107,7 @@ func _populate_events() -> void:
 
 # ─── Battlepass bar ──────────────────────────────────────────────────────────
 func _refresh_battlepass() -> void:
-	var bp := LiveOpsManager.get_battlepass_progress()
+	var bp: Dictionary = LiveOpsManager.get_battlepass_progress()
 	var current: int = bp.get("current_xp", 0)
 	var max_xp: int = bp.get("xp_to_next", 1000)
 	var tier: int = bp.get("tier", 1)

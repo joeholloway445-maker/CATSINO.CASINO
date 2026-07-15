@@ -218,4 +218,4 @@ gdscript/warnings/inferred_declaration=0
 
 [editor_plugins]
 
-enabled=PackedStringArray("res://addons/terrain_3d/plugin.cfg")
+enabled=PackedStringArray()

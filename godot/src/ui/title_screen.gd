@@ -112,9 +112,30 @@ func _build_ui() -> void:
 			get_tree().change_scene_to_file("res://scenes/layers/subliminal.tscn"))
 	middle.add_child(continue_btn)
 
+	# Walkable Gate-3 spine: Liminal → Metroplex → HiddenDoor → pull → blessing.
+	# Shortens the Liminal pull; does NOT add pull warnings (design invariant).
+	var proto_btn := Button.new()
+	proto_btn.text = "🧪  Play Prototype Spine"
+	proto_btn.custom_minimum_size = Vector2(320, 48)
+	proto_btn.tooltip_text = "Dev prototype: shortened Liminal pull + guaranteed Metroplex exit near spawn."
+	proto_btn.pressed.connect(_start_prototype_spine)
+	middle.add_child(proto_btn)
+
 	var spacer := Control.new()
 	spacer.custom_minimum_size = Vector2(0, 40)
 	root.add_child(spacer)
+
+func _start_prototype_spine() -> void:
+	LayerManager.enable_prototype_mode(true)
+	# Ensure Continue/identity systems have something to read.
+	if not PlayerProfile.has_expedition:
+		PlayerProfile.set_race(PlayerProfile.selected_race_id)
+		PlayerProfile.selected_frame = "veil"
+		PlayerProfile.selected_mod = "catalyst"
+		PlayerProfile.faction = "Factionless"
+		PlayerProfile.has_expedition = true
+	NotificationUI.notify_info("Prototype spine armed. Walk the Metroplex archway — the Between is already watching.")
+	LayerManager.transition_to("liminal", true)
 
 func _toggle_omni_dex() -> void:
 	if get_node_or_null("OmniDex") != null:

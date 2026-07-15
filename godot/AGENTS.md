@@ -297,7 +297,7 @@ this goal is locked.
    after a zero-error smoke open. Prefer pure-GDScript (web export).
 8. **Real multiplayer**: wire NetworkManager/Nakama beyond presence bots.
 
-## Current status snapshot (last checked 2026-07-15, post-reconciliation — re-verify, don't trust)
+## Current status snapshot (last checked 2026-07-15, post initial prototype spine)
 
 This section exists because two "status" docs in `docs/` (`IMPLEMENTATION_STATUS.md`,
 `LAUNCH_CHECKLIST_AND_ROADMAP.md`) are point-in-time snapshots that predate
@@ -307,6 +307,13 @@ this section is the most recent concrete read against it. Update this
 section (with today's date) whenever you re-verify a gate — don't let it
 go stale the way the other two did.
 
+- **Initial prototype spine (2026-07-15).** Gate 1 re-verified clean (0
+  SCRIPT ERROR / failed autoload on Godot 4.3 headless editor open). Gate 2
+  `boot_smoke` PASS. Gate 3 walkable via title **Play Prototype Spine**
+  (`LayerManager.enable_prototype_mode`: 8s Liminal pull, guaranteed
+  Metroplex/Catsino exits near spawn, blessing depth 1) and verified by
+  `godot --headless --path godot -s res://src/dev/layer_spine_smoke.gd`
+  (RESULT=PASS). Production pull remains 7–15 min with no warnings.
 - **Branch history reconciled with main (2026-07-15).** This branch had
   been merged into main 9+ times and reused each time without syncing
   back; PR #28 initially showed a 927K-line "dirty" diff of two-sided

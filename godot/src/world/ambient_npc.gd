@@ -87,10 +87,8 @@ func _request_ai_reaction(player_id: String) -> void:
 		"daily_task": daily_task,
 		"aware": GameModeManager.is_aware(),
 	}
-	var client := CasinoHTTPClient.new()
-	add_child(client)
-	var response := await client.post_json(PERSONA_ENDPOINT, task)
-	client.queue_free()
+	# CasinoHTTPClient is an autoload singleton (no class_name).
+	var response: Dictionary = await CasinoHTTPClient.post_json(PERSONA_ENDPOINT, task)
 	if response.get("ok", false):
 		reaction_received.emit(response.get("data", {}))
 

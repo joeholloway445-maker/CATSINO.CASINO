@@ -24,7 +24,7 @@ Deferred only when they conflict with the spine: real Nakama scale, voice acting
 |---|---|---|
 | 1 | Zero SCRIPT ERROR / failed autoload | Done (PR #22) |
 | 2 | Boot path: splash → login/guest → title → New Venture → Liminal; Continue → Subliminal | Done (Play Offline + boot_smoke PASS) |
-| 3 | Layer round-trip (spine) | Next |
+| 3 | Layer round-trip (spine) | Prototype path + `layer_spine_smoke` PASS (Play Prototype Spine) |
 | 3b | **ESO visual bar** — MetaHuman GLBs + Terrain3D desktop + Forward+ | Pipeline landed; drop MetaHuman exports |
 | 4 | Web export preset + CI green | Next |
 | 5 | Combat/economy/hideout/casino/StoryVote in-engine pass | Queued |

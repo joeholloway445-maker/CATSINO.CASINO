@@ -69,14 +69,14 @@ func _ready() -> void:
 	_on_kind_changed()
 
 func _on_kind_changed() -> void:
-	var kind := KINDS[_kind_tabs.current_tab]
+	var kind: String = str(KINDS[_kind_tabs.current_tab])
 	_faction_tabs.visible = kind in ["Entities", "Companions"]
 	_refresh_list()
 
 func _refresh_list() -> void:
 	_list.clear()
 	_detail.text = ""
-	var kind := KINDS[_kind_tabs.current_tab]
+	var kind: String = str(KINDS[_kind_tabs.current_tab])
 	match kind:
 		"Races":
 			_count_label.text = "  %d races" % OmniDexRegistry.RACE_COUNT
@@ -96,7 +96,7 @@ func _refresh_list() -> void:
 				_list.add_item("%s  [%s / %s]" % [m.name, m.bonus, m.drawback])
 				_list.set_item_metadata(_list.item_count - 1, {"kind": "mod", "data": m})
 		"Entities":
-			var faction := FACTIONS[_faction_tabs.current_tab]
+			var faction: String = str(FACTIONS[_faction_tabs.current_tab])
 			var lines: Array = EntityDexData.by_faction(faction)
 			_count_label.text = "  %d entity lines · %s" % [lines.size(), faction]
 			for line in lines:
@@ -107,7 +107,7 @@ func _refresh_list() -> void:
 				_list.add_item("%s  [%s]" % [shown, line.get("category", "?")])
 				_list.set_item_metadata(_list.item_count - 1, {"kind": "entity", "data": line})
 		"Companions":
-			var faction2 := FACTIONS[_faction_tabs.current_tab]
+			var faction2: String = str(FACTIONS[_faction_tabs.current_tab])
 			var roster := CompanionRegistry.get_by_faction(faction2)
 			_count_label.text = "  %d companions · %s" % [roster.size(), faction2]
 			for c in roster:
