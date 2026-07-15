@@ -42,7 +42,7 @@ func _build_ui() -> void:
 	root.add_child(upper)
 
 	# The emblem: shadow-god in the broken 9-point star, twin ouroboros.
-	# Procedural until final key art lands at assets/ui/logo.png.
+	# Uses assets/ui/logo.png when present; otherwise procedural emblem.
 	var emblem_center := CenterContainer.new()
 	upper.add_child(emblem_center)
 	var emblem := LogoEmblem.new()

@@ -1,7 +1,7 @@
 class_name LogoEmblem
 extends Control
-## The Periliminal.Space emblem, drawn procedurally until final key art
-## lands (drop assets/ui/logo.png in and this yields to it automatically).
+## The Periliminal.Space emblem. Prefer final key art at assets/ui/logo.png;
+## falls back to a procedural draw when that file is missing.
 ## The brief: dark mystery, futuristic AND ancient — a shadowy humanoid
 ## figure, discreet but overwhelming, a God of gods, standing inside a
 ## geometrically broken/glitched 9-point star, wrapped by TWO ouroboros
