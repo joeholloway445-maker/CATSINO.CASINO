@@ -11,6 +11,7 @@ extends CanvasLayer
 ##   TouchControls.move_vector      Vector2 in [-1, 1]
 ##   TouchControls.look_delta       Vector2 pixels since last frame; consume
 ##   TouchControls.sprint_held      bool while the sprint button is pressed
+##   TouchControls.crouch_held      bool while the posture button is held
 ##   TouchControls.consume_jump()   true once, resets
 ##   TouchControls.consume_interact() true once, resets
 ##
@@ -19,6 +20,7 @@ extends CanvasLayer
 ## indicators, and the joystick's own footprint.
 
 static var move_vector := Vector2.ZERO
+static var crouch_held := false # hold-to-crouch posture button
 static var look_delta := Vector2.ZERO
 static var sprint_held := false
 static var _jump_queued := false
@@ -94,11 +96,19 @@ func _ready() -> void:
 	# ---- right: action buttons ----
 	var col := VBoxContainer.new()
 	col.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_RIGHT)
-	col.position += Vector2(-(safe.position.y + BUTTON_SIZE + 32), -(safe.size.y + BUTTON_SIZE * 4 + 80))
+	# 6 rows now stack here (jump/crouch/E/attack/sprint/roll-row) — the
+	# offset below is an approximate anchor placement, not a hard bound;
+	# VBoxContainer auto-lays-out its children regardless.
+	col.position += Vector2(-(safe.position.y + BUTTON_SIZE + 32), -(safe.size.y + BUTTON_SIZE * 6 + 80))
 	col.add_theme_constant_override("separation", 18)
 	add_child(col)
 	col.add_child(_dual_button("⤴", func(): TouchControls._jump_queued = true,
 		func(held: bool): TouchControls.jump_held = held))
+	# Posture: hold to crouch, release to stand.
+	var crouch_btn := _action_button("⤵", func(): pass)
+	crouch_btn.button_down.connect(func(): TouchControls.crouch_held = true)
+	crouch_btn.button_up.connect(func(): TouchControls.crouch_held = false)
+	col.add_child(crouch_btn)
 	col.add_child(_action_button("E", func(): TouchControls._interact_queued = true))
 	col.add_child(_action_button("⚔", func():
 		var ev := InputEventKey.new()
@@ -126,6 +136,11 @@ func _process(_delta: float) -> void:
 		ev.physical_keycode = KEY_E
 		ev.pressed = true
 		Input.parse_input_event(ev)
+
+func _exit_tree() -> void:
+	# Never let a held control outlive its scene.
+	TouchControls.crouch_held = false
+	TouchControls.move_vector = Vector2.ZERO
 
 func _action_button(label: String, on_press: Callable) -> Button:
 	var b := Button.new()

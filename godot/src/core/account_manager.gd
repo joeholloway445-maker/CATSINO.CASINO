@@ -9,11 +9,21 @@ signal cloud_save_complete()
 signal cloud_load_complete(data: Dictionary)
 
 # ── Constants ──────────────────────────────────────────────────────────────────
-const NAKAMA_HOST        := "127.0.0.1"
-const NAKAMA_PORT        := 7350
-const NAKAMA_SERVER_KEY  := "defaultkey"
-const SESSION_CACHE_PATH := "user://session_cache.json"
-const PROFILE_CACHE_PATH := "user://profile_cache.json"
+# Host/key are read from res://server_config.json at startup so you can change
+# them without rebuilding the binary (or export template).  For local dev the
+# file can be absent — defaults below are used automatically.
+# On the VPS, build/web/server_config.json (HTML5) or the bundled file in the
+# APK contains the production values.
+const DEFAULT_NAKAMA_HOST       := "127.0.0.1"
+const DEFAULT_NAKAMA_PORT       := 7350
+const DEFAULT_NAKAMA_SERVER_KEY := "defaultkey"
+const SERVER_CONFIG_PATH        := "res://server_config.json"
+const SESSION_CACHE_PATH        := "user://session_cache.json"
+const PROFILE_CACHE_PATH        := "user://profile_cache.json"
+
+var NAKAMA_HOST:       String = DEFAULT_NAKAMA_HOST
+var NAKAMA_PORT:       int    = DEFAULT_NAKAMA_PORT
+var NAKAMA_SERVER_KEY: String = DEFAULT_NAKAMA_SERVER_KEY
 
 # ── State ──────────────────────────────────────────────────────────────────────
 var _client                          = null
@@ -34,7 +44,24 @@ var is_authenticated: bool = false
 
 # ── Lifecycle ─────────────────────────────────────────────────────────────────
 func _ready() -> void:
+	_load_server_config()
 	_init_nakama_client()
+
+func _load_server_config() -> void:
+	if not ResourceLoader.exists(SERVER_CONFIG_PATH):
+		return
+	var f := FileAccess.open(SERVER_CONFIG_PATH, FileAccess.READ)
+	if not f:
+		return
+	var cfg = JSON.parse_string(f.get_as_text())
+	if cfg is not Dictionary:
+		return
+	if cfg.has("nakama_host"):
+		NAKAMA_HOST = cfg["nakama_host"]
+	if cfg.has("nakama_port"):
+		NAKAMA_PORT = int(cfg["nakama_port"])
+	if cfg.has("nakama_server_key"):
+		NAKAMA_SERVER_KEY = cfg["nakama_server_key"]
 
 func _init_nakama_client() -> void:
 	# Dynamically load Nakama if available

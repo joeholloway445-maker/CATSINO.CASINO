@@ -48,7 +48,7 @@ const SYNERGY_RULES: Array[Dictionary] = [
 	{"races": [Race.IGNI, Race.FEROX], "frames": [Frame.IGNIS, Frame.CINDER], "stat": "pow", "bonus": 0.20},
 	{"races": [Race.NYX, Race.GLYPHE], "mods": [Mod.VOID_CORE, Mod.NULL],     "stat": "spd", "bonus": 0.15},
 	{"races": [Race.AQUIS, Race.KRYOS],"frames": [Frame.GLACIAL, Frame.GLACI],"stat": "res", "bonus": 0.18},
-	{"races": [Race.VOLT, Race.GEARA], "mods": [Mod.KINETIC, Mod.VOLATILE],  "stat": "spd", "bonus": 0.22},
+	{"races": [Race.VOLT, Race.GEARA], "mods": [Mod.KINETIC, Mod.VOLATILE],   "stat": "spd", "bonus": 0.22},
 	{"races": [Race.LUMARI, Race.ASTRA],"mods": [Mod.PRIME, Mod.ALPHA],       "stat": "lck", "bonus": 0.15},
 	{"races": [Race.CHIMERA],           "mods": [Mod.PRISM, Mod.ENTROPY],     "stat": "sty", "bonus": 0.25},
 ]

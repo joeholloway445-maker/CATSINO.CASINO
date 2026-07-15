@@ -8,6 +8,7 @@ signal chunk_changed(coord: Vector2i)
 
 const MAX_SPEED := 6.0
 const SPRINT_SPEED := 10.5
+const CROUCH_SPEED := 2.6
 const ACCEL := 14.0
 const DEACCEL := 14.0
 const AIR_ACCEL_FACTOR := 0.5
@@ -30,6 +31,7 @@ var _body_mesh: MeshInstance3D
 var visual_mode := "identity"
 var _visual_root: Node3D
 var _collision: CollisionShape3D
+var _crouched := false
 
 ## actor_id used for combat-system lookups; target_id is set by whatever
 ## puts this controller into an encounter (lock-on, trigger volume).
@@ -159,7 +161,6 @@ func _build_cat_body() -> void:
 			cap.radius = 0.4
 			_collision.position.y = 0.6
 
-
 func _build_camera() -> void:
 	_spring = SpringArm3D.new()
 	_spring.spring_length = CAM_DISTANCE
@@ -221,8 +222,19 @@ func _physics_process(delta: float) -> void:
 	var cam_basis := Basis(Vector3.UP, _cam_yaw)
 	var dir := (cam_basis * Vector3(input_2d.x, 0.0, input_2d.y)).normalized()
 
+	# Crouch: hold Ctrl/C (or the touch posture button). Slower, lower.
+	var want_crouch := Input.is_key_pressed(KEY_CTRL) or Input.is_key_pressed(KEY_C) \
+		or TouchControls.crouch_held
+	if want_crouch != _crouched:
+		_crouched = want_crouch
+		if is_instance_valid(_visual_root):
+			var tw := create_tween()
+			tw.tween_property(_visual_root, "scale:y", 0.55 if _crouched else 1.0, 0.12)
+
 	var sprinting := Input.is_key_pressed(KEY_SHIFT) or TouchControls.sprint_held
 	var target_speed := SPRINT_SPEED if sprinting else MAX_SPEED
+	if _crouched:
+		target_speed = CROUCH_SPEED
 	var accel := (ACCEL if dir.dot(Vector3(velocity.x, 0, velocity.z)) > 0.0 else DEACCEL)
 	if not is_on_floor():
 		accel *= AIR_ACCEL_FACTOR
@@ -232,7 +244,8 @@ func _physics_process(delta: float) -> void:
 	velocity.x = flat.x
 	velocity.z = flat.z
 
-	if is_on_floor() and (Input.is_action_just_pressed("ui_accept") or TouchControls.consume_jump()):
+	if is_on_floor() and not _crouched \
+			and (Input.is_action_just_pressed("ui_accept") or TouchControls.consume_jump()):
 		velocity.y = JUMP_VELOCITY
 	# Touch E replay moved to TouchControls._process() itself (always
 	# running regardless of whether this controller's _physics_process is
@@ -245,6 +258,12 @@ func _physics_process(delta: float) -> void:
 		_spring.rotation = Vector3(_cam_pitch, _cam_yaw - rotation.y, 0.0)
 
 	move_and_slide()
+
+	# Body memory: gait, turns and posture feed Proprioception every frame.
+	Proprioception.feed(delta, _cam_yaw,
+		Vector2(velocity.x, velocity.z).length(),
+		input_2d.y > 0.5, input_2d.y < -0.5,
+		_crouched, is_on_floor())
 
 	var coord := DiscoveryManager.world_pos_to_chunk(global_position)
 	if coord != _last_chunk:

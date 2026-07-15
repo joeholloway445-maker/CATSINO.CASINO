@@ -42,3 +42,12 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Godot runtime server config — contains Nakama server key, never commit
+godot/server_config.json
+
+# nginx TLS certs (managed by certbot on VPS)
+nginx/certs/
+
+# Godot export builds (generated locally or in CI)
+build/

@@ -71,5 +71,6 @@ static func local_profile() -> Dictionary:
 		"faction": PlayerProfile.faction,
 		"alignment": "neutral",
 		"stats": CharacterCreatorLogic.build_starting_stats(
-			PlayerProfile.selected_race_id, PlayerProfile.faction, PlayerProfile.selected_frame),
+			PlayerProfile.selected_race_id, PlayerProfile.faction,
+			PlayerProfile.selected_frame, PlayerProfile.selected_mod),
 	}

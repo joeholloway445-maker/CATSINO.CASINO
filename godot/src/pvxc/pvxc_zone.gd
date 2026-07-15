@@ -46,7 +46,8 @@ func _ready() -> void:
 	PvxcManager.phase_changed.connect(_on_phase_changed)
 	# Player attack power scales with build + entities.
 	var stats := CharacterCreatorLogic.build_starting_stats(
-		PlayerProfile.selected_race_id, PlayerProfile.faction, PlayerProfile.selected_frame)
+		PlayerProfile.selected_race_id, PlayerProfile.faction,
+		PlayerProfile.selected_frame, PlayerProfile.selected_mod)
 	_attack_damage = 14 + int(stats.pow) / 2 + PlayerProfile.level
 	_attack_damage_base = _attack_damage
 	var rng2 := RandomNumberGenerator.new()
