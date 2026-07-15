@@ -54,11 +54,18 @@ def main() -> int:
     am = (GODOT / "src/data/arena_modes.gd").read_text()
     for path in extract_string_consts(am, "MODES"):
         check_exists(path, "arena")
-    for mode_id in ("duel", "duel_2v2"):
-        if f'id="{mode_id}"' in am or f"id=\"{mode_id}\"" in am:
+    for mode_id in ("duel", "duel_2v2", "moba"):
+        if f'id="{mode_id}"' in am or f'id=\\"{mode_id}\\"' in am:
             ok(f"mode registered: {mode_id}")
         else:
             fail(f"mode missing: {mode_id}")
+    if 'id="moba"' in am and "playtest_arena.tscn" in am:
+        # Ensure moba isn't still hard-wired only to tournament.tscn as its scene.
+        moba_line = [ln for ln in am.splitlines() if 'id="moba"' in ln]
+        if moba_line and "playtest_arena" in moba_line[0]:
+            ok("moba launches playtest_arena")
+        else:
+            fail("moba scene still not playtest_arena")
 
     print("== hub scene_paths ==")
     hubs = (GODOT / "src/data/hub_region_data.gd").read_text()
@@ -98,7 +105,7 @@ def main() -> int:
         fail("AppConfig missing main_menu_scene_path")
 
     print("== dialogue trees ==")
-    for npc in ("barista", "archivist", "authority"):
+    for npc in ("barista", "archivist", "authority", "lover", "reflection"):
         check_exists(f"src/dialogue/{npc}.json", "dialogue")
 
     print("== arena mode controller ==")
@@ -130,11 +137,40 @@ def main() -> int:
         ok("migration 034 present")
     else:
         fail("migration 034 missing")
+    if (ROOT / "supabase/migrations/035_profiles_frame_default.sql").exists():
+        ok("migration 035 present")
+    else:
+        fail("migration 035 missing")
     env = (ROOT / "apps/catsino-casino/ENV_SETUP.md").read_text()
     if "SUPABASE_SERVICE_ROLE_KEY" in env and "030_catsino" in env:
         ok("catsino ENV_SETUP restored")
     else:
         fail("catsino ENV_SETUP still broken")
+
+    print("== offline casino + hyperliminal hub ==")
+    check_exists("src/games/offline_casino.gd", "offline_casino")
+    nm = (GODOT / "src/networking/network_manager.gd").read_text()
+    if "OfflineCasino" in nm:
+        ok("NetworkManager routes offline casino RPCs")
+    else:
+        fail("NetworkManager missing OfflineCasino fallback")
+    rl = (GODOT / "src/layers/reality_layers.gd").read_text()
+    if 'id="hyperliminal"' in rl and "paw_vegas_hub.tscn" in rl:
+        ok("hyperliminal exits to paw_vegas_hub")
+    else:
+        fail("hyperliminal still not paw_vegas_hub")
+    if "main_menu.tscn" in rl.split("hyperliminal")[1].split("liminal")[0] if "hyperliminal" in rl else "":
+        fail("hyperliminal still points at main_menu")
+    dt = (GODOT / "src/world/district_transition.gd").read_text()
+    if '"paw_vegas":' in dt and "paw_vegas_hub.tscn" in dt:
+        ok("DistrictTransition paw_vegas → hub")
+    else:
+        fail("DistrictTransition paw_vegas still not hub")
+    al = (GODOT / "src/core/asset_library.gd").read_text()
+    if "looped: bool = false" in al or "looped := false" in al:
+        ok("AssetLibrary.sound defaults to one-shot")
+    else:
+        fail("AssetLibrary.sound still force-loops all SFX")
 
     print()
     if failures:

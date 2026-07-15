@@ -59,18 +59,41 @@ func _spawn_notification(note: Dictionary) -> void:
 func notify_win(amount_or_message) -> void:
 	var msg: String = "+%d 🪙 WIN!" % amount_or_message if amount_or_message is int else str(amount_or_message)
 	show_notification(msg, Color(0.3, 1.0, 0.3), "🎉")
+	_play_ui_sfx("ui_confirm")
 
 func notify_info(message: String) -> void:
 	show_notification(message, Color(0.7, 0.85, 1.0), "ℹ️")
+	_play_ui_sfx("ui_click")
 
 func notify_achievement(name: String) -> void:
 	show_notification("Achievement: %s" % name, Color(1.0, 0.85, 0.0), "🏆")
+	_play_ui_sfx("ui_confirm")
 
 func notify_level_up(level: int) -> void:
 	show_notification("Level Up! Now Lv.%d" % level, Color(0.8, 0.4, 1.0), "⬆️")
+	_play_ui_sfx("ui_switch")
 
 func notify_companion_unlocked(companion_name: String) -> void:
 	show_notification("Companion unlocked: %s" % companion_name, Color(0.3, 0.8, 1.0), "🐾")
+	_play_ui_sfx("ui_confirm")
 
 func notify_error(message: String) -> void:
 	show_notification(message, Color(1.0, 0.3, 0.3), "❌")
+	_play_ui_sfx("ui_error")
+
+func _play_ui_sfx(slot: String) -> void:
+	var stream := AssetLibrary.sound(slot)
+	if stream == null:
+		return
+	# Duplicate so we don't flip loop on the AssetLibrary cache (ambience beds).
+	var playable: AudioStream = stream.duplicate() if stream.has_method("duplicate") else stream
+	if playable is AudioStreamOggVorbis:
+		(playable as AudioStreamOggVorbis).loop = false
+	elif playable is AudioStreamWAV:
+		(playable as AudioStreamWAV).loop_mode = AudioStreamWAV.LOOP_DISABLED
+	var player := AudioStreamPlayer.new()
+	player.stream = playable
+	player.bus = "Master"
+	add_child(player)
+	player.finished.connect(player.queue_free)
+	player.play()

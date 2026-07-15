@@ -94,8 +94,13 @@ func _init_account_manager() -> void:
 	await AccountManager.initialize()
 
 func _init_economy_manager() -> void:
-	# EconomyManager initializes after AccountManager completes auth
-	pass
+	# Offline/guest boot must still arm EconomyManager so spend/earn works
+	# before (or without) Nakama auth. initialize(null) keeps local cache.
+	if not EconomyManager:
+		_init_errors.append("EconomyManager not found")
+		return
+	var client = AccountManager.get_nakama_client() if AccountManager else null
+	EconomyManager.initialize(client)
 
 func _init_companion_system() -> void:
 	if not CompanionSystem:

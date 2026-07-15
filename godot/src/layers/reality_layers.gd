@@ -8,7 +8,7 @@ const LAYERS: Array[Dictionary] = [
 		id="hyperliminal", name="Hyperliminal — Catsino",
 		desc="The neon casino reality. Games of chance, districts, tournaments. Where everyone starts spending.",
 		entry="always", pvp=false, persistence="static",
-		scene="res://scenes/ui/main_menu.tscn",
+		scene="res://scenes/world/paw_vegas_hub.tscn",
 		currency="chips",
 	},
 	{

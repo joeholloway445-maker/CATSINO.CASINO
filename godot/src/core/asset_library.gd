@@ -179,24 +179,29 @@ static func instance_variant_or(slot: String, rng: RandomNumberGenerator,
 # ---------------------------------------------------------------- sounds
 
 ## Returns the AudioStream installed for a sound slot, or null if none is
-## present (caller then synthesizes or stays silent). Looped ambience beds
-## should ship as .ogg with loop enabled in their import; we also force the
-## loop flag on for .ogg/.wav we load here so drop-in packs "just work".
-static func sound(slot: String) -> AudioStream:
-	if _audio_cache.has(slot):
-		return _audio_cache[slot]
+## present (caller then synthesizes or stays silent). Pass looped=true for
+## ambience beds so drop-in packs loop; one-shot SFX (ui_*, door_*, etc.)
+## stay non-looping so NotificationUI / interactables don't drone.
+static func sound(slot: String, looped: bool = false) -> AudioStream:
+	var cache_key := "%s|%s" % [slot, "loop" if looped else "once"]
+	if _audio_cache.has(cache_key):
+		return _audio_cache[cache_key]
 	for ext in AUDIO_EXTENSIONS:
 		var path := "res://assets/audio/%s.%s" % [slot, ext]
 		if ResourceLoader.exists(path):
 			var res := load(path)
 			if res is AudioStream:
-				if res is AudioStreamOggVorbis:
-					res.loop = true
-				elif res is AudioStreamWAV:
-					res.loop_mode = AudioStreamWAV.LOOP_FORWARD
-				_audio_cache[slot] = res
-				return res
-	_audio_cache[slot] = null
+				# Duplicate before mutating import defaults so one-shot and
+				# looped callers can share the same source file.
+				var stream: AudioStream = res.duplicate() if res.has_method("duplicate") else res
+				if stream is AudioStreamOggVorbis:
+					(stream as AudioStreamOggVorbis).loop = looped
+				elif stream is AudioStreamWAV:
+					(stream as AudioStreamWAV).loop_mode = (
+						AudioStreamWAV.LOOP_FORWARD if looped else AudioStreamWAV.LOOP_DISABLED)
+				_audio_cache[cache_key] = stream
+				return stream
+	_audio_cache[cache_key] = null
 	return null
 
 static func has_sound(slot: String) -> bool:

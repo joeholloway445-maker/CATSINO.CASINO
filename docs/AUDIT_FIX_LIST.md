@@ -4,35 +4,40 @@ Tracked from the 2026-07-15 code audit. Check items off as they land.
 
 ## Critical (runtime breaks)
 
-- [x] **District scene paths** — pointed `DISTRICT_SCENES` at `scenes/world/*.tscn` (`paw_vegas_hub`, etc.).
-- [x] **Companion APIs** — added `get_unlocked_ids()`, `equip_companion()`, `unlock_random()`, `get_unlocked_count()`.
-- [x] **FactionManager / QuestSystem not autoloaded** — registered `FactionManager`, `QuestSystem`, `NPCDialogueSystem` in `project.godot`.
-- [x] **Legacy PlayerProfile APIs** — compat getters + EconomyManager quest rewards.
-- [x] **EntityDexData.unlock_entity** — routes to `CompanionSystem.unlock_companion`.
-- [x] **Psychology ↔ Supabase schema** — `event`/`context` + `player_anomalies` (migration `034`).
-- [x] **Catsino `ENV_SETUP.md`** — restored; migration `030` + service role key.
+- [x] District scenes, companion APIs, autoloads, PlayerProfile, EntityDex unlock
+- [x] Psychology schema + player_anomalies (034)
+- [x] Catsino ENV_SETUP restored
+- [x] Autoload/`class_name` collisions fixed for FactionManager/QuestSystem/NPCDialogueSystem
 
 ## Important gaps
 
-- [x] **Arena modes** — `ArenaModeController`: survival shrink zone, feral waves, CTF yarn deliver, duel/2v2 staged foes; hub launches playtest arena with queued mode.
-- [x] **Combat realtime loot/stats** — mod-aware stats; quantity-aware loot.
-- [x] **SceneLoader / AppConfig stubs** — real scene load + `main_menu_scene_path`.
-- [x] **Hub `scene_path` metadata** — arlington hub + supraliminal fallbacks.
-- [x] **Smoke checks** — `python3 scripts/audit_smoke_check.py`.
-- [x] **Dialogue trees** — barista / archivist / authority JSON; FileAccess loader; fixed empty-options bug in `choose_dialogue_option`.
-- [x] **MetaHuman hook** — `MetahumanCharacter.resolve_tier()`; interim `player_human.glb` documented; shaders present.
-- [x] **gdUnit4 audit suites** — `godot/test/audit/*.gd` (enable gdUnit4 plugin to run).
+- [x] Arena modes + ArenaModeController (survival/zombies/CTF/duel) + **MOBA lane prototype**
+- [x] Combat loot/stats, stubs, hub paths, smoke checks
+- [x] Dialogue: barista / archivist / authority / **lover / reflection**
+- [x] MetaHuman `resolve_tier` + interim human GLB
+- [x] gdUnit audit suites + CI headless path
+- [x] Achievement trigger aliases + XP via XPManager.award_amount
+- [x] EconomyManager init on offline boot
+- [x] District music → MusicManager contexts
+- [x] NotificationUI plays AssetLibrary UI SFX
+- [x] MainMenu `class_name` collision with maaacks removed
+- [x] profiles.frame default → skirmisher (migration **035**)
+- [x] Offline casino resolvers (slots / blackjack / poker via OfflineCasino)
+- [x] Hyperliminal exit → Paw Vegas hub; DistrictTransition path unified
+- [x] Character creator / Continue Expedition persistence + spaced names
+- [x] AssetLibrary one-shot SFX (ambience opt-in loop) + Hope telemetry soft-fail
 
 ## Still open (content / infra)
 
-- [ ] Full MOBA lane-push / tournament AI (still uses tournament lobby)
+- [ ] Full MOBA lane AI / item shop (prototype towers+minions only)
 - [ ] Drop real MetaHuman GLBs into `assets/models/metahuman_*.glb`
 - [ ] Nakama realtime live-tested against a real host
-- [ ] Enable gdUnit4 in `project.godot` after zero-error editor open
-- [ ] Remaining archetypes (lover, reflection) + full layer dialogue coverage
-- [ ] Art/audio pack wiring via AssetLibrary
+- [ ] Enable gdUnit4 plugin in editor after zero-error smoke open
+- [ ] Per-layer dialogue JSON variants (library lines exist; trees are hub-flavored)
+- [ ] Broader art/audio pack drop-ins (city meshes already via AssetLibrary)
 
 ## Notes
 
-- Apply `supabase/migrations/034_player_anomalies.sql` before deploying psychology.
-- Enable gdUnit4 only after a clean Godot smoke open (`docs/ADDONS.md`).
+- Apply `034_player_anomalies.sql` and `035_profiles_frame_default.sql` on shared Supabase.
+- `python3 scripts/audit_smoke_check.py` guards wiring without Godot.
+- Offline casino mirrors Nakama payout tables in `godot/src/games/offline_casino.gd`.

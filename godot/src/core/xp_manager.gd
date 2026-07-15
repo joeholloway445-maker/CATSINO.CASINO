@@ -47,3 +47,16 @@ func award_game(game: String, won: bool) -> int:
 	if won:
 		xp += award(win_key)
 	return xp
+
+## Grant an explicit XP amount (achievements, one-off rewards).
+func award_amount(amount: int, source: String = "misc") -> int:
+	if amount <= 0:
+		return 0
+	var event_mult = EventManager.get_xp_multiplier() if EventManager else 1.0
+	var final_xp = int(amount * event_mult)
+	if PlayerProfile:
+		PlayerProfile.add_xp(final_xp)
+	if BattlePass:
+		BattlePass.add_xp(final_xp)
+	xp_awarded.emit(source, final_xp)
+	return final_xp

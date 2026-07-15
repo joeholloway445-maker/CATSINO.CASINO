@@ -143,14 +143,22 @@ func record(event: String, context: Dictionary) -> void:
 	_try_flush()
 
 ## Push queued rows to Supabase through the web API (hope_telemetry table).
+## Soft-fails when the endpoint is missing / offline — queue stays on disk.
 func _try_flush() -> void:
 	if _queue.is_empty():
+		return
+	if not CasinoHTTPClient:
 		return
 	var batch := _queue.duplicate()
 	var response: Dictionary = await CasinoHTTPClient.post_json(TELEMETRY_ENDPOINT, {"rows": batch})
 	if response.get("ok", false):
 		_queue = _queue.slice(batch.size())
 		_save_queue()
+		return
+	# Don't spam: one warning per batch, keep local queue for a later flush.
+	var err := str(response.get("error", "telemetry unreachable"))
+	if not err.is_empty():
+		push_warning("Hope telemetry soft-fail: %s" % err)
 
 ## What Knoll knows: the profile plus the dominant drive — the Ascension
 ## Trial and the Periliminal shadow read this to fight like your fears.

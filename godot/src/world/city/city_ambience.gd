@@ -19,7 +19,7 @@ func setup(district_type: String) -> void:
 		var player := AudioStreamPlayer.new()
 		player.bus = "Ambient" if AudioServer.get_bus_index("Ambient") != -1 else "Master"
 		player.volume_db = float(layers[slot])
-		var real := AssetLibrary.sound(slot)
+		var real := AssetLibrary.sound(slot, true)
 		player.stream = real if real != null else _synth_bed(slot)
 		add_child(player)
 		player.play()
