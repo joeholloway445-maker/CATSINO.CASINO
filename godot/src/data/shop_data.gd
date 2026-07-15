@@ -8,10 +8,11 @@ const SHOP_ITEMS: Array[Dictionary] = [
 	{id="slot_multiplier", shop="slot_sam", district="paw_vegas", name="Slot Multiplier ×2", price=400, type="consumable"},
 	{id="xp_boost_small", shop="slot_sam", district="paw_vegas", name="XP Boost (Small)", price=250, type="consumable"},
 
-	# Neon Alley — Aqua Merchant's frames shop
-	{id="bolt", shop="aqua_merchant", district="neon_alley", name="Bolt Frame", price=1000, type="frame"},
-	{id="storm", shop="aqua_merchant", district="neon_alley", name="Storm Frame", price=2000, type="frame"},
-	{id="wind", shop="aqua_merchant", district="neon_alley", name="Wind Frame", price=4500, type="frame"},
+	# Neon Alley — Aqua Merchant cosmetic skins (NOT OmniDex identity frames;
+	# the OmniDex has exactly 20 frames — cosmetics must not inflate that count).
+	{id="bolt", shop="aqua_merchant", district="neon_alley", name="Bolt Frame", price=1000, type="cosmetic_frame"},
+	{id="storm", shop="aqua_merchant", district="neon_alley", name="Storm Frame", price=2000, type="cosmetic_frame"},
+	{id="wind", shop="aqua_merchant", district="neon_alley", name="Wind Frame", price=4500, type="cosmetic_frame"},
 	{id="race_nitro", shop="aqua_merchant", district="neon_alley", name="Race Nitro", price=300, type="consumable"},
 	{id="speed_serum", shop="aqua_merchant", district="neon_alley", name="Speed Serum", price=150, type="consumable"},
 

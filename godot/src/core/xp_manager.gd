@@ -1,5 +1,4 @@
 extends Node
-class_name XPManager
 # Central XP award routing — all XP goes through here
 
 signal xp_awarded(source: String, amount: int)

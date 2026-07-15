@@ -1,10 +1,7 @@
 extends Node
-
-# CasinoHTTPClient — autoload singleton
-# Makes authenticated HTTP requests to the CATSINO.CASINO Next.js API.
-# Add to Project > AutoLoad as "CasinoHTTPClient"
-
-class_name CasinoHTTPClient
+## Autoloaded as "CasinoHTTPClient". Makes authenticated HTTP requests to
+## the CATSINO.CASINO Next.js API. Do not add class_name — callers use the
+## singleton by autoload name.
 
 # ─── Configuration ────────────────────────────────────────────────────────────
 const BASE_URL: String = "https://catsino-casino.vercel.app"

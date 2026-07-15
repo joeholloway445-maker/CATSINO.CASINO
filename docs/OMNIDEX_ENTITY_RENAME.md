@@ -1,0 +1,463 @@
+# OmniDex entity rename map (religious → original)
+
+
+Display names only; entity `id` fields left stable for persistence.
+
+
+- Abe no Seimei → **Visar**
+- Abumi-guchi → **Trnox**
+- Adi Shakti → **Kelo**
+- Aditi → **Omyawyn**
+- Agastya → **Evax**
+- Agni → **Pyrion**
+- Agyō → **Tisar**
+- Ahmose-Nefertari → **Uliotis**
+- Airavata → **Lyeth**
+- Aiyanar → **Lynis**
+- Akaname → **Grimble**
+- Aker → **Velaoysa**
+- Akhet → **Kaesa**
+- Akshara → **Raxl**
+- Amano-Iwato → **Oraryn**
+- Amaterasu → **Solara**
+- Amaunet → **Ashelo**
+- Ambika → **Horith**
+- Ame-furi-kozo → **Skyysa**
+- Ame-no-Nuboko → **Kauasara**
+- Ame-no-Sagiri → **Olan**
+- Ame-no-Uzume → **Dawnmirth**
+- Amenhotep the Magnificent → **Ithlm**
+- Amenirdis → **Traieth**
+- Amenominakanushi → **Fysil**
+- Amenotokotachi → **Olad**
+- Amenouzume → **Dawnmirth**
+- Ammit → **Devorath**
+- Amun → **Vaeiesa**
+- Amun-Min → **Norith**
+- Amun-Ra → **Fuexave**
+- Andjety → **Vorr**
+- Anhur → **Spearwyn**
+- Annapurna → **Brsyl**
+- Anubis → **Jackryn**
+- Anuket → **Lyomeno**
+- Aoi Matsuri Spirit → **Varyn**
+- Apas → **Elok**
+- Apep → **Coilnox**
+- Aqen → **Veliaysa**
+- Aranyani → **Tith**
+- Ardhanarishvara → **Wavel**
+- Aryaman → **Lynox**
+- Ash → **Toreth**
+- Atago Gongen → **Yorith**
+- Atman → **Elora**
+- Atri → **Virsk**
+- Atum → **Velnis**
+- Atum the Serpent → **Ghiaeva**
+- Atum-Khepri → **Evarlm**
+- Avidya → **Brydora**
+- Ayakashikone → **Thoauna**
+- Ayyappan → **Uluaola**
+- Babi → **Vroashori**
+- Bagalamukhi → **Wourkara**
+- Bake-danuki → **Uleonwyn**
+- Balarama → **Yvor**
+- Banebdjedet → **Skoran**
+- Bastet → **Purrith**
+- Bata → **Noiavel**
+- Benu → **Piavel**
+- Benzaiten → **Harmona**
+- Bes → **Jesterix**
+- Beto-beto-san → **Toreva**
+- Bhadrakali → **Quyira**
+- Bhaga → **Orithd**
+- Bhairavi → **Torierkara**
+- Bharadvaja → **Arlux**
+- Bhrigu → **Wyodika**
+- Bhumidevi → **Cuesa**
+- Bhuvaneshwari → **Vraiisar**
+- Bishamonten → **Justikar**
+- Brahma → **Orumex**
+- Brahman → **Axiome**
+- Brihaspati → **Zorith**
+- Buddha → **Meinis**
+- Chamundi → **Kaeonori**
+- Chandra → **Luneth**
+- Chhayadevi → **Zaeno**
+- Chinnamasta → **Zhtis**
+- Chitrasena → **Ikan**
+- Chyavana → **Skieesa**
+- Daikokuten → **Sylrn**
+- Daksha → **Vorin**
+- Dakshinamurti → **Pountave**
+- Danjiri Spirit → **Avir**
+- Dedun → **Skiaeva**
+- Dhanvantari → **Drylmvir**
+- Dhumavati → **Saumi**
+- Diti → **Evash**
+- Djed → **Zaorin**
+- Djoser → **Thumi**
+- Duamutef → **Eastfang**
+- Durga → **Seraphyne**
+- Durvasa → **Kaoshsyl**
+- Dyaus Pita → **Tortor**
+- Dōsojin → **Voalux**
+- Ebisu → **Luckren**
+- Emperor Jimmu → **Ethsh**
+- Empress Jingū → **Velira**
+- Fujin → **Windreth**
+- Fukurokuju → **Houeva**
+- Funadama → **Zhorin**
+- Funaosa-gami → **Veloiuna**
+- Futsunushi → **Ulorith**
+- Ganesha → **Korvun**
+- Garga → **Rynn**
+- Garuda → **Shwyn**
+- Gashadokuro → **Iran**
+- Gauri → **Vorsk**
+- Gautama Maharishi → **Virnt**
+- Geb → **Quola**
+- Gion-gami → **Mira**
+- Ha → **Ashoithuna**
+- Hachiman → **Warryn**
+- Haguro Gongen → **Leirketh**
+- Hamsa → **Elol**
+- Hanuman → **Talorin**
+- Hapi → **Lyavel**
+- Hapy → **Northbreath**
+- Hashira-gami → **Zyosyl**
+- Hata-no-Kami → **Vayontvir**
+- Hathor → **Joyelle**
+- Hauhet → **Kyarnori**
+- Haya-Akitsu-hime → **Sieora**
+- Hayagriva → **Ithsh**
+- Heh → **Sksyl**
+- Heka → **Toriarlux**
+- Hemen → **Orask**
+- Hemhemti → **Kaeovor**
+- Heqet → **Evarm**
+- Herishef → **Vaoaisar**
+- Hiranyagarbha → **Queno**
+- Hiranyakashipu → **Fuuna**
+- Hiranyaksha → **Ramir**
+- Hiruko → **Ireirknox**
+- Hitotsume-kozo → **Ashioorin**
+- Hoderi → **Quaeeva**
+- Horemakhet → **Sayoysa**
+- Horus → **Skytalon**
+- Hotei → **Alenlm**
+- Hraf-haf → **Wtor**
+- Hyakume → **Areiora**
+- Iabet → **Avelsh**
+- Iah-Djehuty → **Saunis**
+- Iat → **Avirn**
+- Ido-no-Kami → **Kywyn**
+- Ikuguhi → **Orann**
+- Ikukui → **Ntis**
+- Imet → **Shoiira**
+- Imhotep → **Lyoatheno**
+- Imiut → **Driovvor**
+- Imsety → **Southwatch**
+- Inari → **Foxwyn**
+- Indra → **Zepharion**
+- Inugami → **Zhyneth**
+- Ishana → **Mirr**
+- Isis → **Mystara**
+- Ittan-momen → **Skyeva**
+- Iunu → **Kaalen**
+- Iusaas → **Luxth**
+- Izanagi → **Originel**
+- Izanami → **Underelle**
+- Jamadagni → **Caevave**
+- Jambavan → **Syld**
+- Jidai Matsuri Spirit → **Ashiadora**
+- Jorougumo → **Silkra**
+- Jorōgumo → **Silkra**
+- Jurōjin → **Kaaovrax**
+- Kagutsuchi → **Emberath**
+- Kalabhairava → **Vaoira**
+- Kalachakra → **Irouika**
+- Kali → **Nyxara**
+- Kalki → **Virth**
+- Kamadeva → **Bruaavel**
+- Kamado-gami → **Mirz**
+- Kamaitachi → **Shotor**
+- Kamakhya → **Brenox**
+- Kamala → **Quoran**
+- Kamimusubi → **Areoevar**
+- Kanayako-no-Kami → **Evath**
+- Kanayamahiko → **Arueeth**
+- Kanya Kumari → **Troaumi**
+- Kappa → **Ripplet**
+- Karasu-tengu → **Crowrend**
+- Karasutengu → **Crowrend**
+- Kartikeya → **Cindrel**
+- Kasa-obake → **Sylyisar**
+- Kashyapa → **Hiryn**
+- Kasuga Daimyōjin → **Arumen**
+- Kauket → **Jorin**
+- Kawaya-no-Kami → **Zhouvysa**
+- Kayanohime → **Xumi**
+- Kek → **Xyuna**
+- Ketu → **Ashveil**
+- Khandoba → **Elon**
+- Khentekhtai → **Velavelo**
+- Khenti-Amentiu → **Shuaysa**
+- Khenty-irty → **Coorin**
+- Khepri → **Scarabyn**
+- Khnum → **Clayforn**
+- Khnum-Ra → **Kaievar**
+- Khonsu → **Moonstep**
+- Khonsu-Thoth → **Irienox**
+- Kifune Myōjin → **Irierax**
+- Kishijoten → **Liornnis**
+- Kitsune → **Vulpira**
+- Komainu → **Evark**
+- Konaki-jiji → **Weepstone**
+- Konakijiji → **Weepstone**
+- Konohanasakuya-hime → **Ramuna**
+- Konpira → **Fioorith**
+- Krishna → **Vaelith**
+- Kubera → **Dravok**
+- Kukunochi → **Isarr**
+- Kumano Gongen → **Shiarkelo**
+- Kuni-no-Sagiri → **Neth**
+- Kuninosazuchi → **Zhoueva**
+- Kuninotokotachi → **Kaietheth**
+- Kuraokami → **Hialmisa**
+- Kurma → **Lyika**
+- Kushinadahime → **Elosk**
+- Lakshmi → **Solarae**
+- Lila → **Toryandnis**
+- Lomasha → **Velouara**
+- Maahes → **Lioneth**
+- Mafdet → **Orith**
+- Mahaf → **Irarnvir**
+- Mahagauri → **Kaysil**
+- Mahalakshmi → **Vola**
+- Mahavishnu → **Shuaskeva**
+- Mahishasura → **Vorn**
+- Manibhadra → **Virz**
+- Mariamman → **Pumen**
+- Markandeya → **Sylx**
+- Matangi → **Avel**
+- Matsya → **Esant**
+- Maya → **Miravelle**
+- Mayasura → **Enol**
+- Medjed → **Zhyontvor**
+- Meenakshi → **Breilux**
+- Mehet-Weret → **Cuna**
+- Mehit → **Syaxave**
+- Mertseger → **Vriokumi**
+- Mesektet → **Koiwyn**
+- Meskhetiu → **Omerax**
+- Michishirube-no-Kami → **Enok**
+- Mikoshi Spirit → **Xieavi**
+- Min → **Harvestor**
+- Minamoto no Raikō → **Sisar**
+- Mitra → **Wnis**
+- Mnevis → **Virlm**
+- Mohini → **Sylth**
+- Moksha → **Moruelmrax**
+- Mokumokuren → **Zaeomir**
+- Montu → **Valorath**
+- Mujina → **Ethlm**
+- Munakata Sanjojin → **Morozeva**
+- Mut → **Paialen**
+- Nala the Architect → **Sawyn**
+- Narada → **Quillan**
+- Narasimha → **Torirume**
+- Narayana → **Enosh**
+- Naunet → **Cuvir**
+- Nebuta Spirit → **Rwyn**
+- Nefertem → **Lotusir**
+- Neha-her → **Drieeva**
+- Nehebkau → **Orvir**
+- Nehemtawy → **Shysa**
+- Neith → **Weavryn**
+- Nekhbet → **Failmisa**
+- Nekomata → **Thnox**
+- Nemty → **Raelo**
+- Nephthys → **Shadewyn**
+- Nirrti → **Maleth**
+- Niu → **Tisrn**
+- Nopperabo → **Omyoneth**
+- Nukekubi → **Saumen**
+- Nun → **Veeth**
+- Nuppeppo → **Oraz**
+- Nurarihyon → **Lordmist**
+- Nut → **Morvir**
+- Okuninushi → **Landwright**
+- Omodaru → **Gheth**
+- Omoikane → **Naysa**
+- Oni → **Grimask**
+- Osiris → **Verdantis**
+- Pakhet → **Quaoumi**
+- Parashara → **Myaumen**
+- Parashurama → **Muekavi**
+- Parjanya → **Quoaryn**
+- Parvati → **Elyndra**
+- Prajapati → **Eloandora**
+- Pralaya → **Zysa**
+- Pranava → **Zauemora**
+- Prince Shōtoku → **Omaevir**
+- Prithvi → **Vezwyn**
+- Ptah → **Jemvir**
+- Ptah-Nun → **Syloanox**
+- Pulastya → **Velika**
+- Purusha → **Breoysil**
+- Pushan → **Pathren**
+- Qebehsenuef → **Westguard**
+- Qebehut → **Alen**
+- Qebui → **Tuenisa**
+- Ra → **Solunar**
+- Ra-Atum → **Vaisar**
+- Ra-Horakhty → **Mirrn**
+- Ra-Min → **Ulizeva**
+- Rahu → **Umbrak**
+- Raijin → **Thundral**
+- Raktabija → **Zaaizume**
+- Rama → **Velyonox**
+- Ratri → **Aruentuna**
+- Renenutet → **Raiamira**
+- Renuka → **Pola**
+- Reshep → **Orousisa**
+- Rokurokubi → **Longveil**
+- Ryujin → **Drakesea**
+- Sadashiva → **Omyovnis**
+- Sah → **Syluavor**
+- Sakanoue no Tamuramaro → **Peva**
+- Sannō Gongen → **Luxn**
+- Santoshi Maa → **Moraoran**
+- Sao-hime → **Evant**
+- Saraswati → **Lyrissel**
+- Sarutahiko → **Jumi**
+- Sat-Chit-Ananda → **Omavel**
+- Satet → **Quailmora**
+- Savitr → **Sothryn**
+- Sebau → **Yaeysil**
+- Sed → **Zaesa**
+- Sekhem → **Araivor**
+- Sekhmet → **Liorath**
+- Senusret the Conqueror → **Aviv**
+- Serqet → **Stingrel**
+- Seshat → **Irelo**
+- Set → **Chaor**
+- Shesmetet → **Rtis**
+- Shesmu → **Trysyl**
+- Shinatsuhiko → **Forith**
+- Shitala → **Wuthtis**
+- Shiva → **Vorthax**
+- Shu → **Airhold**
+- Shōki → **Skoulnis**
+- Sinivali → **Zyaxale**
+- Sobek → **Croceth**
+- Sobek-Ra → **Ziira**
+- Sokar → **Sylaoskvir**
+- Soma → **Broueno**
+- Sopdet → **Saysa**
+- Sopdu → **Shienis**
+- Srishti → **Thoiara**
+- Sugriva → **Rnis**
+- Suhijini → **Naeoalen**
+- Suijin → **Xoiesa**
+- Sukunabikona → **Syesa**
+- Sumiyoshi Sanjin → **Zhmir**
+- Surya → **Helior**
+- Susanoo → **Stormveil**
+- Suwa Myōjin → **Vaoarkuna**
+- Takamimusubi → **Syluaavel**
+- Takemikazuchi → **Bladeryn**
+- Takeminakata → **Navel**
+- Tamayoribime → **Ikak**
+- Tanuki → **Trickpaw**
+- Tara → **Skaktis**
+- Tatara-gami → **Keva**
+- Tatenen → **Irath**
+- Tawara no Tōda → **Omyooran**
+- Taweret → **Tuskara**
+- Tayet → **Kaysa**
+- Tefnut → **Mistborn**
+- Tengu → **Crowlyn**
+- Tenjin → **Roinox**
+- The Ashvins → **Foinox**
+- The Benben → **Iruavel**
+- The Blood-Walker → **Lyumen**
+- The Bone-Breaker → **Vaalen**
+- The Decans → **Tuora**
+- The Far-Strider → **Raiaysa**
+- The Fire-Embracer → **Olask**
+- The Great Ennead → **Avilm**
+- The Heavenly Pillar → **Uloaysa**
+- The Hehu → **Uleth**
+- The Henu Barque → **Brnox**
+- The Island of Flame → **Seirkrax**
+- The Ogdoad → **Skeieva**
+- The Shadow-Eater → **Qutis**
+- The Vishvedevas → **Somir**
+- Thoth → **Scribel**
+- Tjenenet → **Esand**
+- Toshigami → **Wsyl**
+- Toyokumonu → **Ryommir**
+- Toyotama-hime → **Zhodsyl**
+- Toyouke → **Sorin**
+- Trimurti → **Thnis**
+- Tripura Sundari → **Aruoran**
+- Trita Aptya → **Tesa**
+- Tsuchigumo → **Lmir**
+- Tsukuyomi → **Moondrel**
+- Tsunoguhi → **Zaiazale**
+- Tsunokui → **Pesa**
+- Tsurube-otoshi → **Zyannox**
+- Tutu → **Elouvlux**
+- Tvashtar → **Nysa**
+- Tyet → **Porin**
+- Uchchaishrava → **Thornryn**
+- Uhijini → **Omuernvir**
+- Ukemochi → **Sylv**
+- Umashiashikabihikoji → **Tarori**
+- Umaya-gami → **Zeolryn**
+- Ungyō → **Saiaara**
+- Ushas → **Tororin**
+- Ushi-oni → **Lyaoika**
+- Vac → **Ashika**
+- Vaishno Devi → **Kaiuna**
+- Vamana → **Raumi**
+- Varuna → **Aqualis**
+- Vata → **Olar**
+- Vayu → **Galeor**
+- Vetala → **Isarsh**
+- Vibhishana → **Timir**
+- Vindhyavasini → **Waentvir**
+- Virupaksha → **Olas**
+- Vishnu → **Aurelion**
+- Vishvamitra → **Virk**
+- Vishwakarma → **Feiskara**
+- Vyasa → **Virm**
+- Wadj-Wer → **Raidysa**
+- Wadjet → **Cobryn**
+- Wakahirume → **Kyulmara**
+- Wanyūdō → **Evan**
+- Watatsumi → **Irtor**
+- Wedjat → **Shvir**
+- Wenet → **Kaodlux**
+- Wepwawet → **Avis**
+- Weret-Hekau → **Ulaiseth**
+- Wosret → **Torl**
+- Yama → **Thanor**
+- Yama-no-Kami → **Shorin**
+- Yamabiko → **Echora**
+- Yamato Takeru → **Faolola**
+- Yashimajinumi → **Pnis**
+- Yellamma → **Ithr**
+- Yuki-onna → **Snowraith**
+- Yukionna → **Snowraith**
+- Zashiki-warashi → **Hearthkin**
+- Zashikiwarashi → **Hearthkin**
+- Zep Neter → **Torn**
+- Zep Tepi → **Sylaenira**
+- Ōkuninushi → **Landwright**
+- Ōmononushi → **Iriersyl**
+- Ōtonobe → **Omointira**
+- Ōtonoji → **Vrvir**
+- Ōtoshi → **Loisyl**
+- Ōyamatsumi → **Zarax**

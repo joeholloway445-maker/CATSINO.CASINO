@@ -1,5 +1,9 @@
-class_name AmbientNpc
 extends Node3D
+## NOTE: no class_name here — the ported copy at src/world/ambient_npc.gd
+## owns the global `AmbientNpc` name (two class_name declarations of the
+## same name break the whole project's parse). This original is loaded by
+## path via hdv_lore/scenes/npcs/ambient_npc.tscn only.
+##
 ## A "mob" NPC going about a day-to-day task in a persistent world. Whether
 ## it reacts to the player at all is governed by GameModeManager's active
 ## mode (persistent_aware vs. persistent_incognito): in incognito, this NPC

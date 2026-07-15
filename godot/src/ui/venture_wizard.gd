@@ -149,7 +149,7 @@ func _render_step() -> void:
 		"race":
 			_title.text = "CHOOSE YOUR RACE"
 			_entries = RaceDataCharacter.RACES.map(func(r): return {
-				"id": r.id, "name": r.name, "color": r.primary_color,
+				"id": r.id, "name": OmniDexRegistry.race_display_name(str(r.id)), "color": r.primary_color,
 				"blurb": r.lore, "stats": "POW %d  RES %d  SPD %d  LCK %d  STY %d" % [r.pow, r.res, r.spd, r.lck, r.sty],
 			})
 		"faction":
@@ -159,14 +159,18 @@ func _render_step() -> void:
 			})
 		"frame":
 			_title.text = "CHOOSE YOUR FRAME"
+			# Selection stores Hyperliminal sensorium ids (FrameModData).
+			# Display names resolve through OmniDexRegistry (exactly 20).
 			_entries = FrameModData.FRAMES.map(func(f): return {
-				"id": f.id, "name": f.name, "color": _hash_color(f.id),
+				"id": f.id,
+				"name": OmniDexRegistry.frame_display_name(str(f.id)),
+				"color": _hash_color(f.id),
 				"blurb": f.lore, "stats": f.desc,
 			})
 		"mod":
 			_title.text = "CHOOSE YOUR MORPH RIG"
 			_entries = MorphRigData.RIGS.map(func(r): return {
-				"id": r.id, "name": r.name, "color": _hash_color(r.id),
+				"id": r.id, "name": OmniDexRegistry.mod_display_name(str(r.id)), "color": _hash_color(r.id),
 				"blurb": r.desc, "stats": "%s / %s" % [r.bonus, r.drawback],
 			})
 		"name":

@@ -1,5 +1,8 @@
 class_name FrameModData
-# All 20 Frames and 20 Mods with stats and lore
+# Hyperliminal sensorium frames + legacy stat mods.
+# OmniDex identity frames are the separate 20-entry Periliminal set in
+# OmniDexRegistry.FRAMES (skirmisher…architect). Do NOT add shop cosmetics
+# here — that was the typo that inflated the frame count to 24.
 
 const FRAMES: Array[Dictionary] = [
 	# Light Frames (index 0-9)

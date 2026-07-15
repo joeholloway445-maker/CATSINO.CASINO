@@ -1,24 +1,19 @@
 extends Node3D
-## Shared scene script for the explorable layers. Reuses the overworld kit
-## (ProceduralTerrain + DayNightSky + ThirdPersonController) with per-layer
-## rules from RealityLayers. One script, five moods:
-##  - supraliminal: persistent chunks (DiscoveryManager), hubs PvE, wilds PvP
-##  - liminal: NEVER static — chunks dissolve behind you; wander timer runs
-##  - periliminal: generated-then-static from the run's recorded seed
-##  - extraliminal/subliminal get placeholder grounds until their bespoke
-##    scenes land (landmark overlay / apartment interior).
+## Shared scene script for the explorable layers. TerrainBridge (Terrain3D
+## desktop / ProceduralTerrain web) + DayNightSky + MetaHuman/humanoid player.
 
 @export var layer_id: String = "supraliminal"
 
-var _terrain: ProceduralTerrain
+var _terrain: TerrainBridge
 var _sky: DayNightSky
 var _player: ThirdPersonController
 
 func _ready() -> void:
 	LayerManager.current_layer_id = layer_id
 
-	_terrain = ProceduralTerrain.new()
+	_terrain = TerrainBridge.new()
 	add_child(_terrain)
+	await _terrain.ensure_built(layer_id)
 
 	_sky = DayNightSky.new()
 	match layer_id:
@@ -31,6 +26,7 @@ func _ready() -> void:
 	add_child(_sky)
 
 	_player = ThirdPersonController.new()
+	_player.visual_mode = "identity"
 	add_child(_player)
 
 	var spawn := _spawn_point()
@@ -39,6 +35,8 @@ func _ready() -> void:
 	_player.global_position = spawn
 	_player.chunk_changed.connect(_on_chunk_changed)
 	add_child(SensoriumAmbience.new()) # your build's own hum, under the music
+	var vehicles := VehicleWorldWiring.spawn_hub_vehicles(self, _terrain, spawn)
+	VehicleWorldWiring.wire_streaming_bump(vehicles, _terrain, _sky)
 	add_child(RealityBendOverlay.new(_reality_bend_baseline()))
 	var hotbar := HotbarUI.new()
 	hotbar.cast_requested.connect(_on_cast)
@@ -75,6 +73,7 @@ func _ready() -> void:
 				Color(0.75, 0.35, 0.95), _player, pos)
 			hideout.position = pos
 			add_child(hideout)
+	_populate_layer_npcs(spawn)
 
 var _peers: Dictionary = {} # peer_id -> RemotePlayer
 var _peer_hp: Dictionary = {} # peer_id -> hp (open-PvP wilds)
@@ -147,6 +146,38 @@ func _ensure_city(hub_id: String) -> void:
 		func(x, z): return _terrain.height_at(x, z), _player)
 	add_child(city)
 	_cities_built[hub_id] = city
+	# City population: hub ids ARE the generator's supraliminal district
+	# ids, so each city pulls its own residents (LOD/impostors inside).
+	var spawner := NPCSpawner.new()
+	spawner.district_id = hub_id
+	spawner.max_npcs_in_district = 50
+	spawner.player = _player
+	spawner.height_provider = func(x, z): return _terrain.height_at(x, z)
+	spawner.position = origin
+	add_child(spawner)
+
+## Ambient human population for non-city layers. Density is part of each
+## layer's psychology: the Subliminal is a sparse, almost-normal
+## neighborhood; the Liminal holds a handful of looping figures; the
+## Periliminal's few faces are personal apparitions, never a crowd.
+## Supraliminal cities populate per-hub in _ensure_city instead.
+func _populate_layer_npcs(near: Vector3) -> void:
+	var district_and_cap := {
+		"subliminal": ["player_apartment", 12],
+		"liminal": ["liminal_hub", 8],
+		"extraliminal": ["territories", 24],
+		"periliminal": ["abstract_realm", 6],
+	}
+	if not district_and_cap.has(layer_id):
+		return
+	var conf: Array = district_and_cap[layer_id]
+	var spawner := NPCSpawner.new()
+	spawner.district_id = str(conf[0])
+	spawner.max_npcs_in_district = int(conf[1])
+	spawner.player = _player
+	spawner.height_provider = func(x, z): return _terrain.height_at(x, z)
+	spawner.position = Vector3(near.x, 0.0, near.z)
+	add_child(spawner)
 
 func _reality_bend_baseline() -> float:
 	match layer_id:

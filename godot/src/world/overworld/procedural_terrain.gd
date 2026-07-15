@@ -10,7 +10,12 @@ extends Node3D
 
 const HubRegionData = preload("res://src/data/hub_region_data.gd")
 
-const VIEW_RADIUS := 2 # chunks in every direction around the player
+const DEFAULT_VIEW_RADIUS := 2 # chunks in every direction, on foot
+## Vehicles cover ground much faster than walking; a bigger radius means
+## fewer, larger streaming loads instead of constant small ones at the
+## same on-foot cadence — see set_view_radius(), called from
+## layer_world.gd/overworld.gd on vehicle enter/exit.
+var _view_radius := DEFAULT_VIEW_RADIUS
 const QUADS_PER_CHUNK := 16
 const HEIGHT_SCALE := 8.0
 
@@ -20,8 +25,14 @@ const BIOME_COLORS := {
 	"crystal_field": Color(0.45, 0.55, 0.75),
 	"overgrowth":    Color(0.20, 0.45, 0.25),
 	"ashland":       Color(0.35, 0.28, 0.30),
+	"coastal":       Color(0.28, 0.22, 0.18), # seabed under the water plane
 }
 const HUB_COLOR := Color(0.55, 0.52, 0.45)
+const WATER_SURFACE_COLOR := Color(0.15, 0.35, 0.55, 0.75)
+## Must match WaterVehicle.WATER_LEVEL_Y — the seabed is generated well
+## below this (see height_at's coastal branch) so the surface plane always
+## reads as a real body of water, not a flooded field.
+const WATER_LEVEL_Y := 0.0
 
 var _noise := FastNoiseLite.new()
 var _loaded: Dictionary = {} # Vector2i -> Node3D (chunk root)
@@ -41,13 +52,29 @@ func height_at(world_x: float, world_z: float) -> float:
 	# not rolling noise. Everywhere else keeps its biome elevation + noise.
 	if chunk.is_hub:
 		return 0.0
-	return float(chunk.biome.get("elevation", 0.0)) + _noise.get_noise_2d(world_x, world_z) * HEIGHT_SCALE
+	var elevation := float(chunk.biome.get("elevation", 0.0))
+	var noise_scale := HEIGHT_SCALE
+	if str(chunk.biome.get("biome", "")) == "coastal":
+		# Keep the seabed mostly submerged (WaterVehicle's WATER_LEVEL_Y is a
+		# flat 0.0) — full HEIGHT_SCALE noise would poke rock through the
+		# surface often enough that "coastal" wouldn't read as water.
+		noise_scale = HEIGHT_SCALE * 0.15
+	return elevation + _noise.get_noise_2d(world_x, world_z) * noise_scale
 
-## Ensure all chunks within VIEW_RADIUS of coord exist; drop the rest.
+## Bigger radius = fewer, larger streaming loads — used while piloting a
+## vehicle so terrain doesn't have to keep pace with small on-foot-sized
+## loads at car/boat/plane speed. Restore DEFAULT_VIEW_RADIUS on exit.
+func set_view_radius(r: int) -> void:
+	_view_radius = maxi(r, 1)
+
+func get_view_radius() -> int:
+	return _view_radius
+
+## Ensure all chunks within _view_radius of coord exist; drop the rest.
 func stream_around(coord: Vector2i) -> void:
 	var wanted: Dictionary = {}
-	for dx in range(-VIEW_RADIUS, VIEW_RADIUS + 1):
-		for dz in range(-VIEW_RADIUS, VIEW_RADIUS + 1):
+	for dx in range(-_view_radius, _view_radius + 1):
+		for dz in range(-_view_radius, _view_radius + 1):
 			var c := coord + Vector2i(dx, dz)
 			wanted[c] = true
 			if not _loaded.has(c):
@@ -98,8 +125,39 @@ func _build_chunk(coord: Vector2i) -> Node3D:
 	body.add_child(shape)
 	root.add_child(body)
 
+	if str(chunk.biome.get("biome", "")) == "coastal":
+		root.add_child(_build_water_surface(size))
+
 	_scatter_props(root, chunk, size)
+	ChunkContentSpawner.spawn(root, chunk, coord, size, _terrain_bridge())
+	EntityCombatSpawner.spawn(root, chunk, coord, size, _terrain_bridge())
 	return root
+
+## ChunkContentSpawner needs TerrainBridge's public height_at() for
+## non-water spawn placement; ProceduralTerrain is always a direct child
+## of exactly one TerrainBridge in every scene that builds it.
+func _terrain_bridge() -> TerrainBridge:
+	var p := get_parent()
+	return p if p is TerrainBridge else null
+
+## Flat translucent plane at WATER_LEVEL_Y so "coastal" chunks read as an
+## actual body of water rather than just low, dark dirt — the seabed mesh
+## underneath is real geometry (WaterVehicle floats and collides against
+## it via buoyancy + the StaticBody3D above), this plane is visual only.
+func _build_water_surface(size: float) -> MeshInstance3D:
+	var mi := MeshInstance3D.new()
+	mi.name = "WaterSurface"
+	var plane := PlaneMesh.new()
+	plane.size = Vector2(size, size)
+	mi.mesh = plane
+	mi.position = Vector3(size * 0.5, WATER_LEVEL_Y, size * 0.5)
+	var mat := StandardMaterial3D.new()
+	mat.albedo_color = WATER_SURFACE_COLOR
+	mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	mat.roughness = 0.05
+	mat.metallic = 0.3
+	mi.material_override = mat
+	return mi
 
 func _chunk_material(chunk: WorldChunk) -> StandardMaterial3D:
 	var color: Color = HUB_COLOR if chunk.is_hub else BIOME_COLORS.get(
@@ -117,6 +175,8 @@ func _chunk_material(chunk: WorldChunk) -> StandardMaterial3D:
 func _scatter_props(root: Node3D, chunk: WorldChunk, size: float) -> void:
 	if chunk.is_hub:
 		return
+	if str(chunk.biome.get("biome", "")) == "coastal":
+		return # no land props underwater; the seabed stays clear
 	var rng := RandomNumberGenerator.new()
 	rng.seed = int(chunk.biome.get("prop_seed", 0))
 	var density: float = float(chunk.biome.get("prop_density", 0.3))

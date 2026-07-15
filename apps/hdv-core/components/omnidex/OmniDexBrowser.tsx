@@ -3,19 +3,30 @@
 import { useState } from 'react'
 import type { Race, Frame, PhysicalMod } from '@/types/character'
 import type { Entity } from '@/types/entities'
+import { OMNIDEX_FRAME_COUNT, OMNIDEX_RACE_COUNT, OMNIDEX_MOD_COUNT } from '@/lib/game/data/omniDexRegistry'
 
-type Tab = 'races' | 'frames' | 'mods' | 'entities'
+type Tab = 'races' | 'frames' | 'mods' | 'entities' | 'companions'
+
+export interface OmniDexCompanion {
+  id: string
+  name: string
+  faction: string
+  rarity?: string | number
+  lore?: string
+}
 
 interface Props {
   races: Race[]
   frames: Frame[]
   mods: PhysicalMod[]
   entities: Entity[]
+  companions?: OmniDexCompanion[]
   unlockedRaces: string[]
   unlockedFrames: string[]
   unlockedMods: string[]
   discoveredEntityIds: string[]
   caughtEntityIds: string[]
+  unlockedCompanionIds?: string[]
 }
 
 const TABS: { key: Tab; label: string }[] = [
@@ -23,6 +34,7 @@ const TABS: { key: Tab; label: string }[] = [
   { key: 'frames', label: 'FRAMES' },
   { key: 'mods', label: 'MODS' },
   { key: 'entities', label: 'ENTITIES' },
+  { key: 'companions', label: 'COMPANIONS' },
 ]
 
 function SilhouetteCard({ name }: { name: string }) {
@@ -69,11 +81,13 @@ export default function OmniDexBrowser({
   frames,
   mods,
   entities,
+  companions = [],
   unlockedRaces,
   unlockedFrames,
   unlockedMods,
   discoveredEntityIds,
   caughtEntityIds,
+  unlockedCompanionIds = [],
 }: Props) {
   const [tab, setTab] = useState<Tab>('races')
 
@@ -82,10 +96,22 @@ export default function OmniDexBrowser({
   const unlockedModSet = new Set(unlockedMods)
   const discoveredSet = new Set(discoveredEntityIds)
   const caughtSet = new Set(caughtEntityIds)
+  const unlockedCompanionSet = new Set(unlockedCompanionIds)
+
+  const countHint =
+    tab === 'races'
+      ? `${races.length}/${OMNIDEX_RACE_COUNT}`
+      : tab === 'frames'
+        ? `${frames.length}/${OMNIDEX_FRAME_COUNT}`
+        : tab === 'mods'
+          ? `${mods.length}/${OMNIDEX_MOD_COUNT}`
+          : tab === 'entities'
+            ? `${entities.length}`
+            : `${companions.length}`
 
   return (
     <div>
-      <div className="flex gap-2 mb-6">
+      <div className="flex flex-wrap items-center gap-2 mb-6">
         {TABS.map((t) => (
           <button
             key={t.key}
@@ -99,6 +125,9 @@ export default function OmniDexBrowser({
             {t.label}
           </button>
         ))}
+        <span className="ml-auto font-mono text-[10px] text-slate-600 tracking-widest">
+          {countHint}
+        </span>
       </div>
 
       {tab === 'races' && (
@@ -152,6 +181,30 @@ export default function OmniDexBrowser({
               />
             )
           })}
+        </div>
+      )}
+
+      {tab === 'companions' && (
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+          {companions.length === 0 ? (
+            <div className="col-span-full font-mono text-xs text-slate-600">
+              Companion roster syncs from the Godot OmniDex registry in-client.
+            </div>
+          ) : (
+            companions.map((c) =>
+              unlockedCompanionSet.has(c.id) || unlockedCompanionSet.size === 0 ? (
+                <UnlockedCard
+                  key={c.id}
+                  name={c.name}
+                  sub={`${c.faction}${c.rarity != null ? ` · R${c.rarity}` : ''}`}
+                  description={c.lore ?? c.id}
+                  accentHex="#38bdf8"
+                />
+              ) : (
+                <SilhouetteCard key={c.id} name={c.name} />
+              ),
+            )
+          )}
         </div>
       )}
     </div>

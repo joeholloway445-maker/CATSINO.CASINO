@@ -15,7 +15,7 @@ const ProfileRpc = {
       level: 1,
       xp: 0,
       faction: "none",
-      frame: "basic",
+      frame: "skirmisher",
       title: "Newcomer",
       wins: 0,
       losses: 0,

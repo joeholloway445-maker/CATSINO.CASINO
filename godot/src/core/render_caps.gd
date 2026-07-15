@@ -8,5 +8,15 @@ static var _cached := ""
 
 static func is_compatibility() -> bool:
 	if _cached == "":
-		_cached = str(ProjectSettings.get_setting("rendering/renderer/rendering_method", "forward_plus"))
+		var method := str(ProjectSettings.get_setting("rendering/renderer/rendering_method", "forward_plus"))
+		# Runtime override: web/mobile, or software GL (llvmpipe on CI Xvfb),
+		# cannot run Terrain3D clipmap shaders / Forward+-only effects.
+		if OS.has_feature("web") or OS.has_feature("mobile"):
+			_cached = "compatibility"
+		else:
+			var adapter := str(RenderingServer.get_video_adapter_name()).to_lower()
+			if adapter.contains("llvmpipe") or adapter.contains("swiftshader"):
+				_cached = "compatibility"
+			else:
+				_cached = method
 	return _cached.contains("compatibility")

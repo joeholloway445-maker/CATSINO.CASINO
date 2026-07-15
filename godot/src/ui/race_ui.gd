@@ -15,22 +15,20 @@ var _race_btn: Button
 var _results_panel: VBoxContainer
 var _status_label: Label
 
-const FRAME_OPTIONS = [
-	{id="veil",    label="Veil Frame (SPD+15)"},
-	{id="zephyr",  label="Zephyr Frame (SPD+12, LCK+8)"},
-	{id="bolt",    label="Bolt Frame (SPD+20) ⚡"},
-	{id="phantom", label="Phantom Frame (LCK+12)"},
-	{id="bastion", label="Bastion Frame (RES+20, POW+10)"},
-	{id="tremor",  label="Tremor Frame (POW+18, RES+8)"},
-	{id="surge",   label="Surge Frame (POW+20)"},
-	{id="flux",    label="Flux Frame (balanced)"},
-]
+var _frame_options: Array[Dictionary] = []
 
 ## Bet payout multiplier by finish position (1st..3rd), scaled by difficulty.
 const POSITION_MULT = {1: 3.0, 2: 1.5, 3: 1.0}
 const DIFFICULTY_BONUS = {"beginner": 1.0, "intermediate": 1.25, "expert": 1.6}
 
 func _ready() -> void:
+	_frame_options.clear()
+	# Racing uses Hyperliminal sensorium frames; display OmniDex-safe names.
+	for f in FrameModData.FRAMES:
+		_frame_options.append({
+			"id": f.id,
+			"label": "%s (%s)" % [OmniDexRegistry.frame_display_name(str(f.id)), f.desc],
+		})
 	_build_ui()
 	MusicManager.enter_racing()
 
@@ -88,7 +86,7 @@ func _build_ui() -> void:
 
 	_frame_selector = OptionButton.new()
 	_frame_selector.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	for opt in FRAME_OPTIONS:
+	for opt in _frame_options:
 		_frame_selector.add_item(opt.label)
 	frame_row.add_child(_frame_selector)
 
@@ -169,7 +167,7 @@ func _on_race_pressed() -> void:
 	_status_label.text = "Racing %s..." % track.name
 	_results_panel.visible = false
 
-	var frame_id: String = FRAME_OPTIONS[_frame_selector.selected].id
+	var frame_id: String = _frame_options[_frame_selector.selected].id
 	race_started.emit(frame_id, bet)
 
 	if NetworkManager.is_connected_to_server():
@@ -194,7 +192,7 @@ func _on_drive_pressed() -> void:
 		return
 	RaceSession.track = track
 	RaceSession.bet = bet
-	RaceSession.frame_id = FRAME_OPTIONS[_frame_selector.selected].id
+	RaceSession.frame_id = _frame_options[_frame_selector.selected].id
 	get_tree().change_scene_to_file("res://scenes/games/racing/race_drive.tscn")
 
 func _local_payout(position: int, bet: int, track: Dictionary) -> int:

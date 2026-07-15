@@ -1,5 +1,4 @@
 extends Node
-class_name GameFactory
 
 # ── Signals ────────────────────────────────────────────────────────────────────
 signal game_created(type: GameType, variant_id: int, instance: Node)
@@ -35,7 +34,7 @@ func create_game(type: GameType, variant_id: int) -> Node:
 	var instance: Node
 
 	if type in _templates and not _templates[type].is_empty():
-		var scene_idx := variant_id % _templates[type].size()
+		var scene_idx: int = variant_id % _templates[type].size()
 		var scene: PackedScene = _templates[type][scene_idx]
 		instance = scene.instantiate()
 	else:

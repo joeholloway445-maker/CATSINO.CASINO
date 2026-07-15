@@ -1,5 +1,4 @@
 extends Node
-class_name CompanionSystem
 
 # ── Signals ────────────────────────────────────────────────────────────────────
 signal companion_evolved(companion_id: int, new_level: int)
@@ -137,6 +136,55 @@ func get_unlocked_companions() -> Array[CompanionData]:
 			result.append(c)
 	return result
 
+## String ids for UI grids (CompanionViewer) — roster indexes are ints.
+func get_unlocked_ids() -> Array[String]:
+	var ids: Array[String] = []
+	for c: CompanionData in get_unlocked_companions():
+		ids.append(str(c.id))
+	return ids
+
+## Equip into a 1-based party slot on PlayerProfile.active_companion_ids.
+func equip_companion(companion_id, slot: int) -> void:
+	if slot < 1:
+		push_warning("CompanionSystem: equip_companion slot must be >= 1")
+		return
+	var id_str := str(companion_id)
+	var c := get_companion(companion_id)
+	if c == null or not c.is_unlocked:
+		# Also allow string roster ids from CompanionRegistry / OmniDex.
+		if CompanionRegistry.get_by_id(id_str).is_empty() and c == null:
+			push_warning("CompanionSystem: equip_companion(%s) — unknown companion" % id_str)
+			return
+	var ids: Array[String] = PlayerProfile.active_companion_ids.duplicate()
+	while ids.size() < 3:
+		ids.append("")
+	for i in range(ids.size()):
+		if ids[i] == id_str:
+			ids[i] = ""
+	while ids.size() < slot:
+		ids.append("")
+	ids[slot - 1] = id_str
+	PlayerProfile.set_active_companions(ids)
+
+## Unlock one random locked companion at or above rarity index
+## (0=Common … 4=Legendary). Used by ShopManager companion SKUs.
+func unlock_random(min_rarity_index: int = 0) -> CompanionData:
+	var candidates: Array[CompanionData] = []
+	for c: CompanionData in roster:
+		if c.is_unlocked:
+			continue
+		var rarity_i: int = RARITIES.find(c.rarity)
+		if rarity_i < 0:
+			rarity_i = 0
+		if rarity_i >= mini(min_rarity_index, RARITIES.size() - 1):
+			candidates.append(c)
+	if candidates.is_empty():
+		push_warning("CompanionSystem: unlock_random(%d) — no locked candidates" % min_rarity_index)
+		return null
+	var pick: CompanionData = candidates[randi() % candidates.size()]
+	unlock_companion(pick.id)
+	return pick
+
 func get_companions_by_faction(faction: String) -> Array[CompanionData]:
 	var result: Array[CompanionData] = []
 	for c: CompanionData in roster:
@@ -160,7 +208,7 @@ func _generate_roster() -> void:
 	                  "Scratch", "Hiss", "Sprint", "Lunge", "Dash", "Glide", "Pounce"]
 
 	for i in range(MAX_COMPANIONS):
-		var faction := FACTIONS[rng.randi() % FACTIONS.size()]
+		var faction: String = FACTIONS[rng.randi() % FACTIONS.size()]
 		var rarity_roll := rng.randf()
 		var rarity: String
 		if   rarity_roll < 0.40: rarity = "Common"
@@ -168,8 +216,8 @@ func _generate_roster() -> void:
 		elif rarity_roll < 0.85: rarity = "Rare"
 		elif rarity_roll < 0.95: rarity = "Epic"
 		else:                    rarity = "Legendary"
-		var name_str := prefixes[rng.randi() % prefixes.size()] + \
-		               suffixes[rng.randi() % suffixes.size()]
+		var name_str: String = str(prefixes[rng.randi() % prefixes.size()]) + \
+		               str(suffixes[rng.randi() % suffixes.size()])
 		var c := CompanionData.new(i, name_str, faction, rarity)
 		roster.append(c)
 		_companion_index[i] = c

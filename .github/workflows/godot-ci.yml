@@ -1,20 +1,18 @@
-# Godot Web export + gdUnit4 tests via godot-ci. Runs on push to any
-# branch that touches the godot/ folder, plus on every PR. The Web
-# export lands in builds/html5/ — the same path the existing nginx
-# `game` service expects, and the same path `godot/AGENTS.md` documents.
+# Godot Web export + gdUnit4 tests via godot-ci. Runs on push/PR that
+# touches godot/ or this workflow. Web export lands in builds/html5/ —
+# the path nginx `game` and godot/AGENTS.md expect.
 name: godot
 
 on:
   push:
     branches: [main]
-    paths: ['godot/**', '.github/workflows/godot-ci.yml']
+    paths: ['godot/**', '.github/workflows/godot-ci.yml', 'scripts/install_addons.sh']
   pull_request:
-    paths: ['godot/**', '.github/workflows/godot-ci.yml']
+    paths: ['godot/**', '.github/workflows/godot-ci.yml', 'scripts/install_addons.sh']
   workflow_dispatch: {}
 
 env:
   GODOT_VERSION: 4.3.0
-  # Bumping this rebuilds the export-templates cache.
   EXPORT_NAME: periliminal-space
 
 jobs:
@@ -22,18 +20,12 @@ jobs:
     name: Export Web (HTML5)
     runs-on: ubuntu-22.04
     container:
-      # barichello/godot-ci ships the editor + all export templates
-      # pre-installed for the pinned Godot version.
       image: barichello/godot-ci:4.3
     steps:
       - uses: actions/checkout@v4
         with: { lfs: true }
 
       - name: Locate export templates
-        # barichello/godot-ci:4.3 ships templates inside the image but the
-        # exact path varies between image revisions. Find where they live
-        # and link them to the container's runtime HOME so the editor
-        # picks them up without a wrong-path `mv` that fails the job.
         run: |
           set -e
           TEMPLATE_SRC="$(find / -maxdepth 6 -type d -name '*.stable' -path '*/export_templates/*' 2>/dev/null | head -n1 || true)"
@@ -46,13 +38,33 @@ jobs:
           ln -sfn "$TEMPLATE_SRC" ~/.local/share/godot/export_templates/"$(basename "$TEMPLATE_SRC")"
 
       - name: Web export
-        # `--import` runs a headless import pass first so shaders/textures
-        # are baked before the export attempts to reference them.
+        # `--import` bakes shaders/textures first. Godot 4.3 headless often
+        # SIGSEGV/SIGILL on shutdown AFTER a successful pack (exit 132/139).
+        # Treat builds/html5/index.html as the source of truth.
         run: |
+          set -e
           mkdir -v -p builds/html5
           cd godot
           godot --headless --verbose --import || true
+          set +e
           godot --headless --verbose --export-release "Web" ../builds/html5/index.html
+          EXPORT_EXIT=$?
+          set -e
+          if [ -f ../builds/html5/index.html ]; then
+            echo "Web export OK (artifacts present; godot exit=${EXPORT_EXIT})"
+            ls -lah ../builds/html5 | head -30
+            exit 0
+          fi
+          # Preset path fallback if CLI path was ignored
+          if [ -f build/web/index.html ]; then
+            echo "Found preset path build/web — copying to builds/html5"
+            mkdir -p ../builds/html5
+            cp -a build/web/. ../builds/html5/
+            ls -lah ../builds/html5 | head -30
+            exit 0
+          fi
+          echo "Web export failed — no index.html (godot exit=${EXPORT_EXIT})" >&2
+          exit 1
 
       - name: Upload build artifact
         uses: actions/upload-artifact@v4
@@ -68,11 +80,11 @@ jobs:
       image: barichello/godot-ci:4.3
     steps:
       - uses: actions/checkout@v4
-      - name: Run gdUnit4 (skipped if addon not installed yet)
+      - name: Run gdUnit4 (skipped if addon or tests missing)
         run: |
-          if [ -d godot/addons/gdUnit4 ] && [ -d godot/test ]; then
+          if [ -d godot/addons/gdUnit4 ] && [ -d godot/test ] && [ "$(find godot/test -name '*Test*.gd' -o -name '*test*.gd' 2>/dev/null | head -1)" ]; then
             cd godot
             bash addons/gdUnit4/runtest.sh -a test/
           else
-            echo "gdUnit4 addon or godot/test not present — skipping."
+            echo "gdUnit4 addon or godot/test suites not present — skipping."
           fi

@@ -57,7 +57,7 @@ func join_layer(layer_id: String) -> void:
 	_ghosts.clear()
 	_match_id = ""
 
-	if _try_connect_socket():
+	if await _try_connect_socket():
 		var result = await _socket.join_match_async("layer_%s" % layer_id)
 		_match_id = str(result.get("match_id", "layer_%s" % layer_id))
 	else:
@@ -101,9 +101,9 @@ func _physics_process(delta: float) -> void:
 
 func _drive_ghost(gid: String, delta: float) -> void:
 	var g: Dictionary = _ghosts[gid]
-	var to_player := _my_pos - g.pos
+	var to_player: Vector3 = _my_pos - g.pos
 	to_player.y = 0.0
-	var dist := to_player.length()
+	var dist: float = to_player.length()
 	g.attack_cd = maxf(g.attack_cd - delta, 0.0)
 
 	match int(g.tier):
@@ -148,7 +148,7 @@ func _drive_ghost(gid: String, delta: float) -> void:
 					g.pos -= to_player.normalized() * 2.6 * delta # kite back out
 				if g.attack_cd <= 0.0 and dist <= keep_range * 1.1:
 					g.attack_cd = randf_range(0.9, 1.6) / maxf(press, 0.5)
-					var power := 0.9 + g.aggression * 0.4
+					var power: float = 0.9 + float(g.aggression) * 0.4
 					bot_wants_cast.emit(gid, {"id": "bot_strike", "kind": "damage", "power": power})
 			else:
 				g.retarget -= delta
@@ -195,6 +195,9 @@ func _spawn_ghosts(layer_id: String) -> void:
 			"faction": CompanionRegistry.normalize_faction(str(e.get("faction", ""))),
 			"alignment": ["radiant", "neutral", "umbral", "feral"][randi() % 4],
 			"stats": {"pow": e.get("pow", 40), "spd": e.get("spd", 40)},
+			"race_id": PlayerProfile.selected_race_id if randf() < 0.35 else "tabby",
+			"frame_id": ["veil", "bastion", "zephyr", "viper"][randi() % 4],
+			"mod_id": "",
 		}
 		var tier := _roll_tier()
 		var aggression := 0.5

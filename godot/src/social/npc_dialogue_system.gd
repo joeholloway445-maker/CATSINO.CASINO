@@ -188,9 +188,10 @@ func _filter_options_by_requirements(options: Array[Dictionary]) -> Array[Dictio
 			if PlayerProfile.faction != req["faction"] and PlayerProfile.faction != "Factionless":
 				continue
 
-		# Companion requirement
+		# Companion requirement — uses PlayerProfile compat getters
 		if "companion_race" in req:
-			if not PlayerProfile.selected_companion or PlayerProfile.selected_companion_race != req["companion_race"]:
+			if PlayerProfile.selected_companion.is_empty() \
+					or PlayerProfile.selected_companion_race != req["companion_race"]:
 				continue
 
 		# Frame requirement

@@ -1,5 +1,4 @@
 extends Node
-class_name DailyRewards
 # Daily login reward streak with escalating prizes
 
 signal reward_claimed(day: int, coins: int, gems: int, bonus_item: String)

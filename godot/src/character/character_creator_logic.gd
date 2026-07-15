@@ -6,7 +6,7 @@ static func build_starting_stats(race_id: String, faction: String, frame_id: Str
 	var race_bonuses := RaceDataCharacter.get_stat_bonuses(race_id)
 	for stat in race_bonuses.keys():
 		base[stat] = base.get(stat, 0) + race_bonuses[stat]
-	var faction_bonuses := FactionSystem.get_stat_bonuses(faction)
+	var faction_bonuses: Dictionary = FactionSystem.get_stat_bonuses(faction)
 	for stat in faction_bonuses.keys():
 		base[stat] = base.get(stat, 0) + faction_bonuses.get(stat, 0)
 	# Frames and mods carry their stats in `stat_bonus` and ADD to the base —

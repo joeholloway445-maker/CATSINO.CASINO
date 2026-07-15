@@ -3,10 +3,12 @@ class_name CityData
 ## hubs as data: block/road layout, the building profiles that fill each
 ## block, the light rig, and the sound bed — each hard-mesh part naming the
 ## AssetLibrary MODEL slot, TEXTURE slot, and (for districts) SOUND slots it
-## depends on. MegaCityBuilder reads this and builds the whole city; drop
-## real models into assets/models/, textures into assets/textures/, audio
-## into assets/audio/ against these slot names and the city upgrades with
-## zero code change (AssetLibrary handles the swap).
+## depends on. MegaCityBuilder reads this for the *fallback* procedural
+## grid when no OpenStreetMap layout is present under world_data/osm/; with
+## OSM data installed (the default), hubs build as real downtown clones
+## instead. Drop real models into assets/models/, textures into
+## assets/textures/, audio into assets/audio/ against these slot names and
+## the city upgrades with zero code change (AssetLibrary handles the swap).
 ##
 ## Districts are keyed to real DFW hubs (see hub_region_data.gd). Each hub's
 ## faction sets the accent palette; the district TYPE sets the massing.

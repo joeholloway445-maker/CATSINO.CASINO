@@ -12,6 +12,10 @@ signal open_game_modes()
 
 var _player_info_label: Label
 
+const CUSTOM_LOGO_PATH := "res://assets/ui/custom_logo.png"
+const CUSTOM_BG_PATH := "res://assets/ui/custom_bg.png"
+const THEME_SONG_PATH := "res://assets/audio/theme_song.ogg"
+
 const DISTRICTS = [
 	{id="paw_vegas",     name="Paw Vegas",     icon="🎰", desc="Slots, cards, and neon lights."},
 	{id="cat_coliseum",  name="Cat Coliseum",   icon="⚔️", desc="Combat arena. Prove yourself."},
@@ -22,9 +26,12 @@ const DISTRICTS = [
 
 func _ready() -> void:
 	_build_ui()
+	_play_theme_song()
 	_refresh_player_info()
 
 func _build_ui() -> void:
+	_add_custom_background()
+
 	var root = VBoxContainer.new()
 	root.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	add_child(root)
@@ -33,10 +40,7 @@ func _build_ui() -> void:
 	var header = HBoxContainer.new()
 	root.add_child(header)
 
-	var logo = Label.new()
-	logo.text = "CATSINO.CASINO"
-	logo.add_theme_font_size_override("font_size", 28)
-	header.add_child(logo)
+	_add_logo(header)
 
 	var spacer = Control.new()
 	spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -56,7 +60,7 @@ func _build_ui() -> void:
 		{label="🛒 Shop", sig="open_shop"},
 		{label="🏆 Achievements", sig="open_achievements"},
 		{label="🌐 Game Modes", sig="open_game_modes", scene="res://scenes/ui/game_mode_store.tscn"},
-		{label="🗺️ Overworld", sig="", scene="res://scenes/world/overworld.tscn"},
+		{label="🗺️ Overworld", sig="", scene="res://scenes/layers/supraliminal.tscn"},
 		{label="🌀 Reality Layers", sig="", scene="res://scenes/layers/layer_select.tscn"},
 		{label="🌗 Ascension", sig="", scene="res://scenes/ui/ascension.tscn"},
 		{label="🔴 The PVXC", sig="", scene="res://scenes/pvxc/pvxc_gate.tscn"},
@@ -99,6 +103,52 @@ func _make_district_button(district: Dictionary) -> Button:
 	btn.text = "%s\n%s\n%s" % [district.icon, district.name, district.desc]
 	btn.pressed.connect(func(): enter_district.emit(district.id))
 	return btn
+
+func _add_custom_background() -> void:
+	if not ResourceLoader.exists(CUSTOM_BG_PATH):
+		return
+	var texture: Texture2D = ResourceLoader.load(CUSTOM_BG_PATH) as Texture2D
+	if texture == null:
+		return
+	var background := TextureRect.new()
+	background.name = "CustomBackground"
+	background.texture = texture
+	background.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	background.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
+	background.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	background.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	add_child(background)
+
+func _add_logo(header: HBoxContainer) -> void:
+	if ResourceLoader.exists(CUSTOM_LOGO_PATH):
+		var texture: Texture2D = ResourceLoader.load(CUSTOM_LOGO_PATH) as Texture2D
+		if texture != null:
+			var logo := TextureRect.new()
+			logo.name = "CustomLogo"
+			logo.texture = texture
+			logo.custom_minimum_size = Vector2(320, 80)
+			logo.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+			logo.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+			header.add_child(logo)
+			return
+
+	var logo_label := Label.new()
+	logo_label.text = "CATSINO.CASINO"
+	logo_label.add_theme_font_size_override("font_size", 28)
+	header.add_child(logo_label)
+
+func _play_theme_song() -> void:
+	if not ResourceLoader.exists(THEME_SONG_PATH):
+		return
+	var stream: AudioStream = ResourceLoader.load(THEME_SONG_PATH) as AudioStream
+	if stream == null:
+		return
+	stream.set("loop", true)
+	var player := AudioStreamPlayer.new()
+	player.name = "ThemeSongPlayer"
+	player.stream = stream
+	add_child(player)
+	player.play()
 
 func _refresh_player_info() -> void:
 	if not PlayerProfile: return

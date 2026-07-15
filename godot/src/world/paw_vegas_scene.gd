@@ -20,7 +20,9 @@ const NPC_RACES: Array[String] = [
 	"Aquis", "Igni", "Kryos", "Myco", "Volt", "Petra", "Sanguis", "Chimera",
 	"Astra", "Ferros", "Etherea", "Glyphe"
 ]
-const NPC_FRAMES: Array[String] = ["Sleek", "Heavy", "Agile", "Arcane", "Psionic", "Bio", "Mech"]
+const NPC_FRAMES: Array[String] = [
+	"skirmisher", "strider", "bastion", "juggernaut", "shade", "architect", "conduit",
+]
 
 # ─── Runtime state ────────────────────────────────────────────────────────────
 var _npcs: Array[Node3D] = []

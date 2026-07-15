@@ -1,5 +1,4 @@
 extends Node
-class_name GameManager
 
 # ── Signals ────────────────────────────────────────────────────────────────────
 signal state_changed(old_state: GameState, new_state: GameState)
@@ -23,7 +22,14 @@ var _init_errors: Array[String] = []
 
 # ── Lifecycle ─────────────────────────────────────────────────────────────────
 func _ready() -> void:
-	# Connect manager signals
+	# Deferred: GameManager is autoload #4, but AccountManager/DistrictManager
+	# init LATER in the [autoload] list — at this exact moment they're still
+	# null, so connecting here silently no-ops (the old `if AccountManager:`
+	# guard "passed" by skipping the connection entirely). One deferred hop
+	# lands after every autoload's _ready has run.
+	_connect_manager_signals.call_deferred()
+
+func _connect_manager_signals() -> void:
 	if AccountManager:
 		AccountManager.authenticated.connect(_on_authenticated)
 		AccountManager.session_expired.connect(_on_session_expired)
@@ -118,7 +124,9 @@ func _init_social_manager() -> void:
 
 # ── Handlers ──────────────────────────────────────────────────────────────────
 func _on_authenticated(_session: Dictionary) -> void:
-	if game_state == GameState.LOGIN:
+	# LOGIN is the normal post-init state. LOADING covers restored sessions
+	# that authenticate while initialize() is still running (or splash is up).
+	if game_state == GameState.LOGIN or game_state == GameState.LOADING:
 		_set_state(GameState.WORLD)
 		# The actual front door: title screen with Start New Venture /
 		# Continue Expedition. New ventures go to the Liminal (race/frame/

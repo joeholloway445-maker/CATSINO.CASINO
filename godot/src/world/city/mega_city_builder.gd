@@ -1,8 +1,9 @@
 class_name MegaCityBuilder
-## Builds a full, functional mega-city for a DFW hub from the CityData
-## blueprint: a road grid, sidewalks, a building on each block (real asset
-## or procedural shell), streetlights and neon signage wired to the
-## day/night light rig, ambient props, and a per-district sound bed.
+## Builds a full, functional mega-city for a DFW hub. Prefers the
+## OpenStreetMap downtown clone in `world_data/osm/<hub>.json` (real street
+## polylines + building footprints, via OsmCityLayout) when present; falls
+## back to the CityData district grid otherwise. Streetlights, neon, civic
+## venues, landmarks, hideouts, and hidden doors are layered on top either way.
 ##
 ## Every hard-mesh surface routes through AssetLibrary.material() (so the
 ## race lens + any installed texture pack apply) or AssetLibrary.instance()
@@ -30,32 +31,48 @@ static func build(hub_id: String, origin: Vector3, sky: DayNightSky,
 	var rng := RandomNumberGenerator.new()
 	rng.seed = hash("city_" + hub_id)
 
-	for entry in layout.districts:
-		var dcell: Vector2i = entry.cell
-		# Local offset under `root` (which is already at world `origin`); the
-		# world position is only needed for terrain-height sampling.
-		var local := Vector3(dcell.x * CityData.CELL, 0, dcell.y * CityData.CELL)
-		var world := origin + local
-		_build_district(root, str(entry.type), local, world, accent, rng, height_at)
+	var city_base_y := _sample(height_at, origin.x, origin.z)
+	var used_osm := false
+	# Prefer the OpenStreetMap downtown clone when world_data/osm/<hub>.json
+	# exists — real street polylines + building footprints, scaled to the
+	# hub footprint (see docs/DFW_METROPLEX_MAP.md).
+	if OsmCityLayout.has_layout(hub_id):
+		_build_osm_city(root, hub_id, accent, rng, city_base_y)
+		used_osm = true
+	else:
+		for entry in layout.districts:
+			var dcell: Vector2i = entry.cell
+			# Local offset under `root` (which is already at world `origin`); the
+			# world position is only needed for terrain-height sampling.
+			var local := Vector3(dcell.x * CityData.CELL, 0, dcell.y * CityData.CELL)
+			var world := origin + local
+			_build_district(root, str(entry.type), local, world, accent, rng, height_at)
 
 	# The skyline anchors — each real city's recognizable silhouettes —
 	# and the civic set (market/bank/armorer/blacksmith/stockyards/wager
 	# hall). Soulless Sanctuary's landmark list alone carries the Arena,
 	# College, and Space Station.
-	var city_base_y := _sample(height_at, origin.x, origin.z)
 	LandmarkBuilder.place_all(root, hub_id, accent, city_base_y)
 	if player != null:
-		CityVenues.place_all(root, accent, city_base_y, player)
+		CityVenues.place_all(root, accent, city_base_y, player, hub_id)
 		# SEVERAL claimable hideout sites per city (HideoutRegistry owns the
 		# guild-exclusion radii, banners, and defender garrisons). Seeded, so
 		# the same sites stand in the same places every visit.
 		var site_rng := RandomNumberGenerator.new()
 		site_rng.seed = hash("hideout_" + hub_id)
 		var site_count := 2 + site_rng.randi() % 2 # 2-3 sites per city
+		var osm_size := OsmCityLayout.size_of(hub_id) if used_osm else Vector2.ZERO
 		for s in site_count:
-			var local_pos := Vector3(
-				site_rng.randf_range(1.5, 6.5) * CityData.CELL, city_base_y,
-				(0.5 + s * 3.0) * CityData.CELL)
+			var local_pos: Vector3
+			if used_osm and osm_size.x > 0.0:
+				local_pos = Vector3(
+					site_rng.randf_range(osm_size.x * 0.15, osm_size.x * 0.85),
+					city_base_y,
+					site_rng.randf_range(osm_size.y * 0.15, osm_size.y * 0.85))
+			else:
+				local_pos = Vector3(
+					site_rng.randf_range(1.5, 6.5) * CityData.CELL, city_base_y,
+					(0.5 + s * 3.0) * CityData.CELL)
 			var hideout := GuildHideout.new()
 			hideout.setup("%s_s%d" % [hub_id, s], "supraliminal", hub_id,
 				accent, player, origin + local_pos)
@@ -70,9 +87,15 @@ static func build(hub_id: String, origin: Vector3, sky: DayNightSky,
 			var hd := HiddenDoor.new()
 			hd.door_id = "%s_h%d" % [hub_id, i]
 			hd.accent = accent
-			hd.position = Vector3(
-				hd_rng.randf_range(0.5, 7.0) * CityData.CELL, city_base_y,
-				hd_rng.randf_range(0.5, 7.0) * CityData.CELL)
+			if used_osm and osm_size.x > 0.0:
+				hd.position = Vector3(
+					hd_rng.randf_range(osm_size.x * 0.1, osm_size.x * 0.9),
+					city_base_y,
+					hd_rng.randf_range(osm_size.y * 0.1, osm_size.y * 0.9))
+			else:
+				hd.position = Vector3(
+					hd_rng.randf_range(0.5, 7.0) * CityData.CELL, city_base_y,
+					hd_rng.randf_range(0.5, 7.0) * CityData.CELL)
 			hd.rotation.y = hd_rng.randf_range(0.0, TAU)
 			root.add_child(hd)
 
@@ -82,6 +105,76 @@ static func build(hub_id: String, origin: Vector3, sky: DayNightSky,
 	root.add_child(amb)
 	amb.setup(str(layout.districts[0].type))
 	return root
+
+## Build a hub from OSM street polylines + building footprints. Geometry is
+## already projected/rescaled into city-local meters by the fetch script.
+static func _build_osm_city(root: Node3D, hub_id: String, accent: Color,
+		rng: RandomNumberGenerator, base_y: float) -> void:
+	var data := OsmCityLayout.load_layout(hub_id)
+	var size := OsmCityLayout.size_of(hub_id)
+	var holder := Node3D.new()
+	holder.name = "OsmDowntown_%s" % hub_id
+	root.add_child(holder)
+
+	# Flat plaza plate under the whole imported downtown.
+	var ground := MeshInstance3D.new()
+	var gm := BoxMesh.new()
+	gm.size = Vector3(maxf(size.x, 40.0), 0.4, maxf(size.y, 40.0))
+	ground.mesh = gm
+	ground.position = Vector3(size.x / 2.0, base_y - 0.2, size.y / 2.0)
+	ground.material_override = AssetLibrary.material("asphalt",
+		Color(0.12, 0.12, 0.14), 0.2, 0.0, 0.9)
+	holder.add_child(ground)
+
+	var road_mat := AssetLibrary.material("asphalt", Color(0.08, 0.08, 0.09), 0.15, 0.0, 0.85)
+	var lamp_mat := AssetLibrary.material("streetlight", Color(0.15, 0.15, 0.17), 0.2, 0.7, 0.4)
+	var lamp_budget := 0
+	const MAX_LAMPS := 90
+
+	for street in data.get("streets", []):
+		var pts: Array = street.get("points", [])
+		if pts.size() < 2:
+			continue
+		var width := OsmCityLayout.street_width(int(street.get("width_class", 1)))
+		for i in range(pts.size() - 1):
+			var a: Array = pts[i]
+			var b: Array = pts[i + 1]
+			var ax := float(a[0])
+			var az := float(a[1])
+			var bx := float(b[0])
+			var bz := float(b[1])
+			var dx := bx - ax
+			var dz := bz - az
+			var length := sqrt(dx * dx + dz * dz)
+			if length < 0.5:
+				continue
+			var mid := Vector3((ax + bx) * 0.5, base_y - 0.12, (az + bz) * 0.5)
+			var strip := _road_strip(mid, Vector3(width, 0.1, length), road_mat)
+			strip.rotation.y = atan2(dx, dz)
+			holder.add_child(strip)
+			# Streetlights along major/medium roads, budget-capped.
+			if lamp_budget < MAX_LAMPS and int(street.get("width_class", 1)) >= 1 and i % 3 == 0:
+				_streetlight(holder, Vector3(ax, base_y, az), lamp_mat)
+				lamp_budget += 1
+
+	for bldg in data.get("buildings", []):
+		var cx := float(bldg.get("cx", 0.0))
+		var cz := float(bldg.get("cz", 0.0))
+		var sx := clampf(float(bldg.get("sx", 10.0)), 3.0, 48.0)
+		var sz := clampf(float(bldg.get("sz", 10.0)), 3.0, 48.0)
+		var pname := OsmCityLayout.profile_for(bldg)
+		var floors := OsmCityLayout.floors_for(bldg, pname)
+		var center := Vector3(cx, base_y, cz)
+		var node := BuildingBuilder.build_osm(pname, center, base_y, accent, rng,
+			sx, sz, floors)
+		holder.add_child(node)
+		if rng.randf() < 0.35:
+			_add_neon(node, accent, rng)
+
+	# Local downtown sound bed.
+	var amb := CityAmbience.new()
+	holder.add_child(amb)
+	amb.setup("downtown_core")
 
 static func _build_district(root: Node3D, dtype: String, local: Vector3,
 		world: Vector3, accent: Color, rng: RandomNumberGenerator,
@@ -318,6 +411,7 @@ static func _build_plaza(holder: Node3D, center: Vector3, accent: Color, rng: Ra
 	for i in rng.randi_range(2, 4):
 		var prop := BreakableProp.new()
 		prop.accent = accent
+		prop.variant_seed = rng.randi()
 		prop.position = center + Vector3(rng.randf_range(-6, 6), 0.0, rng.randf_range(-6, 6))
 		holder.add_child(prop)
 

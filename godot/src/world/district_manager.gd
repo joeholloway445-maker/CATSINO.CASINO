@@ -1,5 +1,4 @@
 extends Node
-class_name DistrictManager
 
 # ── Signals ────────────────────────────────────────────────────────────────────
 signal district_transition_started(from: District, to: District)
@@ -18,11 +17,11 @@ enum District {
 
 # ── Constants ──────────────────────────────────────────────────────────────────
 const DISTRICT_SCENES: Dictionary = {
-	District.PAW_VEGAS:     "res://scenes/world/districts/paw_vegas.tscn",
-	District.NEON_ALLEY:    "res://scenes/world/districts/neon_alley.tscn",
-	District.CAT_COLISEUM:  "res://scenes/world/districts/cat_coliseum.tscn",
-	District.ARCADE_GALAXY: "res://scenes/world/districts/arcade_galaxy.tscn",
-	District.CAT_FOREST:    "res://scenes/world/districts/cat_forest.tscn",
+	District.PAW_VEGAS:     "res://scenes/world/paw_vegas_hub.tscn",
+	District.NEON_ALLEY:    "res://scenes/world/neon_alley.tscn",
+	District.CAT_COLISEUM:  "res://scenes/world/cat_coliseum.tscn",
+	District.ARCADE_GALAXY: "res://scenes/world/arcade_galaxy.tscn",
+	District.CAT_FOREST:    "res://scenes/world/cat_forest.tscn",
 }
 
 const DISTRICT_MUSIC: Dictionary = {

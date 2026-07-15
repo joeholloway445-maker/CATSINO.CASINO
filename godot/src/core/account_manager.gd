@@ -1,5 +1,4 @@
 extends Node
-class_name AccountManager
 
 # ── Signals ────────────────────────────────────────────────────────────────────
 signal authenticated(session: Dictionary)
@@ -90,21 +89,36 @@ func auth_device(device_id: String = "") -> bool:
 	if device_id.is_empty():
 		device_id = OS.get_unique_id()
 	var result = await _client.authenticate_device_async(device_id)
-	return _handle_auth_result(result)
+	return await _handle_auth_result(result)
 
 func auth_email(email: String, password: String, create: bool = false) -> bool:
 	if not _client:
 		_mock_auth("email")
 		return true
 	var result = await _client.authenticate_email_async(email, password, create)
-	return _handle_auth_result(result)
+	var ok: bool = await _handle_auth_result(result)
+	if not ok:
+		# Local GOTY boot: if Nakama is unreachable, fall back offline so
+		# email login still reaches the title screen during solo play.
+		push_warning("AccountManager: email auth failed — offline fallback")
+		_mock_auth("email_offline")
+		return true
+	return true
 
 func auth_custom(token: String) -> bool:
 	if not _client:
 		_mock_auth("custom")
 		return true
 	var result = await _client.authenticate_custom_async(token)
-	return _handle_auth_result(result)
+	return await _handle_auth_result(result)
+
+## Always-offline session for Play Offline / guest entry (no Nakama).
+func auth_guest(display_name: String = "Wanderer") -> bool:
+	_mock_auth("guest")
+	if not display_name.is_empty():
+		player_profile["username"] = display_name
+		player_profile["display_name"] = display_name
+	return true
 
 func logout() -> void:
 	is_authenticated = false

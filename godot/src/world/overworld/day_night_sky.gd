@@ -15,6 +15,11 @@ var _env: WorldEnvironment
 var _sky_mat: ProceduralSkyMaterial
 var _time := 0.0
 
+## Matches ProceduralTerrain.DEFAULT_VIEW_RADIUS(2) * HubRegionData.
+## CHUNK_SIZE(64), minus margin so fog fully obscures the edge before
+## chunks visibly pop, not exactly at it.
+const DEFAULT_FOG_DISTANCE := 100.0
+
 const DAY_TOP := Color(0.30, 0.45, 0.80)
 const DAY_HORIZON := Color(0.70, 0.75, 0.85)
 const DUSK_TOP := Color(0.25, 0.12, 0.40)
@@ -60,6 +65,16 @@ func _ready() -> void:
 	env.adjustment_contrast = 1.05
 	env.adjustment_saturation = 1.1
 
+	# Simple exponential depth fog — unlike volumetric_fog_enabled above
+	# (Forward+-only atmospheric scattering), this works on every renderer
+	# including gl_compatibility, and its whole job is masking the terrain
+	# streaming edge: chunks pop in/out at ProceduralTerrain's view radius,
+	## and fog hides that boundary instead of showing a visible "wall" of
+	# terrain appearing/disappearing at a hard distance.
+	env.fog_enabled = true
+	env.fog_light_energy = 1.0
+	_set_fog_density_for_distance(env, DEFAULT_FOG_DISTANCE)
+
 	_env = WorldEnvironment.new()
 	_env.environment = env
 	add_child(_env)
@@ -92,6 +107,24 @@ func _apply(t: float) -> void:
 	_sky_mat.sky_horizon_color = horizon.lerp(horizon * frame_tint, 0.5)
 	_sky_mat.ground_bottom_color = horizon.darkened(0.6)
 	_sky_mat.ground_horizon_color = horizon
+	if _env != null:
+		_env.environment.fog_light_color = horizon
 
 func current_hour() -> float:
 	return _day_fraction() * 24.0
+
+## Called by layer_world.gd/overworld.gd whenever ProceduralTerrain's view
+## radius changes (vehicle enter/exit), so fog and the streaming edge stay
+## visually in sync — a bigger loaded radius needs fog pushed back to
+## match, or the "wall" the fog was hiding just moves further out but
+## stays just as visible.
+func set_fog_distance(world_units: float) -> void:
+	if _env == null:
+		return
+	_set_fog_density_for_distance(_env.environment, world_units)
+
+## Exponential fog has no hard cutoff distance to set directly — density
+## is tuned so the fog reaches ~98% opacity by the given distance, which
+## reads as "fully obscured" without being a physically exact formula.
+func _set_fog_density_for_distance(env: Environment, world_units: float) -> void:
+	env.fog_density = clampf(4.0 / maxf(world_units, 10.0), 0.001, 0.05)

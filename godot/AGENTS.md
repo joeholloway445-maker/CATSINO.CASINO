@@ -126,11 +126,15 @@ intended bypass for gated content.
   `periliminal_runs.gd` (runs, wipe, `difficulty()`, blessing),
   `layer_exit_door.gd`, `extraliminal_manager.gd`, `src/world/door.gd`
   (prestige LiminalDoor).
-- **City stack**: `src/world/city/` — `city_data.gd`, `mega_city_builder.gd`
-  (also seeds hideout sites + hidden doors), `building_builder.gd`,
+- **City stack**: `src/world/city/` — `city_data.gd`, `osm_city_layout.gd`
+  (OpenStreetMap downtown clones in `world_data/osm/`),
+  `mega_city_builder.gd` (OSM streets/buildings when present; also seeds
+  hideout sites + hidden doors), `building_builder.gd`,
   `landmark_builder.gd`, `city_venues.gd`, `city_lighting.gd`,
   `city_ambience.gd`, `traffic_ribbons.gd`, `city_door.gd`,
   `hidden_door.gd`, `breakable_prop.gd`, `guild_hideout.gd`.
+  Refresh OSM data with `python3 scripts/fetch_osm_cities.py`
+  (© OpenStreetMap contributors, ODbL).
 - **Territory**: `src/social/hideout_registry.gd` (autoload) — multi-site
   hideouts in Supraliminal AND Extraliminal, 220m guild-exclusion radius,
   optional banners, PoGo-style entity defenders (a defending entity is
@@ -179,6 +183,35 @@ intended bypass for gated content.
   (RPS via PerceptionSystem).
 - **Fake multiplayer**: `src/multiplayer/presence_manager.gd` — tiered
   KNOLL bots (STATIC 60% / REACTIVE 30% / ADAPTIVE 10%).
+- **NPC population**: `data/npc_templates.json` (5 lore archetypes —
+  Barista/Archivist/Authority/Lover/Reflection — × 6 layer variants,
+  natural-human trait ranges) → `src/world/npc_generator.gd` (1,000+
+  deterministic NPCs; realistic heights/skin/hair hexes + archetype
+  `chassis_hex`) → `NPCManager` autoload (per-layer rosters, live-position
+  LOD: full <30m / no-shadow <100m / silhouette impostor beyond, ≤50
+  full-detail per district) → `src/world/npc_spawner.gd` (AmbientNpc
+  root wearing `src/world/npc_body.gd`, which resolves visuals through
+  `MetahumanCharacter` — never label-only NPCs). Dialogue: shared lore
+  blocks per archetype × layer in `src/world/npc_dialogue_library.gd`,
+  registered into `WorldLoader.dialogues`. Crowd density is layer
+  psychology (Subliminal 12, Liminal 8, Periliminal 6, cities 50) —
+  keep it sparse where the lore says lonely. **The installed body mesh
+  is currently a robot, not a human** (see `assets/models/ATTRIBUTION.md`)
+  — `NpcBody` tints whatever surfaces the ACTUAL installed mesh exposes
+  (skin/hair on a MetaHuman export, chassis/glow on the current robot)
+  and hides the robot's cannon appendage for every archetype but
+  Authority. Never assume the mesh is human without checking its glTF
+  material names first.
+- **Asset variety**: `src/core/asset_library.gd`'s `instance_variant(slot,
+  rng)` picks deterministically from `data/asset_variants.json` →
+  `assets/models/variants/<slot>/*.glb` pools (falls back to the single-
+  file `instance(slot)` when no pool exists). Wired into
+  `BuildingBuilder.build()/build_osm()` (via the caller's existing
+  per-city `rng`, so cities stay deterministic) and `BreakableProp`
+  (`variant_seed` set by its placer). Land/space vehicle bodies vary by
+  spawn-position hash. Road/sidewalk tiles are deliberately NOT
+  variant-pooled — they interlock at fixed pivots and a random swap would
+  break the street grid, not just look different.
 - **UI/UX**: `src/ui/title_screen.gd` (Start New Venture → Liminal;
   Continue Expedition → Subliminal), `venture_wizard.gd` (MK-style),
   `logo_emblem.gd` (procedural God-of-gods emblem; yields to
@@ -232,6 +265,11 @@ persistent world/economy of its own (`arena_modes.gd` header explains).
 
 ## Build order (do these IN ORDER — each gates the next)
 
+**v0.1 goal = AAA GOTY.** See `docs/V01_GOTY.md`. Visual bar =
+realistic ESO (`docs/VISUAL_DIRECTION_ESO.md`) — MetaHumans for characters,
+Terrain3D for desktop terrain. Do not redefine ship as a thin MVP while
+this goal is locked.
+
 1. **Make it parse.** Open the editor, fix errors per the cascade
    procedure above until the project loads with zero script errors.
 2. **Boot path.** Confirm: title screen loads → New Venture → race/frame/
@@ -252,8 +290,103 @@ persistent world/economy of its own (`arena_modes.gd` header explains).
    playable end-to-end before starting the next.
 7. **Content**: dialogue JSON, dex descriptions, blueprint presets,
    audio packs (Suno-generated songs slot in via AssetLibrary sound
-   slots), city texture/light/sound packs per race.
+   slots), city texture/light/sound packs per race. External
+   writer-friendly dialogue (Dialogue Manager) and other community
+   addons: see `docs/ADDONS.md` / `docs/ASSET_SHOPPING_LIST.md` —
+   install with `bash scripts/install_addons.sh`; enable plugins only
+   after a zero-error smoke open. Prefer pure-GDScript (web export).
 8. **Real multiplayer**: wire NetworkManager/Nakama beyond presence bots.
+
+## Current status snapshot (last checked 2026-07-15, post-reconciliation — re-verify, don't trust)
+
+This section exists because two "status" docs in `docs/` (`IMPLEMENTATION_STATUS.md`,
+`LAUNCH_CHECKLIST_AND_ROADMAP.md`) are point-in-time snapshots that predate
+the world-building/visual work below and read as more pessimistic than
+current reality. **`docs/V01_GOTY.md`'s gate table is the one to trust**;
+this section is the most recent concrete read against it. Update this
+section (with today's date) whenever you re-verify a gate — don't let it
+go stale the way the other two did.
+
+- **Branch history reconciled with main (2026-07-15).** This branch had
+  been merged into main 9+ times and reused each time without syncing
+  back; PR #28 initially showed a 927K-line "dirty" diff of two-sided
+  divergence. Resolved via a single merge commit (10 conflicts resolved
+  by hand — see commit 2022e74's message for the per-file reasoning).
+  Two findings from that merge worth remembering: (a) the crouch
+  mechanic + `Proprioception.feed()` call had been silently LOST from
+  `third_person_controller.gd` on one side of the divergence — the
+  Recall Walk was dead code until re-integrated; (b) several docs
+  (`ADDONS.md`, `ASSET_SHOPPING_LIST.md`, `install_addons.sh`) existed
+  in two contradictory versions — the versions matching actual disk
+  state won.
+- **Boot-order audit (2026-07-15) found and fixed three real bugs** that
+  no amount of per-file review would catch — check for these PATTERNS in
+  new code:
+  1. Duplicate `class_name AmbientNpc` in both `src/world/ambient_npc.gd`
+     and `hdv_lore/src/world/ambient_npc.gd` — two global declarations of
+     the same name break the whole project's parse. The hdv_lore original
+     now has no class_name (loaded by path via its own .tscn). Rule: NEVER
+     add a class_name that already exists anywhere under res://, including
+     hdv_lore/.
+  2. `WorldQuestBridge`/`FactionQuestBridge` were listed BEFORE
+     `QuestManager` in [autoload] while calling `QuestManager.register_quest()`
+     from `_ready()` — a later autoload is null at that moment. Fixed by
+     reordering them after QuestManager. Rule: an autoload's _ready() may
+     only touch autoloads listed ABOVE it; for anything else use
+     `call_deferred` (runs after all autoloads are up).
+  3. `GameManager._ready()` connected to `AccountManager`/`DistrictManager`
+     signals through `if AccountManager:` guards — both are later
+     autoloads, so the guards evaluated null→false and the connections
+     silently never happened (auth/district events went unheard). Fixed
+     with `_connect_manager_signals.call_deferred()`.
+- **CI (`godot-ci.yml`) only triggers on push to `main` or an open PR** —
+  it does NOT run on every push to a feature branch. PR #28 is the open
+  PR keeping CI live for this branch. Check `Actions → godot-ci` and
+  match run SHAs against `git log` before assuming a branch's current
+  head has been validated. `godot-ci` runs a real headless Web export
+  (`godot --headless --export-release Web`) — a failure there is a real
+  parse/import failure. It also runs gdUnit4 tests IF `godot/test/*.gd`
+  files exist; as of this snapshot that directory is empty, so that step
+  just no-ops green. `boot_smoke.gd` (`src/dev/boot_smoke.gd`) is NOT
+  wired into CI at all — manual/local only (`godot --headless --path
+  godot -s res://src/dev/boot_smoke.gd`).
+- **Web export preset EXISTS** (`godot/export_presets.cfg` has Windows/
+  Linux/macOS/Web, Web pointed at `../builds/html5/index.html` matching
+  what CI/nginx expect) — Build order step 4 is further along than
+  "Next" in `V01_GOTY.md` suggests; it still needs a real green CI run
+  to confirm it actually works end to end, not just that the file exists.
+- **Addons: all 8 recommended in `docs/ADDONS.md` are already vendored**
+  in `godot/addons/` (Dialogue Manager, Phantom Camera, Beehave, GLoot,
+  Maaack's Menus Template, Panku Console, gdUnit4, Terrain3D). Only
+  `Terrain3D` is enabled in `project.godot`'s `[editor_plugins]` — this
+  is INTENTIONAL, not unfinished work (`docs/ADDONS.md`: "do not enable
+  plugins until a smoke open confirms zero parse errors"). Do not
+  re-fetch or re-install any of these; the only remaining step is
+  enabling them one at a time, in the editor, after Gate 1 is
+  re-confirmed clean.
+- **Audio: `godot/assets/audio/` has nothing but `.gitkeep`.** Zero SFX,
+  music, ambience, or UI sound has been sourced — this is a real, total
+  gap, not started, distinct from the visual-asset work below which has
+  had two full passes.
+- **Model slots still empty** (per `docs/SHIPPING.md`'s own shopping
+  table, never sourced despite being called out there): `player_cat`,
+  `npc_cat`, `creature`, `tree`, `crystal`, `ruin_pillar`,
+  `extraction_gate`, `harvest_node`, `apartment_prop`,
+  `vehicle_aircraft_body` (no CC0 source found — see
+  `assets/models/ATTRIBUTION.md`). Filled so far: vehicle car/boat/
+  spacecraft bodies + variant pools, all four city building types +
+  variant pools, road/sidewalk/streetlight/prop, five PBR facade/ground
+  texture sets (see `assets/models/ATTRIBUTION.md` and
+  `assets/textures/ATTRIBUTION.md` for exact sources/licenses).
+- **Human mesh gap** (full detail in the NPC population bullet above and
+  `assets/models/ATTRIBUTION.md`): the installed `player_human.glb` is a
+  sci-fi robot (tps-demo), not a human, despite its name and older
+  comments. No CC0/MIT photoreal human GLB was found that doesn't
+  require a Blender/MakeHuman export step — that step hasn't been run by
+  anyone yet. Don't re-litigate the search; `docs/ASSET_SHOPPING_LIST.md`
+  has the full source-by-source verdict (including why RenderPeople/
+  TurboSquid/CGTrader free tiers are NOT safe to commit — free-to-download
+  ≠ safe-to-redistribute, and a git push IS redistribution).
 
 ## Conventions
 

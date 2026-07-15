@@ -59,6 +59,9 @@ const SYNERGY_RULES: Array[Dictionary] = [
 @export var frame:   Frame   = Frame.VEIL
 @export var mod:     Mod     = Mod.CATALYST
 @export var faction: Faction = Faction.FACTIONLESS
+@export var identity_race_id: String = ""
+@export var identity_frame_id: String = ""
+@export var identity_mod_id: String = ""
 
 # Base stats
 @export var base_pow: int = 10
@@ -74,11 +77,11 @@ func get_frame_class() -> FrameClass:
 func compute_synergy_bonus() -> float:
 	var total_bonus := 0.0
 	for rule: Dictionary in SYNERGY_RULES:
-		var race_match  := "races"  not in rule or race  in rule["races"]
-		var frame_match := "frames" not in rule or frame in rule["frames"]
-		var mod_match   := "mods"   not in rule or mod   in rule["mods"]
+		var race_match: bool = ("races" not in rule) or (race in rule["races"])
+		var frame_match: bool = ("frames" not in rule) or (frame in rule["frames"])
+		var mod_match: bool = ("mods" not in rule) or (mod in rule["mods"])
 		if race_match and frame_match and mod_match:
-			total_bonus += rule["bonus"]
+			total_bonus += float(rule["bonus"])
 	# Generic same-class bonus: +15% if frame class matches a race affinity
 	if get_frame_class() == FrameClass.LIGHT and race in [Race.SYLVA, Race.NYX, Race.LUMARI, Race.GLYPHE]:
 		total_bonus += 0.15
@@ -111,6 +114,9 @@ func to_dict() -> Dictionary:
 		"race":    Race.keys()[race],
 		"frame":   Frame.keys()[frame],
 		"mod":     Mod.keys()[mod],
+		"identity_race_id": identity_race_id,
+		"identity_frame_id": identity_frame_id,
+		"identity_mod_id": identity_mod_id,
 		"faction": Faction.keys()[faction],
 		"stats":   compute_total_stats(),
 	}

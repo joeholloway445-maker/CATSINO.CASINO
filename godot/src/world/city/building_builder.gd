@@ -10,7 +10,7 @@ class_name BuildingBuilder
 static func build(profile_name: String, origin: Vector3, ground_y: float,
 		accent: Color, rng: RandomNumberGenerator, lot_size: float) -> Node3D:
 	var p := CityData.profile(profile_name)
-	var real := AssetLibrary.instance(str(p.model_slot))
+	var real := AssetLibrary.instance_variant(str(p.model_slot), rng)
 	if real != null:
 		real.position = origin
 		real.position.y = ground_y
@@ -21,18 +21,41 @@ static func build(profile_name: String, origin: Vector3, ground_y: float,
 		return real
 	return _procedural(p, profile_name, origin, ground_y, accent, rng, lot_size)
 
+## OSM footprint build: explicit lot width/depth + floor count from real
+## building tags (or OsmCityLayout heuristics), so downtown massing tracks
+## the real city instead of a random procedural mix.
+static func build_osm(profile_name: String, origin: Vector3, ground_y: float,
+		accent: Color, rng: RandomNumberGenerator, sx: float, sz: float,
+		floors: int) -> Node3D:
+	var p := CityData.profile(profile_name)
+	var real := AssetLibrary.instance_variant(str(p.model_slot), rng)
+	if real != null:
+		real.position = origin
+		real.position.y = ground_y
+		AssetLibrary._apply_lens(real, accent, 0.15)
+		_register_real_windows(real, accent)
+		return real
+	var lot := maxf(sx, sz)
+	# Force footprint fill close to the real OSM bbox; _procedural still
+	# applies profile.footprint, so bump lot so the shell lands near sx/sz.
+	var adjusted := lot / maxf(float(p.footprint), 0.5)
+	var node := _procedural(p, profile_name, origin, ground_y, accent, rng,
+		adjusted, floors, sx, sz)
+	return node
+
 static func _procedural(p: Dictionary, profile_name: String, origin: Vector3,
-		ground_y: float, accent: Color, rng: RandomNumberGenerator, lot_size: float) -> Node3D:
+		ground_y: float, accent: Color, rng: RandomNumberGenerator, lot_size: float,
+		force_floors: int = 0, force_w: float = 0.0, force_d: float = 0.0) -> Node3D:
 	var root := Node3D.new()
 	root.name = "Bldg_%s" % profile_name
 	root.position = origin
 	root.position.y = ground_y
 
-	var floors := rng.randi_range(int(p.min_floors), int(p.max_floors))
+	var floors := force_floors if force_floors > 0 else rng.randi_range(int(p.min_floors), int(p.max_floors))
 	var floor_h: float = p.floor_h
 	var height := floors * floor_h
-	var fw: float = lot_size * float(p.footprint) * rng.randf_range(0.85, 1.0)
-	var fd: float = lot_size * float(p.footprint) * rng.randf_range(0.85, 1.0)
+	var fw: float = force_w if force_w > 0.0 else lot_size * float(p.footprint) * rng.randf_range(0.85, 1.0)
+	var fd: float = force_d if force_d > 0.0 else lot_size * float(p.footprint) * rng.randf_range(0.85, 1.0)
 
 	# ---- shell: stacked to read as distinct floors, occasional setback ----
 	var facade_mat := AssetLibrary.material(str(p.facade_tex),

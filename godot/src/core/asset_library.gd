@@ -7,8 +7,13 @@ class_name AssetLibrary
 ## file names each slot expects.
 ##
 ## Slot -> expected file (first that exists wins):
-##   player_cat        assets/models/player_cat.glb
-##   npc_cat           assets/models/npc_cat.glb
+##   metahuman_player   MetaHuman GLB export (identity — preferred)
+##   metahuman_npc      MetaHuman GLB for NPCs / peers
+##   metahuman_<race>   optional per-race MetaHuman variant
+##   player_human       interim humanoid (TPS demo) until MetaHuman lands
+##   npc_human          interim NPC humanoid
+##   player_cat         optional Catsino house skin
+##   npc_cat            optional Catsino NPC skin
 ##   creature          assets/models/creature.glb
 ##   tree              assets/models/tree.glb
 ##   crystal           assets/models/crystal.glb
@@ -29,25 +34,25 @@ class_name AssetLibrary
 ##   neon_sign         a signage board (its emissive is driven by us)
 ##   city_prop         benches/planters/hydrants/bins
 ##
-## Texture slots (for interchangeable PBR on procedural hard mesh — used by
-## `material()` below, alongside the per-race IdentityLens tint):
-##   assets/textures/<slot>_albedo.png / _normal.png / _rough.png
-##   e.g. facade_glass, facade_concrete, asphalt, sidewalk, neon
+## Variant pools (multiple models per slot — see instance_variant() below):
+## res://data/asset_variants.json lists slot -> [filenames], resolved from
+## res://assets/models/variants/<slot>/<file>. city_tower/city_lowrise/
+## city_house/city_industrial/city_prop all have several real options; the
+## single-file slots above remain the fallback when no manifest entry exists.
 ##
-## Sound slots (dependency-injected ambience/one-shots; synth fallback if
-## absent) via `sound()`:
-##   assets/audio/<slot>.ogg / .wav / .mp3
-##   e.g. city_traffic, city_crowd, neon_hum, machine_hum, footstep_concrete
-##
-## Also checks assets/models/<slot>.gltf and .tscn variants.
+## See docs/VISUAL_DIRECTION_ESO.md for MetaHuman + Terrain3D pipeline.
 
 const SEARCH_EXTENSIONS := ["glb", "gltf", "tscn"]
 const AUDIO_EXTENSIONS := ["ogg", "wav", "mp3"]
 const TEXTURE_EXTENSIONS := ["png", "jpg", "webp"]
+const VARIANTS_MANIFEST := "res://data/asset_variants.json"
 
 static var _cache: Dictionary = {}
 static var _audio_cache: Dictionary = {}
 static var _texture_cache: Dictionary = {}
+static var _variants_manifest: Dictionary = {}
+static var _variants_loaded := false
+static var _variant_scene_cache: Dictionary = {}  # "slot/file" -> PackedScene or null
 
 ## Returns an instantiated Node3D for the slot, or null if no real asset
 ## is installed (caller then builds its procedural fallback).
@@ -65,9 +70,16 @@ static func instance(slot: String) -> Node3D:
 	_cache[slot] = null
 	return null
 
+## True if a real (non-procedural) asset file exists for the slot (no instantiate).
+static func has_asset(slot: String) -> bool:
+	for ext in SEARCH_EXTENSIONS:
+		if ResourceLoader.exists("res://assets/models/%s.%s" % [slot, ext]):
+			return true
+	return false
+
 ## True if a real (non-procedural) asset is installed for the slot.
 static func has(slot: String) -> bool:
-	return instance(slot) != null
+	return has_asset(slot)
 
 ## Convenience: try the slot; if absent, call `fallback` (a Callable that
 ## returns Node3D). Applies the identity lens material to real assets'
@@ -91,6 +103,64 @@ static func _apply_lens(node: Node, color: Color, strength: float) -> void:
 		mi.material_override = mat
 	for child in node.get_children():
 		_apply_lens(child, color, strength)
+
+# ---------------------------------------------------------------- variants
+
+## Multi-model slots: res://data/asset_variants.json maps a slot name to an
+## array of filenames under res://assets/models/variants/<slot>/. This is
+## additive to (never a replacement for) the single-file slot convention —
+## a bare instance(slot) call still works if a variants list doesn't exist.
+## JSON-manifest driven (not a runtime DirAccess directory listing) so it
+## behaves identically in the editor and in exported/Web builds.
+static func _load_variants_manifest() -> void:
+	if _variants_loaded:
+		return
+	_variants_loaded = true
+	if not FileAccess.file_exists(VARIANTS_MANIFEST):
+		return
+	var f := FileAccess.open(VARIANTS_MANIFEST, FileAccess.READ)
+	if f == null:
+		return
+	var parsed = JSON.parse_string(f.get_as_text())
+	if parsed is Dictionary:
+		_variants_manifest = parsed
+
+## Deterministic pick from a slot's variant pool using an RNG the caller
+## already advances in a fixed order (e.g. the per-city `rng` every
+## MegaCityBuilder/BuildingBuilder call already threads through) — this
+## keeps "the same city rebuilds identically" true with zero extra seeding.
+## Falls back to the single-file slot, then to null (caller's procedural
+## fallback), exactly like instance().
+static func instance_variant(slot: String, rng: RandomNumberGenerator) -> Node3D:
+	_load_variants_manifest()
+	var files: Array = _variants_manifest.get(slot, [])
+	if files.is_empty():
+		return instance(slot)
+	var pick := str(files[rng.randi() % files.size()])
+	var cache_key := "%s/%s" % [slot, pick]
+	if _variant_scene_cache.has(cache_key):
+		var packed: PackedScene = _variant_scene_cache[cache_key]
+		return packed.instantiate() if packed != null else instance(slot)
+	var path := "res://assets/models/variants/%s/%s" % [slot, pick]
+	if ResourceLoader.exists(path):
+		var res := load(path)
+		if res is PackedScene:
+			_variant_scene_cache[cache_key] = res
+			return res.instantiate()
+	_variant_scene_cache[cache_key] = null
+	return instance(slot)
+
+## instance_or's variant-aware sibling: tries the variant pool, then the
+## single-file slot, then calls `fallback`. Applies the identity lens like
+## instance_or does.
+static func instance_variant_or(slot: String, rng: RandomNumberGenerator,
+		fallback: Callable, lens_color: Color = Color.WHITE, lens_strength: float = 0.2) -> Node3D:
+	var node := instance_variant(slot, rng)
+	if node == null:
+		return fallback.call()
+	if lens_strength > 0.0:
+		_apply_lens(node, lens_color, lens_strength)
+	return node
 
 # ---------------------------------------------------------------- sounds
 

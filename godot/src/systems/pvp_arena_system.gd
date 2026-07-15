@@ -79,17 +79,17 @@ func end_match(match_id: String, winner_id: String) -> bool:
 	if match_id not in _active_matches:
 		return false
 
-	var match = _active_matches[match_id]
-	match["status"] = "completed"
-	match["ended_at"] = Time.get_ticks_msec()
-	match["winner"] = winner_id
+	var m: Dictionary = _active_matches[match_id]
+	m["status"] = "completed"
+	m["ended_at"] = Time.get_ticks_msec()
+	m["winner"] = winner_id
 
 	# Update ratings
-	var loser_id = match["player1_id"] if winner_id == match["player2_id"] else match["player2_id"]
-	_update_ratings(winner_id, loser_id, match["mode"])
+	var loser_id := str(m["player1_id"] if winner_id == m["player2_id"] else m["player2_id"])
+	_update_ratings(winner_id, loser_id, str(m["mode"]))
 
 	# Record in history
-	_match_history.append(match.duplicate())
+	_match_history.append(m.duplicate())
 
 	# Update leaderboard
 	_update_leaderboard()
@@ -101,8 +101,8 @@ func _update_ratings(winner_id: String, loser_id: String, mode: String) -> void:
 	if mode == "casual":
 		return  # No rating changes in casual
 
-	var winner_rating = _player_ratings.get(winner_id, 1500)
-	var loser_rating = _player_ratings.get(loser_id, 1500)
+	var winner_rating := int(_player_ratings.get(winner_id, 1500))
+	var loser_rating := int(_player_ratings.get(loser_id, 1500))
 
 	# ELO-style rating update
 	var k_factor = 32  # Standard K-factor
@@ -119,13 +119,14 @@ func _update_ratings(winner_id: String, loser_id: String, mode: String) -> void:
 	ranked_rating_updated.emit(loser_id, new_loser_rating)
 
 func _update_leaderboard() -> void:
-	_leaderboard = []
+	_leaderboard.clear()
 
 	for player_id in _player_ratings.keys():
+		var rating := int(_player_ratings[player_id])
 		_leaderboard.append({
 			"player_id": player_id,
-			"rating": _player_ratings[player_id],
-			"tier": _get_tier_for_rating(_player_ratings[player_id]),
+			"rating": rating,
+			"tier": _get_tier_for_rating(rating),
 			"wins": _count_wins(player_id),
 			"losses": _count_losses(player_id)
 		})
@@ -144,15 +145,15 @@ func _get_tier_for_rating(rating: int) -> String:
 
 func _count_wins(player_id: String) -> int:
 	var wins = 0
-	for match in _match_history:
-		if match["winner"] == player_id:
+	for m in _match_history:
+		if m["winner"] == player_id:
 			wins += 1
 	return wins
 
 func _count_losses(player_id: String) -> int:
 	var losses = 0
-	for match in _match_history:
-		if (match["player1_id"] == player_id or match["player2_id"] == player_id) and match["winner"] != player_id:
+	for m in _match_history:
+		if (m["player1_id"] == player_id or m["player2_id"] == player_id) and m["winner"] != player_id:
 			losses += 1
 	return losses
 
@@ -210,24 +211,30 @@ func join_tournament(tournament_id: String, player_id: String) -> bool:
 	return true
 
 func get_player_rating(player_id: String) -> int:
-	return _player_ratings.get(player_id, 1500)
+	return int(_player_ratings.get(player_id, 1500))
 
 func get_player_tier(player_id: String) -> String:
 	return _get_tier_for_rating(get_player_rating(player_id))
 
 func get_leaderboard(limit: int = 100) -> Array[Dictionary]:
-	return _leaderboard.slice(0, limit)
+	var entries: Array[Dictionary] = []
+	for i in range(mini(limit, _leaderboard.size())):
+		entries.append(_leaderboard[i])
+	return entries
 
 func get_match(match_id: String) -> Dictionary:
 	return _active_matches.get(match_id, {})
 
-def get_match_history(player_id: String, limit: int = 10) -> Array[Dictionary]:
-	var history = []
-	for match in _match_history:
-		if (match["player1_id"] == player_id or match["player2_id"] == player_id) and match["status"] == "completed":
-			history.append(match)
+func get_match_history(player_id: String, limit: int = 10) -> Array[Dictionary]:
+	var history: Array[Dictionary] = []
+	for m in _match_history:
+		if (m["player1_id"] == player_id or m["player2_id"] == player_id) and m["status"] == "completed":
+			history.append(m)
 
-	return history.slice(0, limit)
+	var entries: Array[Dictionary] = []
+	for i in range(mini(limit, history.size())):
+		entries.append(history[i])
+	return entries
 
 # ── Save/Load ──────────────────────────────────────────────────────────────
 func save_state() -> Dictionary:
@@ -238,6 +245,19 @@ func save_state() -> Dictionary:
 	}
 
 func load_state(data: Dictionary) -> void:
-	_player_ratings = data.get("player_ratings", {})
-	_match_history = data.get("match_history", [])
-	_leaderboard = data.get("leaderboard", [])
+	var ratings = data.get("player_ratings", {})
+	_player_ratings = ratings if ratings is Dictionary else {}
+
+	var hist = data.get("match_history", [])
+	_match_history.clear()
+	if hist is Array:
+		for item in hist:
+			if item is Dictionary:
+				_match_history.append(item)
+
+	var board = data.get("leaderboard", [])
+	_leaderboard.clear()
+	if board is Array:
+		for item in board:
+			if item is Dictionary:
+				_leaderboard.append(item)

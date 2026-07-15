@@ -26,6 +26,17 @@ static var sprint_held := false
 static var _jump_queued := false
 static var _interact_queued := false
 
+## Held states for vehicle piloting (land/water/air/space) — distinct from
+## the one-shot jump queue above, since vertical thrust needs continuous
+## "held" semantics, not a single tap. Reuses the same physical buttons as
+## on-foot jump/sprint (dual-wired: press still queues the one-shot jump
+## for on-foot use, AND tracks held state for when a vehicle is piloted).
+static var jump_held := false
+## Roll is vehicle-only (space craft; no on-foot equivalent), so it gets
+## its own small button pair rather than overloading an existing one.
+static var roll_left_held := false
+static var roll_right_held := false
+
 var _stick_base: Control
 var _stick_knob: Control
 var _stick_center := Vector2.ZERO
@@ -67,7 +78,7 @@ func _ready() -> void:
 	_stick_base = Control.new()
 	_stick_base.custom_minimum_size = Vector2(STICK_RADIUS * 2, STICK_RADIUS * 2)
 	_stick_base.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_LEFT)
-	_stick_base.position += Vector2(safe.x + 32, -(safe.w + STICK_RADIUS * 2 + 60))
+	_stick_base.position += Vector2(safe.position.x + 32, -(safe.size.y + STICK_RADIUS * 2 + 60))
 	add_child(_stick_base)
 	var base_ring := ColorRect.new()
 	base_ring.color = Color(1, 1, 1, 0.10)
@@ -85,10 +96,14 @@ func _ready() -> void:
 	# ---- right: action buttons ----
 	var col := VBoxContainer.new()
 	col.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_RIGHT)
-	col.position += Vector2(-(safe.y + BUTTON_SIZE + 32), -(safe.w + BUTTON_SIZE * 5 + 80))
+	# 6 rows now stack here (jump/crouch/E/attack/sprint/roll-row) — the
+	# offset below is an approximate anchor placement, not a hard bound;
+	# VBoxContainer auto-lays-out its children regardless.
+	col.position += Vector2(-(safe.position.y + BUTTON_SIZE + 32), -(safe.size.y + BUTTON_SIZE * 6 + 80))
 	col.add_theme_constant_override("separation", 18)
 	add_child(col)
-	col.add_child(_action_button("⤴", func(): TouchControls._jump_queued = true))
+	col.add_child(_dual_button("⤴", func(): TouchControls._jump_queued = true,
+		func(held: bool): TouchControls.jump_held = held))
 	# Posture: hold to crouch, release to stand.
 	var crouch_btn := _action_button("⤵", func(): pass)
 	crouch_btn.button_down.connect(func(): TouchControls.crouch_held = true)
@@ -101,6 +116,26 @@ func _ready() -> void:
 		ev.pressed = true
 		Input.parse_input_event(ev)))
 	col.add_child(_hold_button("»»", func(held: bool): TouchControls.sprint_held = held))
+
+	# Compact roll pair — space-vehicle-only, no on-foot equivalent, so
+	# these get small unobtrusive buttons rather than full-size ones.
+	var roll_row := HBoxContainer.new()
+	roll_row.add_theme_constant_override("separation", 10)
+	col.add_child(roll_row)
+	roll_row.add_child(_small_hold_button("◀", func(held: bool): TouchControls.roll_left_held = held))
+	roll_row.add_child(_small_hold_button("▶", func(held: bool): TouchControls.roll_right_held = held))
+
+func _process(_delta: float) -> void:
+	# Replay touch "E" as a real key event here, on this always-alive
+	# CanvasLayer, rather than inside whatever controller happens to be
+	# active — a piloted vehicle disables the on-foot controller's
+	# _physics_process, which would otherwise silently swallow this.
+	if TouchControls.consume_interact():
+		var ev := InputEventKey.new()
+		ev.keycode = KEY_E
+		ev.physical_keycode = KEY_E
+		ev.pressed = true
+		Input.parse_input_event(ev)
 
 func _exit_tree() -> void:
 	# Never let a held control outlive its scene.
@@ -126,13 +161,35 @@ func _hold_button(label: String, on_state: Callable) -> Button:
 	b.button_up.connect(func(): on_state.call(false))
 	return b
 
+## Half-size hold button, for secondary controls (space-vehicle roll)
+## that shouldn't compete visually with the primary action column.
+func _small_hold_button(label: String, on_state: Callable) -> Button:
+	var b := Button.new()
+	b.text = label
+	b.custom_minimum_size = Vector2(BUTTON_SIZE * 0.5, BUTTON_SIZE * 0.5)
+	b.add_theme_font_size_override("font_size", 22)
+	b.button_down.connect(func(): on_state.call(true))
+	b.button_up.connect(func(): on_state.call(false))
+	return b
+
+## Same button, wired for both semantics: a single press queues the
+## one-shot jump (on-foot), while press/release also tracks a continuous
+## held state (vehicle vertical thrust) — the two consumers read whichever
+## field is relevant to their context, so nothing needs to know about the
+## other's existence.
+func _dual_button(label: String, on_press: Callable, on_held: Callable) -> Button:
+	var b := _action_button(label, on_press)
+	b.button_down.connect(func(): on_held.call(true))
+	b.button_up.connect(func(): on_held.call(false))
+	return b
+
 func _center_knob() -> void:
 	_stick_knob.position = Vector2(STICK_RADIUS, STICK_RADIUS) - _stick_knob.size / 2.0
 	_stick_center = _stick_base.global_position + Vector2(STICK_RADIUS, STICK_RADIUS)
 
 func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventScreenTouch:
-		var inside_stick := event.position.distance_to(_stick_center) <= STICK_RADIUS * 1.6
+		var inside_stick: bool = event.position.distance_to(_stick_center) <= STICK_RADIUS * 1.6
 		# Left thumb → joystick; anything on the RIGHT half that isn't a
 		# button click becomes a camera-look drag.
 		if event.pressed:

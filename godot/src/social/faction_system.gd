@@ -1,5 +1,4 @@
 extends Node
-class_name FactionSystem
 # Faction allegiance and synergy bonus calculation
 
 const FACTIONS = {

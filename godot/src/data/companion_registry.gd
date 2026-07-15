@@ -1,66 +1,57 @@
 class_name CompanionRegistry
-# Unified registry combining all companion rosters
-# SC001-SC150, WA001-WA150, VC001-VC150, FL001-FL100 = 550 (first 500 are canonical)
+extends RefCounted
+## Canonical companion roster accessors for OmniDex and related UIs.
+## Prefer shared consts over fragile get_script() lookups.
 
-static func get_all() -> Array[Dictionary]:
-	var all: Array[Dictionary] = []
-	all.append_array(CompanionRoster.SC_COMPANIONS)
-	all.append_array(CompanionRosterExtended.SC_COMPANIONS_2 if "SC_COMPANIONS_2" in CompanionRosterExtended else [])
-	all.append_array(CompanionRosterExtended.WA_COMPANIONS if "WA_COMPANIONS" in CompanionRosterExtended else [])
-	all.append_array(CompanionRosterExtended2.WA_COMPANIONS_2 if ClassDB.class_exists("CompanionRosterExtended2") else [])
-	all.append_array(CompanionRosterExtended3.FL_COMPANIONS if ClassDB.class_exists("CompanionRosterExtended3") else [])
-	all.append_array(CompanionRosterExtended4.SC_COMPANIONS_3 if ClassDB.class_exists("CompanionRosterExtended4") else [])
-	all.append_array(CompanionRosterExtended5.WA_COMPANIONS_3 if ClassDB.class_exists("CompanionRosterExtended5") else [])
-	all.append_array(CompanionRosterExtended6.VC_COMPANIONS_3 if ClassDB.class_exists("CompanionRosterExtended6") else [])
-	all.append_array(CompanionRosterExtended7.FL_COMPANIONS_3 if ClassDB.class_exists("CompanionRosterExtended7") else [])
-	return all
+static func get_all() -> Array:
+	var out: Array = []
+	out.append_array(WildlandsExtendedCompanions.WILDLANDS_EXTENDED)
+	out.append_array(VeiledCurrentExtendedCompanions.VEILED_EXTENDED)
+	out.append_array(FactionlessExtendedCompanions.FACTIONLESS_EXTENDED)
+	out.append_array(SovereignCrownSecondCentury.SC_SECOND_CENTURY)
+	out.append_array(WildlandsAscendantsThirdFifty.WA_THIRD_FIFTY)
+	out.append_array(VeiledCurrentCompanions.VC_COMPANIONS)
+	out.append_array(FactionlessCompanions.FL_COMPANIONS)
+	out.append_array(PrestigeCompanions.PRESTIGE_COMPANIONS)
+	return out
+
 
 static func get_by_id(companion_id: String) -> Dictionary:
-	for c in get_all():
-		if c.get("id") == companion_id:
-			return c.duplicate()
+	for companion in get_all():
+		if str(companion.get("id", "")) == companion_id:
+			return companion
 	return {}
 
-## Roster files use both "SovereignCrown" and "sovereign_crown" styles.
-static func normalize_faction(f: String) -> String:
-	match f.to_lower().replace("_", "").replace(" ", ""):
-		"sovereigncrown": return "SovereignCrown"
-		"wildlandsascendant", "wildlandsascendants": return "WildlandsAscendant"
-		"veiledcurrent": return "VeiledCurrent"
-		_: return "Factionless"
 
-## Entities are faction-exclusive: each faction's roster is only accessible
-## to its members. The Factionless entities are the Lone Wolf roster —
-## accessible only to players who stay Factionless.
-static func is_accessible(entity: Dictionary, player_faction: String) -> bool:
-	return normalize_faction(str(entity.get("faction", ""))) == normalize_faction(player_faction)
+static func get_by_rarity(rarity: String) -> Array:
+	var out: Array = []
+	for companion in get_all():
+		if str(companion.get("rarity", "")) == rarity:
+			out.append(companion)
+	return out
 
-static func accessible_roster(player_faction: String) -> Array[Dictionary]:
-	var result: Array[Dictionary] = []
-	for c in get_all():
-		if is_accessible(c, player_faction):
-			result.append(c)
-	return result
-
-static func get_by_faction(faction: String) -> Array[Dictionary]:
-	var result: Array[Dictionary] = []
-	for c in get_all():
-		if c.get("faction") == faction:
-			result.append(c.duplicate())
-	return result
-
-static func get_by_rarity(rarity: String) -> Array[Dictionary]:
-	var result: Array[Dictionary] = []
-	for c in get_all():
-		if c.get("rarity") == rarity:
-			result.append(c.duplicate())
-	return result
-
-static func get_random(faction: String = "") -> Dictionary:
-	var pool := get_by_faction(faction) if faction != "" else get_all()
-	if pool.is_empty():
-		return {}
-	return pool[randi() % pool.size()].duplicate()
 
 static func get_total_count() -> int:
 	return get_all().size()
+
+
+static func display_name(companion_id: String) -> String:
+	return OmniDexRegistry.companion_display_name(companion_id)
+
+
+static func get_random(rng: RandomNumberGenerator = null) -> Dictionary:
+	var accessible := CompanionUnlockSystem.accessible_roster()
+	if accessible.is_empty():
+		return {}
+	var local_rng := rng if rng != null else RandomNumberGenerator.new()
+	if rng == null:
+		local_rng.randomize()
+	return accessible[local_rng.randi() % accessible.size()]
+
+
+static func get_by_faction(faction: String) -> Array:
+	var out: Array = []
+	for companion in CompanionUnlockSystem.accessible_roster():
+		if str(companion.get("faction", "")) == faction:
+			out.append(companion)
+	return out
