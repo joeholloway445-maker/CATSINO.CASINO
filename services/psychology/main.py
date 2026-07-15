@@ -16,10 +16,14 @@ Axis scoring (all axes bounded [0.0, 1.0]):
   curiosity  — rate of new chunk discovery, liminal wandering frequency
   composure  — stability of dwell times, low variance in approach speed
 
-Anomaly rules (written to the `anomalies` table):
+Anomaly rules (written to the `player_anomalies` table — not the world
+entity registry named `anomalies`):
   - courage  > 0.85  AND recent_pvp_kills > 3    → "apex_aggressor"
   - curiosity > 0.9  AND liminal_entries > 10     → "lost_wanderer"
   - composure < 0.15 AND rapid_door_flips > 5    → "spiraling"
+
+hope_telemetry columns (migration 031): event, context jsonb, drive, ...
+Approach lives in context.approach (legacy event_type/approach still accepted).
 """
 
 from __future__ import annotations
@@ -103,7 +107,13 @@ DRIVE_LABELS = {
 def _dominant_drive(rows: List[dict]) -> str:
     counts: dict[str, int] = {}
     for r in rows:
-        d = r.get("drive") or r.get("data", {}).get("drive", "")
+        context = r.get("context") or {}
+        data = r.get("data") or {}
+        if not isinstance(context, dict):
+            context = {}
+        if not isinstance(data, dict):
+            data = {}
+        d = r.get("drive") or context.get("drive") or data.get("drive", "")
         if d in DRIVE_LABELS:
             counts[d] = counts.get(d, 0) + 1
     if not counts:
@@ -133,7 +143,11 @@ def ingest(state: PsychState) -> PsychState:
 
 
 def classify(state: PsychState) -> PsychState:
-    """Count event types from raw telemetry rows."""
+    """Count event types from raw telemetry rows.
+
+    Canonical schema (031_hope_telemetry): columns `event` + `context` jsonb.
+    Legacy keys `event_type` / top-level `approach` / `data` are still accepted.
+    """
     rows = state["rows"]
     door_count = rushed = lingered = peeked = avoided = 0
     pvp_kills = liminal_entries = chunk_disc = rapid_flips = 0
@@ -142,12 +156,22 @@ def classify(state: PsychState) -> PsychState:
     flip_streak = 0
 
     for r in rows:
-        ev = r.get("event_type", "")
+        ev = r.get("event") or r.get("event_type") or ""
+        context = r.get("context") or {}
         data = r.get("data") or {}
+        if not isinstance(context, dict):
+            context = {}
+        if not isinstance(data, dict):
+            data = {}
 
-        if ev == "door_approach":
+        if ev in ("door_approach", "liminal_door", "door"):
             door_count += 1
-            approach = r.get("approach") or data.get("approach", "")
+            approach = (
+                context.get("approach")
+                or r.get("approach")
+                or data.get("approach")
+                or ""
+            )
             if approach == "rushed":
                 rushed += 1
             elif approach == "lingered":
@@ -163,13 +187,13 @@ def classify(state: PsychState) -> PsychState:
                 flip_streak = 0
             prev_approach = approach
 
-        elif ev == "door_avoided":
+        elif ev in ("door_avoided", "avoided"):
             avoided += 1
 
         elif ev == "pvp_kill":
             pvp_kills += 1
 
-        elif ev == "visit_liminal":
+        elif ev in ("visit_liminal", "liminal_entry"):
             liminal_entries += 1
 
         elif ev in ("discover_chunk", "chunk_discovery"):
@@ -236,7 +260,7 @@ def detect_anomaly(state: PsychState) -> PsychState:
 
 
 def write_profile(state: PsychState) -> PsychState:
-    """Upsert psychology_profiles and, if anomalous, insert into anomalies."""
+    """Upsert psychology_profiles and, if anomalous, insert into player_anomalies."""
     pid = state["player_id"]
 
     profile_row = {
@@ -245,7 +269,6 @@ def write_profile(state: PsychState) -> PsychState:
         "curiosity": round(state["curiosity"], 4),
         "composure": round(state["composure"], 4),
         "dominant_drive": state["dominant_drive"],
-        "updated_at": "now()",
     }
     supabase.table("psychology_profiles").upsert(profile_row, on_conflict="player_id").execute()
 
@@ -257,7 +280,8 @@ def write_profile(state: PsychState) -> PsychState:
             "curiosity": round(state["curiosity"], 4),
             "composure": round(state["composure"], 4),
         }
-        supabase.table("anomalies").insert(anomaly_row).execute()
+        # World table `anomalies` is the entity registry — player events go here.
+        supabase.table("player_anomalies").insert(anomaly_row).execute()
         log.info("anomaly %s → player %s", state["anomaly"], pid)
 
     log.info(
