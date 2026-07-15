@@ -26,10 +26,15 @@ files in — no code changes. Same pattern for city textures
 **Done (verified CC0, downloaded, wired):** vehicle bodies (car/boat/
 spacecraft) and city slots (tower/lowrise/house/industrial/road/sidewalk/
 streetlight/prop) — all from Kenney's Car Kit, Watercraft Kit, Space Kit,
-and the four City Kit packs. Full source list + exact file mapping in
+and the four City Kit packs, plus variant pools for buildings/props/
+vehicles (`data/asset_variants.json`). Full source list + exact file
+mapping in
 [`godot/assets/models/ATTRIBUTION.md`](../godot/assets/models/ATTRIBUTION.md).
-`vehicle_aircraft_body.glb` stays empty — no equivalent CC0 aircraft
-pack was found (Kenney has teased one, unreleased as of this writing).
+PBR texture packs (brick/concrete/metal facades, asphalt, sidewalk) from
+Poly Haven (CC0) in `godot/assets/textures/` — see its own
+ATTRIBUTION.md. `vehicle_aircraft_body.glb` stays empty — no equivalent
+CC0 aircraft pack was found (Kenney has teased one, unreleased as of this
+writing).
 
 **Checked and rejected/deferred for realistic HUMANS** (the ESO-realism
 bar needs photoreal proportions, not stylized/toon):
@@ -49,6 +54,33 @@ bar needs photoreal proportions, not stylized/toon):
 MakeHuman pipeline above), the player and all 1,000+ generated NPCs share
 one mesh (`player_human.glb`). This is a real gap, not a code gap —
 `MetahumanCharacter`/`NpcBody` already pick up new files automatically.
+
+### Extended source list (owner-provided) — with license verdicts
+
+The critical distinction for THIS repo: **"free to download" ≠ "safe to
+commit."** Pushing an asset file to this GitHub repo *redistributes* it.
+Many "free" licenses allow embedding in a shipped game build but forbid
+redistributing the source files — those can only enter via a
+`.gitignore`d local folder or a private CI step, never a commit.
+
+| Source | Verdict for this repo |
+|---|---|
+| **Poly Haven** | ✅ **CC0, no login, public API — USED.** Facade/ground PBR maps now live in `godot/assets/textures/` (see its ATTRIBUTION.md). HDRIs available the same way if a design decision ever wants one (DayNightSky is procedural on purpose). |
+| **RenderPeople free people** | ❌ **Never commit.** Photoreal, yes — but their T&C prohibits any transfer/sublicense of the 3D data, free section included. Render-output use only; a public repo commit is a license violation. |
+| **DAZ Studio + Genesis** | ⚠️ Desktop app pipeline (can't run here). Interactive/game use of most DAZ content requires their **Interactive License** per asset; base-figure GLB exports for a redistributable repo are not clearly permitted. Treat as personal-pipeline-only, keep outputs out of the repo unless the specific license is verified. |
+| **Sketchfab (free/downloadable)** | ⚠️ Per-model licenses (CC0 through CC-BY-NC-ND). Login-gated downloads, so not automatable from CI/agents. Individual **CC0** models are commit-safe once verified one at a time; CC-BY needs attribution kept forever; anything NC/ND stays out. |
+| **TurboSquid free** | ❌ Never commit. Their Royalty Free license explicitly forbids redistribution of source files (game-embed only, and public game repos are a known gray-to-forbidden zone). |
+| **CGTrader free** | ❌ Same as TurboSquid unless a specific model is explicitly CC0. |
+| **Godot Asset Library / itch.io** | ✅ License varies per pack but many are MIT/CC0 and clearly labeled; already the established path (`docs/ADDONS.md`). Mostly stylized — fails the ESO bar for characters, fine for tooling. |
+| **Reallusion Character Creator 4 (30-day trial)** | ⚠️ Desktop pipeline. Genuinely capable of photoreal game-ready humans with a GLB/Blender export path — but assets exported under a **trial** carry unresolved commercial/redistribution status, and CC4 content licensing (like DAZ) distinguishes render vs. interactive use. If the owner buys a license and exports, drop files into the `metahuman_*`/`npc_human` slots and everything upgrades automatically. Verify export-license terms before committing outputs. |
+| **AI generation (Meshy.ai / Tripo3D / Luma)** | ⚠️ Account + credits required (not automatable here). Ownership of outputs differs per tier — several free tiers grant only CC-BY or restrict commercial use; paid tiers usually grant full ownership. Also: current text-to-3D is good at props/creatures, weakest exactly at photoreal rigged humans. If used: verify the tier's ownership terms, keep the generation prompt in the attribution row. |
+
+Practical priority order given all of the above: (1) MetaHuman exports —
+free, explicitly licensed for external engines, best quality; (2) Blender
+Studio Human Base Meshes / MakeHuman via Blender — CC0, commit-safe;
+(3) CC4 if the owner buys it; (4) per-model verified CC0 finds on
+Sketchfab. RenderPeople/TurboSquid/CGTrader free sections are for
+mood-boards and private experiments only.
 
 ---
 
