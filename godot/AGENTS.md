@@ -279,10 +279,11 @@ this goal is locked.
    builds; a HiddenDoor drops into Liminal; the pull fires into
    Periliminal; blessing door exits. This is the spine of the game —
    verify before touching anything cosmetic.
-4. **Web export preset.** Editor → Project → Export → add Web preset →
-   output `builds/html5/index.html`. CI + nginx `game` service already
-   expect this path. This is what finally puts the GAME (not just the
-   site) on the internet.
+4. **Web export preset.** Preset exists (`export_presets.cfg` →
+   `../builds/html5/index.html`). Export with `bash scripts/export_web.sh`,
+   serve with `bash scripts/serve_web.sh`. CI uploads the html5 artifact
+   on PRs. Verified headless export OK on 2026-07-15 (~95MB: index.pck +
+   index.wasm).
 5. **Combat/economy pass in-engine**: skills bars, element riders,
    hideout claim/defend flow, casino games, StoryVote.
 6. **Game modes** (in the order listed in the Game modes section:
@@ -314,6 +315,10 @@ go stale the way the other two did.
   Metroplex/Catsino exits near spawn, blessing depth 1) and verified by
   `godot --headless --path godot -s res://src/dev/layer_spine_smoke.gd`
   (RESULT=PASS). Production pull remains 7–15 min with no warnings.
+- **Web export verified (2026-07-15).** `bash scripts/export_web.sh` produces
+  `builds/html5/` (~59MB pck + ~34MB wasm). Serve with
+  `bash scripts/serve_web.sh` (COOP/COEP). Artifact is gitignored; CI uploads
+  `periliminal-space-html5` on PRs.
 - **Branch history reconciled with main (2026-07-15).** This branch had
   been merged into main 9+ times and reused each time without syncing
   back; PR #28 initially showed a 927K-line "dirty" diff of two-sided
