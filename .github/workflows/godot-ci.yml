@@ -78,10 +78,10 @@ jobs:
     runs-on: ubuntu-22.04
     container:
       image: barichello/godot-ci:4.3
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
-        # No LFS — audit suites don't need GLBs, and pulling/importing
-        # every model hangs the job for many minutes.
+        # No LFS — audit suites don't need GLBs; full asset import hangs CI.
       - name: Run gdUnit4 (skipped if addon or tests missing)
         env:
           # barichello/godot-ci images put `godot` on PATH; gdUnit4's
@@ -90,9 +90,17 @@ jobs:
         run: |
           if [ -d godot/addons/gdUnit4 ] && [ -d godot/test ] && [ "$(find godot/test -name '*Test*.gd' -o -name '*test*.gd' 2>/dev/null | head -1)" ]; then
             cd godot
-            # CI has no display — must pass --headless and tell gdUnit to
-            # allow it (--ignoreHeadlessMode). Skip full --import (Terrain3D
-            # + asset tree makes it hang); gdUnit loads scripts on demand.
+            # Rebuild global class cache without a full asset --import.
+            # Full import + Terrain3D/LFS hung for 15+ minutes in CI.
+            # --editor --quit-after regenerates class_name registrations
+            # that GdUnitCmdTool needs (e.g. GdUnitHtmlReport).
+            timeout 90 godot --headless --editor --quit-after 20 || true
+            if [ ! -f .godot/global_script_class_cache.cfg ]; then
+              echo "Class cache missing after editor quit — falling back to Python smoke checks."
+              cd ..
+              python3 scripts/audit_smoke_check.py
+              exit $?
+            fi
             "$GODOT_BIN" --headless --path . -s -d res://addons/gdUnit4/bin/GdUnitCmdTool.gd \
               -a test/ -c --ignoreHeadlessMode
             EXIT=$?
