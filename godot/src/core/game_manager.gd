@@ -22,7 +22,14 @@ var _init_errors: Array[String] = []
 
 # ── Lifecycle ─────────────────────────────────────────────────────────────────
 func _ready() -> void:
-	# Connect manager signals
+	# Deferred: GameManager is autoload #4, but AccountManager/DistrictManager
+	# init LATER in the [autoload] list — at this exact moment they're still
+	# null, so connecting here silently no-ops (the old `if AccountManager:`
+	# guard "passed" by skipping the connection entirely). One deferred hop
+	# lands after every autoload's _ready has run.
+	_connect_manager_signals.call_deferred()
+
+func _connect_manager_signals() -> void:
 	if AccountManager:
 		AccountManager.authenticated.connect(_on_authenticated)
 		AccountManager.session_expired.connect(_on_session_expired)

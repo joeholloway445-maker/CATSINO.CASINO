@@ -51,3 +51,4 @@ nginx/certs/
 
 # Godot export builds (generated locally or in CI)
 build/
+builds/

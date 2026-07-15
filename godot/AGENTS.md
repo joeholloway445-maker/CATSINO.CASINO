@@ -297,7 +297,7 @@ this goal is locked.
    after a zero-error smoke open. Prefer pure-GDScript (web export).
 8. **Real multiplayer**: wire NetworkManager/Nakama beyond presence bots.
 
-## Current status snapshot (last checked 2026-07-15 — re-verify, don't trust)
+## Current status snapshot (last checked 2026-07-15, post-reconciliation — re-verify, don't trust)
 
 This section exists because two "status" docs in `docs/` (`IMPLEMENTATION_STATUS.md`,
 `LAUNCH_CHECKLIST_AND_ROADMAP.md`) are point-in-time snapshots that predate
@@ -307,26 +307,49 @@ this section is the most recent concrete read against it. Update this
 section (with today's date) whenever you re-verify a gate — don't let it
 go stale the way the other two did.
 
-- **Gate 1 (zero script errors) / Gate 2 (boot path): STATUS UNKNOWN, NOT
-  STALE-PASS.** `V01_GOTY.md` marks both "Done (PR #22)" / "Done (boot_smoke
-  PASS)", but that was recorded before at least 5 subsequent commits
-  (vehicle/spawn-point pass, NPC population system, two GLB asset passes,
-  a PBR texture pass) — none of which have been opened in an actual Godot
-  editor or exercised by CI. **Do not assume they still hold.** First
-  action on this project, every session: re-run the error-collection
-  procedure at the top of this file before trusting anything past it.
+- **Branch history reconciled with main (2026-07-15).** This branch had
+  been merged into main 9+ times and reused each time without syncing
+  back; PR #28 initially showed a 927K-line "dirty" diff of two-sided
+  divergence. Resolved via a single merge commit (10 conflicts resolved
+  by hand — see commit 2022e74's message for the per-file reasoning).
+  Two findings from that merge worth remembering: (a) the crouch
+  mechanic + `Proprioception.feed()` call had been silently LOST from
+  `third_person_controller.gd` on one side of the divergence — the
+  Recall Walk was dead code until re-integrated; (b) several docs
+  (`ADDONS.md`, `ASSET_SHOPPING_LIST.md`, `install_addons.sh`) existed
+  in two contradictory versions — the versions matching actual disk
+  state won.
+- **Boot-order audit (2026-07-15) found and fixed three real bugs** that
+  no amount of per-file review would catch — check for these PATTERNS in
+  new code:
+  1. Duplicate `class_name AmbientNpc` in both `src/world/ambient_npc.gd`
+     and `hdv_lore/src/world/ambient_npc.gd` — two global declarations of
+     the same name break the whole project's parse. The hdv_lore original
+     now has no class_name (loaded by path via its own .tscn). Rule: NEVER
+     add a class_name that already exists anywhere under res://, including
+     hdv_lore/.
+  2. `WorldQuestBridge`/`FactionQuestBridge` were listed BEFORE
+     `QuestManager` in [autoload] while calling `QuestManager.register_quest()`
+     from `_ready()` — a later autoload is null at that moment. Fixed by
+     reordering them after QuestManager. Rule: an autoload's _ready() may
+     only touch autoloads listed ABOVE it; for anything else use
+     `call_deferred` (runs after all autoloads are up).
+  3. `GameManager._ready()` connected to `AccountManager`/`DistrictManager`
+     signals through `if AccountManager:` guards — both are later
+     autoloads, so the guards evaluated null→false and the connections
+     silently never happened (auth/district events went unheard). Fixed
+     with `_connect_manager_signals.call_deferred()`.
 - **CI (`godot-ci.yml`) only triggers on push to `main` or an open PR** —
-  it does NOT run on every push to a feature branch. Check
-  `Actions → godot-ci` and match run SHAs against `git log` before
-  assuming a branch's current head has been validated. A green run on an
-  old SHA tells you nothing about later commits on the same branch.
-  `godot-ci` runs a real headless Web export (`godot --headless
-  --export-release Web`) — a failure there is a real parse/import
-  failure. It also runs gdUnit4 tests IF `godot/test/*.gd` files exist;
-  as of this snapshot that directory is empty, so that step just skips.
-  `boot_smoke.gd` (`src/dev/boot_smoke.gd`) is NOT wired into CI at all —
-  it's a manual/local check only (`godot --headless --path godot -s
-  res://src/dev/boot_smoke.gd`).
+  it does NOT run on every push to a feature branch. PR #28 is the open
+  PR keeping CI live for this branch. Check `Actions → godot-ci` and
+  match run SHAs against `git log` before assuming a branch's current
+  head has been validated. `godot-ci` runs a real headless Web export
+  (`godot --headless --export-release Web`) — a failure there is a real
+  parse/import failure. It also runs gdUnit4 tests IF `godot/test/*.gd`
+  files exist; as of this snapshot that directory is empty, so that step
+  just no-ops green. `boot_smoke.gd` (`src/dev/boot_smoke.gd`) is NOT
+  wired into CI at all — manual/local only (`godot --headless --path
+  godot -s res://src/dev/boot_smoke.gd`).
 - **Web export preset EXISTS** (`godot/export_presets.cfg` has Windows/
   Linux/macOS/Web, Web pointed at `../builds/html5/index.html` matching
   what CI/nginx expect) — Build order step 4 is further along than
