@@ -13,10 +13,33 @@ signal pulled_into_periliminal()
 ## of who they are; only HOW LONG you keep wandering the Liminal matters.
 const WANDER_MIN_SECONDS := 420.0  # 7 min
 const WANDER_MAX_SECONDS := 900.0  # 15 min
+## Prototype / headless smoke only — NEVER used in shipped play unless
+## `enable_prototype_mode()` is called explicitly (dev smoke + F5 playtest).
+const PROTOTYPE_PULL_SECONDS := 8.0
 
 var current_layer_id: String = "hyperliminal"
 var _liminal_wander := 0.0
 var _pull_threshold := 0.0
+var _prototype_mode := false
+
+func is_prototype_mode() -> bool:
+	return _prototype_mode
+
+## Shortens the Liminal→Periliminal pull and guarantees a Metroplex exit
+## near spawn so the layer spine can be walked in one sitting. No UI labels
+## about the pull (design invariant). Call from smoke scripts / title
+## "Play Prototype" only.
+func enable_prototype_mode(enabled: bool = true) -> void:
+	_prototype_mode = enabled
+	if enabled and current_layer_id == "liminal":
+		_pull_threshold = PROTOTYPE_PULL_SECONDS
+		_liminal_wander = 0.0
+
+func pull_threshold() -> float:
+	return _pull_threshold
+
+func liminal_wander() -> float:
+	return _liminal_wander
 
 func _process(delta: float) -> void:
 	if current_layer_id != "liminal":
@@ -55,7 +78,10 @@ func transition_to(layer_id: String, pulled: bool = false) -> bool:
 		# Re-rolled every time you step in — a fresh, unknowable threshold
 		# each visit, same distribution for every player alive.
 		_liminal_wander = 0.0
-		_pull_threshold = randf_range(WANDER_MIN_SECONDS, WANDER_MAX_SECONDS)
+		if _prototype_mode:
+			_pull_threshold = PROTOTYPE_PULL_SECONDS
+		else:
+			_pull_threshold = randf_range(WANDER_MIN_SECONDS, WANDER_MAX_SECONDS)
 	layer_changed.emit(from, layer_id)
 	var scene: String = str(RealityLayers.by_id(layer_id).get("scene", ""))
 	if scene != "" and ResourceLoader.exists(scene):

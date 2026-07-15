@@ -55,7 +55,7 @@ func _start_ambient_particles() -> void:
 		_particle_emitters.append(particles)
 
 func start_race(player_char: CharacterData) -> void:
-	if not EconomyManager.spend_coins(ENTRY_FEE):
+	if not await EconomyManager.spend_coins(ENTRY_FEE):
 		push_warning("NeonAlley: Not enough coins for entry fee")
 		return
 	_bet = ENTRY_FEE
