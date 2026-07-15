@@ -89,8 +89,11 @@ func _on_companion_evolved(stage) -> void:
 		if stage >= 3: _try_unlock("evolve_max")
 
 func _on_district_visited(_district: String) -> void:
-	# Check if all 5 visited via DistrictManager
-	pass
+	var visited := 0
+	if DistrictManager and DistrictManager.get("_visited_districts") != null:
+		visited = DistrictManager._visited_districts.size()
+	if visited >= 5:
+		_try_unlock("district_explore")
 
 func _on_daily(streak) -> void:
 	if streak is int:
