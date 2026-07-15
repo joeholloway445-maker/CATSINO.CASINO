@@ -4,10 +4,13 @@ extends Node3D
 ##
 ## Resolves the mesh through MetahumanCharacter.build_npc() (MetaHuman GLB →
 ## interim humanoid GLB → CharacterRig last resort) and then applies this
-## NPC's generated traits as SUBTLE, natural variation — height, build width,
-## skin/hair tint on named surfaces only. No cartoon scaling, no whole-body
-## tints: if a surface can't be identified as skin or hair, it is left alone
-## so the photoreal texture work is never polluted.
+## NPC's generated traits as variation scoped to NAMED surfaces only — never
+## a blanket recolor, so any future photoreal texture work is never
+## polluted. Whatever mesh is actually installed determines which surface
+## family fires: skin/hair on a MetaHuman export, chassis/glow on the
+## current interim robot (see _apply_surface_tints). Height and build width
+## are always applied via uniform scale — natural posture variation, never
+## a cartoon squash/stretch.
 ##
 ## LOD contract (driven by NPCManager.update_lod → NPCSpawner):
 ##   0  full mesh, shadows, nameplate           (< ~30 m)
@@ -43,7 +46,8 @@ func build(npc: Dictionary) -> void:
 	add_child(_mesh_root)
 
 	_apply_stature(appearance)
-	_apply_surface_tints(appearance)
+	_apply_surface_tints(appearance, str(npc.get("faction", "")))
+	_apply_archetype_silhouette(str(npc.get("archetype", "")))
 
 	_impostor = _build_impostor()
 	_impostor.visible = false
@@ -86,14 +90,21 @@ func _apply_stature(appearance: Dictionary) -> void:
 	# Natural posture variation only — never balloon or squash a human.
 	_mesh_root.scale = Vector3(h_scale * width, h_scale, h_scale * width)
 
-## Tint ONLY surfaces that are identifiably skin or hair. MetaHuman exports
-## name their surfaces (Skin/Face/Body/Hair/Eyelash); the interim TPS mesh
-## mostly won't match, and is intentionally left untouched.
-func _apply_surface_tints(appearance: Dictionary) -> void:
+## Tint identifiable surfaces on WHATEVER mesh is actually installed.
+## MetaHuman exports name surfaces Skin/Face/Body/Hair/Eyelash — those get
+## skin/hair tone. The current interim mesh (godot-tps-demo's player robot)
+## instead exposes "playerobot" (chassis shell) and "robotemitter" (its
+## glow strip); those get archetype-flavored chassis tint + faction-accent
+## glow so the crowd reads as individuals instead of 1,000 identical bots.
+## Any surface not matched by either family is left alone — textured
+## detail (and any future MetaHuman skin work) is never polluted.
+func _apply_surface_tints(appearance: Dictionary, faction: String) -> void:
 	if _mesh_root == null:
 		return
 	var skin := Color(str(appearance.get("skin_tone_hex", "d9b08c")))
 	var hair := Color(str(appearance.get("hair_color_hex", "3b2a20")))
+	var chassis := Color(str(appearance.get("chassis_hex", "888888")))
+	var glow: Color = CityData.accent_for(faction)
 	for mi in _find_meshes(_mesh_root):
 		var mesh := mi.mesh
 		if mesh == null:
@@ -103,19 +114,41 @@ func _apply_surface_tints(appearance: Dictionary) -> void:
 			if mat == null or not (mat is BaseMaterial3D):
 				continue
 			var label := "%s %s" % [mat.resource_name.to_lower(), mi.name.to_lower()]
-			var target := Color.WHITE
-			var is_skin := "skin" in label or "face" in label or "body" in label
-			var is_hair := "hair" in label or "brow" in label or "beard" in label
-			if not (is_skin or is_hair):
+			var target: Color
+			var blend: float
+			if "skin" in label or "face" in label:
+				target = skin; blend = 0.65
+			elif "hair" in label or "brow" in label or "beard" in label:
+				target = hair; blend = 0.65
+			elif "emitter" in label or "glow" in label:
+				target = glow; blend = 0.85
+			elif "robot" in label or "body" in label or "arm" in label:
+				target = chassis; blend = 0.55
+			else:
 				continue
-			target = skin if is_skin else hair
 			# Duplicate before touching — materials are shared resources and
 			# tinting a shared one would repaint every NPC in the scene.
 			var own := (mat as BaseMaterial3D).duplicate() as BaseMaterial3D
-			# Lerp toward the tone so albedo texture detail (pores, strands)
-			# survives — a flat color assignment would look like plastic.
-			own.albedo_color = own.albedo_color.lerp(target, 0.65)
+			# Lerp toward the tone so albedo texture detail (pores, strands,
+			# panel lines) survives — a flat assignment would look like plastic.
+			own.albedo_color = own.albedo_color.lerp(target, blend)
+			if "emitter" in label or "glow" in label:
+				own.emission_enabled = true
+				own.emission = target
 			mi.set_surface_override_material(s, own)
+
+## Archetype-flavored accessory variety: the current chassis has a fixed
+## "Cannons" appendage (see godot/assets/models/ATTRIBUTION.md — it's a
+## sci-fi TPS-demo robot, not a human). Showing it on a Barista/Archivist/
+## Lover/Reflection reads as armed and wrong for the archetype; Authority
+## keeps it — a visible weapon actually suits "power-holder." This only
+## toggles visibility on an existing named node, no guessed positions.
+func _apply_archetype_silhouette(archetype: String) -> void:
+	if _mesh_root == null or archetype == "authority":
+		return
+	for mi in _find_meshes(_mesh_root):
+		if "cannon" in mi.name.to_lower():
+			mi.visible = false
 
 func _find_meshes(root: Node) -> Array[MeshInstance3D]:
 	var out: Array[MeshInstance3D] = []

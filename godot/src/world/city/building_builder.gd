@@ -10,7 +10,7 @@ class_name BuildingBuilder
 static func build(profile_name: String, origin: Vector3, ground_y: float,
 		accent: Color, rng: RandomNumberGenerator, lot_size: float) -> Node3D:
 	var p := CityData.profile(profile_name)
-	var real := AssetLibrary.instance(str(p.model_slot))
+	var real := AssetLibrary.instance_variant(str(p.model_slot), rng)
 	if real != null:
 		real.position = origin
 		real.position.y = ground_y
@@ -28,7 +28,7 @@ static func build_osm(profile_name: String, origin: Vector3, ground_y: float,
 		accent: Color, rng: RandomNumberGenerator, sx: float, sz: float,
 		floors: int) -> Node3D:
 	var p := CityData.profile(profile_name)
-	var real := AssetLibrary.instance(str(p.model_slot))
+	var real := AssetLibrary.instance_variant(str(p.model_slot), rng)
 	if real != null:
 		real.position = origin
 		real.position.y = ground_y

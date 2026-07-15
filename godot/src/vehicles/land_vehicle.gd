@@ -26,7 +26,11 @@ func _ready() -> void:
 	_build_interaction_zone()
 
 func _build_body() -> void:
-	var visual := AssetLibrary.instance_or("vehicle_car_body", func() -> Node3D:
+	# Deterministic per spawn point — same hub always gets the same car,
+	# same as every other seeded/world-placed thing in this codebase.
+	var vrng := RandomNumberGenerator.new()
+	vrng.seed = hash(position)
+	var visual := AssetLibrary.instance_variant_or("vehicle_car_body", vrng, func() -> Node3D:
 		var mesh := MeshInstance3D.new()
 		var box := BoxMesh.new()
 		box.size = Vector3(1.8, 0.9, 4.2)

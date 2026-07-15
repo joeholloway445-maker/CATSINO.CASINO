@@ -24,7 +24,11 @@ func _ready() -> void:
 	_build_interaction_zone()
 
 func _build_body() -> void:
-	var visual := AssetLibrary.instance_or("vehicle_spacecraft_body", func() -> Node3D:
+	# No wheels/limbs to misalign here (6DOF thruster body, own collision
+	# shape) — free to vary per spawn point with zero geometric risk.
+	var vrng := RandomNumberGenerator.new()
+	vrng.seed = hash(position)
+	var visual := AssetLibrary.instance_variant_or("vehicle_spacecraft_body", vrng, func() -> Node3D:
 		var mesh := MeshInstance3D.new()
 		var prism := PrismMesh.new()
 		prism.size = Vector3(2.2, 1.2, 4.0)

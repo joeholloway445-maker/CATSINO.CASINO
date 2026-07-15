@@ -1,0 +1,57 @@
+{
+  "_comment": "AssetLibrary.instance_variant() manifest — maps a slot name to multiple real models under assets/models/variants/<slot>/. Additive to the single-file slot convention (see AssetLibrary docs). All CC0, Kenney — see godot/assets/models/ATTRIBUTION.md.",
+  "city_tower": [
+    "skyscraper-a.glb",
+    "skyscraper-b.glb",
+    "skyscraper-c.glb",
+    "skyscraper-d.glb",
+    "skyscraper-e.glb"
+  ],
+  "city_lowrise": [
+    "building-a.glb",
+    "building-c.glb",
+    "building-e.glb",
+    "building-g.glb",
+    "building-i.glb",
+    "building-k.glb"
+  ],
+  "city_house": [
+    "building-type-a.glb",
+    "building-type-c.glb",
+    "building-type-e.glb",
+    "building-type-g.glb",
+    "building-type-i.glb",
+    "building-type-k.glb",
+    "building-type-m.glb",
+    "building-type-p.glb"
+  ],
+  "city_industrial": [
+    "building-a.glb",
+    "building-c.glb",
+    "building-e.glb",
+    "building-g.glb",
+    "building-i.glb",
+    "building-k.glb",
+    "building-m.glb",
+    "building-o.glb"
+  ],
+  "city_prop": [
+    "planter.glb",
+    "tree-large.glb",
+    "tree-small.glb"
+  ],
+  "vehicle_car_body": [
+    "sedan.glb",
+    "sedan-sports.glb",
+    "taxi.glb",
+    "suv.glb",
+    "police.glb"
+  ],
+  "vehicle_spacecraft_body": [
+    "craft_racer.glb",
+    "craft_speederA.glb",
+    "craft_speederB.glb",
+    "craft_speederC.glb",
+    "craft_speederD.glb"
+  ]
+}

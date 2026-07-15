@@ -57,6 +57,17 @@ const BUILD_HEIGHT_NUDGE := {
 	"slim": 0.0, "average": 0.0, "athletic": 0.015, "muscular": 0.03,
 }
 
+## Chassis base tones per archetype (the currently-installed body mesh is
+## the tps-demo player robot, not a human — see NpcBody). Each is jittered
+## per NPC so an archetype reads as a family, not 1,000 identical bots.
+const CHASSIS_BASE_HEX := {
+	"barista":    "a9825a",  # brass/copper — service-counter warmth
+	"archivist":  "5c5a52",  # aged bronze/graphite — old paper, old metal
+	"authority":  "3a3d42",  # gunmetal — the power-holder's plating
+	"lover":      "7a2f3d",  # deep jewel red — magnetic, a little dangerous
+	"reflection": "463a5c",  # violet-pearl — the uncanny one
+}
+
 var _templates: Dictionary = {}
 var _rng := RandomNumberGenerator.new()
 var _generated_cache: Dictionary = {}  # npc_id -> NPC dict
@@ -217,10 +228,20 @@ func _generate_appearance(archetype: Dictionary, layer_variant: Dictionary, pool
 		"hair_style": str(hair_styles[_rng.randi() % hair_styles.size()]),
 		"skin_tone": skin,
 		"skin_tone_hex": str(SKIN_HEX.get(skin, "d9bfa6")),
+		"chassis_hex": _jittered_hex(str(CHASSIS_BASE_HEX.get(archetype_id, "888888"))),
 		"outfit": outfit,
 		"layer_color_palette": layer_variant.get("color_palette", ["neutral"]),
 		"lighting": str(layer_variant.get("lighting", "daylight")),
 	}
+
+## Jitters a base hex color's value/saturation per NPC (±12%) so an
+## archetype family reads as individuals sharing a palette, not clones.
+func _jittered_hex(base_hex: String) -> String:
+	var c := Color(base_hex)
+	var h := c.h
+	var s := clampf(c.s * _rng.randf_range(0.85, 1.15), 0.0, 1.0)
+	var v := clampf(c.v * _rng.randf_range(0.85, 1.15), 0.0, 1.0)
+	return Color.from_hsv(h, s, v).to_html(false)
 
 func _get_disposition() -> Dictionary:
 	var dispositions: Array = _templates.get("dispositions", [])

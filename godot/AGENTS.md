@@ -164,16 +164,32 @@ intended bypass for gated content.
 - **NPC population**: `data/npc_templates.json` (5 lore archetypes —
   Barista/Archivist/Authority/Lover/Reflection — × 6 layer variants,
   natural-human trait ranges) → `src/world/npc_generator.gd` (1,000+
-  deterministic NPCs; realistic heights/skin/hair hexes) →
-  `NPCManager` autoload (per-layer rosters, live-position LOD:
-  full <30m / no-shadow <100m / silhouette impostor beyond, ≤50
+  deterministic NPCs; realistic heights/skin/hair hexes + archetype
+  `chassis_hex`) → `NPCManager` autoload (per-layer rosters, live-position
+  LOD: full <30m / no-shadow <100m / silhouette impostor beyond, ≤50
   full-detail per district) → `src/world/npc_spawner.gd` (AmbientNpc
   root wearing `src/world/npc_body.gd`, which resolves visuals through
   `MetahumanCharacter` — never label-only NPCs). Dialogue: shared lore
   blocks per archetype × layer in `src/world/npc_dialogue_library.gd`,
   registered into `WorldLoader.dialogues`. Crowd density is layer
   psychology (Subliminal 12, Liminal 8, Periliminal 6, cities 50) —
-  keep it sparse where the lore says lonely.
+  keep it sparse where the lore says lonely. **The installed body mesh
+  is currently a robot, not a human** (see `assets/models/ATTRIBUTION.md`)
+  — `NpcBody` tints whatever surfaces the ACTUAL installed mesh exposes
+  (skin/hair on a MetaHuman export, chassis/glow on the current robot)
+  and hides the robot's cannon appendage for every archetype but
+  Authority. Never assume the mesh is human without checking its glTF
+  material names first.
+- **Asset variety**: `src/core/asset_library.gd`'s `instance_variant(slot,
+  rng)` picks deterministically from `data/asset_variants.json` →
+  `assets/models/variants/<slot>/*.glb` pools (falls back to the single-
+  file `instance(slot)` when no pool exists). Wired into
+  `BuildingBuilder.build()/build_osm()` (via the caller's existing
+  per-city `rng`, so cities stay deterministic) and `BreakableProp`
+  (`variant_seed` set by its placer). Land/space vehicle bodies vary by
+  spawn-position hash. Road/sidewalk tiles are deliberately NOT
+  variant-pooled — they interlock at fixed pivots and a random swap would
+  break the street grid, not just look different.
 - **UI/UX**: `src/ui/title_screen.gd` (Start New Venture → Liminal;
   Continue Expedition → Subliminal), `venture_wizard.gd` (MK-style),
   `logo_emblem.gd` (procedural God-of-gods emblem; yields to

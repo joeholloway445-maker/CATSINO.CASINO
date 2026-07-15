@@ -411,6 +411,7 @@ static func _build_plaza(holder: Node3D, center: Vector3, accent: Color, rng: Ra
 	for i in rng.randi_range(2, 4):
 		var prop := BreakableProp.new()
 		prop.accent = accent
+		prop.variant_seed = rng.randi()
 		prop.position = center + Vector3(rng.randf_range(-6, 6), 0.0, rng.randf_range(-6, 6))
 		holder.add_child(prop)
 
