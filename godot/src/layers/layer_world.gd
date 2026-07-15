@@ -72,6 +72,7 @@ func _ready() -> void:
 				Color(0.75, 0.35, 0.95), _player, pos)
 			hideout.position = pos
 			add_child(hideout)
+	_populate_layer_npcs(spawn)
 
 var _peers: Dictionary = {} # peer_id -> RemotePlayer
 var _peer_hp: Dictionary = {} # peer_id -> hp (open-PvP wilds)
@@ -144,6 +145,38 @@ func _ensure_city(hub_id: String) -> void:
 		func(x, z): return _terrain.height_at(x, z), _player)
 	add_child(city)
 	_cities_built[hub_id] = city
+	# City population: hub ids ARE the generator's supraliminal district
+	# ids, so each city pulls its own residents (LOD/impostors inside).
+	var spawner := NPCSpawner.new()
+	spawner.district_id = hub_id
+	spawner.max_npcs_in_district = 50
+	spawner.player = _player
+	spawner.height_provider = func(x, z): return _terrain.height_at(x, z)
+	spawner.position = origin
+	add_child(spawner)
+
+## Ambient human population for non-city layers. Density is part of each
+## layer's psychology: the Subliminal is a sparse, almost-normal
+## neighborhood; the Liminal holds a handful of looping figures; the
+## Periliminal's few faces are personal apparitions, never a crowd.
+## Supraliminal cities populate per-hub in _ensure_city instead.
+func _populate_layer_npcs(near: Vector3) -> void:
+	var district_and_cap := {
+		"subliminal": ["player_apartment", 12],
+		"liminal": ["liminal_hub", 8],
+		"extraliminal": ["territories", 24],
+		"periliminal": ["abstract_realm", 6],
+	}
+	if not district_and_cap.has(layer_id):
+		return
+	var conf: Array = district_and_cap[layer_id]
+	var spawner := NPCSpawner.new()
+	spawner.district_id = str(conf[0])
+	spawner.max_npcs_in_district = int(conf[1])
+	spawner.player = _player
+	spawner.height_provider = func(x, z): return _terrain.height_at(x, z)
+	spawner.position = Vector3(near.x, 0.0, near.z)
+	add_child(spawner)
 
 func _reality_bend_baseline() -> float:
 	match layer_id:

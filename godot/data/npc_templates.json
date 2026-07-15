@@ -44,7 +44,7 @@
         "build": ["athletic", "muscular"],
         "hair_colors": ["black", "brown", "grey"],
         "hair_styles": ["short", "neat", "slicked"],
-        "skin_tones": ["fair", "tan", "medium", "dark"],
+        "skin_tones": ["fair", "tan", "medium", "dark", "deep"],
         "outfit_base": "uniform",
         "confidence": 0.95,
         "authority": 0.90
@@ -60,7 +60,7 @@
         "build": ["slim", "athletic", "average"],
         "hair_colors": ["brown", "blonde", "red", "black"],
         "hair_styles": ["long", "waves", "styled"],
-        "skin_tones": ["fair", "olive", "tan", "medium"],
+        "skin_tones": ["fair", "olive", "tan", "medium", "dark", "deep"],
         "outfit_base": "fashionable",
         "charisma": 0.95,
         "empathy": 0.85

@@ -28,6 +28,10 @@ func _ready() -> void:
 	_on_world_loaded()
 
 func _on_world_loaded() -> void:
+	# Lore dialogue blocks first (one per archetype × layer) so every
+	# generated NPC's dialogue_id resolves in npc_dialogue_ui.
+	NpcDialogueLibrary.register_all()
+
 	# Initialize: generate NPCs for each layer
 	var seed_map := {
 		"subliminal": "layer_subliminal",
@@ -152,33 +156,20 @@ func unregister_instance(npc_id: String) -> void:
 	npc_despawned.emit(npc_id)
 
 ## Update LOD for all active instances based on player distance.
+## Uses the LIVE node position — ambient NPCs wander, so the spawn point
+## in their data dict goes stale within seconds.
 func update_lod(player_pos: Vector3) -> void:
 	for inst in _active_instances:
-		if is_instance_valid(inst):
-			var npc_id := inst.name
-			var npc_data := get_npc(npc_id)
-			if npc_data.is_empty():
-				continue
-
-			var npc_pos := Vector3(
-				npc_data.get("position", {}).get("x", 0.0),
-				npc_data.get("position", {}).get("y", 0.0),
-				npc_data.get("position", {}).get("z", 0.0)
-			)
-
-			var dist := npc_pos.distance_to(player_pos)
-			npc_data["last_seen_distance"] = dist
-
-			if dist < LOD_DISTANCE_NEAR:
-				npc_data["lod_level"] = 0
-			elif dist < LOD_DISTANCE_FAR:
-				npc_data["lod_level"] = 1
-			else:
-				npc_data["lod_level"] = 2
-
-			# Update instance if it has a lod_update method
-			if inst.has_method("update_lod"):
-				inst.call("update_lod", npc_data["lod_level"])
+		if not is_instance_valid(inst) or not (inst is Node3D):
+			continue
+		var dist: float = (inst as Node3D).global_position.distance_to(player_pos)
+		var level := 0
+		if dist >= LOD_DISTANCE_FAR:
+			level = 2
+		elif dist >= LOD_DISTANCE_NEAR:
+			level = 1
+		if inst.has_method("update_lod"):
+			inst.call("update_lod", level)
 
 func _process(_delta: float) -> void:
 	if _player and is_instance_valid(_player):

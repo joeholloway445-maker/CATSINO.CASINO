@@ -161,6 +161,19 @@ intended bypass for gated content.
   (RPS via PerceptionSystem).
 - **Fake multiplayer**: `src/multiplayer/presence_manager.gd` — tiered
   KNOLL bots (STATIC 60% / REACTIVE 30% / ADAPTIVE 10%).
+- **NPC population**: `data/npc_templates.json` (5 lore archetypes —
+  Barista/Archivist/Authority/Lover/Reflection — × 6 layer variants,
+  natural-human trait ranges) → `src/world/npc_generator.gd` (1,000+
+  deterministic NPCs; realistic heights/skin/hair hexes) →
+  `NPCManager` autoload (per-layer rosters, live-position LOD:
+  full <30m / no-shadow <100m / silhouette impostor beyond, ≤50
+  full-detail per district) → `src/world/npc_spawner.gd` (AmbientNpc
+  root wearing `src/world/npc_body.gd`, which resolves visuals through
+  `MetahumanCharacter` — never label-only NPCs). Dialogue: shared lore
+  blocks per archetype × layer in `src/world/npc_dialogue_library.gd`,
+  registered into `WorldLoader.dialogues`. Crowd density is layer
+  psychology (Subliminal 12, Liminal 8, Periliminal 6, cities 50) —
+  keep it sparse where the lore says lonely.
 - **UI/UX**: `src/ui/title_screen.gd` (Start New Venture → Liminal;
   Continue Expedition → Subliminal), `venture_wizard.gd` (MK-style),
   `logo_emblem.gd` (procedural God-of-gods emblem; yields to
