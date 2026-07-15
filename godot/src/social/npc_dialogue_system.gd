@@ -1,5 +1,6 @@
 extends Node
-class_name NPCDialogueSystem
+# Autoload: NPCDialogueSystem — dialogue trees, disposition, memory.
+# (No class_name: it would collide with the autoload singleton name.)
 
 signal dialogue_started(npc_id: String, dialogue_key: String)
 signal dialogue_option_presented(npc_id: String, options: Array[Dictionary])
@@ -225,7 +226,7 @@ func _load_dialogue_db() -> void:
 		while file_name != "":
 			if file_name.ends_with(".json"):
 				var npc_id = file_name.trim_suffix(".json")
-				var path := dialogue_dir + file_name
+				var path: String = dialogue_dir + file_name
 				var f := FileAccess.open(path, FileAccess.READ)
 				if f:
 					var dialogue_data = JSON.parse_string(f.get_as_text())

@@ -1,5 +1,6 @@
 extends Node
-class_name QuestSystem
+# Autoload: QuestSystem — JSON quest DB, branching stages, rewards.
+# (No class_name: it would collide with the autoload singleton name.)
 
 signal quest_accepted(quest_id: String)
 signal quest_progressed(quest_id: String, stage: int)
@@ -202,7 +203,7 @@ func _load_quest_db() -> void:
 		var file_name = dir.get_next()
 		while file_name != "":
 			if file_name.ends_with(".json"):
-				var path := quest_dir + file_name
+				var path: String = quest_dir + file_name
 				var f := FileAccess.open(path, FileAccess.READ)
 				if f:
 					var quest_data = JSON.parse_string(f.get_as_text())
