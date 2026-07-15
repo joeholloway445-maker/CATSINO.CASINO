@@ -6,6 +6,7 @@ import StepFaction from '@/components/character-creation/StepFaction'
 import StepRace from '@/components/character-creation/StepRace'
 import StepFrame from '@/components/character-creation/StepFrame'
 import StepPhysMod from '@/components/character-creation/StepPhysMod'
+import StepCapture from '@/components/character-creation/StepCapture'
 import CharacterPreview3D from '@/components/character-creation/CharacterPreview3D'
 import { FACTIONS } from '@/lib/game/data/factions'
 import { getRaceById } from '@/lib/game/data/races'
@@ -14,7 +15,7 @@ import { getModById } from '@/lib/game/data/physicalMods'
 import { createClient } from '@/lib/supabase/client'
 import type { CharacterDraft, FactionId } from '@/types/character'
 
-const STEPS = ['FACTION', 'RACE', 'FRAME', 'PHYSICAL MOD', 'CONFIRM']
+const STEPS = ['FACTION', 'RACE', 'FRAME', 'PHYSICAL MOD', 'CAPTURE', 'CONFIRM']
 
 export default function CharacterCreationPage() {
   return (
@@ -37,6 +38,7 @@ function CharacterCreationForm() {
     frame: null,
     physicalMod: null,
     username: '',
+    portraitDataUrl: null,
   })
 
   const canAdvance = () => {
@@ -155,23 +157,40 @@ function CharacterCreationForm() {
             />
           )}
           {step === 4 && (
+            <StepCapture
+              slot={slotNumber}
+              portraitDataUrl={draft.portraitDataUrl ?? null}
+              onPortraitChange={(dataUrl) => setDraft((d) => ({ ...d, portraitDataUrl: dataUrl }))}
+            />
+          )}
+          {step === 5 && (
             <div>
               <h2 className="font-mono text-lg text-slate-200 mb-4 tracking-wider">CONFIRM YOUR CHARACTER</h2>
-              <div className="space-y-3">
-                {[
-                  { label: 'FACTION', value: faction?.name, sub: faction?.origin },
-                  { label: 'RACE', value: race?.name, sub: race?.texture.type },
-                  { label: 'FRAME', value: frame?.name, sub: frame?.role },
-                  { label: 'PHYSICAL MOD', value: mod?.name, sub: mod?.visualEffect },
-                ].map(({ label, value, sub }) => (
-                  <div key={label} className="flex items-center gap-4 py-3 border-b border-purple-950">
-                    <span className="font-mono text-xs text-purple-600 w-28">{label}</span>
-                    <div>
-                      <div className="font-mono text-sm text-slate-200">{value}</div>
-                      <div className="font-mono text-xs text-slate-600">{sub}</div>
+              <div className="flex gap-4">
+                {draft.portraitDataUrl && (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={draft.portraitDataUrl}
+                    alt="Your avatar"
+                    className="w-24 h-24 rounded-lg object-cover border border-purple-800 flex-shrink-0"
+                  />
+                )}
+                <div className="space-y-3 flex-1">
+                  {[
+                    { label: 'FACTION', value: faction?.name, sub: faction?.origin },
+                    { label: 'RACE', value: race?.name, sub: race?.texture.type },
+                    { label: 'FRAME', value: frame?.name, sub: frame?.role },
+                    { label: 'PHYSICAL MOD', value: mod?.name, sub: mod?.visualEffect },
+                  ].map(({ label, value, sub }) => (
+                    <div key={label} className="flex items-center gap-4 py-3 border-b border-purple-950">
+                      <span className="font-mono text-xs text-purple-600 w-28">{label}</span>
+                      <div>
+                        <div className="font-mono text-sm text-slate-200">{value}</div>
+                        <div className="font-mono text-xs text-slate-600">{sub}</div>
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  ))}
+                </div>
               </div>
 
               <p className="font-mono text-xs text-slate-500 mt-4 leading-relaxed">
