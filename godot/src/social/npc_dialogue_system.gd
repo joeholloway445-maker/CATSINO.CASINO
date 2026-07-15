@@ -13,6 +13,10 @@ var _npc_dispositions: Dictionary = {}
 
 # NPC memory: what they know about you (from WordOfMouth)
 var _npc_memory: Dictionary = {}
+## Active dialogue choice list — choose_dialogue_option used to rebuild an
+## empty array every call, so custom options never fired.
+var _pending_npc_id: String = ""
+var _pending_options: Array = []
 
 func _ready() -> void:
 	_load_dialogue_db()
@@ -105,8 +109,12 @@ func _present_dialogue(npc_id: String, dialogue_key: String, line: String, tree:
 	})
 
 	# Filter options by requirements
+	for opt in options:
+		if "npc_id" not in opt:
+			opt["npc_id"] = npc_id
 	options = _filter_options_by_requirements(options)
-
+	_pending_npc_id = npc_id
+	_pending_options = options
 	dialogue_option_presented.emit(npc_id, options)
 
 # ── Dialogue Choice ────────────────────────────────────────────────────────
@@ -114,8 +122,8 @@ func choose_dialogue_option(npc_id: String, option_index: int) -> void:
 	if npc_id not in _dialogue_db:
 		return
 
-	var options = []  # This would be populated from the UI state
-	if option_index >= options.size():
+	var options: Array = _pending_options if npc_id == _pending_npc_id else []
+	if option_index < 0 or option_index >= options.size():
 		return
 
 	var choice = options[option_index]
@@ -139,6 +147,8 @@ func choose_dialogue_option(npc_id: String, option_index: int) -> void:
 	if choice.get("next_dialogue"):
 		start_dialogue(npc_id, choice["next_dialogue"])
 	else:
+		_pending_options = []
+		_pending_npc_id = ""
 		dialogue_ended.emit(npc_id, choice.get("text", ""))
 
 func _apply_dialogue_effect(npc_id: String, effect: Dictionary) -> void:
@@ -215,11 +225,12 @@ func _load_dialogue_db() -> void:
 		while file_name != "":
 			if file_name.ends_with(".json"):
 				var npc_id = file_name.trim_suffix(".json")
-				var dialogue_data = JSON.parse_string(
-					ResourceLoader.load(dialogue_dir + file_name).get_text()
-				)
-				if dialogue_data:
-					_dialogue_db[npc_id] = dialogue_data
+				var path := dialogue_dir + file_name
+				var f := FileAccess.open(path, FileAccess.READ)
+				if f:
+					var dialogue_data = JSON.parse_string(f.get_as_text())
+					if dialogue_data is Dictionary:
+						_dialogue_db[npc_id] = dialogue_data
 			file_name = dir.get_next()
 
 func _load_dispositions() -> void:

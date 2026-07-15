@@ -7,7 +7,10 @@ extends Node3D
 ##
 ## TODO(assets): MetaHuman GLB exports replace primitive meshes via
 ## MetahumanCharacter — keep race/frame id plumbing identical.
-## Procedural rig remains last-resort only.
+## Interim humanoid GLB (`assets/models/player_human.glb`) already resolves
+## through AssetLibrary before this rig; MetaHuman shaders live under
+## `assets/shaders/metahuman/`. Procedural rig remains last-resort only.
+## Call MetahumanCharacter.resolve_tier() to see which visual tier won.
 
 const TextureMaterials = preload("res://src/character/texture_materials.gd")
 

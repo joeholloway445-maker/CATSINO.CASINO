@@ -97,6 +97,29 @@ def main() -> int:
     else:
         fail("AppConfig missing main_menu_scene_path")
 
+    print("== dialogue trees ==")
+    for npc in ("barista", "archivist", "authority"):
+        check_exists(f"src/dialogue/{npc}.json", "dialogue")
+
+    print("== arena mode controller ==")
+    check_exists("src/world/arena_mode_controller.gd", "arena_ctrl")
+    pa = (GODOT / "src/world/playtest_arena.gd").read_text()
+    if "ArenaModeController" in pa:
+        ok("playtest_arena attaches ArenaModeController")
+    else:
+        fail("playtest_arena missing ArenaModeController")
+
+    print("== metahuman interim ==")
+    if (GODOT / "assets/models/player_human.glb").exists():
+        ok("player_human.glb present (interim identity mesh)")
+    else:
+        fail("player_human.glb missing")
+    mh = (GODOT / "src/character/metahuman_character.gd").read_text()
+    if "func resolve_tier" in mh:
+        ok("MetahumanCharacter.resolve_tier")
+    else:
+        fail("resolve_tier missing")
+
     print("== psychology / env ==")
     psych = (ROOT / "services/psychology/main.py").read_text()
     if 'r.get("event")' in psych and "player_anomalies" in psych:

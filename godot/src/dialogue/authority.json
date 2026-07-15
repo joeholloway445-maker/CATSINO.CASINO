@@ -1,0 +1,42 @@
+{
+  "greeting": {
+    "line": "House rules bend for the clever. They break for the greedy. Which are you?",
+    "line_friendly": "You're on the list. Don't make me take you off it.",
+    "line_hostile": "You're not on the floor. You're not on the list. Leave.",
+    "allow_social_options": true,
+    "options": [
+      {
+        "text": "I'm clever.",
+        "next_key": "clever",
+        "effect": { "disposition": 5, "tone": "flirt" }
+      },
+      {
+        "text": "I'm here to follow the rules.",
+        "next_key": "rules",
+        "effect": { "disposition": 8, "tone": "nice" }
+      }
+    ],
+    "quest_options": [
+      {
+        "text": "I want to prove myself in the Coliseum.",
+        "quest_id": "main_002"
+      }
+    ]
+  },
+  "clever": {
+    "line": "Card counters, loud drunks, sore winners — all handled quietly. Bend a rule with style and I might applaud.",
+    "allow_social_options": false,
+    "options": [
+      {
+        "text": "Then watch me.",
+        "next_key": null,
+        "effect": { "disposition": 5 }
+      }
+    ]
+  },
+  "rules": {
+    "line": "Good. Cross the house and you were never here. Keep the floor smooth and the Crown stays blind.",
+    "allow_social_options": true,
+    "options": []
+  }
+}
