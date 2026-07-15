@@ -17,6 +17,17 @@ extends RefCounted
 ## sailing, flying, or in space — not fragmented into separate trails.
 const PLAYER_ID := "local_player"
 
+## Same signature/purpose as ThirdPersonController.chunk_changed — lets
+## layer_world.gd/overworld.gd drive terrain streaming (and bump the view
+## radius/fog distance while piloting) from a vehicle exactly the way they
+## already do for the on-foot controller.
+signal chunk_changed(coord: Vector2i)
+## Fired on successful enter/exit — world scripts use this to bump the
+## streaming view radius + fog distance while a vehicle is piloted
+## (covers ground faster than walking) and restore it on exit.
+signal entered
+signal exited
+
 var owner_node: Node3D
 var driver: Node3D = null
 var nearby_player: Node3D = null
@@ -53,6 +64,7 @@ func _enter() -> bool:
 	driver.set_process_unhandled_input(false)
 	driver.visible = false
 	_camera.current = true
+	entered.emit()
 	return true
 
 func _exit() -> void:
@@ -70,6 +82,7 @@ func _exit() -> void:
 		if cam != null:
 			cam.current = true
 	driver = null
+	exited.emit()
 
 ## Call every physics frame while occupied (land/water/air/space alike) so
 ## piloted traversal keeps contributing to world discovery and each
@@ -89,6 +102,7 @@ func update_world_discovery() -> void:
 	if coord == _last_chunk:
 		return
 	_last_chunk = coord
+	chunk_changed.emit(coord)
 
 	var already_known := DiscoveryManager.has_chunk(coord)
 	var chunk := DiscoveryManager.get_or_generate_chunk(coord)

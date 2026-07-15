@@ -10,12 +10,20 @@ static func generate(coord: Vector2i) -> Dictionary:
 	var rng := RandomNumberGenerator.new()
 	rng.seed = _coord_seed(coord)
 
-	var biomes := ["plains", "ruins", "crystal_field", "overgrowth", "ashland"]
+	# "coastal" is intentionally rare (1/6 rather than an even split) and
+	# clamped near WATER_LEVEL_Y (see WaterVehicle) so it reads as an actual
+	# body of water, not just a low plain — the only biome ChunkContentSpawner
+	# will place a water vehicle spawn point in.
+	var biomes := ["plains", "ruins", "crystal_field", "overgrowth", "ashland", "coastal"]
 	var biome: String = biomes[rng.randi() % biomes.size()]
+
+	var elevation := rng.randf_range(-2.0, 6.0)
+	if biome == "coastal":
+		elevation = rng.randf_range(-1.5, -0.3) # below WATER_LEVEL_Y, floods flat
 
 	return {
 		"biome": biome,
-		"elevation": rng.randf_range(-2.0, 6.0),
+		"elevation": elevation,
 		"prop_density": rng.randf_range(0.1, 0.8),
 		"prop_seed": rng.randi(),
 	}

@@ -35,6 +35,8 @@ func _ready() -> void:
 	_player.global_position = spawn
 	_player.chunk_changed.connect(_on_chunk_changed)
 	add_child(SensoriumAmbience.new()) # your build's own hum, under the music
+	var vehicles := VehicleWorldWiring.spawn_hub_vehicles(self, _terrain, spawn)
+	VehicleWorldWiring.wire_streaming_bump(vehicles, _terrain, _sky)
 	add_child(RealityBendOverlay.new(_reality_bend_baseline()))
 	var hotbar := HotbarUI.new()
 	hotbar.cast_requested.connect(_on_cast)

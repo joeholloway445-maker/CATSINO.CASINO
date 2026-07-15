@@ -49,3 +49,13 @@ func stream_around(coord: Vector2i) -> void:
 	if _proc != null:
 		_proc.stream_around(coord)
 	# Terrain3D clipmaps stream themselves — no chunk fan-out needed.
+
+## Passthrough — only meaningful on the ProceduralTerrain backend (web /
+## GL-compatibility fallback). Terrain3D's clipmaps have their own
+## LOD/streaming distance and aren't affected by this.
+func set_view_radius(r: int) -> void:
+	if _proc != null:
+		_proc.set_view_radius(r)
+
+func get_view_radius() -> int:
+	return _proc.get_view_radius() if _proc != null else ProceduralTerrain.DEFAULT_VIEW_RADIUS

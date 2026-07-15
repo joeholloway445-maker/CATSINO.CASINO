@@ -30,6 +30,10 @@ func _ready() -> void:
 
 	_player.chunk_changed.connect(_on_player_chunk_changed)
 	add_child(SensoriumAmbience.new())
+
+	var vehicles := VehicleWorldWiring.spawn_hub_vehicles(self, _terrain, spawn)
+	VehicleWorldWiring.wire_streaming_bump(vehicles, _terrain, _sky)
+
 	_build_hud()
 
 func _build_hud() -> void:
