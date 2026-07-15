@@ -8,16 +8,16 @@
       "nodes": [
         {
           "id": "greeting",
-          "text": "Welcome, high roller! My wares are the finest in Paw Vegas! What can I do for you?",
+          "text": "Welcome, high roller! My wares are the finest in Paws Vegas! What can I do for you?",
           "options": [
             {"label": "Show me your shop", "next_node": "END", "action": "shop_open"},
-            {"label": "Tell me about Paw Vegas", "next_node": "lore"},
+            {"label": "Tell me about Paws Vegas", "next_node": "lore"},
             {"label": "Nothing, thanks", "next_node": "END", "action": "nothing"}
           ]
         },
         {
           "id": "lore",
-          "text": "Paw Vegas never sleeps. The coins flow like water here — but only to those clever enough to catch them.",
+          "text": "Paws Vegas never sleeps. The coins flow like water here — but only to those clever enough to catch them.",
           "options": [
             {"label": "Wise words. Show me your shop.", "next_node": "END", "action": "shop_open"},
             {"label": "Goodbye", "next_node": "END", "action": "nothing"}

@@ -58,6 +58,9 @@ func get_current_district() -> District:
 	return current_district
 
 func get_district_name(district: District) -> String:
+	# Enum stays PAW_VEGAS (ids/paths); display brand is Paws Vegas.
+	if district == District.PAW_VEGAS:
+		return "Paws Vegas"
 	return District.keys()[district].replace("_", " ").capitalize()
 
 func get_player_count(district: District) -> int:

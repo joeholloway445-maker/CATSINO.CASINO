@@ -2,7 +2,7 @@ class_name DayNightSky
 extends Node3D
 ## Procedural sky + sun with a full day/night cycle — built on Godot's
 ## ProceduralSkyMaterial (no HDRI assets). The palette is catsino-flavored:
-## warm neon-violet dusks over Paw Vegas rather than a realistic horizon.
+## warm neon-violet dusks over Paws Vegas rather than a realistic horizon.
 
 @export var day_length_seconds := 300.0
 @export var start_hour := 10.0 # 0-24

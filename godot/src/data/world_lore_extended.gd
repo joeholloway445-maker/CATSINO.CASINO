@@ -2,7 +2,7 @@ class_name WorldLoreExtended
 # Extended lore entries — district histories, faction origins, companion lore
 
 const DISTRICT_HISTORIES: Dictionary = {
-	"paw_vegas": """Paw Vegas began as a single card table operated by a cat named Dealer Dev in year one.
+	"paw_vegas": """Paws Vegas began as a single card table operated by a cat named Dealer Dev in year one.
 By year three, it had expanded to occupy an entire district. The SovereignCrown saw opportunity
 and quietly purchased controlling interest in seven establishments. Today, the neon lights never
 dim and the dice never stop rolling. The mysterious cat in the corner has been there since the beginning.
@@ -19,7 +19,7 @@ Whether this is metaphor or fact is unclear. Race Starter Nara runs the circuit 
 The entry fees never change. The canal never floods. The Current controls both.""",
 
 	"cat_forest": """The forest is older than the city. Forest Elder Moss has lived here since
-before Paw Vegas was built. The WildlandsAscendant grew from a small tribe of cats
+before Paws Vegas was built. The WildlandsAscendant grew from a small tribe of cats
 who refused to leave when construction began. They stayed. The forest stayed.
 The 500 companions recorded in ancient texts are still out there. Companion Keeper Zara
 has documented 432 of them personally. She will not discuss the other 68.""",
@@ -33,13 +33,13 @@ Scientists have declined to investigate. The games are too good.""",
 
 const FACTION_ORIGINS: Dictionary = {
 	"SovereignCrown": """Founded by a gambler known only as 'the Sovereign' who won controlling
-interest in Paw Vegas in a single hand of poker. The Crown's philosophy is simple:
+interest in Paws Vegas in a single hand of poker. The Crown's philosophy is simple:
 control the table and you control the game. Their combat advantage reflects this —
 they train harder, equip better, and never leave anything to chance. Their companions
 tend toward heavy frames and raw power. The SovereignCrown does not believe in luck.
 They manufacture it.""",
 
-	"WildlandsAscendant": """Born from the Forest cats who watched Paw Vegas consume the land
+	"WildlandsAscendant": """Born from the Forest cats who watched Paws Vegas consume the land
 around them. Their leader, Forest Elder Moss, chose a third path: not conquest, not submission,
 but cultivation. The WildlandsAscendant train with the forest's rhythms — speed over strength,
 adaptability over brute force. Their race speed bonus is no accident; they've been running

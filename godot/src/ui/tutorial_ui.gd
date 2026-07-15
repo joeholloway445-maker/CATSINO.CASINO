@@ -7,7 +7,7 @@ signal tutorial_complete()
 const STEPS = [
 	{
 		title = "Welcome to CATSINO.CASINO! 🐱",
-		body = "You're now in Paw Vegas — a city where cats gamble, race, and battle for style. This quick tutorial will get you started.",
+		body = "You're now in Paws Vegas — a city where cats gamble, race, and battle for style. This quick tutorial will get you started.",
 		icon = "🎰",
 	},
 	{
@@ -27,7 +27,7 @@ const STEPS = [
 	},
 	{
 		title = "Games & Districts",
-		body = "Paw Vegas has 5 districts:\n🎰 Paw Vegas — slots & cards\n⚔️ Cat Coliseum — combat\n🏁 Neon Alley — racing\n🌿 Cat Forest — quests\n👾 Arcade Galaxy — mini-games",
+		body = "Paws Vegas has 5 districts:\n🎰 Paws Vegas — slots & cards\n⚔️ Cat Coliseum — combat\n🏁 Neon Alley — racing\n🌿 Cat Forest — quests\n👾 Arcade Galaxy — mini-games",
 		icon = "🗺️",
 	},
 	{
@@ -37,7 +37,7 @@ const STEPS = [
 	},
 	{
 		title = "You're Ready! 🎉",
-		body = "Claim your daily login reward, explore Paw Vegas, and start building your roster. Good luck, cat!",
+		body = "Claim your daily login reward, explore Paws Vegas, and start building your roster. Good luck, cat!",
 		icon = "🎉",
 	},
 ]

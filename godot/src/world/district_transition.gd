@@ -14,7 +14,7 @@ const DISTRICT_SCENES = {
 }
 
 const DISTRICT_NAMES = {
-	"paw_vegas":     "Paw Vegas 🎰",
+	"paw_vegas":     "Paws Vegas 🎰",
 	"cat_coliseum":  "Cat Coliseum ⚔️",
 	"neon_alley":    "Neon Alley 🏁",
 	"cat_forest":    "Cat Forest 🌿",

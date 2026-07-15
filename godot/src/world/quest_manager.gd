@@ -11,8 +11,8 @@ enum QuestType { MAIN, SIDE, DAILY, REPEATABLE, FACTION }
 const QUESTS: Array[Dictionary] = [
 	# Main story quests
 	{
-		id="main_001", type=QuestType.MAIN, name="Welcome to Paw Vegas",
-		desc="Explore the Paw Vegas central district and talk to the locals.",
+		id="main_001", type=QuestType.MAIN, name="Welcome to Paws Vegas",
+		desc="Explore the Paws Vegas central district and talk to the locals.",
 		objectives=[
 			{id="visit_coliseum", desc="Visit Cat Coliseum", target=1},
 			{id="visit_arcade", desc="Visit Arcade Galaxy", target=1},

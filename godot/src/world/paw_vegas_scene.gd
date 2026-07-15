@@ -1,6 +1,6 @@
 extends Node3D
 
-class_name PawVegasScene
+class_name PawsVegasScene
 
 # ─── Configuration ────────────────────────────────────────────────────────────
 @export var npc_count: int = 20
@@ -201,7 +201,7 @@ func _update_crowd_density() -> void:
 	else:
 		density_str = "PACKED"
 
-	crowd_density_label.text = "Paw Vegas — %s (%d cats)" % [density_str, _current_player_count]
+	crowd_density_label.text = "Paws Vegas — %s (%d cats)" % [density_str, _current_player_count]
 
 	# Adjust NPC count to reflect density (clamp for performance)
 	var target_npc_count: int = clamp(_current_player_count / 10, 5, 40)

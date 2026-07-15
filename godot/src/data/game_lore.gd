@@ -2,9 +2,9 @@ class_name GameLore
 # World lore, district histories, and faction backstories for CATSINO.CASINO
 
 const WORLD_INTRO = """
-PAW VEGAS — a city built on luck, speed, and the eternal battle for style.
+PAWS VEGAS — a city built on luck, speed, and the eternal battle for style.
 
-Once a sleepy desert outpost, Paw Vegas was transformed overnight when the SovereignCrown
+Once a sleepy desert outpost, Paws Vegas was transformed overnight when the SovereignCrown
 arrived and declared it the capital of the new world order. Within a decade, five districts
 rose from the sand: each one a battlefield for the four great factions.
 
@@ -15,14 +15,14 @@ And somewhere beneath it all — in the roots, in the currents, in the void — 
 
 const DISTRICT_LORE = {
 	"paw_vegas": """
-PAW VEGAS CENTRAL
+PAWS VEGAS CENTRAL
 The crown jewel of the city. Neon towers and slot machines stretch as far as the eye can see.
 The SovereignCrown's casino empire began here — and all the other factions followed.
-If you want to make your name in this world, you start in Paw Vegas.
+If you want to make your name in this world, you start in Paws Vegas.
 	""",
 	"cat_coliseum": """
 CAT COLISEUM
-Ancient before the city existed. The Coliseum predates Paw Vegas by centuries —
+Ancient before the city existed. The Coliseum predates Paws Vegas by centuries —
 carved from black obsidian by the original Wildlands settlers. Now it serves as the
 city's premier combat arena. Every faction sends their best here. Only the strong endure.
 	""",
@@ -50,7 +50,7 @@ const FACTION_LORE = {
 	"SovereignCrown": """
 THE SOVEREIGNCROWN
 They arrived first. They built fastest. They rule hardest.
-The SovereignCrown is Paw Vegas' founding faction — a coalition of elite cats who pooled
+The SovereignCrown is Paws Vegas' founding faction — a coalition of elite cats who pooled
 their resources to build the city's casino empire. Membership is impossible to fake.
 They know every face, every tail, every whisker.
 Emperor Maximus Vex (SC100) personally approved every member above rank 50.
@@ -78,7 +78,7 @@ The Tideweaver doesn't confirm things.
 	"Factionless": """
 THE FACTIONLESS
 Not a faction. An absence of one.
-Every cat who walks into Paw Vegas without an allegiance is Factionless by default.
+Every cat who walks into Paws Vegas without an allegiance is Factionless by default.
 Some stay that way by choice. Some are refused by all three factions.
 And a rare few — the ones like The Unaffiliated (FL100) — transcend faction entirely,
 earning the respect of all four without belonging to any.

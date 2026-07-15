@@ -14,7 +14,7 @@ const LOGO_PATH := "res://assets/ui/logo.png"
 const LOADING_STEPS = [
 	"Initializing game world...",
 	"Loading faction data...",
-	"Connecting to Paw Vegas...",
+	"Connecting to Paws Vegas...",
 	"Waking up companions...",
 	"Shuffling the deck...",
 	"Spinning up the reels...",

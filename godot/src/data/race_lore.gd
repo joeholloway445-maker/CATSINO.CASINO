@@ -21,7 +21,7 @@ static func _build_lore_table() -> Dictionary:
 			description = "Shadow-striders of the upper urban canyons. The Keth evolved in the perpetual twilight between megastructure layers, developing unmatched stealth and reflexes.",
 			homeworld = "Veltharun — the Shadowstack, a city built vertically inside a dead megaship",
 			affinity_stats = ["spd", "lck"],
-			lore_blurb = "The Keth do not walk into a room — they arrive. Their presence is felt only in retrospect, in the missing wallet, the cut security feed, the rival who didn't come home. When the neon lights of Paw Vegas flicker, the Keth say it is their ancestors winking. Everyone else just checks their pockets."
+			lore_blurb = "The Keth do not walk into a room — they arrive. Their presence is felt only in retrospect, in the missing wallet, the cut security feed, the rival who didn't come home. When the neon lights of Paws Vegas flicker, the Keth say it is their ancestors winking. Everyone else just checks their pockets."
 		},
 		"Lumari": {
 			name = "Lumari",
@@ -49,7 +49,7 @@ static func _build_lore_table() -> Dictionary:
 			description = "Psionically-gifted seers who perceive probability fields, giving them an uncanny ability to predict outcomes — and manipulate luck itself.",
 			homeworld = "Serenthos — a world where weather is caused by mass emotional events",
 			affinity_stats = ["lck", "sty"],
-			lore_blurb = "An Azhul will tell you they don't cheat. Technically, they are correct — they simply see which outcomes are most likely and then gently encourage reality toward the favorable ones. The Paw Vegas casino owners hate them. The Azhul find this delightful. They predicted that outcome too."
+			lore_blurb = "An Azhul will tell you they don't cheat. Technically, they are correct — they simply see which outcomes are most likely and then gently encourage reality toward the favorable ones. The Paws Vegas casino owners hate them. The Azhul find this delightful. They predicted that outcome too."
 		},
 		"Sylva": {
 			name = "Sylva",
@@ -70,14 +70,14 @@ static func _build_lore_table() -> Dictionary:
 			description = "Void-touched nocturnal hunters who draw power from darkness and can manipulate local light levels. Their eyes absorb all visible spectrum and emit none.",
 			homeworld = "Erevos — a world with a black sun that radiates in infrared only",
 			affinity_stats = ["spd", "lck"],
-			lore_blurb = "The Nyx see everything in the dark. This is not a metaphor. They see heat, magnetic fields, dimensional seams, and the anxiety of their prey. In Paw Vegas where the neon never sleeps, they wear filter visors — not because they need to see, but because raw neon makes everything taste like copper. They find this offensive."
+			lore_blurb = "The Nyx see everything in the dark. This is not a metaphor. They see heat, magnetic fields, dimensional seams, and the anxiety of their prey. In Paws Vegas where the neon never sleeps, they wear filter visors — not because they need to see, but because raw neon makes everything taste like copper. They find this offensive."
 		},
 		"Aquis": {
 			name = "Aquis",
 			description = "Hydromancers who can shape and weaponize water in any state, from flash-frozen lances to boiling steam jets. Their fur is permanently silken and salt-tinged.",
 			homeworld = "Pelagion — an ocean world with no land mass; all civilization is floating or submerged",
 			affinity_stats = ["res", "spd"],
-			lore_blurb = "Aquis will not fight in a desert. They have checked — nothing will make them. In every other environment, however, they are formidably adaptable. They can draw moisture from the air, from their opponents' bodies, from the beverages of bystanders. The Aquis bartenders of Paw Vegas are both extremely skilled and extremely suspicious."
+			lore_blurb = "Aquis will not fight in a desert. They have checked — nothing will make them. In every other environment, however, they are formidably adaptable. They can draw moisture from the air, from their opponents' bodies, from the beverages of bystanders. The Aquis bartenders of Paws Vegas are both extremely skilled and extremely suspicious."
 		},
 		"Igni": {
 			name = "Igni",
@@ -91,14 +91,14 @@ static func _build_lore_table() -> Dictionary:
 			description = "Cryomancers from a glacier-world who can generate and shape ice structures, slow reaction speeds of opponents with cryo-fields, and survive temperatures that would shatter steel.",
 			homeworld = "Glaciurm — a world in perpetual ice age, beautiful and completely inhospitable",
 			affinity_stats = ["res", "pow"],
-			lore_blurb = "The Kryos perspective on time is different. When your world changes by a centimeter of ice growth per decade, patience becomes a survival trait. In Paw Vegas, Kryos are the calmest gamblers, the most methodical tacticians, and the most infuriating opponents. They will wait you out. They have been waiting since before your grandparents were born."
+			lore_blurb = "The Kryos perspective on time is different. When your world changes by a centimeter of ice growth per decade, patience becomes a survival trait. In Paws Vegas, Kryos are the calmest gamblers, the most methodical tacticians, and the most infuriating opponents. They will wait you out. They have been waiting since before your grandparents were born."
 		},
 		"Myco": {
 			name = "Myco",
 			description = "Fungal-symbiote races who maintain a continuous chemical and spore-based network with their environment. Their bodies host complex mycelial networks that can interface with organic and electronic systems.",
 			homeworld = "Rhizoma — a world where the dominant life form is a single continent-spanning fungal intelligence",
 			affinity_stats = ["res", "lck"],
-			lore_blurb = "The Myco are never truly alone. Their mycelial network connects them to every Myco within a kilometer and, with effort, across the entire planet of Rhizoma. In Paw Vegas they are said to have infiltrated the ventilation network. The casino operators believe this is a conspiracy theory. The Myco find this extremely amusing, in a networked, simultaneous, hive-laugh kind of way."
+			lore_blurb = "The Myco are never truly alone. Their mycelial network connects them to every Myco within a kilometer and, with effort, across the entire planet of Rhizoma. In Paws Vegas they are said to have infiltrated the ventilation network. The casino operators believe this is a conspiracy theory. The Myco find this extremely amusing, in a networked, simultaneous, hive-laugh kind of way."
 		},
 		"Volt": {
 			name = "Volt",
@@ -133,7 +133,7 @@ static func _build_lore_table() -> Dictionary:
 			description = "Stellar descendants who fell from orbital habitats generations ago, the Astra retain vestigial cosmic attunement, allowing them to briefly tap stellar energy for devastating bursts.",
 			homeworld = "The Constellation Ring — an orbital habitat network that encircles the system's star",
 			affinity_stats = ["pow", "lck"],
-			lore_blurb = "The Astra remember the stars the way some remember a childhood home — with nostalgic ache and absolute certainty that it was better then. Their cosmic attunement manifests as streaks of stellar plasma along their fur-lines that glow brighter when they're excited, afraid, or about to do something spectacular. In Paw Vegas, 'Astra moment' has become slang for a catastrophically cinematic overreaction to winning a game."
+			lore_blurb = "The Astra remember the stars the way some remember a childhood home — with nostalgic ache and absolute certainty that it was better then. Their cosmic attunement manifests as streaks of stellar plasma along their fur-lines that glow brighter when they're excited, afraid, or about to do something spectacular. In Paws Vegas, 'Astra moment' has become slang for a catastrophically cinematic overreaction to winning a game."
 		},
 		"Ferros": {
 			name = "Ferros",
@@ -154,6 +154,6 @@ static func _build_lore_table() -> Dictionary:
 			description = "Rune-scribes whose bodies are living inscription surfaces. Ancient Glyphe sigils etched across their fur confer passive ability modifiers that can be rewritten by skilled Glyphe artisans.",
 			homeworld = "Scripturon — a world where all geography, weather, and biology is controlled by a global inscription network",
 			affinity_stats = ["lck", "res"],
-			lore_blurb = "The Glyphe do not distinguish between language and reality — for them, the difference never existed. Their bodies are manuscripts of power, and a fully-inscribed elder Glyphe is both a being and a library simultaneously. In Paw Vegas they work as enchanters, modifiers, and occasionally as walking billboards when funds run low. Their ads are, admittedly, extremely effective. The sigils for 'compelling deals' are literally written into them."
+			lore_blurb = "The Glyphe do not distinguish between language and reality — for them, the difference never existed. Their bodies are manuscripts of power, and a fully-inscribed elder Glyphe is both a being and a library simultaneously. In Paws Vegas they work as enchanters, modifiers, and occasionally as walking billboards when funds run low. Their ads are, admittedly, extremely effective. The sigils for 'compelling deals' are literally written into them."
 		}
 	}
