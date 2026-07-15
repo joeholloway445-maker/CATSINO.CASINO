@@ -52,3 +52,7 @@ nginx/certs/
 # Godot export builds (generated locally or in CI)
 build/
 builds/
+
+# Non-redistributable personal downloads (RenderPeople, TurboSquid RF, etc.)
+godot/assets/private/**
+!godot/assets/private/README.md

@@ -3,7 +3,8 @@
 Recommended community addons for Periliminal.Space. **Web export first:**
 every installed addon below is pure GDScript (no GDExtension runtime in
 the shipped client). GDExtension tools stay native-only — see
-[`ASSET_SHOPPING_LIST.md`](ASSET_SHOPPING_LIST.md).
+[`ASSET_SHOPPING_LIST.md`](ASSET_SHOPPING_LIST.md) and
+[`ASSET_PIPELINE.md`](ASSET_PIPELINE.md).
 
 ## One-shot install
 
@@ -32,7 +33,7 @@ Idempotent: re-running updates each addon to its pinned tag.
 | `menus` | `godot/addons/maaacks_menus_template` | [Maaack/Godot-Menus-Template](https://github.com/Maaack/Godot-Menus-Template) | main | Cherry-pick settings/credits; keep `title_screen.gd` |
 | `panku` | `godot/addons/panku_console` | [Ark2000/panku_console](https://github.com/Ark2000/panku_console) | main | Dev only — `OS.is_debug_build()` |
 | `gdunit` | `godot/addons/gdUnit4` | [MikeSchulze/gdUnit4](https://github.com/MikeSchulze/gdUnit4) | **v4.3.4** | `godot/test/` + `.github/workflows/godot-ci.yml` |
-| `gloot` | `godot/addons/gloot` | [peter-kish/gloot](https://github.com/peter-kish/gloot) | **v2.4.13** | Future unifier of `inventory_manager.gd` / `inventory_system.gd` |
+| `gloot` | `godot/addons/gloot` | [peter-kish/gloot](https://github.com/peter-kish/gloot) | **v2.4.13** | Future UI only — do **not** replace live inventory yet |
 
 ### KNOLL → Beehave mapping (stub)
 
@@ -50,25 +51,35 @@ Enable only in editor/debug exports. Never include in the shipped Web
 release. Useful commands to wire later: layer pull force, economy grant,
 hideout dump.
 
+## Assets that pair with this stack (installed)
+
+| Item | Location | Notes |
+|---|---|---|
+| Kenney Input Prompts | `assets/ui/input_prompts/` | Touch + Keyboard; `InputPrompts` helper |
+| Kenney Casino / UI / Interface SFX | `assets/audio/` | `AssetLibrary.sound()` slots |
+| CRT / VHS / dither shaders | `assets/shaders/` | Layered by `RealityBendOverlay` |
+| Poly Haven HDRI | `assets/environments/` | Optional sky/env upgrade |
+| Poly Haven PBR | `assets/textures/` | City facades / ground |
+
 ## Native-only (desktop AAA — Web keeps GDScript fallbacks)
 
 | Addon | Repo | Fallback |
 |---|---|---|
 | **Terrain3D** (vendored `addons/terrain_3d`, Godot 4.3 build) | [TokisanGames/Terrain3D](https://github.com/TokisanGames/Terrain3D) | `ProceduralTerrain` via `TerrainBridge` |
-| LimboAI | [limbonaut/limboai](https://github.com/limbonaut/limboai) | Beehave |
+| LimboAI | [limbonaut/limboai](https://github.com/limbonaut/limboai) | Beehave — **do not install** |
 
 **Characters:** MetaHuman exports (UE Creator → GLB). Shaders from community
 [MetaHumanGodot](https://github.com/ibrews/MetaHumanGodot) under
 `assets/shaders/metahuman/`. See [`VISUAL_DIRECTION_ESO.md`](VISUAL_DIRECTION_ESO.md).
 
-## Skip / assets-only
+## Do not duplicate (already covered)
 
-| Item | Decision |
+| Item | Why skip / how covered |
 |---|---|
-| Virtual Joystick | Keep existing `TouchControls` |
-| Kenney Input Prompts | Optional glyph pack — not an addon dependency |
-| CRT/VHS/dither | Stubs in `godot/assets/shaders/`; augment `reality_bend` |
-| Kenney / Sonniss audio | Manual drop into `godot/assets/audio/` |
+| **Terrain3D on Web** | Web uses `ProceduralTerrain`; Terrain3D is excluded from HTML5 export |
+| **LimboAI** | Beehave is the GDScript BT path |
+| **GLoot as live inventory** | Keep `inventory_manager` / `inventory_system`; GLoot is future UI only |
+| **Virtual Joystick addon** | `TouchControls` already owns mobile move/look/actions |
 
 ## CI
 
@@ -78,8 +89,9 @@ gdUnit4 when `godot/addons/gdUnit4` + `godot/test/` exist.
 
 Godot 4.3 headless often crashes on shutdown after a successful pack
 (exit 132/139). The workflow treats `builds/html5/index.html` as success.
-The Web export preset excludes `gdUnit4`, `panku_console`, and addon
-`examples/` / `test/` / `docs/` so editor-only tooling is not shipped.
+The Web export preset excludes `gdUnit4`, `panku_console`, `terrain_3d`,
+and addon `examples/` / `test/` / `docs/` so editor-only tooling is not
+shipped.
 
 ## Licenses
 
