@@ -80,11 +80,25 @@ jobs:
       image: barichello/godot-ci:4.3
     steps:
       - uses: actions/checkout@v4
+        with: { lfs: true }
       - name: Run gdUnit4 (skipped if addon or tests missing)
+        env:
+          # barichello/godot-ci images put `godot` on PATH; gdUnit4's
+          # runtest.sh requires GODOT_BIN explicitly.
+          GODOT_BIN: godot
         run: |
           if [ -d godot/addons/gdUnit4 ] && [ -d godot/test ] && [ "$(find godot/test -name '*Test*.gd' -o -name '*test*.gd' 2>/dev/null | head -1)" ]; then
             cd godot
-            bash addons/gdUnit4/runtest.sh -a test/
+            # Import once so class_name / autoloads resolve before gdUnit runs.
+            godot --headless --import || true
+            # CI has no display — must pass --headless and tell gdUnit to
+            # allow it (--ignoreHeadlessMode). runtest.sh alone omits both.
+            "$GODOT_BIN" --headless --path . -s -d res://addons/gdUnit4/bin/GdUnitCmdTool.gd \
+              -a test/ -c --ignoreHeadlessMode
+            EXIT=$?
+            "$GODOT_BIN" --headless --path . --quiet -s -d res://addons/gdUnit4/bin/GdUnitCopyLog.gd \
+              -a test/ >/dev/null 2>&1 || true
+            exit $EXIT
           else
             echo "gdUnit4 addon or godot/test suites not present — skipping."
           fi
