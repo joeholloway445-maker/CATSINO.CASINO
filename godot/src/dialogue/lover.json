@@ -1,0 +1,42 @@
+{
+  "greeting": {
+    "line": "Bet you anything tonight ends well. Anything. That's the fun of it, isn't it?",
+    "line_friendly": "There you are. I saved you a seat that isn't on the floor plan.",
+    "line_hostile": "Don't look at me like that. Not tonight.",
+    "allow_social_options": true,
+    "options": [
+      {
+        "text": "Are you playing me or falling for me?",
+        "next_key": "odds",
+        "effect": { "disposition": 5, "tone": "flirt" }
+      },
+      {
+        "text": "Walk with me — not about the faction.",
+        "next_key": "walk",
+        "effect": { "disposition": 8, "tone": "nice" }
+      }
+    ]
+  },
+  "odds": {
+    "line": "You can't tell if I'm playing you or falling for you. Neither can I, darling. That's the only game in this whole building with honest odds.",
+    "allow_social_options": false,
+    "options": [
+      {
+        "text": "I'll take those odds.",
+        "next_key": null,
+        "effect": { "disposition": 10, "tone": "flirt" }
+      }
+    ]
+  },
+  "walk": {
+    "line": "They told me to recruit you. I told them it was going well. It IS going well — just not the way I report it. We're both in trouble, aren't we.",
+    "allow_social_options": true,
+    "options": [
+      {
+        "text": "Trouble together, then.",
+        "next_key": null,
+        "effect": { "disposition": 12 }
+      }
+    ]
+  }
+}

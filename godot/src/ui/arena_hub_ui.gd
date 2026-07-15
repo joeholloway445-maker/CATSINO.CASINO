@@ -189,12 +189,11 @@ func _launch(mode_id: String) -> void:
 	match mode_id:
 		"race_arena":
 			get_tree().change_scene_to_file("res://scenes/games/racing/race_track.tscn")
-		"moba", "conflict":
-			# Bracket team modes run through the tournament engine today.
+		"conflict":
+			# Large faction brackets still use the tournament engine.
 			get_tree().change_scene_to_file("res://scenes/ui/tournament.tscn")
 		_:
 			if scene_path != "" and ResourceLoader.exists(scene_path):
-				# Remember which mode queued so the arena scene can read it.
 				Engine.set_meta("arena_queued_mode", mode_id)
 				get_tree().change_scene_to_file(scene_path)
 			else:

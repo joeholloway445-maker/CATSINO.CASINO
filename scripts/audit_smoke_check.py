@@ -54,11 +54,18 @@ def main() -> int:
     am = (GODOT / "src/data/arena_modes.gd").read_text()
     for path in extract_string_consts(am, "MODES"):
         check_exists(path, "arena")
-    for mode_id in ("duel", "duel_2v2"):
-        if f'id="{mode_id}"' in am or f"id=\"{mode_id}\"" in am:
+    for mode_id in ("duel", "duel_2v2", "moba"):
+        if f'id="{mode_id}"' in am or f'id=\\"{mode_id}\\"' in am:
             ok(f"mode registered: {mode_id}")
         else:
             fail(f"mode missing: {mode_id}")
+    if 'id="moba"' in am and "playtest_arena.tscn" in am:
+        # Ensure moba isn't still hard-wired only to tournament.tscn as its scene.
+        moba_line = [ln for ln in am.splitlines() if 'id="moba"' in ln]
+        if moba_line and "playtest_arena" in moba_line[0]:
+            ok("moba launches playtest_arena")
+        else:
+            fail("moba scene still not playtest_arena")
 
     print("== hub scene_paths ==")
     hubs = (GODOT / "src/data/hub_region_data.gd").read_text()
@@ -98,7 +105,7 @@ def main() -> int:
         fail("AppConfig missing main_menu_scene_path")
 
     print("== dialogue trees ==")
-    for npc in ("barista", "archivist", "authority"):
+    for npc in ("barista", "archivist", "authority", "lover", "reflection"):
         check_exists(f"src/dialogue/{npc}.json", "dialogue")
 
     print("== arena mode controller ==")
@@ -130,6 +137,10 @@ def main() -> int:
         ok("migration 034 present")
     else:
         fail("migration 034 missing")
+    if (ROOT / "supabase/migrations/035_profiles_frame_default.sql").exists():
+        ok("migration 035 present")
+    else:
+        fail("migration 035 missing")
     env = (ROOT / "apps/catsino-casino/ENV_SETUP.md").read_text()
     if "SUPABASE_SERVICE_ROLE_KEY" in env and "030_catsino" in env:
         ok("catsino ENV_SETUP restored")

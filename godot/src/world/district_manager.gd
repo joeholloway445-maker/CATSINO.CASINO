@@ -24,12 +24,12 @@ const DISTRICT_SCENES: Dictionary = {
 	District.CAT_FOREST:    "res://scenes/world/cat_forest.tscn",
 }
 
-const DISTRICT_MUSIC: Dictionary = {
-	District.PAW_VEGAS:     "res://assets/audio/music/paw_vegas_theme.ogg",
-	District.NEON_ALLEY:    "res://assets/audio/music/neon_alley_theme.ogg",
-	District.CAT_COLISEUM:  "res://assets/audio/music/coliseum_theme.ogg",
-	District.ARCADE_GALAXY: "res://assets/audio/music/arcade_galaxy_theme.ogg",
-	District.CAT_FOREST:    "res://assets/audio/music/cat_forest_theme.ogg",
+const DISTRICT_MUSIC_CONTEXT: Dictionary = {
+	District.PAW_VEGAS:     "theme",
+	District.NEON_ALLEY:    "racing",
+	District.CAT_COLISEUM:  "ascension",
+	District.ARCADE_GALAXY: "theme",
+	District.CAT_FOREST:    "overworld",
 }
 
 const MAX_PLAYERS_PER_DISTRICT := 200
@@ -114,6 +114,10 @@ func transition_to_district(district: District) -> void:
 	emit_signal("district_loading_progress", 1.0)
 	emit_signal("district_loaded", district)
 	_fire_visit_quest_triggers(district)
+	AchievementManager.check("district_visited", District.keys()[district])
+	var music_ctx: String = DISTRICT_MUSIC_CONTEXT.get(district, "theme")
+	if MusicManager:
+		MusicManager.play_context(music_ctx)
 
 ## Advances both quest systems on arrival: the JSON quests' generic
 ## "visit_district" trigger, the built-in per-district objectives, and

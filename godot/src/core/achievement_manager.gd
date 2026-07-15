@@ -44,6 +44,24 @@ func _ready() -> void:
 	_load_achievements()
 
 func check(trigger_id: String, value: Variant = null) -> void:
+	# Aliases from older call sites / combat / quests / casino UI.
+	var aliases := {
+		"battle_win": "win",
+		"quest_completed": "win",
+		"visit_district": "district_visited",
+		"companion_collect": "companion_unlocked",
+		"spin": "win",
+		"big_win": "win",
+		"race_enter": "tournament_entered",
+		"race_podium": "race_won",
+		"blackjack": "win",
+		"full_house": "win",
+		"puzzle_score": "win",
+		"big_spender": "bet",
+		"win_10": "win",
+	}
+	if aliases.has(trigger_id):
+		trigger_id = aliases[trigger_id]
 	match trigger_id:
 		"win": _on_win()
 		"loss": _win_streak = 0
@@ -51,7 +69,7 @@ func check(trigger_id: String, value: Variant = null) -> void:
 		"multiplier": _on_multiplier(value)
 		"companion_unlocked": _on_companion_count()
 		"companion_evolved": _on_companion_evolved(value)
-		"district_visited": _on_district_visited(value)
+		"district_visited": _on_district_visited(str(value) if value != null else "")
 		"daily_claimed": _on_daily(value)
 		"guild_joined": _try_unlock("guild_join")
 		"guild_created": _try_unlock("guild_create")
@@ -62,6 +80,9 @@ func check(trigger_id: String, value: Variant = null) -> void:
 		"sleeper_burst": _try_unlock("sleeper_burst")
 		"coins": _on_coins(value)
 		"race_won": _on_race_won()
+		"faction_bonus": _try_unlock("faction_bonus")
+		"scratch_big": _try_unlock("scratch_big")
+		"slots_crown": _try_unlock("slots_crown")
 
 func _on_win() -> void:
 	_try_unlock("first_win")
@@ -131,9 +152,14 @@ func _try_unlock(id: String) -> void:
 	_unlocked[id] = Time.get_unix_time_from_system()
 	_save_achievements()
 	achievement_unlocked.emit(achievement[0])
-	# Grant XP
-	if EconomyManager.has_method("add_xp"):
-		EconomyManager.add_xp(achievement[0].get("xp", 0))
+	# Grant XP through the real progression path (EconomyManager has no add_xp).
+	var xp_amt: int = int(achievement[0].get("xp", 0))
+	if XPManager:
+		XPManager.award_amount(xp_amt, "achievement:%s" % id)
+	elif PlayerProfile:
+		PlayerProfile.add_xp(xp_amt)
+	if NotificationUI:
+		NotificationUI.notify_achievement(str(achievement[0].get("name", id)))
 
 func get_all_achievements() -> Array[Dictionary]:
 	var result: Array[Dictionary] = []

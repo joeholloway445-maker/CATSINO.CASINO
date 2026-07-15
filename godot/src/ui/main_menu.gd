@@ -1,6 +1,6 @@
 extends Control
-class_name MainMenu
-# Main menu after login — shows district selector and quick access buttons
+# Main menu after login — shows district selector and quick access buttons.
+# No class_name: maaacks_menus_template also defines MainMenu.
 
 signal enter_district(district_id: String)
 signal open_inventory()
