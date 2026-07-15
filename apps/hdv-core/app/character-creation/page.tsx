@@ -159,6 +159,7 @@ function CharacterCreationForm() {
           {step === 4 && (
             <StepCapture
               slot={slotNumber}
+              race={race}
               portraitDataUrl={draft.portraitDataUrl ?? null}
               onPortraitChange={(dataUrl) => setDraft((d) => ({ ...d, portraitDataUrl: dataUrl }))}
             />
