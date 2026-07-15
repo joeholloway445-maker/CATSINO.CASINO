@@ -148,10 +148,8 @@ func _perform_recall() -> void:
 func _flush_report() -> void:
 	if _pending_report.is_empty():
 		return
-	var client := CasinoHTTPClient.new()
-	add_child(client)
-	var response: Dictionary = await client.post_json(REPORT_ENDPOINT, _pending_report)
-	client.queue_free()
+	# CasinoHTTPClient is an autoload singleton (no class_name) — call it directly.
+	var response: Dictionary = await CasinoHTTPClient.post_json(REPORT_ENDPOINT, _pending_report)
 	if response.get("ok", false):
 		_pending_report = {}
 		_save()

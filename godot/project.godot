@@ -17,6 +17,10 @@ config/tags=PackedStringArray("mmo", "casino", "social", "cats")
 run/main_scene="res://scenes/ui/splash.tscn"
 config/features=PackedStringArray("4.3", "Forward Plus")
 config/icon="res://assets/ui/icon.png"
+boot_splash/bg_color=Color(0.02, 0, 0.05, 1)
+boot_splash/image="res://assets/ui/boot_splash.png"
+boot_splash/fullsize=true
+boot_splash/use_filter=true
 
 [autoload]
 
@@ -35,6 +39,7 @@ BattlePass="*res://src/liveops/battlepass.gd"
 EventManager="*res://src/liveops/event_manager.gd"
 SocialManager="*res://src/social/social_manager.gd"
 FactionSystem="*res://src/social/faction_system.gd"
+FactionManager="*res://src/factions/faction_manager.gd"
 LiveOpsManager="*res://src/liveops/liveops_manager.gd"
 CompanionSystem="*res://src/companion/companion_system.gd"
 CompanionManager="*res://src/companion/companion_system.gd"
@@ -46,6 +51,8 @@ InventoryManager="*res://src/inventory/inventory_manager.gd"
 NetworkManager="*res://src/networking/network_manager.gd"
 PlayerProfile="*res://src/character/player_profile.gd"
 QuestManager="*res://src/world/quest_manager.gd"
+QuestSystem="*res://src/quests/quest_system.gd"
+NPCDialogueSystem="*res://src/social/npc_dialogue_system.gd"
 WorldQuestBridge="*res://src/world/world_quest_bridge.gd"
 FactionQuestBridge="*res://src/quests/faction_quest_bridge.gd"
 XPManager="*res://src/core/xp_manager.gd"

@@ -1,6 +1,6 @@
 extends Node
-class_name NPCManager
-## Autoload: manages NPC population with lazy-loading and LOD.
+## Autoload "NPCManager": manages NPC population with lazy-loading and LOD.
+## Do not add class_name — it collides with the autoload singleton name.
 ## - Generates 1000+ unique NPCs per layer on demand
 ## - Keeps ~50 full-detail NPCs loaded at once (others use impostors)
 ## - Integrates with WorldLoader and NPCSpawner
@@ -9,7 +9,7 @@ const MAX_ACTIVE_NPCS := 50
 const LOD_DISTANCE_NEAR := 30.0
 const LOD_DISTANCE_FAR := 100.0
 
-var generator := NPCGenerator.new()
+var generator: NPCGenerator
 var _loaded_npcs: Dictionary = {}  # layer -> {npc_id -> NPC dict}
 var _player: Node3D = null
 var _active_instances: Array[Node] = []
@@ -19,6 +19,7 @@ signal npc_spawned(npc: Node3D, data: Dictionary)
 signal npc_despawned(npc_id: String)
 
 func _ready() -> void:
+	generator = NPCGenerator.new()
 	# Don't initialize yet; wait for WorldLoader
 	if WorldLoader.world_loaded.is_connected(_on_world_loaded):
 		return
@@ -43,7 +44,7 @@ func _on_world_loaded() -> void:
 	}
 
 	for layer: String in seed_map.keys():
-		var seed_key := seed_map[layer]
+		var seed_key: String = str(seed_map[layer])
 		var count := _npc_count_for_layer(layer)
 		var npcs := generator.generate_npcs(count, seed_key, layer)
 		_loaded_npcs[layer] = {}
@@ -52,7 +53,8 @@ func _on_world_loaded() -> void:
 			_npc_cache[npc.id] = npc
 
 	# Merge generated NPCs into WorldLoader
-	for layer_npcs in _loaded_npcs.values():
+	for layer_key in _loaded_npcs.keys():
+		var layer_npcs: Dictionary = _loaded_npcs[layer_key]
 		WorldLoader.npcs.merge(layer_npcs)
 
 	print("[NPCManager] Generated %d NPCs across %d layers" % [_npc_cache.size(), _loaded_npcs.size()])
@@ -136,7 +138,7 @@ func preload_layer(layer_id: String) -> void:
 func unload_layer(layer_id: String) -> void:
 	if layer_id in _loaded_npcs:
 		# Keep in cache but remove active instances
-		var layer_npcs := _loaded_npcs[layer_id]
+		var layer_npcs: Dictionary = _loaded_npcs[layer_id]
 		_active_instances = _active_instances.filter(func(inst):
 			var npc_id = inst.name
 			return not (npc_id in layer_npcs)

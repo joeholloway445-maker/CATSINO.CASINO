@@ -74,6 +74,23 @@ func _ready() -> void:
 			hideout.position = pos
 			add_child(hideout)
 	_populate_layer_npcs(spawn)
+	if layer_id == "liminal" and LayerManager.is_prototype_mode():
+		_spawn_prototype_spine_exits(spawn)
+
+## Prototype-only: a guaranteed Metroplex archway within sight of spawn so
+## Gate 3 (layer round-trip) is walkable without RNG hunting. Production
+## still relies on the per-chunk random exits in `_liminal_enter`.
+func _spawn_prototype_spine_exits(near: Vector3) -> void:
+	var metro := LayerExitDoor.new()
+	metro.target_layer = "supraliminal"
+	metro.position = near + Vector3(6, 0, 4)
+	metro.position.y = _terrain.height_at(metro.position.x, metro.position.z)
+	add_child(metro)
+	var catsino := LayerExitDoor.new()
+	catsino.target_layer = "hyperliminal"
+	catsino.position = near + Vector3(-6, 0, 4)
+	catsino.position.y = _terrain.height_at(catsino.position.x, catsino.position.z)
+	add_child(catsino)
 
 var _peers: Dictionary = {} # peer_id -> RemotePlayer
 var _peer_hp: Dictionary = {} # peer_id -> hp (open-PvP wilds)

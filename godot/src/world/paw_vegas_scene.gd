@@ -15,13 +15,19 @@ class_name PawVegasScene
 @onready var particle_fx: GPUParticles3D = $AmbientNeon/NeonParticles
 
 # ─── NPC templates ────────────────────────────────────────────────────────────
-const NPC_RACES: Array[String] = [
-	"Keth", "Lumari", "Vex", "Ferox", "Azhul", "Sylva", "Geara", "Nyx",
-	"Aquis", "Igni", "Kryos", "Myco", "Volt", "Petra", "Sanguis", "Chimera",
-	"Astra", "Ferros", "Etherea", "Glyphe"
+const NPC_RACES: Array[CharacterData.Race] = [
+	CharacterData.Race.KETH, CharacterData.Race.LUMARI, CharacterData.Race.VEX,
+	CharacterData.Race.FEROX, CharacterData.Race.AZHUL, CharacterData.Race.SYLVA,
+	CharacterData.Race.GEARA, CharacterData.Race.NYX, CharacterData.Race.AQUIS,
+	CharacterData.Race.IGNI, CharacterData.Race.KRYOS, CharacterData.Race.MYCO,
+	CharacterData.Race.VOLT, CharacterData.Race.PETRA, CharacterData.Race.SANGUIS,
+	CharacterData.Race.CHIMERA, CharacterData.Race.ASTRA, CharacterData.Race.FERROS,
+	CharacterData.Race.ETHEREA, CharacterData.Race.GLYPHE,
 ]
-const NPC_FRAMES: Array[String] = [
-	"skirmisher", "strider", "bastion", "juggernaut", "shade", "architect", "conduit",
+const NPC_FRAMES: Array[CharacterData.Frame] = [
+	CharacterData.Frame.VEIL, CharacterData.Frame.ZEPHYR, CharacterData.Frame.BASTION,
+	CharacterData.Frame.BEHEMOTH, CharacterData.Frame.PHANTOM, CharacterData.Frame.BOLT,
+	CharacterData.Frame.FLUX,
 ]
 
 # ─── Runtime state ────────────────────────────────────────────────────────────
@@ -81,7 +87,7 @@ func _make_random_character_data(seed_offset: int) -> CharacterData:
 	data.character_name = "NPC_%d" % seed_offset
 	data.race = NPC_RACES[rng.randi() % NPC_RACES.size()]
 	data.frame = NPC_FRAMES[rng.randi() % NPC_FRAMES.size()]
-	data.mod = "None"
+	data.mod = CharacterData.Mod.NULL
 	return data
 
 func _create_npc_node(data: CharacterData, index: int) -> Node3D:
@@ -125,9 +131,9 @@ func _create_npc_node(data: CharacterData, index: int) -> Node3D:
 
 	return npc
 
-func _race_color(race: String) -> Color:
-	# Deterministic color per race name
-	var h: float = float(race.hash() % 360) / 360.0
+func _race_color(race: CharacterData.Race) -> Color:
+	# Deterministic color per race enum value
+	var h: float = float(int(race) * 37 % 360) / 360.0
 	return Color.from_hsv(h, 0.6, 0.85)
 
 # ─── NPC wandering (called from _process) ────────────────────────────────────

@@ -1,9 +1,10 @@
 class_name TouchControls
 extends CanvasLayer
 ## Mobile controls. Testing target #1 — this game ships to phones first.
-## Left thumb owns MOVE (virtual joystick), right thumb owns LOOK (drag on
-## the right half of the screen rotates the camera), plus a column of
-## action buttons: JUMP / E interact / cast slot 1 / SPRINT (hold).
+## Left thumb owns MOVE (floating virtual joystick — touch anywhere on the
+## left half and the stick appears under your finger), right thumb owns LOOK
+## (drag on the right half rotates the camera), plus a column of action
+## buttons: JUMP / E interact / cast slot 1 / SPRINT (hold).
 ##
 ## Only appears on touch devices — desktop never sees it. Everything the
 ## rest of the code reads is a STATIC field, so no one needs a reference
@@ -15,9 +16,9 @@ extends CanvasLayer
 ##   TouchControls.consume_jump()   true once, resets
 ##   TouchControls.consume_interact() true once, resets
 ##
-## Sizes are generous (96px buttons, 80px joystick radius) and every UI
-## element respects safe-area insets so it stays clear of notches, home
-## indicators, and the joystick's own footprint.
+## Sizes are phone-thumb friendly (132px buttons, 96px joystick radius) and
+## every UI element respects safe-area insets so it stays clear of notches,
+## home indicators, and the joystick's own footprint.
 
 static var move_vector := Vector2.ZERO
 static var crouch_held := false # hold-to-crouch posture button
@@ -40,12 +41,13 @@ static var roll_right_held := false
 var _stick_base: Control
 var _stick_knob: Control
 var _stick_center := Vector2.ZERO
+var _stick_home_position := Vector2.ZERO
 var _stick_touch_id := -1
 var _look_touch_id := -1
 var _look_last_pos := Vector2.ZERO
 
-const STICK_RADIUS := 80.0
-const BUTTON_SIZE := 96.0
+const STICK_RADIUS := 96.0
+const BUTTON_SIZE := 132.0
 
 static func active() -> bool:
 	return DisplayServer.is_touchscreen_available()
@@ -74,21 +76,23 @@ func _ready() -> void:
 	layer = 60
 	var safe := _safe_area()
 
-	# ---- left: virtual joystick ----
+	# ---- left: floating virtual joystick (home rest pose) ----
 	_stick_base = Control.new()
 	_stick_base.custom_minimum_size = Vector2(STICK_RADIUS * 2, STICK_RADIUS * 2)
 	_stick_base.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_LEFT)
 	_stick_base.position += Vector2(safe.position.x + 32, -(safe.size.y + STICK_RADIUS * 2 + 60))
+	_stick_home_position = _stick_base.position
+	_stick_base.modulate = Color(1, 1, 1, 0.55)
 	add_child(_stick_base)
 	var base_ring := ColorRect.new()
-	base_ring.color = Color(1, 1, 1, 0.10)
+	base_ring.color = Color(1, 1, 1, 0.14)
 	base_ring.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	base_ring.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_stick_base.add_child(base_ring)
 	_stick_knob = ColorRect.new()
-	(_stick_knob as ColorRect).color = Color(1, 1, 1, 0.30)
-	_stick_knob.custom_minimum_size = Vector2(64, 64)
-	_stick_knob.size = Vector2(64, 64)
+	(_stick_knob as ColorRect).color = Color(1, 1, 1, 0.38)
+	_stick_knob.custom_minimum_size = Vector2(76, 76)
+	_stick_knob.size = Vector2(76, 76)
 	_stick_knob.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_stick_base.add_child(_stick_knob)
 	_center_knob()
@@ -99,8 +103,8 @@ func _ready() -> void:
 	# 6 rows now stack here (jump/crouch/E/attack/sprint/roll-row) — the
 	# offset below is an approximate anchor placement, not a hard bound;
 	# VBoxContainer auto-lays-out its children regardless.
-	col.position += Vector2(-(safe.position.y + BUTTON_SIZE + 32), -(safe.size.y + BUTTON_SIZE * 6 + 80))
-	col.add_theme_constant_override("separation", 18)
+	col.position += Vector2(-(safe.position.y + BUTTON_SIZE + 28), -(safe.size.y + BUTTON_SIZE * 6 + 72))
+	col.add_theme_constant_override("separation", 16)
 	add_child(col)
 	col.add_child(_dual_button("⤴", func(): TouchControls._jump_queued = true,
 		func(held: bool): TouchControls.jump_held = held))
@@ -146,7 +150,7 @@ func _action_button(label: String, on_press: Callable) -> Button:
 	var b := Button.new()
 	b.text = label
 	b.custom_minimum_size = Vector2(BUTTON_SIZE, BUTTON_SIZE)
-	b.add_theme_font_size_override("font_size", 38)
+	b.add_theme_font_size_override("font_size", 48)
 	b.pressed.connect(on_press)
 	return b
 
@@ -156,7 +160,7 @@ func _hold_button(label: String, on_state: Callable) -> Button:
 	var b := Button.new()
 	b.text = label
 	b.custom_minimum_size = Vector2(BUTTON_SIZE, BUTTON_SIZE)
-	b.add_theme_font_size_override("font_size", 34)
+	b.add_theme_font_size_override("font_size", 42)
 	b.button_down.connect(func(): on_state.call(true))
 	b.button_up.connect(func(): on_state.call(false))
 	return b
@@ -166,8 +170,8 @@ func _hold_button(label: String, on_state: Callable) -> Button:
 func _small_hold_button(label: String, on_state: Callable) -> Button:
 	var b := Button.new()
 	b.text = label
-	b.custom_minimum_size = Vector2(BUTTON_SIZE * 0.5, BUTTON_SIZE * 0.5)
-	b.add_theme_font_size_override("font_size", 22)
+	b.custom_minimum_size = Vector2(BUTTON_SIZE * 0.55, BUTTON_SIZE * 0.55)
+	b.add_theme_font_size_override("font_size", 28)
 	b.button_down.connect(func(): on_state.call(true))
 	b.button_up.connect(func(): on_state.call(false))
 	return b
@@ -187,14 +191,27 @@ func _center_knob() -> void:
 	_stick_knob.position = Vector2(STICK_RADIUS, STICK_RADIUS) - _stick_knob.size / 2.0
 	_stick_center = _stick_base.global_position + Vector2(STICK_RADIUS, STICK_RADIUS)
 
+## Floating stick: place the base so its center sits under the finger,
+## matching how look-drag works on the right half (touch anywhere left).
+func _place_stick_at(screen_pos: Vector2) -> void:
+	_stick_center = screen_pos
+	_stick_base.global_position = screen_pos - Vector2(STICK_RADIUS, STICK_RADIUS)
+	_stick_knob.position = Vector2(STICK_RADIUS, STICK_RADIUS) - _stick_knob.size / 2.0
+	_stick_base.modulate = Color(1, 1, 1, 1)
+
+func _reset_stick_home() -> void:
+	_stick_base.position = _stick_home_position
+	_stick_base.modulate = Color(1, 1, 1, 0.55)
+	_center_knob()
+
 func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventScreenTouch:
-		var inside_stick: bool = event.position.distance_to(_stick_center) <= STICK_RADIUS * 1.6
-		# Left thumb → joystick; anything on the RIGHT half that isn't a
-		# button click becomes a camera-look drag.
+		# Left half → floating joystick (anywhere, not just the rest pad).
+		# Right half → camera-look drag (buttons still eat their own presses).
 		if event.pressed:
-			if _stick_touch_id == -1 and inside_stick:
+			if _stick_touch_id == -1 and event.position.x < _viewport_width() * 0.5:
 				_stick_touch_id = event.index
+				_place_stick_at(event.position)
 				_update_stick(event.position)
 			elif _look_touch_id == -1 and event.position.x > _viewport_width() * 0.5:
 				_look_touch_id = event.index
@@ -203,7 +220,7 @@ func _unhandled_input(event: InputEvent) -> void:
 			if event.index == _stick_touch_id:
 				_stick_touch_id = -1
 				TouchControls.move_vector = Vector2.ZERO
-				_center_knob()
+				_reset_stick_home()
 			elif event.index == _look_touch_id:
 				_look_touch_id = -1
 	elif event is InputEventScreenDrag:

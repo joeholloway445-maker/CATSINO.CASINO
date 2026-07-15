@@ -1,5 +1,6 @@
 extends Node
-class_name QuestSystem
+# Autoload: QuestSystem — JSON quest DB, branching stages, rewards.
+# (No class_name: it would collide with the autoload singleton name.)
 
 signal quest_accepted(quest_id: String)
 signal quest_progressed(quest_id: String, stage: int)
@@ -115,29 +116,38 @@ func _execute_rewards(quest: Dictionary, progress: Dictionary) -> Dictionary:
 	var rewards = quest.get("rewards", {})
 	var applied = {}
 
-	# XP reward
+	# XP reward — player profile (companions get XP via add_xp on equipped id)
 	if "xp" in rewards:
-		CompanionSystem.add_xp(PlayerProfile.selected_companion, rewards["xp"])
-		applied["xp"] = rewards["xp"]
+		var xp_amt: int = int(rewards["xp"])
+		PlayerProfile.add_xp(xp_amt)
+		if not PlayerProfile.selected_companion.is_empty():
+			var cid = PlayerProfile.selected_companion
+			if str(cid).is_valid_int():
+				CompanionSystem.add_xp(int(cid), xp_amt)
+		applied["xp"] = xp_amt
 
-	# Currency reward
+	# Currency reward → EconomyManager (coins)
 	if "currency" in rewards:
-		PlayerProfile.currency += rewards["currency"]
+		EconomyManager.add_coins(int(rewards["currency"]), "quest:%s" % str(quest.get("id", "")))
 		applied["currency"] = rewards["currency"]
+	if "coins" in rewards:
+		EconomyManager.add_coins(int(rewards["coins"]), "quest:%s" % str(quest.get("id", "")))
+		applied["coins"] = rewards["coins"]
 
 	# Title reward (affects identity seed)
 	if "title" in rewards:
-		PlayerProfile.titles.append(rewards["title"])
-		IdentityLens.lens_changed.emit()  # Trigger rebuild
+		PlayerProfile.add_title(str(rewards["title"]))
+		if IdentityLens:
+			IdentityLens.lens_changed.emit()
 		applied["title"] = rewards["title"]
 
 	# NPC relationship change
 	if "npc_disposition" in rewards:
 		for npc_id in rewards["npc_disposition"].keys():
-			NPCManager.adjust_disposition(npc_id, rewards["npc_disposition"][npc_id])
+			NPCDialogueSystem.adjust_disposition(str(npc_id), int(rewards["npc_disposition"][npc_id]))
 		applied["npc_disposition"] = rewards["npc_disposition"]
 
-	# Entity unlock
+	# Entity unlock — capture/companion path (never auto-unlock wilds elsewhere)
 	if "entity_unlock" in rewards:
 		for entity_id in rewards["entity_unlock"]:
 			EntityDexData.unlock_entity(entity_id)
@@ -146,7 +156,7 @@ func _execute_rewards(quest: Dictionary, progress: Dictionary) -> Dictionary:
 	# Faction reputation
 	if "faction_rep" in rewards:
 		for faction in rewards["faction_rep"].keys():
-			FactionManager.add_reputation(faction, rewards["faction_rep"][faction])
+			FactionManager.add_reputation(faction, int(rewards["faction_rep"][faction]))
 		applied["faction_rep"] = rewards["faction_rep"]
 
 	return applied
@@ -169,7 +179,7 @@ func _check_prerequisites(quest: Dictionary) -> bool:
 	# NPC disposition check
 	if "npc_min_disposition" in prereqs:
 		for npc_id in prereqs["npc_min_disposition"].keys():
-			var disp = NPCManager.get_disposition(npc_id)
+			var disp = NPCDialogueSystem.get_disposition(str(npc_id))
 			if disp < prereqs["npc_min_disposition"][npc_id]:
 				return false
 
@@ -193,11 +203,16 @@ func _load_quest_db() -> void:
 		var file_name = dir.get_next()
 		while file_name != "":
 			if file_name.ends_with(".json"):
-				var quest_data = JSON.parse_string(
-					ResourceLoader.load(quest_dir + file_name).get_text()
-				)
-				if quest_data and "id" in quest_data:
-					_quests[quest_data["id"]] = quest_data
+				var path: String = quest_dir + file_name
+				var f := FileAccess.open(path, FileAccess.READ)
+				if f:
+					var quest_data = JSON.parse_string(f.get_as_text())
+					if quest_data is Dictionary and "id" in quest_data:
+						_quests[quest_data["id"]] = quest_data
+					elif quest_data is Array:
+						for entry in quest_data:
+							if entry is Dictionary and "id" in entry:
+								_quests[entry["id"]] = entry
 			file_name = dir.get_next()
 
 # ── Query API ──────────────────────────────────────────────────────────────

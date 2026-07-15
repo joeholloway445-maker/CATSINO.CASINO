@@ -184,6 +184,8 @@ func _show_pvp_rankings() -> void:
 	box.add_child(ranking)
 
 func _launch(mode_id: String) -> void:
+	var mode := ArenaModes.by_id(mode_id)
+	var scene_path: String = str(mode.get("scene", ""))
 	match mode_id:
 		"race_arena":
 			get_tree().change_scene_to_file("res://scenes/games/racing/race_track.tscn")
@@ -191,7 +193,12 @@ func _launch(mode_id: String) -> void:
 			# Bracket team modes run through the tournament engine today.
 			get_tree().change_scene_to_file("res://scenes/ui/tournament.tscn")
 		_:
-			_simulate_match(mode_id)
+			if scene_path != "" and ResourceLoader.exists(scene_path):
+				# Remember which mode queued so the arena scene can read it.
+				Engine.set_meta("arena_queued_mode", mode_id)
+				get_tree().change_scene_to_file(scene_path)
+			else:
+				_simulate_match(mode_id)
 
 ## Placeholder resolution for modes without bespoke gameplay yet: your
 ## stats + entities vs the field, luck-rolled — pays tokens (arena = PvP)

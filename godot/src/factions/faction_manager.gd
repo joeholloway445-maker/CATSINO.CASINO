@@ -1,5 +1,6 @@
 extends Node
-class_name FactionManager
+# Autoload: FactionManager — reputation, joining, title milestones.
+# (No class_name: it would collide with the autoload singleton name.)
 
 signal faction_joined(faction: String)
 signal faction_left(faction: String)
@@ -39,7 +40,7 @@ func join_faction(faction: String) -> bool:
 		return false  # Need minimum reputation
 
 	_active_faction = faction
-	PlayerProfile.faction = faction
+	PlayerProfile.set_faction(faction)
 	faction_joined.emit(faction)
 	return true
 

@@ -75,6 +75,10 @@ func difficulty() -> float:
 ## it demands scales with your personal difficulty: the layer makes the
 ## hard cases walk further through their own hell before mercy arrives.
 func blessing_depth() -> int:
+	# Prototype mode keeps the spine playable in one sitting without
+	# changing production difficulty math.
+	if LayerManager.is_prototype_mode():
+		return 1
 	return 2 + int(round(difficulty() * 2.0))
 
 func blessing_ready() -> bool:

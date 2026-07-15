@@ -6,9 +6,10 @@ signal loading_complete()
 
 var _progress_bar: ProgressBar
 var _status_label: Label
-var _logo_label: Label
 var _progress: float = 0.0
 var _done: bool = false
+
+const LOGO_PATH := "res://assets/ui/logo.png"
 
 const LOADING_STEPS = [
 	"Initializing game world...",
@@ -35,15 +36,24 @@ func _build_ui() -> void:
 	add_child(center)
 
 	var vbox = VBoxContainer.new()
-	vbox.custom_minimum_size = Vector2(500, 300)
+	vbox.custom_minimum_size = Vector2(520, 420)
 	vbox.alignment = BoxContainer.ALIGNMENT_CENTER
 	center.add_child(vbox)
 
-	_logo_label = Label.new()
-	_logo_label.text = "PERILIMINAL.SPACE"
-	_logo_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	_logo_label.add_theme_font_size_override("font_size", 48)
-	vbox.add_child(_logo_label)
+	if ResourceLoader.exists(LOGO_PATH):
+		var logo := TextureRect.new()
+		logo.texture = load(LOGO_PATH)
+		logo.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		logo.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		logo.custom_minimum_size = Vector2(320, 320)
+		logo.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+		vbox.add_child(logo)
+	else:
+		var logo_label := Label.new()
+		logo_label.text = "PERILIMINAL.SPACE"
+		logo_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		logo_label.add_theme_font_size_override("font_size", 48)
+		vbox.add_child(logo_label)
 
 	var tagline = Label.new()
 	tagline.text = "Six realities. One of you."

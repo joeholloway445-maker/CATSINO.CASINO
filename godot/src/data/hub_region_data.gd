@@ -20,7 +20,7 @@ const HUBS: Array[Dictionary] = [
 		"real_world": "Arlington",
 		"faction": "neutral",
 		"description": "The neutral heart of the Metroplex and the factionless starting city — sanctuary for everyone, home to no one. ONLY city with the Arena, the College, and the Space Station gate; also carries the full civic set (markets, banks, armorers, blacksmiths, stockyards, wager hall).",
-		"scene_path": "res://scenes/worlds/hubs/arlington.tscn",
+		"scene_path": "res://hdv_lore/scenes/worlds/hubs/arlington.tscn",
 		"chunk_bounds": {"x": -2, "y": -3, "w": 6, "h": 6},
 		"districts": ["marketplace", "arena", "university", "space_station"],
 	},
@@ -29,7 +29,8 @@ const HUBS: Array[Dictionary] = [
 		"real_world": "Dallas",
 		"faction": "SovereignCrown",
 		"description": "SovereignCrown seat — the old skyline rebuilt taller, crowned in gold. The spires kept their bones; the city kept nothing else.",
-		"scene_path": "res://scenes/worlds/hubs/dallas.tscn",
+		## Dedicated hub .tscn not authored yet — enter via Supraliminal open world.
+		"scene_path": "res://scenes/layers/supraliminal.tscn",
 		"chunk_bounds": {"x": 8, "y": -4, "w": 8, "h": 8},
 	},
 	{
@@ -37,7 +38,7 @@ const HUBS: Array[Dictionary] = [
 		"real_world": "Fort Worth",
 		"faction": "VeiledCurrent",
 		"description": "VeiledCurrent haunt — named for the old red-light quarter that never really closed. Stockyards, river channels, and deals made in the dark between them.",
-		"scene_path": "res://scenes/worlds/hubs/fort_worth.tscn",
+		"scene_path": "res://scenes/layers/supraliminal.tscn",
 		"chunk_bounds": {"x": -12, "y": -4, "w": 8, "h": 8},
 	},
 	{
@@ -45,7 +46,7 @@ const HUBS: Array[Dictionary] = [
 		"real_world": "Denton",
 		"faction": "WildlandsAscendant",
 		"description": "WildlandsAscendant reach — the courthouse square drowned in green, the lowlands north of the Metroplex carved open to the sky.",
-		"scene_path": "res://scenes/worlds/hubs/denton.tscn",
+		"scene_path": "res://scenes/layers/supraliminal.tscn",
 		"chunk_bounds": {"x": -4, "y": -14, "w": 8, "h": 8},
 	},
 ]
