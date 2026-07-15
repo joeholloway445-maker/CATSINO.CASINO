@@ -215,4 +215,12 @@ gdscript/warnings/inferred_declaration=0
 
 [editor_plugins]
 
-enabled=PackedStringArray("res://addons/terrain_3d/plugin.cfg")
+; terrain_3d DELIBERATELY not enabled here: when its GDExtension fails to
+; load (as it does in the godot-ci container), the enabled editor plugin
+; throws parse errors and pops MODAL error dialogs — which in headless CI
+; hang `godot --import` forever (6h timeout kills it; confirmed via run
+; 29177454189's logs). Runtime terrain doesn't need the plugin: TerrainBridge
+; probes for Terrain3D classes and falls back to ProceduralTerrain. Enable
+; the plugin locally in the editor (Project Settings -> Plugins) for
+; terrain sculpting sessions only; never commit it enabled.
+enabled=PackedStringArray()

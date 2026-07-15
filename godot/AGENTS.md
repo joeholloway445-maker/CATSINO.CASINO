@@ -350,6 +350,22 @@ go stale the way the other two did.
   just no-ops green. `boot_smoke.gd` (`src/dev/boot_smoke.gd`) is NOT
   wired into CI at all — manual/local only (`godot --headless --path
   godot -s res://src/dev/boot_smoke.gd`).
+- **CI hang root-caused and fixed (2026-07-15).** Every CI run since
+  Terrain3D landed (2026-07-12) hung on the "Web export" step for
+  exactly 6 hours until GitHub's default timeout killed it — zero
+  successful validations of anything in that window. Cause (from run
+  29177454189's logs): `[editor_plugins]` had `terrain_3d` enabled; its
+  GDExtension fails to load inside the godot-ci container, the enabled
+  editor plugin then hits parse errors, and the editor pops MODAL error
+  dialogs — in headless mode nothing can dismiss them, so `--import`
+  waits forever. Fixes: terrain_3d plugin disabled in project.godot
+  (runtime is unaffected — TerrainBridge probes for the classes and
+  falls back to ProceduralTerrain; the plugin is editor-UI only, enable
+  it locally for sculpting sessions and never commit it enabled), and
+  `timeout-minutes` caps on both CI jobs so any future hang fails in 30
+  minutes with fetchable logs instead of silently eating 6 hours. RULE:
+  never commit an enabled editor plugin whose load can fail headless —
+  a failing plugin doesn't error out in CI, it hangs it.
 - **Web export preset EXISTS** (`godot/export_presets.cfg` has Windows/
   Linux/macOS/Web, Web pointed at `../builds/html5/index.html` matching
   what CI/nginx expect) — Build order step 4 is further along than
