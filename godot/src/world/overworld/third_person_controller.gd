@@ -234,13 +234,10 @@ func _physics_process(delta: float) -> void:
 
 	if is_on_floor() and (Input.is_action_just_pressed("ui_accept") or TouchControls.consume_jump()):
 		velocity.y = JUMP_VELOCITY
-	# Touch E: replay as a real key event so every venue/door/hideout
-	# interaction hears it without knowing about touch.
-	if TouchControls.consume_interact():
-		var ev := InputEventKey.new()
-		ev.keycode = KEY_E
-		ev.pressed = true
-		Input.parse_input_event(ev)
+	# Touch E replay moved to TouchControls._process() itself (always
+	# running regardless of whether this controller's _physics_process is
+	# enabled — it gets disabled while piloting a vehicle, which would
+	# otherwise silently break the touch exit-vehicle button).
 
 	if dir.length() > 0.1 and is_instance_valid(_body_mesh):
 		var target_yaw := atan2(dir.x, dir.z)

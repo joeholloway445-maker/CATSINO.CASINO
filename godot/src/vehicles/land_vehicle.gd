@@ -96,21 +96,20 @@ func _unhandled_input(event: InputEvent) -> void:
 	seat.try_toggle(event)
 
 func _physics_process(delta: float) -> void:
+	seat.update_world_discovery()
 	if seat.driver == null:
 		engine_force = 0.0
 		brake = 1.0
 		return
 	brake = 0.0
 
-	_steer_target = Input.get_action_strength("move_left") - Input.get_action_strength("move_right")
-	_steer_target *= STEER_LIMIT
+	_steer_target = VehicleSeat.turn_axis() * STEER_LIMIT
 	steering = move_toward(steering, _steer_target, STEER_SPEED * delta)
 
-	var throttle := Input.get_action_strength("move_forward")
-	var reverse := Input.get_action_strength("move_back")
-	if throttle > 0.0:
-		engine_force = ENGINE_FORCE * throttle
-	elif reverse > 0.0:
-		engine_force = -ENGINE_FORCE * BRAKE_STRENGTH * reverse
+	var throttle_axis := VehicleSeat.throttle_axis()
+	if throttle_axis > 0.0:
+		engine_force = ENGINE_FORCE * throttle_axis
+	elif throttle_axis < 0.0:
+		engine_force = ENGINE_FORCE * BRAKE_STRENGTH * throttle_axis
 	else:
 		engine_force = 0.0

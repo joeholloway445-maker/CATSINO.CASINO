@@ -66,13 +66,14 @@ func _unhandled_input(event: InputEvent) -> void:
 	seat.try_toggle(event)
 
 func _physics_process(_delta: float) -> void:
+	seat.update_world_discovery()
 	if seat.driver == null:
 		return
 
-	var thrust := Input.get_action_strength("move_forward") - Input.get_action_strength("move_back")
-	var yaw := Input.get_action_strength("move_left") - Input.get_action_strength("move_right")
-	var vertical := Input.get_action_strength("jump") - Input.get_action_strength("sprint")
-	var roll := Input.get_action_strength("roll_right") - Input.get_action_strength("roll_left")
+	var thrust := VehicleSeat.throttle_axis()
+	var yaw := VehicleSeat.turn_axis()
+	var vertical := VehicleSeat.vertical_axis()
+	var roll := VehicleSeat.roll_axis()
 
 	apply_central_force(-global_transform.basis.z * THRUST * thrust)
 	apply_central_force(global_transform.basis.y * VERTICAL_THRUST * vertical)

@@ -76,10 +76,11 @@ func _unhandled_input(event: InputEvent) -> void:
 
 func _physics_process(delta: float) -> void:
 	_apply_buoyancy(delta)
+	seat.update_world_discovery()
 	if seat.driver == null:
 		return
-	var throttle := Input.get_action_strength("move_forward") - Input.get_action_strength("move_back")
-	var turn := Input.get_action_strength("move_left") - Input.get_action_strength("move_right")
+	var throttle := VehicleSeat.throttle_axis()
+	var turn := VehicleSeat.turn_axis()
 	apply_central_force(-global_transform.basis.z * ENGINE_FORCE * throttle)
 	apply_torque(Vector3.UP * TURN_TORQUE * turn * -1.0)
 	# Water drag: bleed lateral/vertical velocity so the boat doesn't slide

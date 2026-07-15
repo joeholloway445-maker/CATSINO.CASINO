@@ -70,12 +70,16 @@ func _unhandled_input(event: InputEvent) -> void:
 	seat.try_toggle(event)
 
 func _physics_process(delta: float) -> void:
+	seat.update_world_discovery()
 	if seat.driver == null:
 		return
 
-	var throttle := Input.get_action_strength("move_forward") - Input.get_action_strength("move_back") * 0.5
-	var roll_input := Input.get_action_strength("move_left") - Input.get_action_strength("move_right")
-	var vertical := Input.get_action_strength("jump") - Input.get_action_strength("sprint")
+	var throttle_axis := VehicleSeat.throttle_axis()
+	# Reverse thrust is weaker than forward — planes don't really have
+	# full-power reverse.
+	var throttle := throttle_axis if throttle_axis > 0.0 else throttle_axis * 0.5
+	var roll_input := VehicleSeat.turn_axis()
+	var vertical := VehicleSeat.vertical_axis()
 
 	apply_central_force(-global_transform.basis.z * FORWARD_THRUST * throttle)
 	apply_central_force(Vector3.UP * VERTICAL_THRUST * vertical)
