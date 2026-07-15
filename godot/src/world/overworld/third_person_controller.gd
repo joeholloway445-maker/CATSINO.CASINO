@@ -172,6 +172,12 @@ func _build_camera() -> void:
 	_spring.add_child(_camera)
 	_update_camera_rotation()
 
+## Public accessor so external systems (e.g. VehicleSeat handing camera
+## control back on exit) don't need to guess this controller's internal
+## node structure/paths.
+func get_camera() -> Camera3D:
+	return _camera
+
 const TOUCH_LOOK_SENSITIVITY := 0.006
 
 func _unhandled_input(event: InputEvent) -> void:
