@@ -17,7 +17,12 @@ static func build_starting_stats(race_id: String, faction: String, frame_id: Str
 	return base
 
 static func validate_name(name: String) -> bool:
-	return name.length() >= 2 and name.length() <= 20 and name.is_valid_identifier()
+	var trimmed := name.strip_edges()
+	if trimmed.length() < 2 or trimmed.length() > 20:
+		return false
+	# Allow spaces between words; reject control / punctuation noise.
+	var cleaned := trimmed.replace(" ", "")
+	return cleaned.is_valid_identifier()
 
 static func get_starter_companions(faction: String) -> Array[String]:
 	match faction:
@@ -37,10 +42,11 @@ static func apply_creation(race_id: String, faction: String, frame_id: String, n
 	PlayerProfile.set_faction(faction)
 	PlayerProfile.set_race(race_id)
 	PlayerProfile.set_frame(frame_id)
-	PlayerProfile.username = name
+	PlayerProfile.username = name.strip_edges()
 	var companions := get_starter_companions(faction)
 	for c in companions:
 		if c not in PlayerProfile.active_companion_ids:
 			PlayerProfile.active_companion_ids.append(c)
 	PlayerProfile.has_expedition = true
+	PlayerProfile._save()
 	PlayerProfile.profile_updated.emit()

@@ -147,6 +147,31 @@ def main() -> int:
     else:
         fail("catsino ENV_SETUP still broken")
 
+    print("== offline casino + hyperliminal hub ==")
+    check_exists("src/games/offline_casino.gd", "offline_casino")
+    nm = (GODOT / "src/networking/network_manager.gd").read_text()
+    if "OfflineCasino" in nm:
+        ok("NetworkManager routes offline casino RPCs")
+    else:
+        fail("NetworkManager missing OfflineCasino fallback")
+    rl = (GODOT / "src/layers/reality_layers.gd").read_text()
+    if 'id="hyperliminal"' in rl and "paw_vegas_hub.tscn" in rl:
+        ok("hyperliminal exits to paw_vegas_hub")
+    else:
+        fail("hyperliminal still not paw_vegas_hub")
+    if "main_menu.tscn" in rl.split("hyperliminal")[1].split("liminal")[0] if "hyperliminal" in rl else "":
+        fail("hyperliminal still points at main_menu")
+    dt = (GODOT / "src/world/district_transition.gd").read_text()
+    if '"paw_vegas":' in dt and "paw_vegas_hub.tscn" in dt:
+        ok("DistrictTransition paw_vegas → hub")
+    else:
+        fail("DistrictTransition paw_vegas still not hub")
+    al = (GODOT / "src/core/asset_library.gd").read_text()
+    if "looped: bool = false" in al or "looped := false" in al:
+        ok("AssetLibrary.sound defaults to one-shot")
+    else:
+        fail("AssetLibrary.sound still force-loops all SFX")
+
     print()
     if failures:
         print(f"{len(failures)} failure(s)")

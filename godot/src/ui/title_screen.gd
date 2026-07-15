@@ -127,13 +127,14 @@ func _build_ui() -> void:
 
 func _start_prototype_spine() -> void:
 	LayerManager.enable_prototype_mode(true)
-	# Ensure Continue/identity systems have something to read.
+	# Ensure Continue/identity systems have something to read — and persist it.
 	if not PlayerProfile.has_expedition:
 		PlayerProfile.set_race(PlayerProfile.selected_race_id)
-		PlayerProfile.selected_frame = "veil"
-		PlayerProfile.selected_mod = "catalyst"
-		PlayerProfile.faction = "Factionless"
+		PlayerProfile.set_frame("veil")
+		PlayerProfile.set_mod("catalyst")
+		PlayerProfile.set_faction("Factionless")
 		PlayerProfile.has_expedition = true
+		PlayerProfile._save()
 	NotificationUI.notify_info("Prototype spine armed. Walk the Metroplex archway — the Between is already watching.")
 	LayerManager.transition_to("liminal", true)
 

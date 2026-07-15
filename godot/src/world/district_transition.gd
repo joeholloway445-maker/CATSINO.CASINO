@@ -6,7 +6,7 @@ signal transition_started(from_district: String, to_district: String)
 signal transition_finished(district: String)
 
 const DISTRICT_SCENES = {
-	"paw_vegas":     "res://scenes/world/main.tscn",
+	"paw_vegas":     "res://scenes/world/paw_vegas_hub.tscn",
 	"cat_coliseum":  "res://scenes/world/cat_coliseum.tscn",
 	"neon_alley":    "res://scenes/world/neon_alley.tscn",
 	"cat_forest":    "res://scenes/world/cat_forest.tscn",

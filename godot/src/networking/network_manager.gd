@@ -7,6 +7,9 @@ extends Node
 # populated, so every call_rpc() caller (slots, racing, combat, guilds,
 # leaderboards, shop, tournaments, gacha, quests) silently failed with
 # 401 "Not authenticated" even after a successful login.
+#
+# When offline / unauthenticated, casino RPCs (slots / blackjack / poker)
+# resolve locally via OfflineCasino so Play Offline still has working tables.
 
 signal connected()
 signal disconnected()
@@ -23,6 +26,12 @@ func call_rpc(rpc_id: String, payload: Variant, callback: Callable) -> void:
 	var client = _get_client()
 	var session = _get_session()
 	if not client or not session or session.is_expired():
+		if OfflineCasino.supports(rpc_id):
+			var local: Dictionary = await OfflineCasino.resolve(rpc_id, payload)
+			if local.get("error") and not local.get("success", false):
+				rpc_error.emit(401, str(local.get("error", "Not authenticated")))
+			callback.call(local)
+			return
 		rpc_error.emit(401, "Not authenticated")
 		callback.call({"success": false, "error": "Not authenticated"})
 		return

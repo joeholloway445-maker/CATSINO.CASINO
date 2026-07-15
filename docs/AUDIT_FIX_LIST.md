@@ -22,6 +22,10 @@ Tracked from the 2026-07-15 code audit. Check items off as they land.
 - [x] NotificationUI plays AssetLibrary UI SFX
 - [x] MainMenu `class_name` collision with maaacks removed
 - [x] profiles.frame default → skirmisher (migration **035**)
+- [x] Offline casino resolvers (slots / blackjack / poker via OfflineCasino)
+- [x] Hyperliminal exit → Paw Vegas hub; DistrictTransition path unified
+- [x] Character creator / Continue Expedition persistence + spaced names
+- [x] AssetLibrary one-shot SFX (ambience opt-in loop) + Hope telemetry soft-fail
 
 ## Still open (content / infra)
 
@@ -36,3 +40,4 @@ Tracked from the 2026-07-15 code audit. Check items off as they land.
 
 - Apply `034_player_anomalies.sql` and `035_profiles_frame_default.sql` on shared Supabase.
 - `python3 scripts/audit_smoke_check.py` guards wiring without Godot.
+- Offline casino mirrors Nakama payout tables in `godot/src/games/offline_casino.gd`.
