@@ -275,6 +275,74 @@ this goal is locked.
    after a zero-error smoke open. Prefer pure-GDScript (web export).
 8. **Real multiplayer**: wire NetworkManager/Nakama beyond presence bots.
 
+## Current status snapshot (last checked 2026-07-15 — re-verify, don't trust)
+
+This section exists because two "status" docs in `docs/` (`IMPLEMENTATION_STATUS.md`,
+`LAUNCH_CHECKLIST_AND_ROADMAP.md`) are point-in-time snapshots that predate
+the world-building/visual work below and read as more pessimistic than
+current reality. **`docs/V01_GOTY.md`'s gate table is the one to trust**;
+this section is the most recent concrete read against it. Update this
+section (with today's date) whenever you re-verify a gate — don't let it
+go stale the way the other two did.
+
+- **Gate 1 (zero script errors) / Gate 2 (boot path): STATUS UNKNOWN, NOT
+  STALE-PASS.** `V01_GOTY.md` marks both "Done (PR #22)" / "Done (boot_smoke
+  PASS)", but that was recorded before at least 5 subsequent commits
+  (vehicle/spawn-point pass, NPC population system, two GLB asset passes,
+  a PBR texture pass) — none of which have been opened in an actual Godot
+  editor or exercised by CI. **Do not assume they still hold.** First
+  action on this project, every session: re-run the error-collection
+  procedure at the top of this file before trusting anything past it.
+- **CI (`godot-ci.yml`) only triggers on push to `main` or an open PR** —
+  it does NOT run on every push to a feature branch. Check
+  `Actions → godot-ci` and match run SHAs against `git log` before
+  assuming a branch's current head has been validated. A green run on an
+  old SHA tells you nothing about later commits on the same branch.
+  `godot-ci` runs a real headless Web export (`godot --headless
+  --export-release Web`) — a failure there is a real parse/import
+  failure. It also runs gdUnit4 tests IF `godot/test/*.gd` files exist;
+  as of this snapshot that directory is empty, so that step just skips.
+  `boot_smoke.gd` (`src/dev/boot_smoke.gd`) is NOT wired into CI at all —
+  it's a manual/local check only (`godot --headless --path godot -s
+  res://src/dev/boot_smoke.gd`).
+- **Web export preset EXISTS** (`godot/export_presets.cfg` has Windows/
+  Linux/macOS/Web, Web pointed at `../builds/html5/index.html` matching
+  what CI/nginx expect) — Build order step 4 is further along than
+  "Next" in `V01_GOTY.md` suggests; it still needs a real green CI run
+  to confirm it actually works end to end, not just that the file exists.
+- **Addons: all 8 recommended in `docs/ADDONS.md` are already vendored**
+  in `godot/addons/` (Dialogue Manager, Phantom Camera, Beehave, GLoot,
+  Maaack's Menus Template, Panku Console, gdUnit4, Terrain3D). Only
+  `Terrain3D` is enabled in `project.godot`'s `[editor_plugins]` — this
+  is INTENTIONAL, not unfinished work (`docs/ADDONS.md`: "do not enable
+  plugins until a smoke open confirms zero parse errors"). Do not
+  re-fetch or re-install any of these; the only remaining step is
+  enabling them one at a time, in the editor, after Gate 1 is
+  re-confirmed clean.
+- **Audio: `godot/assets/audio/` has nothing but `.gitkeep`.** Zero SFX,
+  music, ambience, or UI sound has been sourced — this is a real, total
+  gap, not started, distinct from the visual-asset work below which has
+  had two full passes.
+- **Model slots still empty** (per `docs/SHIPPING.md`'s own shopping
+  table, never sourced despite being called out there): `player_cat`,
+  `npc_cat`, `creature`, `tree`, `crystal`, `ruin_pillar`,
+  `extraction_gate`, `harvest_node`, `apartment_prop`,
+  `vehicle_aircraft_body` (no CC0 source found — see
+  `assets/models/ATTRIBUTION.md`). Filled so far: vehicle car/boat/
+  spacecraft bodies + variant pools, all four city building types +
+  variant pools, road/sidewalk/streetlight/prop, five PBR facade/ground
+  texture sets (see `assets/models/ATTRIBUTION.md` and
+  `assets/textures/ATTRIBUTION.md` for exact sources/licenses).
+- **Human mesh gap** (full detail in the NPC population bullet above and
+  `assets/models/ATTRIBUTION.md`): the installed `player_human.glb` is a
+  sci-fi robot (tps-demo), not a human, despite its name and older
+  comments. No CC0/MIT photoreal human GLB was found that doesn't
+  require a Blender/MakeHuman export step — that step hasn't been run by
+  anyone yet. Don't re-litigate the search; `docs/ASSET_SHOPPING_LIST.md`
+  has the full source-by-source verdict (including why RenderPeople/
+  TurboSquid/CGTrader free tiers are NOT safe to commit — free-to-download
+  ≠ safe-to-redistribute, and a git push IS redistribution).
+
 ## Conventions
 
 - Tabs for indentation. `:=` where the type is inferable. `class_name`
