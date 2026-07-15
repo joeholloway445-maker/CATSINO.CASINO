@@ -49,23 +49,29 @@ else
   exit 1
 fi
 
-# ── 4. Create build/web directory if Godot export was not done yet ─────────────
+# ── 4. Godot HTML5 build (builds/html5 from export_web.sh) ───────────────────
 echo -e "${BOLD}[4/5] Checking Godot HTML5 build...${RESET}"
-if [ -d "build/web" ] && [ -f "build/web/index.html" ]; then
+if [ -f "builds/html5/index.html" ]; then
+  mkdir -p build/web
+  cp -a builds/html5/. build/web/
+  echo -e "  ${GREEN}✓${RESET} builds/html5/ ready (also synced to build/web/)"
+elif [ -d "build/web" ] && [ -f "build/web/index.html" ]; then
   echo -e "  ${GREEN}✓${RESET} build/web/ found"
 else
-  mkdir -p build/web
+  mkdir -p build/web builds/html5
   cat > build/web/index.html <<'EOF'
 <!DOCTYPE html>
 <html><head><title>Game loading...</title></head>
 <body style="background:#000;color:#fff;font-family:monospace;text-align:center;padding-top:20%">
-  <h2>🐱 CATSINO.CASINO</h2>
-  <p>Game build not yet deployed. Run the Godot headless export and copy build/web/ here.</p>
-  <pre>godot --headless --export-release "Web" build/web/index.html</pre>
+  <h2>PERILIMINAL.SPACE</h2>
+  <p>Game build not yet deployed. On a machine with Godot 4.3:</p>
+  <pre>bash scripts/export_web.sh</pre>
+  <p>Then re-run this deploy script.</p>
 </body></html>
 EOF
+  cp build/web/index.html builds/html5/index.html
   echo -e "  ${YELLOW}⚠${RESET}  No Godot HTML5 build found. Placeholder page deployed."
-  echo -e "     Run: godot --headless --export-release \"Web\" build/web/index.html"
+  echo -e "     Run: bash scripts/export_web.sh"
 fi
 
 # ── 5. Start / rebuild services ───────────────────────────────────────────────
