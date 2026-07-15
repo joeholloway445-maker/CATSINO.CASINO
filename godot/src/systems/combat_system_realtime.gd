@@ -465,16 +465,77 @@ func end_combat(combat_id: String) -> void:
 	}
 
 	combat_ended.emit(winner_id, loser_id, stats)
-	entity_defeated.emit(loser_id, winner_id, [])  # TODO: Loot generation
+
+	var loot := _generate_loot(combat)
+	entity_defeated.emit(loser_id, winner_id, loot)
+
+	if winner_id == PLAYER_ACTOR_ID:
+		_grant_victory_rewards(loot, stats)
+
+## Real reward-granting on player victory, mirroring combat_manager.gd's
+## (the networked-combat system's) proven pattern — same quest-trigger
+## vocabulary ("enter_combat"/"win_combat") so existing quest data works
+## with zero changes, same NotificationUI/AchievementManager/XPManager/
+## EconomyManager calls. Previously this whole path was a TODO with an
+## empty loot array and nothing granted on any win.
+func _grant_victory_rewards(loot: Array, stats: Dictionary) -> void:
+	var coins := 20 + int(stats.get("player_damage", 0)) * 2
+	EconomyManager.add_coins(coins, "combat_victory")
+	for item in loot:
+		InventoryManager.add_item(item)
+	XPManager.award_game("combat", true)
+	AchievementManager.check("battle_win")
+	QuestManager.update_progress("enter_combat")
+	QuestManager.update_progress("win_combat")
+	var loot_text := "" if loot.is_empty() else " + %d item(s)" % loot.size()
+	NotificationUI.notify_win("Victory! +%d coins%s ⚔️" % [coins, loot_text])
+
+## Simple procedural loot table — no per-entity loot definitions exist yet
+## (EntityDexData carries only lore text, no combat/reward data), so this
+## rolls a generic currency-adjacent item drop scaled by fight length
+## rather than leaving loot empty. Replace with real per-entity tables
+## once EntityDexData gains stat/reward fields.
+func _generate_loot(combat: Dictionary) -> Array:
+	var loot := []
+	var duration: float = combat.get("duration", 0.0)
+	var roll_count := 1 + int(duration / 15.0)
+	for i in range(mini(roll_count, 3)):
+		if randf() < 0.4:
+			loot.append({"id": "material_crystal_shard", "quantity": randi_range(1, 3)})
+	return loot
 
 func move_actor(actor_id: String, new_position: Vector2) -> void:
 	"""Move actor in real-time (for positioning-based abilities)"""
 	player_positions[actor_id] = new_position
 
+## Matches combat_ui.gd's DEFAULT_PLAYER_ID — NOT the same identity as
+## VehicleSeat.PLAYER_ID ("local_player"), which is unrelated (world-
+## discovery tracking, a different subsystem entirely). Every real caller
+## of start_combat()/use_ability() in the reachable game uses "player".
+const PLAYER_ACTOR_ID := "player"
+var _actor_stats: Dictionary = {} # actor_id -> {"strength": int, "defense": int, ...}
+
+## Registers real stats for a non-player actor (enemy) before combat
+## starts — see EntityCombatSpawner, which derives a stat block from the
+## encountered entity's faction/stage. Actors that never register (or the
+## player, resolved live below) fall back to a reasonable default instead
+## of silently returning the same flat 10 for everyone, which is what this
+## function did previously — every fight was mechanically identical
+## regardless of who or what you were fighting.
+func register_actor_stats(actor_id: String, stats: Dictionary) -> void:
+	_actor_stats[actor_id] = stats
+
 func get_actor_stat(actor_id: String, stat_name: String) -> int:
-	"""Get actor stat (placeholder - would pull from character progression)"""
-	# TODO: Integration with CharacterProgression system
-	return 10  # Default stat value
+	if actor_id == PLAYER_ACTOR_ID and has_node("/root/PlayerProfile"):
+		var profile := get_node("/root/PlayerProfile")
+		var built := CharacterCreatorLogic.build_starting_stats(
+			str(profile.get("selected_race_id")), str(profile.get("faction")), str(profile.get("selected_frame")))
+		var level := int(profile.get("level")) if profile.get("level") != null else 1
+		var key := {"strength": "pow", "defense": "res", "speed": "spd", "luck": "lck"}.get(stat_name, stat_name)
+		return int(built.get(key, 10)) + level * 2
+	if _actor_stats.has(actor_id):
+		return int(_actor_stats[actor_id].get(stat_name, 10))
+	return 10 # Unregistered actor — default, not player-scaled.
 
 func get_energy_level(actor_id: String) -> float:
 	"""Get current energy as percentage (0-1)"""

@@ -130,6 +130,7 @@ func _build_chunk(coord: Vector2i) -> Node3D:
 
 	_scatter_props(root, chunk, size)
 	ChunkContentSpawner.spawn(root, chunk, coord, size, _terrain_bridge())
+	EntityCombatSpawner.spawn(root, chunk, coord, size, _terrain_bridge())
 	return root
 
 ## ChunkContentSpawner needs TerrainBridge's public height_at() for

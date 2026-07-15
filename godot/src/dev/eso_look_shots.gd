@@ -27,7 +27,6 @@ func _run() -> void:
 		["eso_02_liminal", "res://scenes/layers/liminal.tscn"],
 		["eso_03_supraliminal", "res://scenes/layers/supraliminal.tscn"],
 		["eso_04_periliminal", "res://scenes/layers/periliminal.tscn"],
-		["eso_05_overworld", "res://scenes/world/overworld.tscn"],
 	]:
 		var id: String = entry[0]
 		var path: String = entry[1]

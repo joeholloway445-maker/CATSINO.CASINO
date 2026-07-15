@@ -60,7 +60,7 @@ func _build_ui() -> void:
 		{label="🛒 Shop", sig="open_shop"},
 		{label="🏆 Achievements", sig="open_achievements"},
 		{label="🌐 Game Modes", sig="open_game_modes", scene="res://scenes/ui/game_mode_store.tscn"},
-		{label="🗺️ Overworld", sig="", scene="res://scenes/world/overworld.tscn"},
+		{label="🗺️ Overworld", sig="", scene="res://scenes/layers/supraliminal.tscn"},
 		{label="🌀 Reality Layers", sig="", scene="res://scenes/layers/layer_select.tscn"},
 		{label="🌗 Ascension", sig="", scene="res://scenes/ui/ascension.tscn"},
 		{label="🔴 The PVXC", sig="", scene="res://scenes/pvxc/pvxc_gate.tscn"},

@@ -255,12 +255,70 @@ func _get_schedule() -> Dictionary:
 		return {"name": "vendor", "hours": "8-18", "availability": 0.8}
 	return schedules[_rng.randi() % schedules.size()].duplicate()
 
-func _generate_quest_ids(archetype_id: String, layer: String) -> Array:
-	# ~30% of NPCs can point the player at their archetype's layer quest
-	# hook (quest content itself lives with QuestManager / world_data).
+func _generate_greeting(name: String, archetype_id: String, disposition: Dictionary, layer: String) -> String:
+	var greetings := {
+		"barista": [
+			"What can I get you?",
+			"Welcome! First time here?",
+			"The usual, or something new?",
+			"You look like you need a break.",
+			"Take a seat, relax for a moment."
+		],
+		"archivist": [
+			"Ah, another curious mind.",
+			"I've been expecting someone like you.",
+			"The knowledge you seek is... complicated.",
+			"Have you come to learn?",
+			"The past holds many secrets."
+		],
+		"authority": [
+			"State your business.",
+			"You're in our territory now.",
+			"We maintain order here.",
+			"Everything runs smoothly under our watch.",
+			"Peace through strength."
+		],
+		"lover": [
+			"Well, well, well... who do we have here?",
+			"Charmed to make your acquaintance.",
+			"I think we're going to be great friends.",
+			"You have excellent taste.",
+			"Let me show you something special."
+		],
+		"reflection": [
+			"Interesting... I see something in you.",
+			"The mirror shows what's hidden.",
+			"Not everyone can perceive this place as you do.",
+			"You're asking the right questions.",
+			"Truth wears many faces."
+		]
+	}
+
+	var greeting_pool = greetings.get(archetype_id, ["Hello."])
+	var base_greeting = greeting_pool[_rng.randi() % greeting_pool.size()]
+
+	# Modify by disposition and layer
+	if disposition.greeting_shift < -0.2:
+		return "[%s seems uninterested] %s" % [name, base_greeting]
+	elif layer == "periliminal":
+		return "[%s speaks from the void] %s" % [name, base_greeting]
+	else:
+		return base_greeting
+
+## Was fabricating "quest_%d" ids matching nothing real — every generated
+## NPC's quest hook was a dead reference. Samples a real, registered quest
+## id from QuestManager instead (autoloads, including FactionQuestBridge/
+## WorldQuestBridge which populate the dynamic quest pool, always finish
+## _ready() before any in-game NPC generation runs). archetype_id/layer
+## are accepted for call-site compatibility and future faction/layer-
+## aware filtering, not yet used to narrow the pool.
+func _generate_quest_ids(_archetype_id: String, _layer: String) -> Array:
+	var result: Array = []
 	if _rng.randf() < 0.3:
-		return ["hook_%s_%s" % [archetype_id, layer]]
-	return []
+		var pool: Array[Dictionary] = QuestManager.all_quests()
+		if not pool.is_empty():
+			result.append(str(pool[_rng.randi() % pool.size()].get("id", "")))
+	return result
 
 func _generate_shop_id(archetype_id: String, district: String) -> String:
 	var shop_types := {
