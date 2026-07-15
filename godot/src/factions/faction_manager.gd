@@ -39,7 +39,7 @@ func join_faction(faction: String) -> bool:
 		return false  # Need minimum reputation
 
 	_active_faction = faction
-	PlayerProfile.faction = faction
+	PlayerProfile.set_faction(faction)
 	faction_joined.emit(faction)
 	return true
 

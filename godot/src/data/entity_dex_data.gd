@@ -339,3 +339,10 @@ static func stage_for(line: Dictionary, max_stage: int) -> Dictionary:
 		if not stages[s].is_empty():
 			return stages[s]
 	return {}
+
+## Quest/dialogue reward unlock — bonds via CompanionSystem (capture path).
+## Never invent a catch-without-fight path; this is reward-granted only.
+static func unlock_entity(entity_id) -> void:
+	if entity_id == null or str(entity_id).is_empty():
+		return
+	CompanionSystem.unlock_companion(entity_id)
