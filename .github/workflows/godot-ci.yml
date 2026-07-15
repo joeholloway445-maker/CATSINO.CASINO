@@ -98,7 +98,15 @@ jobs:
             if [ ! -f .godot/global_script_class_cache.cfg ]; then
               echo "Class cache missing after editor quit — falling back to Python smoke checks."
               cd ..
-              python3 scripts/audit_smoke_check.py
+              if command -v python3 >/dev/null 2>&1; then
+                python3 scripts/audit_smoke_check.py
+              elif command -v python >/dev/null 2>&1; then
+                python scripts/audit_smoke_check.py
+              else
+                echo "No python interpreter in image — installing python3."
+                apt-get update -qq && apt-get install -y -qq python3 >/dev/null
+                python3 scripts/audit_smoke_check.py
+              fi
               exit $?
             fi
             "$GODOT_BIN" --headless --path . -s -d res://addons/gdUnit4/bin/GdUnitCmdTool.gd \
