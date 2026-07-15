@@ -23,6 +23,33 @@ files in — no code changes. Same pattern for city textures
 (`godot/assets/textures/`) and city ambience loops
 (`godot/assets/audio/`).
 
+**Done (verified CC0, downloaded, wired):** vehicle bodies (car/boat/
+spacecraft) and city slots (tower/lowrise/house/industrial/road/sidewalk/
+streetlight/prop) — all from Kenney's Car Kit, Watercraft Kit, Space Kit,
+and the four City Kit packs. Full source list + exact file mapping in
+[`godot/assets/models/ATTRIBUTION.md`](../godot/assets/models/ATTRIBUTION.md).
+`vehicle_aircraft_body.glb` stays empty — no equivalent CC0 aircraft
+pack was found (Kenney has teased one, unreleased as of this writing).
+
+**Checked and rejected/deferred for realistic HUMANS** (the ESO-realism
+bar needs photoreal proportions, not stylized/toon):
+
+| Source | Verdict |
+|---|---|
+| Kenney (Blocky/Mini Characters) | CC0, but stylized/low-poly — fails the realism bar |
+| Quaternius (Ultimate Modular Men, etc.) | CC0, but stylized — same issue |
+| Poly Pizza / OpenGameArt "CC0 humanoids" | CC0, but low-poly/cartoonish across everything checked |
+| **Blender Studio Human Base Meshes** | **CC0, genuinely photorealistic** (male/female + parts) — ships as `.blend` only, needs a Blender export-to-glTF step. No Blender available in this pass. Best lead for a future session with Blender: `blender.org/download/demo-files/#assets` |
+| **MakeHuman** (+ MPFB2 for Blender) | **CC0 exports**, purpose-built parametric realistic humans with age/body/ethnicity sliders and native glTF export — but it's a desktop app you run, not a fetchable file. Recommended pipeline once someone has it installed |
+| Mixamo | Free, semi-realistic, commonly used in shipped games, but requires Adobe login (no anonymous download) and its EULA restricts *standalone* redistribution (fine embedded in a shipped build, gray area for a forkable public repo). Project rule is CC0/MIT only — treat as an explicit opt-in exception, not a default |
+| Sketchfab (CC0-tagged realistic humans exist) | Individual models are real and some are CC0, but downloads are login-gated per-model; licenses vary model-to-model and must be checked individually — not something to bulk-pull |
+| RenderPeople free samples | Realistic, but license explicitly forbids redistribution/transfer of the 3D data — do not use |
+
+**Net result:** until MetaHuman exports land (or someone runs the Blender/
+MakeHuman pipeline above), the player and all 1,000+ generated NPCs share
+one mesh (`player_human.glb`). This is a real gap, not a code gap —
+`MetahumanCharacter`/`NpcBody` already pick up new files automatically.
+
 ---
 
 ## 2. Web-safe addons (install into `godot/addons/`)
