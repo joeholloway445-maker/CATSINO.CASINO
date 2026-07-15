@@ -1,5 +1,6 @@
 # GdUnit4 suite — enable the gdUnit4 plugin (docs/ADDONS.md) then run from
 # Godot: Project → Tools → GdUnit4, or CI via godot-ci workflow.
+# CI invokes: godot --headless … GdUnitCmdTool.gd -a test/ --ignoreHeadlessMode
 extends GdUnitTestSuite
 
 
