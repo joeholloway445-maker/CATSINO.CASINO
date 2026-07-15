@@ -10,8 +10,14 @@ extends Node3D
 @export var spawn_position := Vector3(0, 2, 0)
 
 func _ready() -> void:
+	var queued := ""
+	if Engine.has_meta("arena_queued_mode"):
+		queued = str(Engine.get_meta("arena_queued_mode"))
+		Engine.remove_meta("arena_queued_mode")
 	var player := ThirdPersonController.new()
 	player.name = "Player"
 	player.visual_mode = "cat"
 	add_child(player)
 	player.global_position = spawn_position
+	if queued != "":
+		NotificationUI.notify_info("Arena mode: %s — survive the pit." % queued)

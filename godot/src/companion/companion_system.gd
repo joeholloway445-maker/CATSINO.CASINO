@@ -143,6 +143,9 @@ func get_unlocked_ids() -> Array[String]:
 		ids.append(str(c.id))
 	return ids
 
+func get_unlocked_count() -> int:
+	return get_unlocked_companions().size()
+
 ## Equip into a 1-based party slot on PlayerProfile.active_companion_ids.
 func equip_companion(companion_id, slot: int) -> void:
 	if slot < 1:
