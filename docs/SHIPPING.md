@@ -9,6 +9,23 @@ Open `godot/project.godot` in **Godot 4.3+** (**Forward+** on desktop). First
 open imports assets; hit Play. Boot: splash → login (or Play Offline) → title.
 Drop MetaHuman GLBs into `godot/assets/models/` per the visual direction doc.
 
+### Browser build (HTML5)
+
+`builds/` is gitignored (large wasm/pck). Export locally or via CI:
+
+```bash
+# Needs Godot 4.3 + export templates (web_release.zip)
+bash scripts/export_web.sh
+bash scripts/serve_web.sh   # http://127.0.0.1:8080
+```
+
+Then: **Play Offline** → **Play Prototype Spine**.
+
+CI (`.github/workflows/godot-ci.yml`) uploads a `periliminal-space-html5`
+artifact on PRs that touch `godot/`. Download that zip, unzip, and serve
+with `bash scripts/serve_web.sh` (set `WEB_ROOT=` to the unzipped folder)
+or any static host that sends COOP/COEP headers.
+
 ## 2. What's fully playable today
 
 - **Casino floor**: slots, poker, blackjack, coin pusher, fortune wheel,

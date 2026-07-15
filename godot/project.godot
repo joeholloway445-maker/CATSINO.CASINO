@@ -17,6 +17,10 @@ config/tags=PackedStringArray("mmo", "casino", "social", "cats")
 run/main_scene="res://scenes/ui/splash.tscn"
 config/features=PackedStringArray("4.3", "Forward Plus")
 config/icon="res://assets/ui/icon.png"
+boot_splash/bg_color=Color(0.02, 0, 0.05, 1)
+boot_splash/image="res://assets/ui/boot_splash.png"
+boot_splash/fullsize=true
+boot_splash/use_filter=true
 
 [autoload]
 
@@ -218,4 +222,4 @@ gdscript/warnings/inferred_declaration=0
 
 [editor_plugins]
 
-enabled=PackedStringArray("res://addons/terrain_3d/plugin.cfg")
+enabled=PackedStringArray()

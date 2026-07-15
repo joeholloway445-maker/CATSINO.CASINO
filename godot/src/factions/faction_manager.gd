@@ -1,5 +1,6 @@
 extends Node
-class_name FactionManager
+# Autoload: FactionManager — reputation, joining, title milestones.
+# (No class_name: it would collide with the autoload singleton name.)
 
 signal faction_joined(faction: String)
 signal faction_left(faction: String)

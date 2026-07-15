@@ -482,7 +482,16 @@ func _grant_victory_rewards(loot: Array, stats: Dictionary) -> void:
 	var coins := 20 + int(stats.get("player_damage", 0)) * 2
 	EconomyManager.add_coins(coins, "combat_victory")
 	for item in loot:
-		InventoryManager.add_item(item)
+		if not item is Dictionary:
+			continue
+		var qty: int = maxi(1, int(item.get("quantity", 1)))
+		for i in range(qty):
+			var entry: Dictionary = item.duplicate()
+			# InventoryManager keys by id — give unique instances per stack unit.
+			if qty > 1:
+				entry["id"] = "%s_%d_%d" % [str(item.get("id", "loot")), Time.get_ticks_msec(), i]
+				entry["name"] = str(item.get("name", item.get("id", "loot")))
+			InventoryManager.add_item(entry)
 	XPManager.award_game("combat", true)
 	AchievementManager.check("battle_win")
 	QuestManager.update_progress("enter_combat")
@@ -499,9 +508,15 @@ func _generate_loot(combat: Dictionary) -> Array:
 	var loot := []
 	var duration: float = combat.get("duration", 0.0)
 	var roll_count := 1 + int(duration / 15.0)
+	var table := [
+		{"id": "material_crystal_shard", "name": "Crystal Shard", "type": 0, "rarity": 0},
+		{"id": "material_feral_fang", "name": "Feral Fang", "type": 1, "rarity": 1},
+	]
 	for i in range(mini(roll_count, 3)):
-		if randf() < 0.4:
-			loot.append({"id": "material_crystal_shard", "quantity": randi_range(1, 3)})
+		if randf() < 0.45:
+			var pick: Dictionary = table[randi() % table.size()].duplicate()
+			pick["quantity"] = randi_range(1, 3)
+			loot.append(pick)
 	return loot
 
 func move_actor(actor_id: String, new_position: Vector2) -> void:
@@ -529,7 +544,10 @@ func get_actor_stat(actor_id: String, stat_name: String) -> int:
 	if actor_id == PLAYER_ACTOR_ID and has_node("/root/PlayerProfile"):
 		var profile := get_node("/root/PlayerProfile")
 		var built := CharacterCreatorLogic.build_starting_stats(
-			str(profile.get("selected_race_id")), str(profile.get("faction")), str(profile.get("selected_frame")))
+			str(profile.get("selected_race_id")),
+			str(profile.get("faction")),
+			str(profile.get("selected_frame")),
+			str(profile.get("selected_mod")))
 		var level := int(profile.get("level")) if profile.get("level") != null else 1
 		var key := {"strength": "pow", "defense": "res", "speed": "spd", "luck": "lck"}.get(stat_name, stat_name)
 		return int(built.get(key, 10)) + level * 2

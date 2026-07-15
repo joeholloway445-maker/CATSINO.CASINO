@@ -40,6 +40,20 @@ class_name AssetLibrary
 ## city_house/city_industrial/city_prop all have several real options; the
 ## single-file slots above remain the fallback when no manifest entry exists.
 ##
+##   vehicle_car_body   land vehicles
+##   vehicle_boat_body  water vehicles
+##   vehicle_aircraft_body  air vehicles (empty until CC0 pack lands)
+##   vehicle_spacecraft_body  space craft
+##
+## Structure / liminal builds (persistent env + procedural worlds):
+##   city_* / road_* / sidewalk / streetlight / city_prop — Kenney city kits
+##   apartment_prop    hideout furniture
+##   ruin_pillar / extraction_gate / harvest_node / crystal — layer props
+##
+## Drop photoreal humans/creatures/structures from Sketchfab CC0, MetaHuman,
+## MakeHuman, or AI gens (Meshy/Tripo/Luma) into these slots after Blender→GLB.
+## Non-redistributable downloads go in assets/private/ — see docs/ASSET_PIPELINE.md.
+##
 ## See docs/VISUAL_DIRECTION_ESO.md for MetaHuman + Terrain3D pipeline.
 
 const SEARCH_EXTENSIONS := ["glb", "gltf", "tscn"]

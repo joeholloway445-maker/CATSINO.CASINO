@@ -97,7 +97,7 @@ export class VoiceChanger {
  * (the classic "two overlapping windows" trick). Cheap, glitch-tolerant, and
  * needs no worklet file — perfect for a voice-changer toy on top of a mic.
  */
-class PitchShiftNode {
+export class PitchShiftNode {
   input: GainNode;
   output: GainNode;
   private ctx: AudioContext;
@@ -161,5 +161,66 @@ class PitchShiftNode {
     const xf = Math.max(0.001, freq / 2);
     this.xfadeA.frequency.setValueAtTime(xf, this.ctx.currentTime);
     this.xfadeB.frequency.setValueAtTime(xf, this.ctx.currentTime);
+  }
+}
+
+/**
+ * Continuous mic studio for the character Capture step: unlike VoiceChanger
+ * (which snaps between a few named presets for the Dream Studio), this
+ * exposes three free-running knobs — pitch, bass, treble — so a player can
+ * dial their own recorded voice line in exactly how they want it before
+ * saving it. Same delay-line pitch shifter, plus a two-band shelf EQ.
+ */
+export class VoiceStudio {
+  private ctx: AudioContext;
+  private source: MediaStreamAudioSourceNode | null = null;
+  private dest: MediaStreamAudioDestinationNode;
+  private shifter: PitchShiftNode;
+  private bassFilter: BiquadFilterNode;
+  private trebleFilter: BiquadFilterNode;
+
+  constructor() {
+    this.ctx = new AudioContext();
+    this.dest = this.ctx.createMediaStreamDestination();
+    this.shifter = new PitchShiftNode(this.ctx);
+    this.bassFilter = this.ctx.createBiquadFilter();
+    this.bassFilter.type = "lowshelf";
+    this.bassFilter.frequency.value = 200;
+    this.trebleFilter = this.ctx.createBiquadFilter();
+    this.trebleFilter.type = "highshelf";
+    this.trebleFilter.frequency.value = 3000;
+    this.shifter.output.connect(this.bassFilter);
+    this.bassFilter.connect(this.trebleFilter);
+    this.trebleFilter.connect(this.dest);
+  }
+
+  /** Attach a mic stream (from getUserMedia). Returns the processed stream —
+   *  pipe it straight into a MediaRecorder or an <audio> monitor. */
+  connect(micStream: MediaStream): MediaStream {
+    if (this.ctx.state === "suspended") this.ctx.resume();
+    this.source?.disconnect();
+    this.source = this.ctx.createMediaStreamSource(micStream);
+    this.source.connect(this.shifter.input);
+    return this.dest.stream;
+  }
+
+  /** Semitones, roughly -12..+12 (one octave either way). */
+  setPitchSemitones(semitones: number) {
+    this.shifter.setDetune(semitones * 100);
+  }
+
+  /** Shelf gain in dB, roughly -15..+15. */
+  setBass(gainDb: number) {
+    this.bassFilter.gain.setTargetAtTime(gainDb, this.ctx.currentTime, 0.02);
+  }
+
+  /** Shelf gain in dB, roughly -15..+15. */
+  setTreble(gainDb: number) {
+    this.trebleFilter.gain.setTargetAtTime(gainDb, this.ctx.currentTime, 0.02);
+  }
+
+  close() {
+    this.source?.disconnect();
+    this.ctx.close();
   }
 }

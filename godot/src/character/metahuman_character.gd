@@ -100,3 +100,20 @@ static func _try_apply_metahuman_materials(root: Node3D) -> void:
 	# Marker only — full surface remapping needs per-export surface maps
 	# (see MetaHumanGodot look-dev). Avoid forcing broken shaders on TPS interim.
 	root.set_meta("metahuman_shader_ready", true)
+
+## Which visual tier would win for the local player right now?
+## Returns one of: metahuman_race | metahuman_player | player_human |
+## player_cat | procedural_rig — useful for HUD debug / shipping checklists.
+static func resolve_tier(visual_mode: String = "identity") -> String:
+	if visual_mode == "cat" and AssetLibrary.has_asset("player_cat"):
+		return "player_cat"
+	var race_id := ""
+	if PlayerProfile:
+		race_id = str(PlayerProfile.selected_race_id)
+	if not race_id.is_empty() and AssetLibrary.has_asset("metahuman_%s" % race_id):
+		return "metahuman_race"
+	if AssetLibrary.has_asset(META_PLAYER):
+		return "metahuman_player"
+	if AssetLibrary.has_asset(HUMAN_PLAYER):
+		return "player_human"
+	return "procedural_rig"
