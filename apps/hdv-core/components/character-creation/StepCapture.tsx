@@ -16,16 +16,19 @@ import {
 } from '@/lib/streaming/avatarStylizer'
 import { VoiceStudio } from '@/lib/streaming/voice'
 import { savePortrait, saveVoiceClip } from '@/lib/character/mediaStore'
+import { RACE_VOICE_PRESETS, getRaceVoicePreset, type RaceVoicePreset } from '@/lib/game/data/raceVoicePresets'
+import type { Race } from '@/types/character'
 
 const CLIP_MAX_SECONDS = 12
 
 interface Props {
   slot: number
+  race: Race | null
   portraitDataUrl: string | null
   onPortraitChange: (dataUrl: string | null) => void
 }
 
-export default function StepCapture({ slot, portraitDataUrl, onPortraitChange }: Props) {
+export default function StepCapture({ slot, race, portraitDataUrl, onPortraitChange }: Props) {
   // ---- camera / photo / clip -------------------------------------------------
   const videoRef = useRef<HTMLVideoElement | null>(null)
   const camStreamRef = useRef<MediaStream | null>(null)
@@ -165,6 +168,20 @@ export default function StepCapture({ slot, portraitDataUrl, onPortraitChange }:
   useEffect(() => { studioRef.current?.setBass(bass) }, [bass])
   useEffect(() => { studioRef.current?.setTreble(treble) }, [treble])
 
+  const raceAccent = getRaceVoicePreset(race?.texture.type)
+
+  const applyPreset = useCallback((preset: RaceVoicePreset) => {
+    setPitch(preset.pitch)
+    setBass(preset.bass)
+    setTreble(preset.treble)
+  }, [])
+
+  const resetVoice = useCallback(() => {
+    setPitch(0)
+    setBass(0)
+    setTreble(0)
+  }, [])
+
   const toggleVoiceRecord = useCallback(() => {
     if (recordingVoice) { voiceRecorderRef.current?.stop(); return }
     if (!processedStreamRef.current) { alert('Turn the mic on first.'); return }
@@ -191,9 +208,10 @@ export default function StepCapture({ slot, portraitDataUrl, onPortraitChange }:
     <div>
       <h2 className="font-mono text-lg text-slate-200 mb-1 tracking-wider">CAPTURE YOUR PERIHUMAN</h2>
       <p className="font-mono text-xs text-slate-500 mb-4">
-        Optional — snap a photo or short clip and turn it into your avatar, then record a voice line and
-        dial in pitch, bass, and treble until it sounds like you want it to. Everything happens on your
-        device; nothing is uploaded anywhere.
+        Optional — snap a photo or short clip and turn it into your avatar, then record a voice line.
+        Every race has its own accent preset to start from, or dial pitch, bass, and treble by hand if
+        you&apos;d rather just sound like yourself. Everything happens on your device; nothing is uploaded
+        anywhere.
       </p>
 
       {/* Photo + avatar */}
@@ -308,6 +326,37 @@ export default function StepCapture({ slot, portraitDataUrl, onPortraitChange }:
             {recordingVoice ? '■ STOP RECORDING' : '● RECORD VOICE LINE'}
           </button>
           <span className="font-mono text-[11px] text-slate-500 ml-auto">adjust live while the mic is on</span>
+        </div>
+
+        <div className="flex flex-wrap items-center gap-2 mb-3">
+          <button
+            onClick={() => raceAccent && applyPreset(raceAccent)}
+            disabled={!raceAccent}
+            title={raceAccent ? `Pitch ${raceAccent.pitch}st · Bass ${raceAccent.bass}dB · Treble ${raceAccent.treble}dB` : 'Pick a race first'}
+            className="px-3 py-1.5 rounded-lg border border-purple-700 hover:border-purple-500 disabled:opacity-40 font-mono text-xs text-purple-300"
+          >
+            🗣️ {race ? `${race.name} Accent — ${raceAccent?.accent}` : 'Race Accent'}
+          </button>
+          <select
+            defaultValue=""
+            onChange={(e) => {
+              const preset = RACE_VOICE_PRESETS.find((p) => p.textureType === e.target.value)
+              if (preset) applyPreset(preset)
+              e.target.value = ''
+            }}
+            className="px-2 py-1.5 rounded-lg border border-slate-700 bg-[#0f0f1a] font-mono text-xs text-slate-300"
+          >
+            <option value="" disabled>try another race&apos;s accent…</option>
+            {RACE_VOICE_PRESETS.map((p) => (
+              <option key={p.textureType} value={p.textureType}>{p.accent}</option>
+            ))}
+          </select>
+          <button
+            onClick={resetVoice}
+            className="px-3 py-1.5 rounded-lg border border-slate-700 hover:border-slate-500 font-mono text-xs text-slate-400 ml-auto"
+          >
+            ↺ my own voice
+          </button>
         </div>
 
         <div className="grid grid-cols-3 gap-4">
