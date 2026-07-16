@@ -7,21 +7,13 @@ class_name AssetLibrary
 ## file names each slot expects.
 ##
 ## Slot -> expected file (first that exists wins):
-##   metahuman_player   MetaHuman GLB export (identity — preferred)
-##   metahuman_npc      MetaHuman GLB for NPCs / peers
-##   metahuman_<race>   optional per-race MetaHuman variant
-##   player_human       interim humanoid (TPS demo) until MetaHuman lands
-##   npc_human          interim NPC humanoid
-##   player_cat         optional Catsino house skin
-##   npc_cat            optional Catsino NPC skin
-##   creature          assets/models/creature.glb
-##   tree              assets/models/tree.glb
-##   crystal           assets/models/crystal.glb
-##   ruin_pillar       assets/models/ruin_pillar.glb
-##   rock              assets/models/rock.glb
-##   extraction_gate   assets/models/extraction_gate.glb
-##   harvest_node      assets/models/harvest_node.glb
-##   apartment_prop    assets/models/apartment_prop.glb
+##   peri_human_player / metahuman_player   shipped PeriHuman (identity)
+##   peri_human_npc / metahuman_npc         shipped PeriHuman NPCs
+##   peri_human_<race> / metahuman_<race>   optional per-race variant
+##   player_human / npc_human               aliases of the PeriHuman bake
+##   player_cat / npc_cat                   optional Catsino house skins
+##   creature / tree / crystal / ruin_pillar / rock
+##   extraction_gate / harvest_node / apartment_prop / neon_sign / city_door
 ##
 ## Mega-city model slots (MegaCityBuilder / BuildingBuilder ask these):
 ##   city_tower        a downtown skyscraper shell

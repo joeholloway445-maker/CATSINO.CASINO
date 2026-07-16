@@ -2,7 +2,11 @@
 
 | File | Source | License |
 |---|---|---|
-| `interim/tps_player.glb`, `player_human.glb` | [godotengine/tps-demo](https://github.com/godotengine/tps-demo) player model | **CC-BY 3.0** — assets Copyright (c) 2018 Juan Linietsky, Fernando Miguel Calabró (corrected: previously mislabeled MIT here; the demo's *code* is MIT, its *art assets* are CC-BY 3.0 per the demo's own LICENSE.md) |
+| `metahuman_player.glb`, `peri_human_player.glb`, `player_human.glb` | Blender Studio [Human Base Meshes](https://www.blender.org/download/demo-files/) `GEO-body_male_realistic` (decimated + simple clothes) | **CC0** |
+| `metahuman_npc.glb`, `peri_human_npc.glb`, `npc_human.glb` | Blender Studio Human Base Meshes `GEO-body_female_realistic` (decimated + simple clothes) | **CC0** |
+| `variants/{metahuman_npc,peri_human_npc,npc_human}/variant_*.glb` | Same bases, skin/cloth color variants | **CC0** |
+| `interim/tps_player.glb` | [godotengine/tps-demo](https://github.com/godotengine/tps-demo) player (archive) | **CC-BY 3.0** |
+| `interim/quaternius_*.glb` (if present) | Quaternius Ultimate Modular Males (earlier interim) | **CC0** |
 | `rock.glb` | Terrain3D demo (Tokisan Games) | MIT |
 | `rock_b.glb` | Terrain3D demo (Tokisan Games) | MIT |
 | `vehicle_car_body.glb` (from `sedan.glb`) | [Kenney Car Kit](https://kenney.nl/assets/car-kit) | **CC0** |
@@ -23,35 +27,34 @@
 | `variants/city_prop/*.glb` (planter + 2 tree sizes) | [Kenney City Kit (Suburban)](https://kenney.nl/assets/city-kit-suburban) | **CC0** |
 | `variants/vehicle_car_body/*.glb` (sedan/sedan-sports/taxi/suv/police) | [Kenney Car Kit](https://kenney.nl/assets/car-kit) | **CC0** |
 | `variants/vehicle_spacecraft_body/*.glb` (racer + 4 speeders) | [Kenney Space Kit](https://kenney.nl/assets/space-kit) | **CC0** |
-| `tree.glb` (from `tree-large.glb`) | [Kenney City Kit (Suburban)](https://kenney.nl/assets/city-kit-suburban) | **CC0** |
+| `tree.glb` + `variants/tree/*` | [Kenney Nature Kit](https://kenney.nl/assets/nature-kit) pines / detailed trees | **CC0** |
+| `rock` variants under `variants/rock/*` | [Kenney Nature Kit](https://kenney.nl/assets/nature-kit) | **CC0** |
+| `crystal.glb` + `variants/crystal/*` | [Kenney Nature Kit](https://kenney.nl/assets/nature-kit) mushrooms (interim crystal-field props) | **CC0** |
+| `ruin_pillar.glb` + `variants/ruin_pillar/*` | [Kenney Castle Kit](https://kenney.nl/assets/castle-kit) pillars / walls | **CC0** |
+| `extraction_gate.glb` | [Kenney Castle Kit](https://kenney.nl/assets/castle-kit) `gate.glb` | **CC0** |
+| `city_door.glb` | [Kenney Castle Kit](https://kenney.nl/assets/castle-kit) `door.glb` | **CC0** |
+| `apartment_prop.glb` + variants | [Kenney Furniture Kit](https://kenney.nl/assets/furniture-kit) | **CC0** |
+| `harvest_node.glb` | [Kenney Furniture Kit](https://kenney.nl/assets/furniture-kit) `bookcaseClosedDoors.glb` | **CC0** |
+| `creature.glb` | [Kenney Furniture Kit](https://kenney.nl/assets/furniture-kit) `bear.glb` (stylized interim) | **CC0** |
+| `neon_sign.glb` | [Kenney Furniture Kit](https://kenney.nl/assets/furniture-kit) `televisionModern.glb` (emissive board shell) | **CC0** |
 | `godot/src/world/overworld/third_person_controller.gd` | Movement/camera physics pattern adapted from godotengine/tps-demo's `player/player.gd` (single-player rewrite, gun-robot/multiplayer scaffolding removed; ability-kit hotbar and cat/identity visual-mode switching are original) | MIT (code) |
 | `godot/src/vehicles/land_vehicle.gd` | Steering/throttle model adapted from the official [godotengine/godot-demo-projects](https://github.com/godotengine/godot-demo-projects) `3d/truck_town` sample's `vehicles/vehicle.gd` (whole-repo MIT, no split code/asset license unlike tps-demo) — rewritten for our input map, procedural placeholder body/wheels, and VehicleSeat enter/exit instead of their multi-vehicle trailer/tow-truck rig | MIT (code) |
 | `godot/src/vehicles/water_vehicle.gd`, `air_vehicle.gd`, `space_vehicle.gd` | Original — no equivalent official Godot demo exists for buoyancy or flight (unlike VehicleBody3D for land, Godot has no built-in boat/aircraft physics node), so these are from-scratch arcade models | MIT (code) |
 
-**Target:** replace humanoids with **your MetaHuman GLB exports** at:
-- `metahuman_player.glb` (local player identity)
-- `metahuman_npc.glb` (generic NPC — still missing; NPCs currently fall
-  through to `player_human.glb`, see below)
-- `metahuman_<race_id>.glb` optional per-race variants
+**PeriHuman policy:** characters and NPCs **ship inside the game**. Players
+never install Unreal, MakeHuman, DAZ, or Character Creator. Slots:
 
-**No CC0/MIT source for a photoreal human was found that doesn't require a
-DCC-tool export step** (see `docs/ASSET_SHOPPING_LIST.md` "Humans" section
-for what was actually checked and why each was rejected/deferred). Until
-MetaHuman exports land, every human in the game — player AND all 1,000+
-generated NPCs — renders the same `player_human.glb` mesh.
+- `peri_human_player.glb` / `metahuman_player.glb` — local player
+- `peri_human_npc.glb` / `metahuman_npc.glb` — generic NPC
+- `peri_human_<race_id>.glb` / `metahuman_<race_id>.glb` — optional per-race
+- `variants/metahuman_npc/*.glb` (+ peri/npc_human pools) — NPC outfit variety
 
-**Important correction:** that mesh is not actually a human — inspecting
-its glTF materials shows `playerobot` (chassis) and `robotemitter` (glow
-strip); its skinned mesh nodes are named `Robot_Body`/`Robot_Arms`/
-`Robot_Cannons`. It's the tps-demo's sci-fi robot player character, not an
-"interim human" as earlier comments/docs implied. `NpcBody`'s per-NPC
-tinting previously targeted Skin/Hair surface names that don't exist on
-this mesh and silently did nothing; it's been retargeted to also tint the
-real `playerobot`/`robotemitter` surfaces (archetype-flavored chassis
-color + faction-accent glow), and the `Robot_Cannons` mesh is hidden for
-every archetype except Authority (a visible weapon fits "power-holder",
-not "barista"). This is real, visible per-NPC variety within the current
-mesh's actual constraints — it does not make the mesh a human.
+**Current look (2026-07-16 bake):** Blender Studio Human Base Meshes
+(**CC0**) — realistic male/female anatomy, decimated for Web/mobile, with
+simple generated clothing + hair so bodies are game-safe. Better human
+proportion/face structure than Quaternius; clothing is still blocky
+placeholders (studio can swap fancier outfits later into the same slots).
+Players never install Blender. Archive: `interim/tps_player.glb`.
 
 **Vehicle asset slots** (AssetLibrary.instance_or — drop a `.glb` in
 `assets/models/` named for the slot, zero code changes needed):
@@ -97,6 +100,12 @@ what each pack actually ships, kept modest for repo size):
 | `city_prop` | 3 (planter + 2 tree sizes) | Kenney City Kit (Suburban) |
 | `vehicle_car_body` | 5 (sedan/sedan-sports/taxi/suv/police — same wheelbase class as the existing procedural wheel offsets) | Kenney Car Kit |
 | `vehicle_spacecraft_body` | 5 (racer + 4 speeders) | Kenney Space Kit |
+| `tree` | 6 pines / detailed trees | Kenney Nature Kit |
+| `rock` | 5 rocks / tall stones | Kenney Nature Kit |
+| `crystal` | 3 mushrooms (interim) | Kenney Nature Kit |
+| `apartment_prop` | 6 furniture pieces | Kenney Furniture Kit |
+| `ruin_pillar` | 5 castle pieces | Kenney Castle Kit |
+| `metahuman_npc` / `peri_human_npc` / `npc_human` | 5 skin/cloth variants | Blender Studio Human Base Meshes |
 
 `road_segment`/`sidewalk` stay single-file on purpose — road tiles have
 to interlock at fixed pivots/edges, and swapping them per-instance without

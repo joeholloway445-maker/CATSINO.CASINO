@@ -1,46 +1,46 @@
-# Visual direction: realistic ESO bar
+# Visual direction: realistic ESO bar + shipped PeriHumans
 
-**Why the screenshots looked ugly:** the game had **zero character/environment
-GLBs**. Controllers fell back to an orange capsule “cat,” cities were box
-meshes, and ground was a flat noise plane on `gl_compatibility`. That was a
-graybox, not the art direction.
+**Why early screenshots looked ugly:** zero character/environment GLBs —
+orange capsules, box cities, flat ground.
 
-**Locked direction for AAA GOTY v0.1:** Elder Scrolls Online–class realism —
-human(oid) MetaHumans, sculpted terrain, Forward+ lighting on desktop.
+**Locked direction for AAA GOTY v0.1:** Elder Scrolls Online–class realism
+on desktop where possible; **players never install Unreal, MakeHuman, or
+any third-party character tool**. PeriHumans ship as GLBs in the build.
 
-## Characters = MetaHumans (Godot runtime)
+## Characters = PeriHumans (shipped)
 
-Epic now licenses finished MetaHumans for use outside Unreal (Unity/Godot).
-Authoring still happens in **Unreal MetaHuman Creator** (UE 5.6+). This repo
-does **not** ship MetaHuman binary assets (you bring your own exports).
+`MetahumanCharacter` resolves:
 
-### Pipeline (you run this once per hero / race)
+`peri_human_*` / `metahuman_*` → `player_human` / `npc_human` →
+`CharacterRig` last resort.
 
-1. Create or Mesh-to-MetaHuman in Unreal 5.6+.
-2. Export → Blender (ARKit morph bake if needed — see
-   [MetaHumanGodot](https://github.com/ibrews/MetaHumanGodot) / Capafy pipeline).
-3. Export **GLB** into:
-   - `godot/assets/models/metahuman_player.glb` — local player
-   - `godot/assets/models/metahuman_npc.glb` — peers / NPCs
-   - optional `metahuman_<race_id>.glb` per Identity race
-4. Open the project in Godot **Forward+**. Skin/eye/hair look-dev shaders are
-   vendored under `godot/assets/shaders/metahuman/` (community MetaHumanGodot,
-   MIT / not Epic-affiliated).
+### What ships today (no player setup)
 
-### Runtime resolver
+Blender Studio **Human Base Meshes** (**CC0**), baked once into:
 
-`MetahumanCharacter` (`godot/src/character/metahuman_character.gd`):
+| Slot | Role |
+|---|---|
+| `peri_human_player.glb` / `metahuman_player.glb` | Local player (realistic male base) |
+| `peri_human_npc.glb` / `metahuman_npc.glb` | Default NPC (realistic female base) |
+| `variants/metahuman_npc/*.glb` | Skin/cloth color variants for crowds |
 
-`metahuman_*` → `player_human` / `npc_human` (interim TPS demo mesh) →
-`CharacterRig` procedural last resort.
+Realistic anatomy + simple clothes (game-safe). Runtime look-dev tunes
+Skin/Eye/Hair/Cloth materials (soft SSS/rim on Forward+; MetaHumanGodot
+skin shader when surface names match). Not MetaHuman skin-pore cinema
+yet — clothing is still placeholder geometry.
 
-Orange capsules are **gone** from the default path.
+### Studio-only photoreal upgrade (optional, still zero player friction)
 
-### Interim mesh (until your MetaHumans land)
+If we want closer to ESO faces later, **we** (not players) bake once:
 
-MIT Godot TPS demo player is staged as `player_human.glb` / `npc_human.glb`
-so layers already show a real humanoid, not a capsule. Replace these files
-with MetaHuman exports without code changes.
+1. MakeHuman / CC4 / Unreal MetaHuman → Blender → GLB
+2. Overwrite the same slot filenames above
+3. Ship the new build
+
+Players still only download the game. See `docs/ASSET_PIPELINE.md`.
+
+Skin/eye/hair look-dev shaders live under
+`godot/assets/shaders/metahuman/` (community MetaHumanGodot, MIT).
 
 ## Terrain = Terrain3D (desktop) / ProceduralTerrain (web)
 
@@ -49,28 +49,33 @@ with MetaHuman exports without code changes.
 | Desktop / native AAA | **Terrain3D** v1.0.0 (Godot 4.3 GDExtension) in `addons/terrain_3d/` |
 | Web export | `ProceduralTerrain` (TerrainBridge falls back automatically) |
 
-`TerrainBridge` + `TerrainWorld` generate a noise heightfield with grass/dirt
-auto-shader when Terrain3D’s classes are present.
+`TerrainWorld` prefers AmbientCG / Poly Haven PBR maps for Terrain3D
+grass/dirt. `ProceduralTerrain` UV-maps chunks and applies
+`grass` / `dirt` / `sand` / `asphalt` texture slots by biome.
 
-Sculpt hero regions in the editor (Terrain3D tools), or import World
-Machine / Gaea heightmaps — see Terrain3D docs.
-
-## Renderer
+## Lighting / sky
 
 | Platform | Method |
 |---|---|
-| Desktop | `forward_plus` (SSAO / SSIL / volumetric fog / glow) |
-| Mobile / Web | `gl_compatibility` |
+| Desktop | `forward_plus` + SSAO / SSIL / SSR / volumetric fog |
+| Mobile / Web | `gl_compatibility` (glow + depth fog only) |
 
-## What you still drop in by hand
+`DayNightSky` uses Poly Haven HDRI (`kloppenheim_06_1k.hdr`) for sky IBL
+when present, with sun energy still cycling day→night. Falls back to the
+procedural neon-dusk palette if the HDRI is missing.
 
-- MetaHuman GLBs (above)
-- City kits → `city_tower.glb`, etc. (`docs/SHIPPING.md` §3)
-- PBR ground textures into Terrain3D texture assets / `assets/terrain/`
-- HDRI (optional) for studio-quality reflection probes
+## World props (filled CC0 slots)
+
+Nature / furniture / castle kits fill `tree`, `rock`, `crystal` (interim
+mushrooms), `ruin_pillar`, `extraction_gate`, `apartment_prop`,
+`harvest_node`, `creature` (interim bear), `neon_sign`, `city_door`.
+Variant pools scatter forests/ruins without cloning one mesh.
+
+Still empty / stylized: `player_cat` / `npc_cat`, photoreal creatures,
+`vehicle_aircraft_body`, true gem crystals.
 
 ## Related
 
-- `docs/V01_GOTY.md` — goal lock
-- `docs/ADDONS.md` — Terrain3D native-only note (web fallback kept)
-- `godot/assets/models/ATTRIBUTION.md` — interim mesh licenses
+- `godot/AGENTS.md` — slot drop procedure for agents
+- `docs/ASSET_PIPELINE.md` — Blender → GLB
+- `godot/assets/models/ATTRIBUTION.md` — licenses

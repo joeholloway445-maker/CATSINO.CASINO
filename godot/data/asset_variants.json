@@ -1,5 +1,5 @@
 {
-  "_comment": "AssetLibrary.instance_variant() manifest — maps a slot name to multiple real models under assets/models/variants/<slot>/. Additive to the single-file slot convention (see AssetLibrary docs). All CC0, Kenney — see godot/assets/models/ATTRIBUTION.md.",
+  "_comment": "AssetLibrary.instance_variant() manifest — maps a slot name to multiple real models under assets/models/variants/<slot>/. Additive to the single-file slot convention (see AssetLibrary docs). Licenses in godot/assets/models/ATTRIBUTION.md.",
   "city_tower": [
     "skyscraper-a.glb",
     "skyscraper-b.glb",
@@ -53,5 +53,61 @@
     "craft_speederB.glb",
     "craft_speederC.glb",
     "craft_speederD.glb"
+  ],
+  "metahuman_npc": [
+    "variant_male_fair.glb",
+    "variant_male_deep.glb",
+    "variant_female_tan.glb",
+    "variant_female_deep.glb",
+    "variant_male_navy.glb"
+  ],
+  "peri_human_npc": [
+    "variant_male_fair.glb",
+    "variant_male_deep.glb",
+    "variant_female_tan.glb",
+    "variant_female_deep.glb",
+    "variant_male_navy.glb"
+  ],
+  "npc_human": [
+    "variant_male_fair.glb",
+    "variant_male_deep.glb",
+    "variant_female_tan.glb",
+    "variant_female_deep.glb",
+    "variant_male_navy.glb"
+  ],
+  "tree": [
+    "tree_pineDefaultB.glb",
+    "tree_pineRoundC.glb",
+    "tree_detailed_dark.glb",
+    "tree_cone_dark.glb",
+    "tree_plateau.glb",
+    "tree_fat_darkh.glb"
+  ],
+  "rock": [
+    "rock_largeE.glb",
+    "rock_smallA.glb",
+    "rock_smallC.glb",
+    "stone_tallA.glb",
+    "stone_tallF.glb"
+  ],
+  "crystal": [
+    "mushroom_redTall.glb",
+    "mushroom_red.glb",
+    "mushroom_tan.glb"
+  ],
+  "apartment_prop": [
+    "loungeSofa.glb",
+    "loungeDesignSofa.glb",
+    "chair.glb",
+    "desk.glb",
+    "bedDouble.glb",
+    "bookcaseOpenLow.glb"
+  ],
+  "ruin_pillar": [
+    "wall-pillar.glb",
+    "bridge-straight-pillar.glb",
+    "tower-square-base.glb",
+    "wall.glb",
+    "wall-half.glb"
   ]
 }
