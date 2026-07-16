@@ -320,11 +320,11 @@ static func _evaluate_poker(cards: Array) -> String:
 	var counts: Array = value_counts.values()
 	counts.sort()
 	counts.reverse()
-	var is_flush := suits[0] == suits[1] and suits[1] == suits[2] and suits[2] == suits[3] and suits[3] == suits[4]
+	var is_flush: bool = suits[0] == suits[1] and suits[1] == suits[2] and suits[2] == suits[3] and suits[3] == suits[4]
 	var unique := {}
 	for v in values:
 		unique[v] = true
-	var is_straight := values[4] - values[0] == 4 and unique.size() == 5
+	var is_straight: bool = values[4] - values[0] == 4 and unique.size() == 5
 	var is_royal := values == [0, 9, 10, 11, 12]
 	if is_flush and is_royal:
 		return "Royal Flush"

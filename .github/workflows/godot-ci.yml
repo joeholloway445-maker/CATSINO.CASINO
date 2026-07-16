@@ -46,15 +46,25 @@ jobs:
         # `--import` bakes shaders/textures first. Godot 4.3 headless often
         # SIGSEGV/SIGILL on shutdown AFTER a successful pack (exit 132/139).
         # Treat builds/html5/index.html as the source of truth.
+        #
+        # Both godot invocations run under `timeout`: when a script/plugin
+        # error makes the headless editor pop a modal dialog, it parks
+        # FOREVER (see runs 29177454189 / 29462721688 — the error prints,
+        # then hours of silence). A process-level timeout kills just godot,
+        # so the step still fails fast WITH the error visible in this log,
+        # instead of the job-level timeout-minutes nuking everything.
         run: |
           set -e
           mkdir -v -p builds/html5
           cd godot
-          godot --headless --verbose --import || true
+          timeout 600 godot --headless --verbose --import || echo "(import exit $? — nonzero is normal, see above)"
           set +e
-          godot --headless --verbose --export-release "Web" ../builds/html5/index.html
+          timeout 900 godot --headless --verbose --export-release "Web" ../builds/html5/index.html
           EXPORT_EXIT=$?
           set -e
+          if [ "$EXPORT_EXIT" = "124" ]; then
+            echo "::error::godot export HUNG (killed by timeout) — scroll up for the SCRIPT ERROR lines that preceded the hang"
+          fi
           if [ -f ../builds/html5/index.html ]; then
             echo "Web export OK (artifacts present; godot exit=${EXPORT_EXIT})"
             ls -lah ../builds/html5 | head -30
