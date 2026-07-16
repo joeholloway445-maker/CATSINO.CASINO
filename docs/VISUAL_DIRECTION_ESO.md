@@ -16,16 +16,17 @@ any third-party character tool**. PeriHumans ship as GLBs in the build.
 
 ### What ships today (no player setup)
 
-Quaternius Ultimate Modular Males (**CC0**) as:
+Blender Studio **Human Base Meshes** (**CC0**), baked once into:
 
 | Slot | Role |
 |---|---|
-| `peri_human_player.glb` / `metahuman_player.glb` | Local player |
-| `peri_human_npc.glb` / `metahuman_npc.glb` | Default NPC |
-| `variants/metahuman_npc/*.glb` | Outfit variety for crowds |
+| `peri_human_player.glb` / `metahuman_player.glb` | Local player (realistic male base) |
+| `peri_human_npc.glb` / `metahuman_npc.glb` | Default NPC (realistic female base) |
+| `variants/metahuman_npc/*.glb` | Skin/cloth color variants for crowds |
 
-Stylized humanoids with multiple outfits — readable people in the city,
-**not** photoreal MetaHuman faces yet.
+Realistic anatomy + simple clothes (game-safe). Not MetaHuman skin-pore
+cinema yet — clothing is placeholder geometry; faces/bodies use Studio’s
+realistic bases, decimated for phone/Web.
 
 ### Studio-only photoreal upgrade (optional, still zero player friction)
 

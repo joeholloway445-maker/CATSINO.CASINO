@@ -2,12 +2,11 @@
 
 | File | Source | License |
 |---|---|---|
-| `metahuman_player.glb`, `peri_human_player.glb` (from Casual_Hoodie) | [Quaternius Ultimate Modular Males](https://quaternius.com/packs/ultimatemodularcharacters.html) | **CC0** |
-| `metahuman_npc.glb`, `peri_human_npc.glb` (from Casual_2) | Quaternius Ultimate Modular Males | **CC0** |
-| `player_human.glb` (from Suit) | Quaternius Ultimate Modular Males | **CC0** |
-| `npc_human.glb` (from Worker) | Quaternius Ultimate Modular Males | **CC0** |
-| `variants/metahuman_npc/*`, `variants/peri_human_npc/*`, `variants/npc_human/*` | Quaternius Ultimate Modular Males (Adventurer/Beach/Farmer/Punk/Swat/King/Spacesuit) | **CC0** |
-| `interim/tps_player.glb` | [godotengine/tps-demo](https://github.com/godotengine/tps-demo) player (kept as archive) | **CC-BY 3.0** — Juan Linietsky, Fernando Miguel Calabró |
+| `metahuman_player.glb`, `peri_human_player.glb`, `player_human.glb` | Blender Studio [Human Base Meshes](https://www.blender.org/download/demo-files/) `GEO-body_male_realistic` (decimated + simple clothes) | **CC0** |
+| `metahuman_npc.glb`, `peri_human_npc.glb`, `npc_human.glb` | Blender Studio Human Base Meshes `GEO-body_female_realistic` (decimated + simple clothes) | **CC0** |
+| `variants/{metahuman_npc,peri_human_npc,npc_human}/variant_*.glb` | Same bases, skin/cloth color variants | **CC0** |
+| `interim/tps_player.glb` | [godotengine/tps-demo](https://github.com/godotengine/tps-demo) player (archive) | **CC-BY 3.0** |
+| `interim/quaternius_*.glb` (if present) | Quaternius Ultimate Modular Males (earlier interim) | **CC0** |
 | `rock.glb` | Terrain3D demo (Tokisan Games) | MIT |
 | `rock_b.glb` | Terrain3D demo (Tokisan Games) | MIT |
 | `vehicle_car_body.glb` (from `sedan.glb`) | [Kenney Car Kit](https://kenney.nl/assets/car-kit) | **CC0** |
@@ -41,11 +40,12 @@ never install Unreal, MakeHuman, DAZ, or Character Creator. Slots:
 - `peri_human_<race_id>.glb` / `metahuman_<race_id>.glb` — optional per-race
 - `variants/metahuman_npc/*.glb` (+ peri/npc_human pools) — NPC outfit variety
 
-**Current look (2026-07-16):** Quaternius Ultimate Modular Males (**CC0**) —
-stylized humanoids with outfit variety. Above the old TPS robot / capsule
-graybox; **not** full photoreal MetaHuman quality yet. Studio can later
-replace these GLBs with MakeHuman/CC4/MetaHuman bakes; players still just
-download the game. Archive of the old robot: `interim/tps_player.glb`.
+**Current look (2026-07-16 bake):** Blender Studio Human Base Meshes
+(**CC0**) — realistic male/female anatomy, decimated for Web/mobile, with
+simple generated clothing + hair so bodies are game-safe. Better human
+proportion/face structure than Quaternius; clothing is still blocky
+placeholders (studio can swap fancier outfits later into the same slots).
+Players never install Blender. Archive: `interim/tps_player.glb`.
 
 **Vehicle asset slots** (AssetLibrary.instance_or — drop a `.glb` in
 `assets/models/` named for the slot, zero code changes needed):
