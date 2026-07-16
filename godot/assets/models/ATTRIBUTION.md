@@ -2,8 +2,9 @@
 
 | File | Source | License |
 |---|---|---|
-| `metahuman_player.glb`, `peri_human_player.glb`, `player_human.glb` | Blender Studio [Human Base Meshes](https://www.blender.org/download/demo-files/) `GEO-body_male_realistic` + fitted cloth/hair/shoes bake (`scripts/bake_visual_gaps.py`) | **CC0** |
-| `metahuman_npc.glb`, `peri_human_npc.glb`, `npc_human.glb` | Blender Studio Human Base Meshes `GEO-body_female_realistic` + fitted cloth/hair/shoes bake | **CC0** |
+| `metahuman_player.glb`, `peri_human_player.glb`, `player_human.glb` | [MPFB2](http://static.makehumancommunity.org/mpfb.html) + MakeHuman Community CC0 packs (system assets, skins, hair, shirts, pants, shoes) via `scripts/bake_mpfb_characters.py` | **CC0** |
+| `metahuman_npc.glb`, `peri_human_npc.glb`, `npc_human.glb` | Same MPFB2 + CC0 wardrobe bake (female phenotype) | **CC0** |
+| `osm2world_dallas.glb`, `osm2world_fort_worth.glb`, `osm2world_arlington.glb`, `osm2world_denton.glb` | Downtown geometry from © OpenStreetMap contributors via [OSM2World](https://osm2world.org/) (`scripts/bake_osm2world_cities.py`) | **ODbL** (geometry) |
 | `variants/{metahuman_npc,peri_human_npc,npc_human}/variant_*.glb` | Same bases, skin/hair/cloth color variants | **CC0** |
 | `player_cat.glb` / `npc_cat.glb` + cat variants | Procedural house-cat bake (`scripts/bake_visual_gaps.py`) | **CC0** (original) |
 | `crystal.glb` + crystal variants | Procedural faceted crystal clusters (`scripts/bake_visual_gaps.py`) | **CC0** (original) |
@@ -51,12 +52,10 @@ never install Unreal, MakeHuman, DAZ, or Character Creator. Slots:
 - `peri_human_<race_id>.glb` / `metahuman_<race_id>.glb` — optional per-race
 - `variants/metahuman_npc/*.glb` (+ peri/npc_human pools) — NPC outfit variety
 
-**Current look (2026-07-16 gap-close bake):** Blender Studio Human Base
-Meshes (**CC0**) with fitted shirt/pants shells, scalp hair caps, and
-shoes (`scripts/bake_visual_gaps.py`). Face stays clear. Rebake anytime
-with Blender 4.2+:
-`blender -b -P scripts/bake_visual_gaps.py` (paths inside the script).
-Players never install Blender. Archive: `interim/tps_player.glb`.
+**Current look (studio bake):** MPFB2 humans with textured skin, eyes,
+teeth, brows/lashes, hair, and fitted clothes (`scripts/bake_mpfb_characters.py`).
+DFW hubs use OSM2World shells when `osm2world_<hub>.glb` is present.
+Players never install Blender / MPFB / OSM2World. Archive: `interim/tps_player.glb`.
 
 **Vehicle asset slots** (AssetLibrary.instance_or — drop a `.glb` in
 `assets/models/` named for the slot, zero code changes needed):

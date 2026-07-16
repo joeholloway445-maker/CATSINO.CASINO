@@ -2,8 +2,11 @@ class_name MegaCityBuilder
 ## Builds a full, functional mega-city for a DFW hub. Prefers the
 ## OpenStreetMap downtown clone in `world_data/osm/<hub>.json` (real street
 ## polylines + building footprints, via OsmCityLayout) when present; falls
-## back to the CityData district grid otherwise. Streetlights, neon, civic
-## venues, landmarks, hideouts, and hidden doors are layered on top either way.
+## back to the CityData district grid otherwise. When
+## `assets/models/osm2world_<hub>.glb` is installed (OSM2World bake), that
+## mesh is the visual downtown shell — procedural building boxes are skipped
+## so they don't z-fight. Streetlights, neon, civic venues, landmarks,
+## hideouts, and hidden doors are layered on top either way.
 ##
 ## Every hard-mesh surface routes through AssetLibrary.material() (so the
 ## race lens + any installed texture pack apply) or AssetLibrary.instance()
@@ -108,6 +111,9 @@ static func build(hub_id: String, origin: Vector3, sky: DayNightSky,
 
 ## Build a hub from OSM street polylines + building footprints. Geometry is
 ## already projected/rescaled into city-local meters by the fetch script.
+## If `osm2world_<hub_id>` is installed, that GLB is the visual shell and
+## extruded Kenney/box buildings are skipped (streets/lamps still layer for
+## gameplay readability when the shell is absent or as light accents).
 static func _build_osm_city(root: Node3D, hub_id: String, accent: Color,
 		rng: RandomNumberGenerator, base_y: float) -> void:
 	var data := OsmCityLayout.load_layout(hub_id)
@@ -116,7 +122,18 @@ static func _build_osm_city(root: Node3D, hub_id: String, accent: Color,
 	holder.name = "OsmDowntown_%s" % hub_id
 	root.add_child(holder)
 
-	# Flat plaza plate under the whole imported downtown.
+	var shell_slot := "osm2world_%s" % hub_id
+	var has_shell := AssetLibrary.has(shell_slot)
+	if has_shell:
+		var shell := AssetLibrary.instance(shell_slot)
+		if shell != null:
+			shell.name = "Osm2WorldShell"
+			shell.position = Vector3(0.0, base_y, 0.0)
+			holder.add_child(shell)
+			_tint_osm2world_shell(shell, accent)
+
+	# Flat plaza plate under the whole imported downtown (kept even with a
+	# shell so gaps / courtyards don't show terrain holes).
 	var ground := MeshInstance3D.new()
 	var gm := BoxMesh.new()
 	gm.size = Vector3(maxf(size.x, 40.0), 0.4, maxf(size.y, 40.0))
@@ -148,33 +165,74 @@ static func _build_osm_city(root: Node3D, hub_id: String, accent: Color,
 			var length := sqrt(dx * dx + dz * dz)
 			if length < 0.5:
 				continue
-			var mid := Vector3((ax + bx) * 0.5, base_y - 0.12, (az + bz) * 0.5)
-			var strip := _road_strip(mid, Vector3(width, 0.1, length), road_mat)
-			strip.rotation.y = atan2(dx, dz)
-			holder.add_child(strip)
+			# Road strips only when no OSM2World shell (shell already has pavement).
+			if not has_shell:
+				var mid := Vector3((ax + bx) * 0.5, base_y - 0.12, (az + bz) * 0.5)
+				var strip := _road_strip(mid, Vector3(width, 0.1, length), road_mat)
+				strip.rotation.y = atan2(dx, dz)
+				holder.add_child(strip)
 			# Streetlights along major/medium roads, budget-capped.
 			if lamp_budget < MAX_LAMPS and int(street.get("width_class", 1)) >= 1 and i % 3 == 0:
 				_streetlight(holder, Vector3(ax, base_y, az), lamp_mat)
 				lamp_budget += 1
 
-	for bldg in data.get("buildings", []):
-		var cx := float(bldg.get("cx", 0.0))
-		var cz := float(bldg.get("cz", 0.0))
-		var sx := clampf(float(bldg.get("sx", 10.0)), 3.0, 48.0)
-		var sz := clampf(float(bldg.get("sz", 10.0)), 3.0, 48.0)
-		var pname := OsmCityLayout.profile_for(bldg)
-		var floors := OsmCityLayout.floors_for(bldg, pname)
-		var center := Vector3(cx, base_y, cz)
-		var node := BuildingBuilder.build_osm(pname, center, base_y, accent, rng,
-			sx, sz, floors)
-		holder.add_child(node)
-		if rng.randf() < 0.35:
-			_add_neon(node, accent, rng)
+	# Procedural extruded buildings only when the OSM2World shell is missing.
+	if not has_shell:
+		for bldg in data.get("buildings", []):
+			var cx := float(bldg.get("cx", 0.0))
+			var cz := float(bldg.get("cz", 0.0))
+			var sx := clampf(float(bldg.get("sx", 10.0)), 3.0, 48.0)
+			var sz := clampf(float(bldg.get("sz", 10.0)), 3.0, 48.0)
+			var pname := OsmCityLayout.profile_for(bldg)
+			var floors := OsmCityLayout.floors_for(bldg, pname)
+			var center := Vector3(cx, base_y, cz)
+			var node := BuildingBuilder.build_osm(pname, center, base_y, accent, rng,
+				sx, sz, floors)
+			holder.add_child(node)
+			if rng.randf() < 0.35:
+				_add_neon(node, accent, rng)
+	else:
+		# Accent neon beacons over the shell so the futuristic read holds at night.
+		for i in 12:
+			var nx := rng.randf_range(size.x * 0.1, size.x * 0.9)
+			var nz := rng.randf_range(size.y * 0.1, size.y * 0.9)
+			var beacon := Node3D.new()
+			beacon.position = Vector3(nx, base_y + 18.0 + rng.randf() * 40.0, nz)
+			holder.add_child(beacon)
+			_add_neon(beacon, accent, rng)
 
 	# Local downtown sound bed.
 	var amb := CityAmbience.new()
 	holder.add_child(amb)
 	amb.setup("downtown_core")
+
+## Mild faction-accent emissive boost on OSM2World materials so each hub
+## reads as a Periliminal neon replica rather than plain OSM plaster.
+static func _tint_osm2world_shell(shell: Node3D, accent: Color) -> void:
+	var stack: Array[Node] = [shell]
+	while not stack.is_empty():
+		var n: Node = stack.pop_back()
+		if n is MeshInstance3D:
+			var mi := n as MeshInstance3D
+			var mesh := mi.mesh
+			if mesh == null:
+				pass
+			else:
+				for si in mesh.get_surface_count():
+					var mat := mi.get_active_material(si)
+					if mat == null:
+						mat = mesh.surface_get_material(si)
+					if mat is StandardMaterial3D:
+						var sm := (mat as StandardMaterial3D).duplicate() as StandardMaterial3D
+						sm.metallic = maxf(sm.metallic, 0.25)
+						sm.roughness = minf(sm.roughness, 0.45)
+						if sm.emission_enabled == false and sm.albedo_color.b > sm.albedo_color.r * 1.05:
+							sm.emission_enabled = true
+							sm.emission = accent.lerp(Color(0.3, 0.55, 1.0), 0.55)
+							sm.emission_energy_multiplier = 0.45
+						mi.set_surface_override_material(si, sm)
+		for c in n.get_children():
+			stack.append(c)
 
 static func _build_district(root: Node3D, dtype: String, local: Vector3,
 		world: Vector3, accent: Color, rng: RandomNumberGenerator,
