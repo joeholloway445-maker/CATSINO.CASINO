@@ -63,7 +63,7 @@ const GachaRpc = {
     if (count !== 1 && count !== 10) throw new Error("count must be 1 or 10");
 
     const cost = count === 10 ? COST_MULTI : COST_SINGLE;
-    nk.walletsUpdate([{ userId, changeset: { cat_coins: -cost }, metadata: { reason: "gacha_summon", count } }], true);
+    nk.walletsUpdate([{ userId, changeset: { coins: -cost }, metadata: { reason: "gacha_summon", count } }], true);
 
     const results = [];
     for (let i = 0; i < count; i++) {

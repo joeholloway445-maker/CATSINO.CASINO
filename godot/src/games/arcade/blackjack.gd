@@ -21,6 +21,12 @@ func _ready() -> void:
 	stand_btn.pressed.connect(func(): _action("stand"))
 	double_btn.pressed.connect(func(): _action("double"))
 	_set_game_buttons(false)
+	var back := Button.new()
+	back.text = "⬅ Back"
+	back.position = Vector2(12, 12)
+	back.pressed.connect(func() -> void:
+		get_tree().change_scene_to_file("res://scenes/world/paw_vegas_hub.tscn"))
+	add_child(back)
 
 func _deal() -> void:
 	result_label.text = ""

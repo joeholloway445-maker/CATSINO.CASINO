@@ -158,10 +158,11 @@ func _on_race_pressed() -> void:
 		return
 	var entry_fee: int = int(track.entry_fee)
 	var bet := int(_bet_spinbox.value)
-
-	if not await EconomyManager.spend_coins(entry_fee + bet, "race_" + str(track.id)):
-		_status_label.text = "Not enough coins (entry %d + bet %d)." % [entry_fee, bet]
-		return
+	# Entry fee is local; race bet is settled by start_race (server or OfflineCasino).
+	if entry_fee > 0:
+		if not await EconomyManager.spend_coins(entry_fee, "race_entry_" + str(track.id)):
+			_status_label.text = "Not enough coins (entry %d)." % entry_fee
+			return
 
 	_race_btn.disabled = true
 	_status_label.text = "Racing %s..." % track.name
@@ -170,15 +171,8 @@ func _on_race_pressed() -> void:
 	var frame_id: String = _frame_options[_frame_selector.selected].id
 	race_started.emit(frame_id, bet)
 
-	if NetworkManager.is_connected_to_server():
-		var payload := {"frame_id": frame_id, "bet": bet, "track_id": track.id, "race_type": "standard"}
-		NetworkManager.call_rpc("start_race", payload, func(r): _on_race_result(r, track, bet))
-	else:
-		# Offline/local: resolve the race client-side with the same payout rules.
-		var sim := RaceAI.simulate_race(frame_id, track)
-		sim["success"] = true
-		sim["payout"] = _local_payout(sim.get("position", 99), bet, track)
-		_on_race_result(sim, track, bet)
+	var payload := {"frame_id": frame_id, "bet": bet, "track_id": track.id, "race_type": "standard"}
+	NetworkManager.call_rpc("start_race", payload, func(r): _on_race_result(r, track, bet, entry_fee))
 
 ## Actually drive the race in 3D — same fees, same payout math.
 func _on_drive_pressed() -> void:
@@ -198,12 +192,13 @@ func _on_drive_pressed() -> void:
 func _local_payout(position: int, bet: int, track: Dictionary) -> int:
 	return RaceSession.payout(position, bet, track)
 
-func _on_race_result(result: Dictionary, track: Dictionary, bet: int) -> void:
+func _on_race_result(result: Dictionary, track: Dictionary, bet: int, entry_fee: int = 0) -> void:
 	_race_btn.disabled = false
 
 	if not result.get("success", false):
-		# Server rejected the race — refund what we charged up front.
-		EconomyManager.add_coins(int(track.entry_fee) + bet, "race_refund")
+		# Refund local entry fee only — bet was never charged if RPC failed pre-spend.
+		if entry_fee > 0:
+			EconomyManager.add_coins(entry_fee, "race_refund")
 		_status_label.text = "Error: " + str(result.get("error", "Unknown"))
 		return
 
@@ -214,7 +209,9 @@ func _on_race_result(result: Dictionary, track: Dictionary, bet: int) -> void:
 	var position: int = result.get("position", 4)
 	var payout: int = result.get("payout", 0)
 
-	if payout > 0:
+	# start_race (online + OfflineCasino) already settles the bet/payout wallet.
+	# Only credit locally if the resolver did not mark server_wallet.
+	if payout > 0 and not result.get("server_wallet", false):
 		EconomyManager.add_coins(payout, "race_win_" + str(track.id))
 
 	for i in range(8):

@@ -116,6 +116,61 @@ def main() -> int:
     else:
         fail("playtest_arena missing ArenaModeController")
 
+    print("== moba lane AI + shop ==")
+    for rel in (
+        "src/world/moba/moba_match.gd",
+        "src/world/moba/moba_tower.gd",
+        "src/world/moba/moba_minion.gd",
+        "src/world/moba/moba_hero_bot.gd",
+        "src/world/moba/moba_shop.gd",
+        "src/world/moba/moba_shop_ui.gd",
+        "src/world/moba/moba_hud.gd",
+        "src/world/moba/moba_fx.gd",
+    ):
+        check_exists(rel, "moba")
+    amc = (GODOT / "src/world/arena_mode_controller.gd").read_text()
+    if "MobaMatch" in amc and "_setup_moba" in amc:
+        ok("ArenaModeController wires MobaMatch")
+    else:
+        fail("ArenaModeController missing MobaMatch wiring")
+    shop = (GODOT / "src/world/moba/moba_shop.gd").read_text()
+    if "claw_edge" in shop and "func buy" in shop and "func sell" in shop:
+        ok("MobaShop has catalog + buy/sell")
+    else:
+        fail("MobaShop catalog/buy/sell incomplete")
+    match_src = (GODOT / "src/world/moba/moba_match.gd").read_text()
+    for needle, label in (
+        ("_begin_recall", "recall"),
+        ("at_fountain", "fountain shop gate"),
+        ("Kind.INHIBITOR", "inhibitors"),
+        ("_do_respawn", "respawn"),
+        ("_spawn_companion", "companion summon"),
+        ("grant_xp_near", "XP radius"),
+    ):
+        if needle in match_src:
+            ok(f"moba detail: {label}")
+        else:
+            fail(f"moba missing detail: {label}")
+
+    print("== online moba ==")
+    check_exists("src/world/moba/moba_online_client.gd", "moba_online")
+    check_exists("src/networking/nakama_modules/moba_match.ts", "moba_match_ts")
+    idx = (GODOT / "src/networking/nakama_modules/index.ts").read_text()
+    if "register_moba_match" in idx:
+        ok("Nakama index registers moba_match")
+    else:
+        fail("Nakama index missing register_moba_match")
+    hub = (GODOT / "src/ui/arena_hub_ui.gd").read_text()
+    if "find_moba_match" in hub and "_launch_moba" in hub:
+        ok("Arena hub queues find_moba_match")
+    else:
+        fail("Arena hub missing online moba queue")
+    amc2 = (GODOT / "src/world/arena_mode_controller.gd").read_text()
+    if "MobaOnlineClient" in amc2 and "moba_online_match_id" in amc2:
+        ok("ArenaModeController starts MobaOnlineClient")
+    else:
+        fail("ArenaModeController missing online moba path")
+
     print("== metahuman interim ==")
     if (GODOT / "assets/models/player_human.glb").exists():
         ok("player_human.glb present (interim identity mesh)")
@@ -171,6 +226,142 @@ def main() -> int:
         ok("AssetLibrary.sound defaults to one-shot")
     else:
         fail("AssetLibrary.sound still force-loops all SFX")
+
+    print("== all modes playable ==")
+    oc = (GODOT / "src/games/offline_casino.gd").read_text()
+    for rpc in (
+        "draw_fortune",
+        "buy_scratch_card",
+        "predict_match",
+        "submit_puzzle_score",
+        "start_race",
+        "play_holdem",
+        "combat_action",
+    ):
+        if f'"{rpc}"' in oc:
+            ok(f"OfflineCasino supports {rpc}")
+        else:
+            fail(f"OfflineCasino missing {rpc}")
+    nm2 = (GODOT / "src/networking/network_manager.gd").read_text()
+    if "RPC_ALIASES" in nm2 and "get_wallet" in nm2:
+        ok("NetworkManager RPC aliases for economy/tournaments")
+    else:
+        fail("NetworkManager missing RPC aliases")
+    poker_ts = (GODOT / "src/networking/nakama_modules/poker_rpc.ts").read_text()
+    if "cardDicts" in poker_ts and "normalizeHeld" in poker_ts and "coins" not in poker_ts.replace("cat_coins", ""):
+        # wallet_util uses coins — poker should import spendCoins not cat_coins
+        pass
+    if "cat_coins" in poker_ts:
+        fail("poker_rpc still uses cat_coins")
+    else:
+        ok("poker_rpc uses shared coins wallet")
+    if "wallet_util" in poker_ts or "spendCoins" in poker_ts:
+        ok("poker_rpc uses wallet_util")
+    else:
+        fail("poker_rpc missing wallet_util")
+    hub2 = (GODOT / "src/ui/arena_hub_ui.gd").read_text()
+    if "find_match" in hub2 and "_launch_arena_mode" in hub2:
+        ok("Arena hub queues non-MOBA modes online via find_match")
+    else:
+        fail("Arena hub missing online queue for non-MOBA modes")
+    check_exists("scenes/games/arcade/holdem.tscn", "holdem_scene")
+    check_exists("src/networking/nakama_modules/wallet_util.ts", "wallet_util")
+    check_exists("src/ui/ui_nav.gd", "ui_nav")
+    check_exists("src/ui/shop_scene_controller.gd", "shop_controller")
+    mm = (GODOT / "src/ui/main_menu.gd").read_text()
+    for scene in (
+        "inventory.tscn",
+        "combat_ui.tscn",
+        "tournament.tscn",
+        "shop.tscn",
+        "settings.tscn",
+        "quest.tscn",
+    ):
+        if scene in mm:
+            ok(f"main menu links {scene}")
+        else:
+            fail(f"main menu missing {scene}")
+    eco = (GODOT / "src/core/economy_manager.gd").read_text()
+    if "OFFLINE_STARTER_COINS" in eco and "can_spend_coins" in eco:
+        ok("EconomyManager seeds offline coins + spend helpers")
+    else:
+        fail("EconomyManager missing offline starter / spend helpers")
+    if '"get_wallet"' in oc and '"find_match"' in oc:
+        ok("OfflineCasino soft-paths wallet + matchmaking")
+    else:
+        fail("OfflineCasino missing soft-path RPCs")
+    score_ts = (GODOT / "src/networking/nakama_modules/score_rpc.ts").read_text()
+    if "registerRpc(\"submit_score\"" in score_ts or "registerRpc('submit_score'" in score_ts:
+        fail("score_rpc still overwrites submit_score")
+    else:
+        ok("score_rpc no longer overwrites leaderboard RPCs")
+    gf = (GODOT / "src/games/game_factory.gd").read_text()
+    if "func get_game_catalog" in gf and "slot_machine.tscn" in gf:
+        ok("GameFactory catalog exposes real scenes")
+    else:
+        fail("GameFactory catalog incomplete")
+    gm = (GODOT / "src/core/game_manager.gd").read_text()
+    if "scene_path" in gm and "change_scene_to_file" in gm:
+        ok("GameManager.enter_game accepts scene paths")
+    else:
+        fail("GameManager.enter_game missing scene launch")
+    lobby = (GODOT / "src/ui/game_lobby_ui.gd").read_text()
+    if "entry.get(\"scene\"" in lobby or 'entry.get("scene"' in lobby:
+        ok("GameLobbyUI launches catalog scenes")
+    else:
+        fail("GameLobbyUI drops catalog scene paths")
+    pv = (GODOT / "src/world/paw_vegas_scene.gd").read_text()
+    if "_ensure_scene_tree" in pv and "GameLobbyUI" in pv:
+        ok("Paws Vegas builds lobby when hub tree is sparse")
+    else:
+        fail("Paws Vegas hub still requires missing nodes")
+    bj = (GODOT / "scenes/games/arcade/blackjack.tscn").read_text()
+    if "blackjack.gd" in bj and "DealBtn" in bj:
+        ok("blackjack scene uses wired blackjack.gd")
+    else:
+        fail("blackjack scene still unwired")
+    slots = (GODOT / "scenes/games/slots/slot_machine.tscn").read_text()
+    if "slot_machine_ui.gd" in slots and "ResultLabel" in slots:
+        ok("slot_machine uses OfflineCasino UI script")
+    else:
+        fail("slot_machine still mismatched paths")
+    ag = (GODOT / "src/world/arcade_galaxy_scene.gd").read_text()
+    if "_build_station_ui" in ag and "fortune_wheel.tscn" in ag:
+        ok("Arcade Galaxy stations launch real games")
+    else:
+        fail("Arcade Galaxy stations still unwired")
+    if "launch_district" in ag:
+        fail("Arcade Galaxy still calls missing launch_district")
+    else:
+        ok("Arcade Galaxy play_cat_wheel fixed")
+    amc_modes = (GODOT / "src/world/arena_mode_controller.gd").read_text()
+    for mode in ("survival", "zombies", "ctf", "conflict", "duel"):
+        if f'"{mode}"' in amc_modes or f"_{mode}" in amc_modes or f"_setup_{mode}" in amc_modes or f"_tick_{mode}" in amc_modes:
+            ok(f"arena controller handles {mode}")
+        else:
+            # conflict uses _setup_conflict; survival uses _setup_survival
+            if f"_setup_{mode}" in amc_modes or f"_tick_{mode}" in amc_modes or (mode == "duel" and "_setup_duel" in amc_modes):
+                ok(f"arena controller handles {mode}")
+            else:
+                fail(f"arena controller missing {mode}")
+    if "_setup_conflict" in amc_modes and "_hero_hp" in amc_modes:
+        ok("arena modes share hero HP combat")
+    else:
+        fail("arena shared hero combat missing")
+    cs = (GODOT / "src/combat/combat_system.gd").read_text()
+    if "func quick_resolve" in cs:
+        ok("CombatSystem.quick_resolve for tournaments")
+    else:
+        fail("CombatSystem.quick_resolve missing")
+    for rel in (
+        "scenes/games/arcade/fortune_wheel.tscn",
+        "scenes/games/arcade/scratch_card.tscn",
+        "scenes/games/arcade/coin_pusher.tscn",
+        "scenes/games/arcade/cat_puzzle.tscn",
+        "scenes/games/sports/paw_ball.tscn",
+        "scenes/games/racing/race_track.tscn",
+    ):
+        check_exists(rel, "playable_scene")
 
     print()
     if failures:

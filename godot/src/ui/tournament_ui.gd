@@ -17,6 +17,7 @@ func _ready() -> void:
 	TournamentManager.tournament_round_complete.connect(_on_round_complete)
 	TournamentManager.tournament_finished.connect(_on_tournament_finished)
 	_refresh()
+	UINav.add_back_button(self)
 
 func _refresh() -> void:
 	if NetworkManager.is_connected_to_server():

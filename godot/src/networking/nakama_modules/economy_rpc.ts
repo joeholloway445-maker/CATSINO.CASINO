@@ -165,7 +165,19 @@ const rpcGetWallet: nkruntime.RpcFunction = function (
     create_time: entry.createTime,
   }));
 
-  return jsonResponse({ ok: true, coins: balances.coins, gems: balances.gems, history });
+  return jsonResponse({
+    ok: true,
+    success: true,
+    coins: balances.coins,
+    gems: balances.gems,
+    cat_coins: balances.coins, // alias for legacy HUD readers
+    balances: {
+      coins: balances.coins,
+      gems: balances.gems,
+      cat_coins: balances.coins,
+    },
+    history,
+  });
 };
 
 // ─── RPC: Daily Bonus ────────────────────────────────────────────────────────

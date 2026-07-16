@@ -4,10 +4,10 @@ extends Node2D
 # Coin pusher minigame — drop coins to push others off the edge
 # Visual-only simulation; payout calculated server-side
 
-@onready var result_label: Label = $UI/ResultLabel
-@onready var drop_btn: Button = $UI/DropBtn
-@onready var bet_spin: SpinBox = $UI/BetSpin
-@onready var coins_label: Label = $UI/CoinsOnBoard
+@onready var result_label: Label = $UI/VBox/ResultLabel
+@onready var drop_btn: Button = $UI/VBox/DropBtn
+@onready var bet_spin: SpinBox = $UI/VBox/BetRow/BetSpin
+@onready var coins_label: Label = $UI/VBox/CoinsOnBoard
 
 var _coins_on_board := 20
 var _drop_in_progress := false

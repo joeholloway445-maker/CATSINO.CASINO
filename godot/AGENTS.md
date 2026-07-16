@@ -242,7 +242,7 @@ Existing code — extend these, never create parallel systems:
 | mode | status | code |
 |---|---|---|
 | 1v1 duels | built (trial context) | `src/ascension/ascension_trial.gd` + `trial_arena.gd` — Round II/III duels vs Knoll built from Hope's profile; generalize this into open 1v1 |
-| 5v5 MOBA ("Paws of the Ancients") | defined, lobby-level | `src/data/arena_modes.gd` (`moba`) via Arena hub (`src/ui/arena_hub_ui.gd`) |
+| 5v5 MOBA ("Paws of the Ancients") | built (offline + online) | Offline: `src/world/moba/*`. Online: Nakama `moba_match` + `MobaOnlineClient` via Arena hub queue |
 | Team deathmatch / large team battle | defined, lobby-level | `arena_modes.gd` (`conflict`, team_size=12) |
 | Survival (shrinking zone) | defined, lobby-level | `arena_modes.gd` (`survival`) |
 | Zombies / horde co-op | defined, lobby-level | `arena_modes.gd` (`zombies` — waves of feral entities) |

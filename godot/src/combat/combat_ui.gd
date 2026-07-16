@@ -71,11 +71,14 @@ var _ability_slots: Array[Dictionary] = []
 
 func _ready() -> void:
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	mouse_filter = Control.MOUSE_FILTER_IGNORE
+	mouse_filter = Control.MOUSE_FILTER_STOP
 	_build_ui()
 	_connect_combat_signals()
 	_refresh_resource_bars()
 	_refresh_ability_slots()
+	UINav.add_back_button(self)
+	# Auto-start a practice duel so the screen is immediately playable.
+	call_deferred("start_combat")
 
 func _build_ui() -> void:
 	var margin := MarginContainer.new()

@@ -21,6 +21,7 @@ func _ready() -> void:
 	_load_settings()
 	_build_ui()
 	_apply_settings()
+	UINav.add_back_button(self)
 
 func _build_ui() -> void:
 	var scroll = ScrollContainer.new()

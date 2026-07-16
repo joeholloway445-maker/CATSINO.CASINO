@@ -94,6 +94,14 @@ func get_battlepass_tier() -> int:
 func get_battlepass_xp() -> int:
 	return battlepass_xp
 
+func get_battlepass_progress() -> Dictionary:
+	var next_tier := mini(battlepass_tier + 1, MAX_BATTLEPASS_TIERS - 1)
+	return {
+		"tier": battlepass_tier,
+		"current_xp": battlepass_xp,
+		"xp_to_next": get_xp_for_tier(next_tier),
+	}
+
 func get_xp_for_tier(tier: int) -> int:
 	if tier < battlepass_tiers.size():
 		return battlepass_tiers[tier].get("xp_required", 1000)
