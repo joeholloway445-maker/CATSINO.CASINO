@@ -13,18 +13,22 @@ convention: `<slot>_albedo.jpg`, `<slot>_normal.jpg` (OpenGL-convention
 | `facade_metal_*` | [`factory_wall`](https://polyhaven.com/a/factory_wall) | industrial shells, rooftop HVAC/masts |
 | `asphalt_*` | [`asphalt_02`](https://polyhaven.com/a/asphalt_02) | district ground plates + road strips (`ground_tex: "asphalt"`) |
 | `sidewalk_*` | [`concrete_pavement`](https://polyhaven.com/a/concrete_pavement) | walkable-district ground (`ground_tex: "sidewalk"`) |
+| `grass_*` | [`grass_path_3`](https://polyhaven.com/a/grass_path_3) | ProceduralTerrain plains/overgrowth + Terrain3D grass fallback |
+| `dirt_*` | [`forest_ground_04`](https://polyhaven.com/a/forest_ground_04) | ProceduralTerrain ruins/ashland + Terrain3D dirt fallback |
+| `sand_*` | [`coast_sand_01`](https://polyhaven.com/a/coast_sand_01) | ProceduralTerrain coastal seabed |
+
+Terrain3D desktop also uses AmbientCG demo maps under
+`assets/terrain/demo/textures/` (`ground037_*`, `rock023_*`) — see that
+folder's `asset_licenses.txt` (CC0).
 
 Deliberately NOT textured:
 - `facade_glass` — glass reads through reflection + the emissive window
   bands `BuildingBuilder` already builds; an albedo texture would fight
   both. Leave procedural.
-- Terrain chunks — `ProceduralTerrain._chunk_material()` doesn't route
-  through `AssetLibrary.material()` slots; texturing terrain properly is
-  a Terrain3D texture-asset job (see `docs/VISUAL_DIRECTION_ESO.md`), not
-  a drop-in file.
-- No HDRI — `DayNightSky` is procedural **by design** (its header says
-  so: catsino-flavored palette, not a realistic horizon). Don't add one
-  without a design decision.
+
+HDRI sky / IBL: `assets/environments/kloppenheim_06_1k.hdr` (Poly Haven
+CC0) is wired into `DayNightSky` when present — see
+`assets/environments/ATTRIBUTION.md`.
 
 More slots can be filled the same way with zero code changes — every
 `AssetLibrary.material("<slot>", ...)` call site checks

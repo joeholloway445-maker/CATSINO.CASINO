@@ -108,13 +108,102 @@ static func _rig_from_profile(perceived: bool) -> Node3D:
 	rig.build_from_loadout(loadout.get("race", {}), loadout.get("frame", {}), loadout.get("mod", {}))
 	return rig
 
-## Best-effort: if MetaHumanGodot skin shader exists, leave a marker so look-dev
-## tools / future material pass can find surfaces named Skin/Eye/Hair.
+## Look-dev pass for shipped PeriHumans / future MetaHuman exports.
+## On Forward+: try MetaHumanGodot skin shader on Skin* surfaces.
+## Everywhere: tune StandardMaterial3D skin/cloth/hair toward soft SSS-like
+## reads (lower roughness, slight subsurface / rim) so Blender Studio bases
+## don't look plastic under HDRI.
 static func _try_apply_metahuman_materials(root: Node3D) -> void:
-	if not ResourceLoader.exists("res://assets/shaders/metahuman/skin_shader_local.gdshader"):
-		return
-	root.set_meta("metahuman_shader_ready", true)
 	root.set_meta("peri_human", true)
+	var shader_path := "res://assets/shaders/metahuman/skin_shader_local.gdshader"
+	var skin_shader: Shader = null
+	if ResourceLoader.exists(shader_path):
+		skin_shader = load(shader_path) as Shader
+		root.set_meta("metahuman_shader_ready", true)
+	_tune_meshes(root, skin_shader)
+
+static func _tune_meshes(node: Node, skin_shader: Shader) -> void:
+	if node is MeshInstance3D:
+		var mi := node as MeshInstance3D
+		if mi.mesh != null:
+			for si in range(mi.mesh.get_surface_count()):
+				var mat := mi.get_active_material(si)
+				if mat == null:
+					continue
+				var sname := _surface_name(mi, si).to_lower()
+				var tuned := _tune_surface_material(mat, sname, skin_shader)
+				if tuned != null:
+					mi.set_surface_override_material(si, tuned)
+	for child in node.get_children():
+		_tune_meshes(child, skin_shader)
+
+static func _surface_name(mi: MeshInstance3D, si: int) -> String:
+	var mesh := mi.mesh
+	if mesh != null and mesh is ArrayMesh:
+		var am := mesh as ArrayMesh
+		var n := am.surface_get_name(si)
+		if not n.is_empty():
+			return n
+	var mat := mi.get_active_material(si)
+	if mat != null and not mat.resource_name.is_empty():
+		return mat.resource_name
+	return mi.name
+
+static func _tune_surface_material(mat: Material, sname: String, skin_shader: Shader) -> Material:
+	var is_skin := (
+		sname.contains("skin") or sname.contains("body") or sname.contains("head")
+		or sname.contains("face") or sname.contains("arm") or sname.contains("leg")
+	)
+	var is_eye := sname.contains("eye") or sname.contains("cornea") or sname.contains("sclera")
+	var is_hair := sname.contains("hair") or sname.contains("brow") or sname.contains("lash")
+	var is_cloth := (
+		sname.contains("cloth") or sname.contains("shirt") or sname.contains("pant")
+		or sname.contains("shoe") or sname.contains("boot") or sname.contains("outfit")
+	)
+	# Forward+ only: full skin shader (too heavy / incomplete on compat).
+	if is_skin and skin_shader != null and not RenderCaps.is_compatibility():
+		var sm := ShaderMaterial.new()
+		sm.shader = skin_shader
+		if mat is BaseMaterial3D:
+			var bm := mat as BaseMaterial3D
+			sm.set_shader_parameter("albedo", bm.albedo_color)
+			if bm.albedo_texture != null:
+				sm.set_shader_parameter("texture_albedo", bm.albedo_texture)
+			sm.set_shader_parameter("roughness", clampf(bm.roughness * 0.85, 0.25, 0.65))
+		else:
+			sm.set_shader_parameter("albedo", Color(0.82, 0.62, 0.52))
+			sm.set_shader_parameter("roughness", 0.45)
+		return sm
+	if mat is StandardMaterial3D:
+		var std := (mat as StandardMaterial3D).duplicate() as StandardMaterial3D
+		if is_skin:
+			std.roughness = clampf(std.roughness * 0.75, 0.28, 0.62)
+			std.metallic = 0.0
+			std.specular = 0.45
+			if not RenderCaps.is_compatibility():
+				# Property names differ slightly across 4.x — set only if present.
+				if "subsurf_scatter_enabled" in std:
+					std.subsurf_scatter_enabled = true
+					std.subsurf_scatter_strength = 0.35
+				if "rim_enabled" in std:
+					std.rim_enabled = true
+					std.rim = 0.08
+					std.rim_tint = 0.6
+		elif is_eye:
+			std.roughness = 0.08
+			std.metallic = 0.0
+			std.specular = 0.7
+		elif is_hair:
+			std.roughness = clampf(std.roughness, 0.35, 0.7)
+			std.specular = 0.55
+		elif is_cloth:
+			std.roughness = maxf(std.roughness, 0.7)
+			std.metallic = minf(std.metallic, 0.05)
+		else:
+			# Generic body/cloth on Blender Studio bake — soft matte.
+			std.roughness = clampf(std.roughness, 0.4, 0.85)
+		return std
+	return null
 
 ## Which visual tier would win for the local player right now?
 ## Returns one of: peri_human_race | peri_human_player | metahuman_race |

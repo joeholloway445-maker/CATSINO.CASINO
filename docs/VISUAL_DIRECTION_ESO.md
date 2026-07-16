@@ -24,9 +24,10 @@ Blender Studio **Human Base Meshes** (**CC0**), baked once into:
 | `peri_human_npc.glb` / `metahuman_npc.glb` | Default NPC (realistic female base) |
 | `variants/metahuman_npc/*.glb` | Skin/cloth color variants for crowds |
 
-Realistic anatomy + simple clothes (game-safe). Not MetaHuman skin-pore
-cinema yet — clothing is placeholder geometry; faces/bodies use Studio’s
-realistic bases, decimated for phone/Web.
+Realistic anatomy + simple clothes (game-safe). Runtime look-dev tunes
+Skin/Eye/Hair/Cloth materials (soft SSS/rim on Forward+; MetaHumanGodot
+skin shader when surface names match). Not MetaHuman skin-pore cinema
+yet — clothing is still placeholder geometry.
 
 ### Studio-only photoreal upgrade (optional, still zero player friction)
 
@@ -38,7 +39,7 @@ If we want closer to ESO faces later, **we** (not players) bake once:
 
 Players still only download the game. See `docs/ASSET_PIPELINE.md`.
 
-Skin/eye/hair look-dev shaders (for future photoreal bakes) live under
+Skin/eye/hair look-dev shaders live under
 `godot/assets/shaders/metahuman/` (community MetaHumanGodot, MIT).
 
 ## Terrain = Terrain3D (desktop) / ProceduralTerrain (web)
@@ -48,18 +49,33 @@ Skin/eye/hair look-dev shaders (for future photoreal bakes) live under
 | Desktop / native AAA | **Terrain3D** v1.0.0 (Godot 4.3 GDExtension) in `addons/terrain_3d/` |
 | Web export | `ProceduralTerrain` (TerrainBridge falls back automatically) |
 
-`TerrainBridge` + `TerrainWorld` generate a noise heightfield with grass/dirt
-auto-shader when Terrain3D’s classes are present.
+`TerrainWorld` prefers AmbientCG / Poly Haven PBR maps for Terrain3D
+grass/dirt. `ProceduralTerrain` UV-maps chunks and applies
+`grass` / `dirt` / `sand` / `asphalt` texture slots by biome.
 
-## Renderer
+## Lighting / sky
 
 | Platform | Method |
 |---|---|
-| Desktop | `forward_plus` (SSAO / SSIL / volumetric fog / glow) |
-| Mobile / Web | `gl_compatibility` |
+| Desktop | `forward_plus` + SSAO / SSIL / SSR / volumetric fog |
+| Mobile / Web | `gl_compatibility` (glow + depth fog only) |
+
+`DayNightSky` uses Poly Haven HDRI (`kloppenheim_06_1k.hdr`) for sky IBL
+when present, with sun energy still cycling day→night. Falls back to the
+procedural neon-dusk palette if the HDRI is missing.
+
+## World props (filled CC0 slots)
+
+Nature / furniture / castle kits fill `tree`, `rock`, `crystal` (interim
+mushrooms), `ruin_pillar`, `extraction_gate`, `apartment_prop`,
+`harvest_node`, `creature` (interim bear), `neon_sign`, `city_door`.
+Variant pools scatter forests/ruins without cloning one mesh.
+
+Still empty / stylized: `player_cat` / `npc_cat`, photoreal creatures,
+`vehicle_aircraft_body`, true gem crystals.
 
 ## Related
 
-- `godot/AGENTS.md` — slot drop procedure for Ziva
+- `godot/AGENTS.md` — slot drop procedure for agents
 - `docs/ASSET_PIPELINE.md` — Blender → GLB
 - `godot/assets/models/ATTRIBUTION.md` — licenses

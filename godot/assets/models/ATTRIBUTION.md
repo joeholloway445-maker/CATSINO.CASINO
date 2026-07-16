@@ -27,7 +27,16 @@
 | `variants/city_prop/*.glb` (planter + 2 tree sizes) | [Kenney City Kit (Suburban)](https://kenney.nl/assets/city-kit-suburban) | **CC0** |
 | `variants/vehicle_car_body/*.glb` (sedan/sedan-sports/taxi/suv/police) | [Kenney Car Kit](https://kenney.nl/assets/car-kit) | **CC0** |
 | `variants/vehicle_spacecraft_body/*.glb` (racer + 4 speeders) | [Kenney Space Kit](https://kenney.nl/assets/space-kit) | **CC0** |
-| `tree.glb` (from `tree-large.glb`) | [Kenney City Kit (Suburban)](https://kenney.nl/assets/city-kit-suburban) | **CC0** |
+| `tree.glb` + `variants/tree/*` | [Kenney Nature Kit](https://kenney.nl/assets/nature-kit) pines / detailed trees | **CC0** |
+| `rock` variants under `variants/rock/*` | [Kenney Nature Kit](https://kenney.nl/assets/nature-kit) | **CC0** |
+| `crystal.glb` + `variants/crystal/*` | [Kenney Nature Kit](https://kenney.nl/assets/nature-kit) mushrooms (interim crystal-field props) | **CC0** |
+| `ruin_pillar.glb` + `variants/ruin_pillar/*` | [Kenney Castle Kit](https://kenney.nl/assets/castle-kit) pillars / walls | **CC0** |
+| `extraction_gate.glb` | [Kenney Castle Kit](https://kenney.nl/assets/castle-kit) `gate.glb` | **CC0** |
+| `city_door.glb` | [Kenney Castle Kit](https://kenney.nl/assets/castle-kit) `door.glb` | **CC0** |
+| `apartment_prop.glb` + variants | [Kenney Furniture Kit](https://kenney.nl/assets/furniture-kit) | **CC0** |
+| `harvest_node.glb` | [Kenney Furniture Kit](https://kenney.nl/assets/furniture-kit) `bookcaseClosedDoors.glb` | **CC0** |
+| `creature.glb` | [Kenney Furniture Kit](https://kenney.nl/assets/furniture-kit) `bear.glb` (stylized interim) | **CC0** |
+| `neon_sign.glb` | [Kenney Furniture Kit](https://kenney.nl/assets/furniture-kit) `televisionModern.glb` (emissive board shell) | **CC0** |
 | `godot/src/world/overworld/third_person_controller.gd` | Movement/camera physics pattern adapted from godotengine/tps-demo's `player/player.gd` (single-player rewrite, gun-robot/multiplayer scaffolding removed; ability-kit hotbar and cat/identity visual-mode switching are original) | MIT (code) |
 | `godot/src/vehicles/land_vehicle.gd` | Steering/throttle model adapted from the official [godotengine/godot-demo-projects](https://github.com/godotengine/godot-demo-projects) `3d/truck_town` sample's `vehicles/vehicle.gd` (whole-repo MIT, no split code/asset license unlike tps-demo) — rewritten for our input map, procedural placeholder body/wheels, and VehicleSeat enter/exit instead of their multi-vehicle trailer/tow-truck rig | MIT (code) |
 | `godot/src/vehicles/water_vehicle.gd`, `air_vehicle.gd`, `space_vehicle.gd` | Original — no equivalent official Godot demo exists for buoyancy or flight (unlike VehicleBody3D for land, Godot has no built-in boat/aircraft physics node), so these are from-scratch arcade models | MIT (code) |
@@ -91,6 +100,12 @@ what each pack actually ships, kept modest for repo size):
 | `city_prop` | 3 (planter + 2 tree sizes) | Kenney City Kit (Suburban) |
 | `vehicle_car_body` | 5 (sedan/sedan-sports/taxi/suv/police — same wheelbase class as the existing procedural wheel offsets) | Kenney Car Kit |
 | `vehicle_spacecraft_body` | 5 (racer + 4 speeders) | Kenney Space Kit |
+| `tree` | 6 pines / detailed trees | Kenney Nature Kit |
+| `rock` | 5 rocks / tall stones | Kenney Nature Kit |
+| `crystal` | 3 mushrooms (interim) | Kenney Nature Kit |
+| `apartment_prop` | 6 furniture pieces | Kenney Furniture Kit |
+| `ruin_pillar` | 5 castle pieces | Kenney Castle Kit |
+| `metahuman_npc` / `peri_human_npc` / `npc_human` | 5 skin/cloth variants | Blender Studio Human Base Meshes |
 
 `road_segment`/`sidewalk` stay single-file on purpose — road tiles have
 to interlock at fixed pivots/edges, and swapping them per-instance without
