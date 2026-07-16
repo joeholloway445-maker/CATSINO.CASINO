@@ -12,9 +12,14 @@ var _unequip_btn: Button
 func _ready() -> void:
 	_build_ui()
 	_refresh_current_tab()
-	InventoryManager.item_added.connect(_on_item_changed)
-	InventoryManager.item_removed.connect(_on_item_changed)
-	InventoryManager.item_equipped.connect(_on_equip_changed)
+	if InventoryManager:
+		if InventoryManager.has_signal("item_added"):
+			InventoryManager.item_added.connect(_on_item_changed)
+		if InventoryManager.has_signal("item_removed"):
+			InventoryManager.item_removed.connect(_on_item_changed)
+		if InventoryManager.has_signal("item_equipped"):
+			InventoryManager.item_equipped.connect(_on_equip_changed)
+	UINav.add_back_button(self)
 
 func _build_ui() -> void:
 	var root = HBoxContainer.new()

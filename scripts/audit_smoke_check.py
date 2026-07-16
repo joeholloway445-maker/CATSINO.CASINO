@@ -235,11 +235,66 @@ def main() -> int:
         "predict_match",
         "submit_puzzle_score",
         "start_race",
+        "play_holdem",
+        "combat_action",
     ):
         if f'"{rpc}"' in oc:
             ok(f"OfflineCasino supports {rpc}")
         else:
             fail(f"OfflineCasino missing {rpc}")
+    nm2 = (GODOT / "src/networking/network_manager.gd").read_text()
+    if "RPC_ALIASES" in nm2 and "get_wallet" in nm2:
+        ok("NetworkManager RPC aliases for economy/tournaments")
+    else:
+        fail("NetworkManager missing RPC aliases")
+    poker_ts = (GODOT / "src/networking/nakama_modules/poker_rpc.ts").read_text()
+    if "cardDicts" in poker_ts and "normalizeHeld" in poker_ts and "coins" not in poker_ts.replace("cat_coins", ""):
+        # wallet_util uses coins — poker should import spendCoins not cat_coins
+        pass
+    if "cat_coins" in poker_ts:
+        fail("poker_rpc still uses cat_coins")
+    else:
+        ok("poker_rpc uses shared coins wallet")
+    if "wallet_util" in poker_ts or "spendCoins" in poker_ts:
+        ok("poker_rpc uses wallet_util")
+    else:
+        fail("poker_rpc missing wallet_util")
+    hub2 = (GODOT / "src/ui/arena_hub_ui.gd").read_text()
+    if "find_match" in hub2 and "_launch_arena_mode" in hub2:
+        ok("Arena hub queues non-MOBA modes online via find_match")
+    else:
+        fail("Arena hub missing online queue for non-MOBA modes")
+    check_exists("scenes/games/arcade/holdem.tscn", "holdem_scene")
+    check_exists("src/networking/nakama_modules/wallet_util.ts", "wallet_util")
+    check_exists("src/ui/ui_nav.gd", "ui_nav")
+    check_exists("src/ui/shop_scene_controller.gd", "shop_controller")
+    mm = (GODOT / "src/ui/main_menu.gd").read_text()
+    for scene in (
+        "inventory.tscn",
+        "combat_ui.tscn",
+        "tournament.tscn",
+        "shop.tscn",
+        "settings.tscn",
+        "quest.tscn",
+    ):
+        if scene in mm:
+            ok(f"main menu links {scene}")
+        else:
+            fail(f"main menu missing {scene}")
+    eco = (GODOT / "src/core/economy_manager.gd").read_text()
+    if "OFFLINE_STARTER_COINS" in eco and "can_spend_coins" in eco:
+        ok("EconomyManager seeds offline coins + spend helpers")
+    else:
+        fail("EconomyManager missing offline starter / spend helpers")
+    if '"get_wallet"' in oc and '"find_match"' in oc:
+        ok("OfflineCasino soft-paths wallet + matchmaking")
+    else:
+        fail("OfflineCasino missing soft-path RPCs")
+    score_ts = (GODOT / "src/networking/nakama_modules/score_rpc.ts").read_text()
+    if "registerRpc(\"submit_score\"" in score_ts or "registerRpc('submit_score'" in score_ts:
+        fail("score_rpc still overwrites submit_score")
+    else:
+        ok("score_rpc no longer overwrites leaderboard RPCs")
     gf = (GODOT / "src/games/game_factory.gd").read_text()
     if "func get_game_catalog" in gf and "slot_machine.tscn" in gf:
         ok("GameFactory catalog exposes real scenes")

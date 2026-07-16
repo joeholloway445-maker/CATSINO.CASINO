@@ -447,3 +447,25 @@ func _finish(won: bool) -> void:
 		EconomyManager.earn_prestige(3, "arena_loss")
 		NotificationUI.notify_error("%s failed — the arena remembers (+3 🌟)." % mode_id)
 		mode_lost.emit(mode_id)
+	_sync_online_result(won)
+
+func _sync_online_result(won: bool) -> void:
+	## When queued via find_match, push a leaderboard score so online play is recorded.
+	if not Engine.has_meta("arena_online_match_id"):
+		return
+	if not NetworkManager or not NetworkManager.is_connected_to_server():
+		return
+	var match_id := str(Engine.get_meta("arena_online_match_id"))
+	var score_val := _score + (1000 if won else 0)
+	NetworkManager.call_rpc("submit_score", {
+		"leaderboard": "all_time_wins",
+		"score": score_val,
+		"subscore": 1 if won else 0,
+		"match_id": match_id,
+		"mode": mode_id,
+	}, func(r: Dictionary):
+		if r.get("success", false) or r.get("ok", false):
+			NotificationUI.notify_info("Online result synced.")
+		if Engine.has_meta("arena_online_match_id"):
+			Engine.remove_meta("arena_online_match_id")
+	)

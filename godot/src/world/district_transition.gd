@@ -53,7 +53,8 @@ func travel_to(district_id: String) -> void:
 
 	var cost = ENTRY_COSTS.get(district_id, 0)
 	if cost > 0 and EconomyManager:
-		EconomyManager.spend_coins(cost)
+		if not await EconomyManager.spend_coins(cost, "district_entry"):
+			return
 
 	_transitioning = true
 	var from = _current_district

@@ -91,9 +91,9 @@ func _on_result(result: Dictionary, bet: int) -> void:
 		_spinning = false
 		return
 
-	var seg_idx: int = result.get("segment", 0) % SEGMENTS.size()
+	var seg_idx: int = int(result.get("segment_index", result.get("segment", 0))) % SEGMENTS.size()
 	_pending_segment = seg_idx
-	_pending_payout = result.get("payout", 0)
+	_pending_payout = int(result.get("payout", 0))
 
 	# Animate to the result segment
 	var full_spins = 5

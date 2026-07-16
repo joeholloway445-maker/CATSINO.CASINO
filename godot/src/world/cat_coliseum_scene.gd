@@ -39,6 +39,12 @@ func _build_ui() -> void:
 	tournament.pressed.connect(func() -> void: await start_tournament(_make_player()))
 	root.add_child(tournament)
 
+	var realtime := Button.new()
+	realtime.text = "Open Combat Arena UI"
+	realtime.pressed.connect(func() -> void:
+		get_tree().change_scene_to_file("res://scenes/ui/combat_ui.tscn"))
+	root.add_child(realtime)
+
 	var arena := Button.new()
 	arena.text = "Open Arlington Arena Hub"
 	arena.pressed.connect(func() -> void:

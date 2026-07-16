@@ -196,10 +196,39 @@ func _launch(mode_id: String) -> void:
 			_launch_moba(scene_path)
 		_:
 			if scene_path != "" and ResourceLoader.exists(scene_path):
-				Engine.set_meta("arena_queued_mode", mode_id)
-				get_tree().change_scene_to_file(scene_path)
+				_launch_arena_mode(mode_id, scene_path)
 			else:
-				_simulate_match(mode_id)
+				NotificationUI.notify_error("Arena scene missing for %s" % mode_id)
+
+## Online: queue via find_match (catsino_match) then enter practice-synced arena.
+## Offline / Shift: practice immediately. Match id is stored for score sync.
+func _launch_arena_mode(mode_id: String, scene_path: String) -> void:
+	var force_practice: bool = Input.is_key_pressed(KEY_SHIFT)
+	if force_practice or not NetworkManager.is_connected_to_server():
+		_enter_arena_scene(mode_id, scene_path, "")
+		if force_practice:
+			NotificationUI.notify_info("Practice mode (offline).")
+		else:
+			NotificationUI.notify_info("Offline — local %s match." % mode_id)
+		return
+	NotificationUI.notify_info("Queuing online %s…" % mode_id)
+	NetworkManager.call_rpc("find_match", {"game_type": mode_id}, func(result: Dictionary):
+		if not result.get("ok", false) and not result.get("match_id", ""):
+			NotificationUI.notify_error("Queue failed — practice instead. (%s)" % str(result.get("error", "?")))
+			_enter_arena_scene(mode_id, scene_path, "")
+			return
+		var mid := str(result.get("match_id", ""))
+		NotificationUI.notify_info("Joined arena match %s" % mid.substr(0, 8))
+		_enter_arena_scene(mode_id, scene_path, mid)
+	)
+
+func _enter_arena_scene(mode_id: String, scene_path: String, match_id: String) -> void:
+	Engine.set_meta("arena_queued_mode", mode_id)
+	if match_id != "":
+		Engine.set_meta("arena_online_match_id", match_id)
+	elif Engine.has_meta("arena_online_match_id"):
+		Engine.remove_meta("arena_online_match_id")
+	get_tree().change_scene_to_file(scene_path)
 
 ## Online queue when authenticated; otherwise practice (offline MobaMatch).
 ## Holding Shift while clicking forces practice even when online.

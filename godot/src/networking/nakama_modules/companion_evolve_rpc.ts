@@ -11,7 +11,7 @@ const CompanionEvolveRpc = {
 
     const cost = Math.ceil(xp_amount / 10);
 
-    const walletUpdates = [{ userId, changeset: { cat_coins: -cost }, metadata: { reason: "companion_feed" } }];
+    const walletUpdates = [{ userId, changeset: { coins: -cost }, metadata: { reason: "companion_feed" } }];
     nk.walletsUpdate(walletUpdates, true);
 
     const key = `companion_${companion_id}`;
@@ -56,7 +56,7 @@ const CompanionEvolveRpc = {
     if (companion.evolved) throw new Error("Companion already evolved");
 
     const cost = 5000;
-    nk.walletsUpdate([{ userId, changeset: { cat_coins: -cost }, metadata: { reason: "companion_evolve" } }], true);
+    nk.walletsUpdate([{ userId, changeset: { coins: -cost }, metadata: { reason: "companion_evolve" } }], true);
 
     companion.evolved = true;
     companion.evolve_bonus = EVOLVE_STAT_BONUS;
