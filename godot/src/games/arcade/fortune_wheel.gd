@@ -27,6 +27,54 @@ var _target_angle: float = 0.0
 var _spin_speed: float = 0.0
 var _pending_segment: int = -1
 var _pending_payout: int = 0
+var _result_label: Label
+var _bet: int = 50
+
+func _ready() -> void:
+	var root := get_parent() if get_parent() else self
+	var spin_btn: Button = root.get_node_or_null("SpinButton") as Button
+	if spin_btn and not spin_btn.pressed.is_connected(_on_spin_pressed):
+		spin_btn.pressed.connect(_on_spin_pressed)
+	_result_label = root.get_node_or_null("ResultLabel") as Label
+	if _result_label == null and root is Control:
+		_result_label = Label.new()
+		_result_label.name = "ResultLabel"
+		_result_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		_result_label.set_anchors_preset(Control.PRESET_BOTTOM_WIDE)
+		_result_label.offset_top = -80
+		(root as Control).add_child(_result_label)
+	if not spin_result.is_connected(_on_spin_ui_result):
+		spin_result.connect(_on_spin_ui_result)
+	if not error_occurred.is_connected(_on_spin_ui_error):
+		error_occurred.connect(_on_spin_ui_error)
+	_add_back_button(root)
+
+func _add_back_button(root: Node) -> void:
+	if root.get_node_or_null("BackBtn"):
+		return
+	if root is Control:
+		var back := Button.new()
+		back.name = "BackBtn"
+		back.text = "⬅ Back"
+		back.position = Vector2(12, 12)
+		back.pressed.connect(func() -> void:
+			get_tree().change_scene_to_file("res://scenes/world/paw_vegas_hub.tscn"))
+		root.add_child(back)
+
+func _on_spin_pressed() -> void:
+	spin(_bet)
+
+func _on_spin_ui_result(segment_name: String, multiplier: float, payout: int) -> void:
+	if _result_label:
+		_result_label.text = "%s (x%.1f) — +%d coins" % [segment_name, multiplier, payout]
+	if payout > 0 and NotificationUI:
+		NotificationUI.notify_win("Fortune: +%d" % payout)
+
+func _on_spin_ui_error(message: String) -> void:
+	if _result_label:
+		_result_label.text = message
+	if NotificationUI:
+		NotificationUI.notify_error(message)
 
 func spin(bet: int) -> void:
 	if _spinning:

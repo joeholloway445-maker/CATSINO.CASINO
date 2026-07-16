@@ -57,3 +57,26 @@ func _on_race_result(position: int, payout: int, result: Dictionary) -> void:
 	if position == 1:
 		QuestManager.update_progress("first_place")
 		QuestManager.update_progress("win_race")
+	await _feed_arena_cup(position)
+
+func _feed_arena_cup(position: int) -> void:
+	if TournamentManager == null:
+		return
+	if TournamentManager.state != TournamentManager.TournamentState.REGISTRATION:
+		return
+	# Seed field from the just-finished race; player spd mirrors finish place.
+	var player_spd := clampi(95 - (position - 1) * 8, 40, 99)
+	await TournamentManager.register({
+		"name": "You",
+		"spd": player_spd,
+		"is_player": true,
+	})
+	for i in 7:
+		await TournamentManager.register({
+			"name": "Circuit Cat %d" % (i + 1),
+			"spd": 45 + randi() % 40,
+			"is_player": false,
+		})
+	TournamentManager.start()
+	if NotificationUI:
+		NotificationUI.notify_info("Arena Circuit bracket is running from your race result.")

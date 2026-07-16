@@ -15,6 +15,59 @@ const TEAMS = [
 var _current_match: Dictionary = {}
 var _bet: int = 0
 var _player_pick: String = ""
+var _match_info: Label
+var _result_label: Label
+var _bet_spin: SpinBox
+
+func _ready() -> void:
+	_match_info = get_node_or_null("VBoxContainer/MatchInfo") as Label
+	_result_label = get_node_or_null("VBoxContainer/ResultLabel") as Label
+	_bet_spin = get_node_or_null("VBoxContainer/BetRow/BetSpin") as SpinBox
+	var home_btn := get_node_or_null("VBoxContainer/ButtonRow/HomeBtn") as Button
+	var draw_btn := get_node_or_null("VBoxContainer/ButtonRow/DrawBtn") as Button
+	var away_btn := get_node_or_null("VBoxContainer/ButtonRow/AwayBtn") as Button
+	if home_btn:
+		home_btn.pressed.connect(func() -> void: _play_pick("home"))
+	if draw_btn:
+		draw_btn.pressed.connect(func() -> void: _play_pick("draw"))
+	if away_btn:
+		away_btn.pressed.connect(func() -> void: _play_pick("away"))
+	if not match_started.is_connected(_on_match_started_ui):
+		match_started.connect(_on_match_started_ui)
+	if not match_result.is_connected(_on_match_result_ui):
+		match_result.connect(_on_match_result_ui)
+	if not error_occurred.is_connected(_on_error_ui):
+		error_occurred.connect(_on_error_ui)
+	_preview_matchup()
+
+func _preview_matchup() -> void:
+	var home_idx := randi() % TEAMS.size()
+	var away_idx := (home_idx + 1 + randi() % (TEAMS.size() - 1)) % TEAMS.size()
+	if _match_info:
+		_match_info.text = "%s vs %s — pick a result" % [TEAMS[home_idx], TEAMS[away_idx]]
+
+func _play_pick(pick: String) -> void:
+	var bet := int(_bet_spin.value) if _bet_spin else 100
+	start_match(bet, pick)
+
+func _on_match_started_ui(home: String, away: String) -> void:
+	if _match_info:
+		_match_info.text = "%s vs %s — playing..." % [home, away]
+	if _result_label:
+		_result_label.text = "Whistle blown..."
+
+func _on_match_result_ui(home_score: int, away_score: int, winner: String, payout: int) -> void:
+	if _result_label:
+		_result_label.text = "Final %d-%d (%s). Payout: %d" % [home_score, away_score, winner, payout]
+	if payout > 0 and NotificationUI:
+		NotificationUI.notify_win("Paw Ball: +%d" % payout)
+	_preview_matchup()
+
+func _on_error_ui(message: String) -> void:
+	if _result_label:
+		_result_label.text = message
+	if NotificationUI:
+		NotificationUI.notify_error(message)
 
 func start_match(bet: int, pick: String) -> void:
 	if _current_match.get("active", false):

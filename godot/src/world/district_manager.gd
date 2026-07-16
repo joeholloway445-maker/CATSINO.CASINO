@@ -89,28 +89,8 @@ func transition_to_district(district: District) -> void:
 	await get_tree().process_frame
 	emit_signal("district_loading_progress", 0.25)
 
-	# Load new scene
+	# Load new scene as the current scene (not a nested child of the old one).
 	var scene_path: String = DISTRICT_SCENES.get(district, "")
-	if scene_path and ResourceLoader.exists(scene_path):
-		var loader := ResourceLoader.load_threaded_request(scene_path)
-		var progress := []
-		while true:
-			var status := ResourceLoader.load_threaded_get_status(scene_path, progress)
-			if status == ResourceLoader.THREAD_LOAD_LOADED:
-				break
-			elif status == ResourceLoader.THREAD_LOAD_FAILED:
-				push_error("DistrictManager: failed to load %s" % scene_path)
-				break
-			emit_signal("district_loading_progress", 0.25 + progress[0] * 0.60)
-			await get_tree().process_frame
-		var scene := ResourceLoader.load_threaded_get(scene_path) as PackedScene
-		if scene:
-			_current_scene_node = scene.instantiate()
-			get_tree().current_scene.add_child(_current_scene_node)
-	else:
-		# Placeholder — district scene not yet created
-		push_warning("DistrictManager: no scene for %s" % District.keys()[district])
-
 	emit_signal("district_loading_progress", 0.90)
 	current_district = district
 	_is_transitioning = false
@@ -121,6 +101,10 @@ func transition_to_district(district: District) -> void:
 	var music_ctx: String = DISTRICT_MUSIC_CONTEXT.get(district, "theme")
 	if MusicManager:
 		MusicManager.play_context(music_ctx)
+	if scene_path and ResourceLoader.exists(scene_path):
+		get_tree().change_scene_to_file(scene_path)
+	else:
+		push_warning("DistrictManager: no scene for %s" % District.keys()[district])
 
 ## Advances both quest systems on arrival: the JSON quests' generic
 ## "visit_district" trigger, the built-in per-district objectives, and

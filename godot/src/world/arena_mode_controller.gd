@@ -1,9 +1,8 @@
 class_name ArenaModeController
 extends Node3D
-## Mode-specific arena rules for playtest_arena / combat_zone entry points.
-## survival → shrinking safe zone · zombies → feral waves · ctf → yarn deliver
-## duel / duel_2v2 → staged entity opponents · moba → MobaMatch (lanes/shop).
-## Rewards tokens + prestige on win.
+## Mode-specific arena rules for playtest_arena.
+## survival / zombies / ctf / duel / duel_2v2 / conflict / moba.
+## Shared hero HP + auto-attack so every mode is win/lose playable offline.
 
 signal mode_won(mode_id: String, score: int)
 signal mode_lost(mode_id: String)
@@ -14,6 +13,7 @@ var _hud: Label
 var _elapsed := 0.0
 var _score := 0
 var _alive: Array[Node] = []
+var _allies: Array[Node] = []
 var _wave := 0
 var _zone_radius := 42.0
 var _zone_visual: MeshInstance3D
@@ -21,6 +21,12 @@ var _yarn: Area3D
 var _yarn_held := false
 var _goal: Area3D
 var _running := true
+var _hero_hp := 120
+var _hero_max_hp := 120
+var _zone_dmg_acc := 0.0
+var _attack_cd := 0.0
+var _enemy_score := 0
+var _moba: Node
 
 func setup(p_mode: String, p_player: Node3D) -> void:
 	mode_id = p_mode
@@ -35,6 +41,8 @@ func setup(p_mode: String, p_player: Node3D) -> void:
 			_setup_ctf()
 		"duel", "duel_2v2":
 			_setup_duel()
+		"conflict":
+			_setup_conflict()
 		"moba":
 			_setup_moba()
 		_:
@@ -52,25 +60,58 @@ func _build_hud() -> void:
 func _refresh_hud(extra: String = "") -> void:
 	if _hud == null:
 		return
-	_hud.text = "%s | score %d | %s" % [mode_id.to_upper(), _score, extra]
+	_hud.text = "%s | HP %d/%d | score %d | %s" % [
+		mode_id.to_upper(), _hero_hp, _hero_max_hp, _score, extra]
 
 func _process(delta: float) -> void:
 	if not _running or player == null:
 		return
 	_elapsed += delta
+	_attack_cd = maxf(_attack_cd - delta, 0.0)
+	if mode_id != "moba":
+		_tick_hero_combat(delta)
 	match mode_id:
 		"survival":
 			_tick_survival(delta)
 		"zombies":
 			_tick_zombies(delta)
 		"ctf":
-			_tick_ctf()
+			_tick_ctf(delta)
 		"duel", "duel_2v2":
-			_tick_duel()
+			_tick_duel(delta)
+		"conflict":
+			_tick_conflict(delta)
 		"moba":
 			_tick_moba(delta)
 
-# ── Survival (shrinking zone) ──────────────────────────────────────────────
+func _tick_hero_combat(_delta: float) -> void:
+	# Auto-attack nearest feral in range; take bites via WorldEntity signal.
+	if _attack_cd <= 0.0:
+		var target := _nearest_feral(3.4)
+		if target != null and target.has_method("take_hit"):
+			target.take_hit(14)
+			_attack_cd = 0.75
+
+func _nearest_feral(within: float) -> Node:
+	var best: Node = null
+	var best_d: float = within
+	for n in _alive:
+		if not is_instance_valid(n):
+			continue
+		var d: float = player.global_position.distance_to((n as Node3D).global_position)
+		if d < best_d:
+			best_d = d
+			best = n
+	return best
+
+func _on_bit(amount: int) -> void:
+	if not _running:
+		return
+	_hero_hp = maxi(0, _hero_hp - amount)
+	if _hero_hp <= 0:
+		_finish(false)
+
+# ── Survival ───────────────────────────────────────────────────────────────
 func _setup_survival() -> void:
 	_zone_visual = MeshInstance3D.new()
 	var cyl := CylinderMesh.new()
@@ -86,7 +127,7 @@ func _setup_survival() -> void:
 	_zone_visual.position = Vector3(0, 0.05, 0)
 	add_child(_zone_visual)
 	_spawn_ferals(4, 1)
-	NotificationUI.notify_info("Last Cat Standing — stay inside the ring.")
+	NotificationUI.notify_info("Last Cat Standing — stay in the ring. Survive 90s.")
 
 func _tick_survival(delta: float) -> void:
 	_zone_radius = maxf(8.0, 42.0 - _elapsed * 0.55)
@@ -96,8 +137,14 @@ func _tick_survival(delta: float) -> void:
 		cyl.bottom_radius = _zone_radius
 	var flat := Vector2(player.global_position.x, player.global_position.z)
 	if flat.length() > _zone_radius:
-		_score = maxi(0, _score - int(delta * 8))
+		_zone_dmg_acc += delta * 18.0
+		while _zone_dmg_acc >= 1.0:
+			_zone_dmg_acc -= 1.0
+			_hero_hp = maxi(0, _hero_hp - 1)
 		_refresh_hud("OUTSIDE ZONE")
+		if _hero_hp <= 0:
+			_finish(false)
+			return
 	else:
 		_score += int(delta * 2)
 		_refresh_hud("safe r=%.0f" % _zone_radius)
@@ -107,15 +154,21 @@ func _tick_survival(delta: float) -> void:
 	elif _alive.is_empty() and _elapsed > 5.0:
 		_spawn_ferals(3 + int(_elapsed / 30.0), mini(3, 1 + int(_elapsed / 40.0)))
 
-# ── Zombies / feral waves ──────────────────────────────────────────────────
+# ── Zombies ────────────────────────────────────────────────────────────────
 func _setup_zombies() -> void:
 	_wave = 0
+	_hero_max_hp = 140
+	_hero_hp = 140
+	# Ally bots for "co-op of 4"
+	for i in range(3):
+		_spawn_ally_bot(player.global_position + Vector3(-2.0 + i, 0, -2.0))
 	_next_wave()
-	NotificationUI.notify_info("Feral Horde — clear the waves.")
+	NotificationUI.notify_info("Feral Horde — clear 5 waves with your squad.")
 
-func _tick_zombies(_delta: float) -> void:
+func _tick_zombies(delta: float) -> void:
 	_prune_dead()
-	_refresh_hud("wave %d · left %d" % [_wave, _alive.size()])
+	_drive_allies(delta)
+	_refresh_hud("wave %d · left %d · allies %d" % [_wave, _alive.size(), _count_valid(_allies)])
 	if _alive.is_empty() and _wave > 0:
 		if _wave >= 5:
 			_finish(true)
@@ -129,20 +182,41 @@ func _next_wave() -> void:
 	_spawn_ferals(count, stage)
 	NotificationUI.notify_info("Wave %d — %d ferals (stage %d)" % [_wave, count, stage])
 
-# ── CTF yarn rush ──────────────────────────────────────────────────────────
+# ── CTF ────────────────────────────────────────────────────────────────────
 func _setup_ctf() -> void:
 	_yarn = _make_pickup(Vector3(18, 1, 0), Color(1.0, 0.85, 0.2), "YarnBall")
 	_goal = _make_pickup(Vector3(-18, 1, 0), Color(0.3, 1.0, 0.45), "Goal")
 	_yarn.body_entered.connect(_on_yarn_entered)
 	_goal.body_entered.connect(_on_goal_entered)
-	_spawn_ferals(3, 1)
-	NotificationUI.notify_info("Yarn Rush — grab the yarn, deliver to the green pad.")
+	_spawn_ferals(4, 1)
+	_spawn_ally_bot(player.global_position + Vector3(-2, 0, 1))
+	NotificationUI.notify_info("Yarn Rush — deliver 3 before foes score 3. 120s clock.")
 
-func _tick_ctf() -> void:
+func _tick_ctf(delta: float) -> void:
 	_prune_dead()
-	_refresh_hud("yarn %s · delivers %d/3" % ["HELD" if _yarn_held else "loose", _score])
+	_drive_allies(delta)
+	# Distance-based pickup/deliver — works even if Area3D layers miss the player.
+	if not _yarn_held and _yarn and is_instance_valid(_yarn):
+		if player.global_position.distance_to(_yarn.global_position) < 2.0:
+			_on_yarn_entered(player)
+		else:
+			for n in _alive:
+				if not is_instance_valid(n):
+					continue
+				if (n as Node3D).global_position.distance_to(_yarn.global_position) < 1.8:
+					_enemy_score += 1
+					_yarn.global_position = Vector3(18, 1, randf_range(-8, 8))
+					NotificationUI.notify_error("Feral stole a delivery! (%d/3)" % _enemy_score)
+					break
+	elif _yarn_held and _goal and is_instance_valid(_goal):
+		if player.global_position.distance_to(_goal.global_position) < 2.2:
+			_on_goal_entered(player)
+	_refresh_hud("you %d · foes %d · %s · t=%.0f" % [
+		_score, _enemy_score, "HELD" if _yarn_held else "loose", 120.0 - _elapsed])
 	if _score >= 3:
 		_finish(true)
+	elif _enemy_score >= 3 or _elapsed >= 120.0:
+		_finish(false)
 
 func _on_yarn_entered(body: Node) -> void:
 	if body == player or (body is Node and body.is_in_group("player")):
@@ -162,26 +236,43 @@ func _on_goal_entered(body: Node) -> void:
 			_yarn.global_position = Vector3(18, 1, randf_range(-8, 8))
 		NotificationUI.notify_win("Delivered! (%d/3)" % _score)
 
-# ── Duel / 2v2 ─────────────────────────────────────────────────────────────
+# ── Duel ───────────────────────────────────────────────────────────────────
 func _setup_duel() -> void:
 	var foes := 1 if mode_id == "duel" else 2
 	_spawn_ferals(foes, 2)
 	if mode_id == "duel_2v2":
-		# Ally marker — decorative companion stand-in near the player.
-		var ally := _make_marker(player.global_position + Vector3(-2, 0, 0), Color(0.4, 0.7, 1.0), "Ally")
-		add_child(ally)
-	NotificationUI.notify_info("Duel — defeat the staged opponent(s).")
+		_spawn_ally_bot(player.global_position + Vector3(-2, 0, 0))
+	NotificationUI.notify_info("Duel — defeat the opponent(s). Don't die.")
 
-func _tick_duel() -> void:
+func _tick_duel(delta: float) -> void:
 	_prune_dead()
+	_drive_allies(delta)
 	_refresh_hud("foes left %d" % _alive.size())
 	if _alive.is_empty() and _elapsed > 1.0:
 		_score = 100
 		_finish(true)
 
-# ── MOBA (Paws of the Ancients) ────────────────────────────────────────────
-var _moba: Node # MobaMatch | MobaOnlineClient
+# ── Conflict (faction war warm-up) ─────────────────────────────────────────
+func _setup_conflict() -> void:
+	_hero_max_hp = 160
+	_hero_hp = 160
+	# 4 allies vs 8 enemies — scaled warm-up for team_size 12
+	for i in range(4):
+		_spawn_ally_bot(Vector3(-8 + i * 2.0, 0.5, -4 + (i % 2)))
+	_spawn_ferals(8, 2)
+	NotificationUI.notify_info("Faction Conflict — wipe the rival pack with your alliance.")
 
+func _tick_conflict(delta: float) -> void:
+	_prune_dead()
+	_drive_allies(delta)
+	_refresh_hud("rivals %d · allies %d" % [_alive.size(), _count_valid(_allies)])
+	if _alive.is_empty() and _elapsed > 2.0:
+		_score = 200
+		_finish(true)
+	elif _count_valid(_allies) == 0 and _hero_hp <= 0:
+		_finish(false)
+
+# ── MOBA ───────────────────────────────────────────────────────────────────
 func _setup_moba() -> void:
 	var online_id := ""
 	if Engine.has_meta("moba_online_match_id"):
@@ -211,12 +302,10 @@ func _setup_moba() -> void:
 	local.start(player)
 
 func _tick_moba(_delta: float) -> void:
-	if _moba == null:
-		return
-	if _moba.has_method("hud_line"):
+	if _moba != null and _moba.has_method("hud_line"):
 		_refresh_hud(_moba.hud_line())
 
-# ── Shared helpers ─────────────────────────────────────────────────────────
+# ── Allies / ferals ────────────────────────────────────────────────────────
 func _spawn_ferals(count: int, stage: int) -> void:
 	for i in range(count):
 		var line := EntityDexData.random_line("Factionless")
@@ -230,7 +319,68 @@ func _spawn_ferals(count: int, stage: int) -> void:
 		ent.setup(line, stage, player)
 		if not ent.died.is_connected(_on_feral_died):
 			ent.died.connect(_on_feral_died)
+		if not ent.bit_player.is_connected(_on_bit):
+			ent.bit_player.connect(_on_bit)
 		_alive.append(ent)
+
+func _spawn_ally_bot(pos: Vector3) -> void:
+	var bot := Node3D.new()
+	bot.name = "AllyBot"
+	add_child(bot)
+	bot.global_position = pos
+	var mesh := MeshInstance3D.new()
+	var cap := CapsuleMesh.new()
+	cap.radius = 0.4
+	cap.height = 1.3
+	mesh.mesh = cap
+	var mat := StandardMaterial3D.new()
+	mat.albedo_color = Color(0.35, 0.75, 1.0)
+	mat.emission_enabled = true
+	mat.emission = mat.albedo_color
+	mesh.material_override = mat
+	mesh.position.y = 0.8
+	bot.add_child(mesh)
+	bot.set_meta("hp", 80)
+	bot.set_meta("atk_cd", 0.0)
+	_allies.append(bot)
+
+func _drive_allies(delta: float) -> void:
+	for bot in _allies:
+		if not is_instance_valid(bot):
+			continue
+		var hp: int = int(bot.get_meta("hp", 0))
+		if hp <= 0:
+			bot.queue_free()
+			continue
+		var cd: float = float(bot.get_meta("atk_cd", 0.0))
+		cd = maxf(cd - delta, 0.0)
+		bot.set_meta("atk_cd", cd)
+		var target := _nearest_to(bot as Node3D, _alive, 14.0)
+		if target == null:
+			continue
+		var to: Vector3 = (target as Node3D).global_position - (bot as Node3D).global_position
+		to.y = 0.0
+		var d: float = to.length()
+		if d > 2.4:
+			(bot as Node3D).global_position += to.normalized() * 3.8 * delta
+		elif cd <= 0.0 and target.has_method("take_hit"):
+			target.take_hit(10)
+			bot.set_meta("atk_cd", 0.9)
+		# Feral proximity damages allies lightly
+		if d < 2.2:
+			bot.set_meta("hp", hp - int(ceil(6.0 * delta)))
+
+func _nearest_to(from: Node3D, pool: Array[Node], within: float) -> Node:
+	var best: Node = null
+	var best_d: float = within
+	for n in pool:
+		if not is_instance_valid(n):
+			continue
+		var d: float = from.global_position.distance_to((n as Node3D).global_position)
+		if d < best_d:
+			best_d = d
+			best = n
+	return best
 
 func _on_feral_died(ent: WorldEntity) -> void:
 	_alive.erase(ent)
@@ -242,6 +392,18 @@ func _prune_dead() -> void:
 		if is_instance_valid(n):
 			keep.append(n)
 	_alive = keep
+	var allies: Array[Node] = []
+	for n in _allies:
+		if is_instance_valid(n) and int(n.get_meta("hp", 0)) > 0:
+			allies.append(n)
+	_allies = allies
+
+func _count_valid(arr: Array[Node]) -> int:
+	var n := 0
+	for x in arr:
+		if is_instance_valid(x):
+			n += 1
+	return n
 
 func _make_pickup(pos: Vector3, color: Color, node_name: String) -> Area3D:
 	var area := Area3D.new()
@@ -266,22 +428,8 @@ func _make_pickup(pos: Vector3, color: Color, node_name: String) -> Area3D:
 	area.add_child(mesh)
 	area.position = pos
 	add_child(area)
+	# CharacterBody3D players need collision layers — also poll distance each tick for CTF
 	return area
-
-func _make_marker(pos: Vector3, color: Color, node_name: String) -> Node3D:
-	var root := Node3D.new()
-	root.name = node_name
-	root.position = pos
-	var mesh := MeshInstance3D.new()
-	var cap := CapsuleMesh.new()
-	cap.radius = 0.35
-	cap.height = 1.4
-	mesh.mesh = cap
-	var mat := StandardMaterial3D.new()
-	mat.albedo_color = color
-	mesh.material_override = mat
-	root.add_child(mesh)
-	return root
 
 func _finish(won: bool) -> void:
 	if not _running:

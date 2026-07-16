@@ -70,11 +70,21 @@ func set_state(new_state: GameState) -> void:
 func is_in_state(state: GameState) -> bool:
 	return game_state == state
 
-func enter_game(game_type: int, variant_id: int) -> void:
+func enter_game(game_type: int, variant_id: int, scene_path: String = "") -> void:
 	_set_state(GameState.GAME)
+	# Prefer a real packed scene (lobby catalog) over a blank factory stub.
+	if scene_path != "" and ResourceLoader.exists(scene_path):
+		get_tree().change_scene_to_file(scene_path)
+		return
+	if GameFactory and GameFactory.has_method("create_game_from_catalog"):
+		var catalog_node := GameFactory.create_game_from_catalog(game_type, variant_id)
+		if catalog_node:
+			if get_tree().current_scene:
+				get_tree().current_scene.add_child(catalog_node)
+			return
 	if GameFactory:
 		var game_node := GameFactory.create_game(game_type, variant_id)
-		if game_node:
+		if game_node and get_tree().current_scene:
 			get_tree().current_scene.add_child(game_node)
 
 func exit_game() -> void:

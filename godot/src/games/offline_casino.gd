@@ -28,11 +28,25 @@ static func resolve(rpc_id: String, payload: Variant) -> Dictionary:
 			return await _blackjack(data)
 		"play_poker":
 			return await _poker_hand(data)
+		"draw_fortune":
+			return await _draw_fortune(data)
+		"buy_scratch_card":
+			return await _buy_scratch_card(data)
+		"predict_match":
+			return await _predict_match(data)
+		"submit_puzzle_score":
+			return await _submit_puzzle_score(data)
+		"start_race":
+			return await _start_race(data)
 		_:
 			return {"success": false, "error": "Offline: %s unavailable" % rpc_id}
 
 static func supports(rpc_id: String) -> bool:
-	return rpc_id in ["spin_slots", "play_blackjack", "play_poker"]
+	return rpc_id in [
+		"spin_slots", "play_blackjack", "play_poker",
+		"draw_fortune", "buy_scratch_card", "predict_match",
+		"submit_puzzle_score", "start_race",
+	]
 
 static func _as_dict(payload: Variant) -> Dictionary:
 	if payload is Dictionary:
@@ -356,3 +370,110 @@ static func _shuffle_deck() -> Array:
 		deck[i] = deck[j]
 		deck[j] = tmp
 	return deck
+
+# ── Fortune wheel ─────────────────────────────────────────────────────────────
+
+const FORTUNE_MULTS := [0.0, 1.0, 1.0, 1.5, 0.0, 1.5, 2.0, 0.0, 2.0, 3.0, 5.0, 10.0]
+
+static func _draw_fortune(data: Dictionary) -> Dictionary:
+	var bet := int(data.get("bet", 50))
+	var spent := await _spend(bet, "fortune_spin_offline")
+	if not spent.get("success", false):
+		return spent
+	var segment := randi() % FORTUNE_MULTS.size()
+	var mult := float(FORTUNE_MULTS[segment])
+	var payout := int(floor(bet * mult))
+	_pay(payout, "fortune_win_offline")
+	return {
+		"success": true,
+		"segment": segment,
+		"multiplier": mult,
+		"payout": payout,
+	}
+
+# ── Scratch card ──────────────────────────────────────────────────────────────
+
+const SCRATCH_SYMBOLS := ["🐱", "🌟", "🎭", "🐾", "💎", "🎰"]
+
+static func _buy_scratch_card(data: Dictionary) -> Dictionary:
+	var bet := int(data.get("bet", 50))
+	var spent := await _spend(bet, "scratch_buy_offline")
+	if not spent.get("success", false):
+		return spent
+	var cells: Array = []
+	for _i in 9:
+		cells.append(SCRATCH_SYMBOLS[randi() % SCRATCH_SYMBOLS.size()])
+	# Bias a mild 3-of-a-kind chance so offline play feels alive (~28%).
+	if randf() < 0.28:
+		var sym: String = SCRATCH_SYMBOLS[randi() % SCRATCH_SYMBOLS.size()]
+		var idxs := [0, 1, 2, 3, 4, 5, 6, 7, 8]
+		idxs.shuffle()
+		for k in 3:
+			cells[idxs[k]] = sym
+	return {"success": true, "cells": cells, "bet": bet}
+
+# ── Sports prediction ─────────────────────────────────────────────────────────
+
+static func _predict_match(data: Dictionary) -> Dictionary:
+	var bet := int(data.get("bet", 50))
+	var pick := str(data.get("pick", "home"))
+	var spent := await _spend(bet, "paw_ball_bet_offline")
+	if not spent.get("success", false):
+		return spent
+	var home_score := randi_range(0, 5)
+	var away_score := randi_range(0, 5)
+	var winner := "draw"
+	if home_score > away_score:
+		winner = "home"
+	elif away_score > home_score:
+		winner = "away"
+	var payout := 0
+	if pick == winner:
+		payout = bet * (3 if winner == "draw" else 2)
+		_pay(payout, "paw_ball_win_offline")
+	return {
+		"success": true,
+		"home_score": home_score,
+		"away_score": away_score,
+		"winner": winner,
+		"payout": payout,
+	}
+
+# ── Puzzle score ──────────────────────────────────────────────────────────────
+
+static func _submit_puzzle_score(data: Dictionary) -> Dictionary:
+	var bet := int(data.get("bet", 15))
+	var score := int(data.get("score", 0))
+	var spent := await _spend(bet, "puzzle_entry_offline")
+	if not spent.get("success", false):
+		return spent
+	var mult := 0.0
+	if score >= 500:
+		mult = 2.0
+	elif score >= 300:
+		mult = 1.5
+	elif score >= 150:
+		mult = 1.0
+	elif score >= 50:
+		mult = 0.5
+	var payout := int(floor(bet * mult))
+	_pay(payout, "puzzle_win_offline")
+	return {"success": true, "score": score, "payout": payout, "multiplier": mult}
+
+# ── Racing (quick-result) ─────────────────────────────────────────────────────
+
+static func _start_race(data: Dictionary) -> Dictionary:
+	var bet := int(data.get("bet", 50))
+	var spent := await _spend(bet, "race_entry_offline")
+	if not spent.get("success", false):
+		return spent
+	var position := randi_range(1, 8)
+	var mult := {1: 3.0, 2: 1.5, 3: 1.0}.get(position, 0.0)
+	var payout := int(floor(bet * float(mult)))
+	_pay(payout, "race_win_offline")
+	return {
+		"success": true,
+		"position": position,
+		"payout": payout,
+		"frame_id": str(data.get("frame_id", "basic")),
+	}

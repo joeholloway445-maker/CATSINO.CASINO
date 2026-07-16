@@ -16,12 +16,29 @@ var _bet: int = 50
 var _spinning: bool = false
 
 func _ready() -> void:
+	if _result_label == null:
+		_result_label = get_node_or_null("ResultLabel") as Label
+	if _bet_label == null:
+		_bet_label = get_node_or_null("BetLabel") as Label
 	_update_bet_label()
-	if has_node("BetDown"):
-		$BetDown.pressed.connect(_decrease_bet)
-	if has_node("BetUp"):
-		$BetUp.pressed.connect(_increase_bet)
-	_spin_btn.pressed.connect(_on_spin_pressed)
+	var bet_down := get_node_or_null("BetDown") as Button
+	if bet_down == null:
+		bet_down = get_node_or_null("BetRow/BetDown") as Button
+	var bet_up := get_node_or_null("BetUp") as Button
+	if bet_up == null:
+		bet_up = get_node_or_null("BetRow/BetUp") as Button
+	if bet_down:
+		bet_down.pressed.connect(_decrease_bet)
+	if bet_up:
+		bet_up.pressed.connect(_increase_bet)
+	if _spin_btn:
+		_spin_btn.pressed.connect(_on_spin_pressed)
+	var back := Button.new()
+	back.text = "⬅ Back"
+	back.position = Vector2(12, 12)
+	back.pressed.connect(func() -> void:
+		get_tree().change_scene_to_file("res://scenes/world/paw_vegas_hub.tscn"))
+	add_child(back)
 
 func _on_spin_pressed() -> void:
 	if _spinning: return

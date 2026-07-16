@@ -188,10 +188,10 @@ func _launch(mode_id: String) -> void:
 	var scene_path: String = str(mode.get("scene", ""))
 	match mode_id:
 		"race_arena":
+			# Seed a local arena cup so race results can feed TournamentManager.
+			if TournamentManager and TournamentManager.state == TournamentManager.TournamentState.IDLE:
+				TournamentManager.create_tournament(TournamentManager.TournamentType.RACING, 0, "Arena Circuit")
 			get_tree().change_scene_to_file("res://scenes/games/racing/race_track.tscn")
-		"conflict":
-			# Large faction brackets still use the tournament engine.
-			get_tree().change_scene_to_file("res://scenes/ui/tournament.tscn")
 		"moba":
 			_launch_moba(scene_path)
 		_:
