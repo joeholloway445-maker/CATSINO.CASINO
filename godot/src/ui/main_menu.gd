@@ -17,7 +17,7 @@ const CUSTOM_BG_PATH := "res://assets/ui/custom_bg.png"
 const THEME_SONG_PATH := "res://assets/audio/theme_song.ogg"
 
 const DISTRICTS = [
-	{id="paw_vegas",     name="Paw Vegas",     icon="🎰", desc="Slots, cards, and neon lights."},
+	{id="paw_vegas",     name="Paws Vegas",     icon="🎰", desc="Slots, cards, and neon lights."},
 	{id="cat_coliseum",  name="Cat Coliseum",   icon="⚔️", desc="Combat arena. Prove yourself."},
 	{id="neon_alley",    name="Neon Alley",     icon="🏁", desc="Racing district. High speed."},
 	{id="cat_forest",    name="Cat Forest",     icon="🌿", desc="Quests, companions, and mystery."},

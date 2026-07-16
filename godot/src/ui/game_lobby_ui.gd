@@ -12,7 +12,7 @@ class_name GameLobbyUI
 
 # ─── Lifecycle ────────────────────────────────────────────────────────────────
 func _ready() -> void:
-	title_label.text = "PAW VEGAS — Game Lobby"
+	title_label.text = "PAWS VEGAS — Game Lobby"
 	close_button.pressed.connect(_on_close_pressed)
 
 	if LiveOpsManager.has_signal("event_started"):

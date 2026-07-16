@@ -2,7 +2,7 @@ class_name NPCData
 # All NPC definitions across the 5 districts
 
 const NPCS: Array[Dictionary] = [
-	# Paw Vegas NPCs
+	# Paws Vegas NPCs
 	{id="dealer_dev", name="Dealer Dev", district="paw_vegas", role="dealer",
 	 dialogue_key="dealer_dev", pos=Vector3(5, 0, 3),
 	 greeting="Welcome to the main floor! The odds are always interesting here.",

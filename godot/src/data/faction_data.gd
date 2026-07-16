@@ -5,7 +5,7 @@ const FACTIONS: Dictionary = {
 	"Factionless": {
 		"name": "Factionless",
 		"description": "Wanderers bound by no allegiance, masters of their own fate.",
-		"lore": "Untethered by allegiance, the Factionless roam Paw Vegas as free agents. They answer to no crown, follow no current, and bow to no wildland. Their neutrality is both their weakness and their greatest strength — for when all factions war, the Factionless endure.",
+		"lore": "Untethered by allegiance, the Factionless roam Paws Vegas as free agents. They answer to no crown, follow no current, and bow to no wildland. Their neutrality is both their weakness and their greatest strength — for when all factions war, the Factionless endure.",
 		"bonus_type": "lck",
 		"bonus_value": 5,
 		"color_hex": "#AAAAAA",
@@ -23,7 +23,7 @@ const FACTIONS: Dictionary = {
 	"VeiledCurrent": {
 		"name": "VeiledCurrent",
 		"description": "Masters of the unseen flow, threading through shadow and speed.",
-		"lore": "Masters of the unseen current that flows beneath Paw Vegas, the VeiledCurrent move like water — fast, adaptable, and impossible to hold. They haunt Neon Alley like whispers, winning races not by brute force but by reading the invisible rhythms of the track.",
+		"lore": "Masters of the unseen current that flows beneath Paws Vegas, the VeiledCurrent move like water — fast, adaptable, and impossible to hold. They haunt Neon Alley like whispers, winning races not by brute force but by reading the invisible rhythms of the track.",
 		"bonus_type": "spd",
 		"bonus_value": 10,
 		"color_hex": "#00CED1",

@@ -23,7 +23,7 @@ Tracked from the 2026-07-15 code audit. Check items off as they land.
 - [x] MainMenu `class_name` collision with maaacks removed
 - [x] profiles.frame default → skirmisher (migration **035**)
 - [x] Offline casino resolvers (slots / blackjack / poker via OfflineCasino)
-- [x] Hyperliminal exit → Paw Vegas hub; DistrictTransition path unified
+- [x] Hyperliminal exit → Paws Vegas hub; DistrictTransition path unified
 - [x] Character creator / Continue Expedition persistence + spaced names
 - [x] AssetLibrary one-shot SFX (ambience opt-in loop) + Hope telemetry soft-fail
 

@@ -2,7 +2,7 @@ class_name ShopData
 # Full shop catalogue across all districts
 
 const SHOP_ITEMS: Array[Dictionary] = [
-	# Paw Vegas — Slot Sam's shop
+	# Paws Vegas — Slot Sam's shop
 	{id="hp_potion", shop="slot_sam", district="paw_vegas", name="HP Potion", price=100, type="consumable"},
 	{id="luck_charm", shop="slot_sam", district="paw_vegas", name="Lucky Charm", price=200, type="consumable"},
 	{id="slot_multiplier", shop="slot_sam", district="paw_vegas", name="Slot Multiplier ×2", price=400, type="consumable"},

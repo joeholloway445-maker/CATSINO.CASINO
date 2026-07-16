@@ -52,5 +52,5 @@ static func get_sovereign_crown_extended() -> Array[Dictionary]:
 		{id="SC097", name="Crown Champion II", faction="sovereign_crown", rarity=3, pow=72, res=70, spd=72, lck=72, sty=76, ability="Champion's Return", lore="Was the champion. Lost. Still acts like the champion."},
 		{id="SC098", name="Elite Guardsman Rux", faction="sovereign_crown", rarity=3, pow=74, res=72, spd=70, lck=70, sty=72, ability="Elite Guard", lore="Top 1% of the Crown's guard. Elite is understated."},
 		{id="SC099", name="The Crown Itself", faction="sovereign_crown", rarity=5, pow=95, res=95, spd=95, lck=95, sty=100, ability="Crown's Absolute", lore="The spiritual embodiment of SovereignCrown authority. Extremely regal."},
-		{id="SC100", name="Emperor Maximus Vex", faction="sovereign_crown", rarity=5, pow=99, res=95, spd=85, lck=90, sty=99, ability="Imperial Decree", lore="The Emperor himself. His decree IS the law of Paw Vegas. Invoked rarely. Devastatingly."},
+		{id="SC100", name="Emperor Maximus Vex", faction="sovereign_crown", rarity=5, pow=99, res=95, spd=85, lck=90, sty=99, ability="Imperial Decree", lore="The Emperor himself. His decree IS the law of Paws Vegas. Invoked rarely. Devastatingly."},
 	]

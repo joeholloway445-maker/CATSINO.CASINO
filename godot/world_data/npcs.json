@@ -9,7 +9,7 @@
       "role": "shopkeeper",
       "faction": "SovereignCrown",
       "emoji": "🎰",
-      "greeting": "Welcome, high roller! My wares are the finest in Paw Vegas!",
+      "greeting": "Welcome, high roller! My wares are the finest in Paws Vegas!",
       "position": {"x": 5.0, "y": 0.0, "z": 3.0},
       "shop_id": "paw_vegas_consumables",
       "quest_ids": ["main_001"],

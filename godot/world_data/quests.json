@@ -4,15 +4,15 @@
   "quests": [
     {
       "id": "main_001",
-      "title": "Welcome to Paw Vegas",
+      "title": "Welcome to Paws Vegas",
       "type": "main",
-      "description": "Your adventure begins! Explore Paw Vegas and take your first spin.",
+      "description": "Your adventure begins! Explore Paws Vegas and take your first spin.",
       "giver_npc": "npc_slot_sam",
       "district": "paw_vegas",
       "prerequisites": [],
       "objectives": [
         {"id": "obj_spin", "description": "Spin the slots once", "type": "spin", "target": 1},
-        {"id": "obj_explore", "description": "Visit Paw Vegas", "type": "visit_district", "target": 1, "district": "paw_vegas"}
+        {"id": "obj_explore", "description": "Visit Paws Vegas", "type": "visit_district", "target": 1, "district": "paw_vegas"}
       ],
       "reward_coins": 500,
       "reward_xp": 100,

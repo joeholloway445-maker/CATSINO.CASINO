@@ -10,7 +10,7 @@ const FACTIONS = {
 		combat_bonus = 0.05,
 		race_spd_bonus = 0,
 		companion_synergy_threshold = 2,
-		lore = "The SovereignCrown rules Paw Vegas from the Crown Tower. Membership is by invitation only — or by proving yourself undeniable.",
+		lore = "The SovereignCrown rules Paws Vegas from the Crown Tower. Membership is by invitation only — or by proving yourself undeniable.",
 	},
 	"WildlandsAscendant": {
 		color = Color(0.2, 0.8, 0.2),

@@ -28,7 +28,7 @@ const FRAMES = [
 
 const TRACKS = [
   { id: "neon_canal", name: "Neon Canal Circuit", district: "Neon Alley", laps: 3, entry_fee: 200, difficulty: "Beginner", emoji: "🌊" },
-  { id: "paw_strip", name: "Paw Vegas Strip", district: "Paw Vegas", laps: 1, entry_fee: 500, difficulty: "Intermediate", emoji: "🎰" },
+  { id: "paw_strip", name: "Paws Vegas Strip", district: "Paws Vegas", laps: 1, entry_fee: 500, difficulty: "Intermediate", emoji: "🎰" },
   { id: "forest_path", name: "Forest Wild Run", district: "Cat Forest", laps: 2, entry_fee: 400, difficulty: "Intermediate", emoji: "🌿" },
   { id: "coliseum_track", name: "Coliseum Grand Prix", district: "Cat Coliseum", laps: 5, entry_fee: 1000, difficulty: "Expert", emoji: "⚔️" },
   { id: "galaxy_circuit", name: "Arcade Galaxy Dash", district: "Arcade Galaxy", laps: 1, entry_fee: 100, difficulty: "Beginner", emoji: "🕹️" },
