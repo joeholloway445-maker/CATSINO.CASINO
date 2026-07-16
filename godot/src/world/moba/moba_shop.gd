@@ -6,7 +6,7 @@ extends RefCounted
 signal gold_changed(gold: int)
 signal inventory_changed()
 signal item_bought(item_id: String)
-signal item_sold(item_id: String)
+signal item_sold(item_id: String, slot: int)
 signal level_changed(level: int, xp: int, xp_next: int)
 
 const MAX_SLOTS := 6
@@ -113,7 +113,7 @@ func sell(slot: int) -> Dictionary:
 	inventory.remove_at(slot)
 	grant_gold(refund, "sell")
 	inventory_changed.emit()
-	item_sold.emit(str(entry.get("id", "")))
+	item_sold.emit(str(entry.get("id", "")), slot)
 	return {success=true, refund=refund}
 
 func by_id(item_id: String) -> Dictionary:

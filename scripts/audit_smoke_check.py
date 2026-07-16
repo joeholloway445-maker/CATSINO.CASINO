@@ -152,6 +152,25 @@ def main() -> int:
         else:
             fail(f"moba missing detail: {label}")
 
+    print("== online moba ==")
+    check_exists("src/world/moba/moba_online_client.gd", "moba_online")
+    check_exists("src/networking/nakama_modules/moba_match.ts", "moba_match_ts")
+    idx = (GODOT / "src/networking/nakama_modules/index.ts").read_text()
+    if "register_moba_match" in idx:
+        ok("Nakama index registers moba_match")
+    else:
+        fail("Nakama index missing register_moba_match")
+    hub = (GODOT / "src/ui/arena_hub_ui.gd").read_text()
+    if "find_moba_match" in hub and "_launch_moba" in hub:
+        ok("Arena hub queues find_moba_match")
+    else:
+        fail("Arena hub missing online moba queue")
+    amc2 = (GODOT / "src/world/arena_mode_controller.gd").read_text()
+    if "MobaOnlineClient" in amc2 and "moba_online_match_id" in amc2:
+        ok("ArenaModeController starts MobaOnlineClient")
+    else:
+        fail("ArenaModeController missing online moba path")
+
     print("== metahuman interim ==")
     if (GODOT / "assets/models/player_human.glb").exists():
         ok("player_human.glb present (interim identity mesh)")

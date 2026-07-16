@@ -180,23 +180,41 @@ func _tick_duel() -> void:
 		_finish(true)
 
 # ── MOBA (Paws of the Ancients) ────────────────────────────────────────────
-var _moba: MobaMatch
+var _moba: Node # MobaMatch | MobaOnlineClient
 
 func _setup_moba() -> void:
-	_moba = MobaMatch.new()
-	_moba.name = "MobaMatch"
-	add_child(_moba)
-	_moba.match_won.connect(func(s: int):
+	var online_id := ""
+	if Engine.has_meta("moba_online_match_id"):
+		online_id = str(Engine.get_meta("moba_online_match_id"))
+		Engine.remove_meta("moba_online_match_id")
+	if online_id != "":
+		var online := MobaOnlineClient.new()
+		online.name = "MobaOnlineClient"
+		add_child(online)
+		online.match_won.connect(func(s: int):
+			_score = maxi(_score, s)
+			_finish(true))
+		online.match_lost.connect(func(): _finish(false))
+		online.score_changed.connect(func(s: int): _score = s)
+		_moba = online
+		online.start(player, online_id)
+		return
+	var local := MobaMatch.new()
+	local.name = "MobaMatch"
+	add_child(local)
+	local.match_won.connect(func(s: int):
 		_score = maxi(_score, s)
 		_finish(true))
-	_moba.match_lost.connect(func(): _finish(false))
-	_moba.score_changed.connect(func(s: int): _score = s)
-	_moba.start(player)
+	local.match_lost.connect(func(): _finish(false))
+	local.score_changed.connect(func(s: int): _score = s)
+	_moba = local
+	local.start(player)
 
 func _tick_moba(_delta: float) -> void:
 	if _moba == null:
 		return
-	_refresh_hud(_moba.hud_line())
+	if _moba.has_method("hud_line"):
+		_refresh_hud(_moba.hud_line())
 
 # ── Shared helpers ─────────────────────────────────────────────────────────
 func _spawn_ferals(count: int, stage: int) -> void:
