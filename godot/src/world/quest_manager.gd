@@ -156,6 +156,38 @@ const QUESTS: Array[Dictionary] = [
 		rewards={coins=5000, xp=1000, faction_rep={WildlandsAscendant=500}},
 		prereq=["main_004"],
 	},
+	# Gate 6 — PvP campaign (ESO/WoW-style arcs over TerritoryControl)
+	{
+		id="pvp_campaign_01", type=QuestType.MAIN, name="Claim the Ring",
+		desc="Contest wild chunks around the hubs. Territory is the campaign map.",
+		objectives=[
+			{id="claim_chunk", desc="Claim 3 contested chunks", target=3},
+			{id="defeat_zone_boss", desc="Fell a Stage-3 zone warden", target=1},
+		],
+		rewards={coins=2500, xp=400},
+		prereq=[],
+	},
+	{
+		id="pvp_campaign_02", type=QuestType.MAIN, name="Skyline Siege",
+		desc="Push the campaign: clear a dungeon, then break a world boss window.",
+		objectives=[
+			{id="enter_dungeon", desc="Enter a hub dungeon", target=1},
+			{id="clear_dungeon", desc="Clear a dungeon (depth 3+)", target=1},
+			{id="defeat_world_boss", desc="Defeat a Metroplex world boss", target=1},
+		],
+		rewards={coins=8000, xp=1200, gems=25},
+		prereq=["pvp_campaign_01"],
+	},
+	{
+		id="pvp_campaign_03", type=QuestType.MAIN, name="Crown of the Conqueror",
+		desc="Hold enough weighted territory for your alliance to crown a Sovereign.",
+		objectives=[
+			{id="claim_chunk", desc="Claim 10 more chunks", target=10},
+			{id="defeat_zone_boss", desc="Fell 2 more zone wardens", target=2},
+		],
+		rewards={coins=12000, xp=2000},
+		prereq=["pvp_campaign_02"],
+	},
 ]
 
 var _active: Dictionary = {}   # quest_id -> {state, progress}

@@ -56,6 +56,9 @@ static func build(hub_id: String, origin: Vector3, sky: DayNightSky,
 	# hall). Soulless Sanctuary's landmark list alone carries the Arena,
 	# College, and Space Station.
 	LandmarkBuilder.place_all(root, hub_id, accent, city_base_y)
+	# Gate 6: Stage-3 zone bosses at landmarks + dungeon door + world-boss hook.
+	ZoneBossSpawner.place_for_hub(root, hub_id, city_base_y, player)
+	DungeonEntrance.place_for_hub(root, hub_id, city_base_y)
 	if player != null:
 		CityVenues.place_all(root, accent, city_base_y, player, hub_id)
 		# SEVERAL claimable hideout sites per city (HideoutRegistry owns the
@@ -116,6 +119,7 @@ static func build(hub_id: String, origin: Vector3, sky: DayNightSky,
 ## gameplay readability when the shell is absent or as light accents).
 static func _build_osm_city(root: Node3D, hub_id: String, accent: Color,
 		rng: RandomNumberGenerator, base_y: float) -> void:
+	_road_tiles_placed = 0
 	var data := OsmCityLayout.load_layout(hub_id)
 	var size := OsmCityLayout.size_of(hub_id)
 	var holder := Node3D.new()
@@ -165,14 +169,21 @@ static func _build_osm_city(root: Node3D, hub_id: String, accent: Color,
 			var length := sqrt(dx * dx + dz * dz)
 			if length < 0.5:
 				continue
-			# Road strips only when no OSM2World shell (shell already has pavement).
-			if not has_shell:
+			var yaw := atan2(dx, dz)
+			# Kenney road/sidewalk tiles when installed; else asphalt box strips.
+			# With an OSM2World shell, still tile major roads as a readable overlay.
+			var wclass := int(street.get("width_class", 1))
+			var want_tiles := (not has_shell) or wclass >= 2
+			if want_tiles:
+				_tile_road_segment(holder, Vector3(ax, base_y, az), Vector3(bx, base_y, bz),
+					width, yaw, length)
+			elif not has_shell:
 				var mid := Vector3((ax + bx) * 0.5, base_y - 0.12, (az + bz) * 0.5)
 				var strip := _road_strip(mid, Vector3(width, 0.1, length), road_mat)
-				strip.rotation.y = atan2(dx, dz)
+				strip.rotation.y = yaw
 				holder.add_child(strip)
 			# Streetlights along major/medium roads, budget-capped.
-			if lamp_budget < MAX_LAMPS and int(street.get("width_class", 1)) >= 1 and i % 3 == 0:
+			if lamp_budget < MAX_LAMPS and wclass >= 1 and i % 3 == 0:
 				_streetlight(holder, Vector3(ax, base_y, az), lamp_mat)
 				lamp_budget += 1
 
@@ -379,6 +390,57 @@ static func _road_strip(pos: Vector3, size: Vector3, mat: Material) -> MeshInsta
 	mi.position = pos
 	mi.material_override = mat
 	return mi
+
+## Tile Kenney `road_segment` (+ optional `sidewalk`) along an OSM edge.
+## Kenney tiles are ~1×1 m; we stretch each instance to `TILE_LEN` meters
+## along the street and `width` across so downtowns don't explode instance count.
+const ROAD_TILE_LEN := 6.0
+const MAX_ROAD_TILES_PER_CITY := 420
+static var _road_tiles_placed := 0
+
+static func _tile_road_segment(holder: Node3D, a: Vector3, b: Vector3,
+		width: float, yaw: float, length: float) -> void:
+	if _road_tiles_placed >= MAX_ROAD_TILES_PER_CITY:
+		return
+	if not AssetLibrary.has("road_segment"):
+		var mid := (a + b) * 0.5 + Vector3(0, -0.12, 0)
+		var strip := _road_strip(mid, Vector3(width, 0.1, length),
+			AssetLibrary.material("asphalt", Color(0.08, 0.08, 0.09), 0.15, 0.0, 0.85))
+		strip.rotation.y = yaw
+		holder.add_child(strip)
+		return
+	var dir := (b - a)
+	dir.y = 0.0
+	var dist := dir.length()
+	if dist < 0.5:
+		return
+	dir /= dist
+	var steps := maxi(1, int(ceil(dist / ROAD_TILE_LEN)))
+	var step_len := dist / float(steps)
+	for s in steps:
+		if _road_tiles_placed >= MAX_ROAD_TILES_PER_CITY:
+			break
+		var t := (float(s) + 0.5) * step_len
+		var pos := a + dir * t
+		pos.y = a.y - 0.05
+		var tile := AssetLibrary.instance("road_segment")
+		if tile == null:
+			break
+		tile.position = pos
+		tile.rotation.y = yaw
+		# Kenney base is 1×1×0.02; scale X=width, Z=step length.
+		tile.scale = Vector3(maxf(width, 2.0), 1.0, maxf(step_len, 2.0))
+		holder.add_child(tile)
+		_road_tiles_placed += 1
+		# Sidewalk curb along one edge of wider streets.
+		if AssetLibrary.has("sidewalk") and width >= 4.0 and s % 2 == 0:
+			var curb := AssetLibrary.instance("sidewalk")
+			if curb != null:
+				var side := Vector3(-dir.z, 0, dir.x) * (width * 0.5 + 0.6)
+				curb.position = pos + side
+				curb.rotation.y = yaw
+				curb.scale = Vector3(1.2, 1.0, maxf(step_len, 2.0))
+				holder.add_child(curb)
 
 static func _build_streetlights(holder: Node3D, grid: Vector2i, base_y: float, spacing: int) -> void:
 	var post_mat := AssetLibrary.material("streetlight", Color(0.15, 0.15, 0.17), 0.2, 0.7, 0.4)

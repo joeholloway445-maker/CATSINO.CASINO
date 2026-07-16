@@ -1,0 +1,74 @@
+{
+  "greeting": {
+    "line": "Hub to hub, layer to layer — I don't care which bank you step off. Just don't fall in.",
+    "line_friendly": "You again. Good. The current likes familiar faces.",
+    "line_hostile": "Keep moving. Ferries don't wait for grudges.",
+    "allow_social_options": true,
+    "options": [
+      {
+        "text": "What's beyond the dungeon seal?",
+        "next_key": "dungeon",
+        "effect": { "disposition": 3 }
+      },
+      {
+        "text": "Heard about wardens at the landmarks?",
+        "next_key": "wardens",
+        "effect": { "disposition": 2 }
+      }
+    ]
+  },
+  "dungeon": {
+    "line": "Generated once, then static. Death kicks you out with your pockets. The Periliminal is the one that keeps what it kills — don't confuse them.",
+    "allow_social_options": false,
+    "options": [
+      {
+        "text": "How deep before it pays?",
+        "next_key": "depth",
+        "effect": { "disposition": 2 }
+      },
+      {
+        "text": "Thanks.",
+        "next_key": null,
+        "effect": { "disposition": 1 }
+      }
+    ]
+  },
+  "depth": {
+    "line": "Three floors if you're counting. The seal remembers your seed — same bones every return.",
+    "allow_social_options": false,
+    "options": [
+      {
+        "text": "I'll try my luck.",
+        "next_key": null,
+        "effect": { "disposition": 4, "tone": "nice" }
+      }
+    ]
+  },
+  "wardens": {
+    "line": "Stage-three things. They sit on the skyline like they own the silhouette. Kill enough and something bigger notices.",
+    "allow_social_options": true,
+    "options": [
+      {
+        "text": "Bigger?",
+        "next_key": "titan",
+        "effect": { "disposition": 2 }
+      },
+      {
+        "text": "I'll keep my distance.",
+        "next_key": null,
+        "effect": {}
+      }
+    ]
+  },
+  "titan": {
+    "line": "Metroplex Titan. World boss. StoryVote shapes the window — or the city just schedules one. Offline, the schedule is lonely but real.",
+    "allow_social_options": false,
+    "options": [
+      {
+        "text": "I'll be ready.",
+        "next_key": null,
+        "effect": { "disposition": 5 }
+      }
+    ]
+  }
+}

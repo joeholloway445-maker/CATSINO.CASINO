@@ -57,13 +57,18 @@ static func resolve(rpc_id: String, payload: Variant) -> Dictionary:
 		"quest_action", "get_quests":
 			return {"success": true, "ok": true, "quests": []}
 		"summon_companion":
-			return await _summon_companion_offline(data)
+			return _summon_companion_offline(data)
 		"feed_companion", "evolve_companion", "get_my_companions":
 			return {"success": true, "ok": true, "offline": true, "companions": []}
 		"daily_bonus", "claim_daily_bonus":
 			return await _daily_bonus_offline()
 		_:
 			return {"success": false, "error": "Offline: %s unavailable" % rpc_id}
+
+static func _summon_companion_offline(_data: Dictionary) -> Dictionary:
+	## Offline stub — live summons go through Nakama companion RPCs.
+	return {"success": true, "ok": true, "offline": true, "summoned": false,
+		"message": "Companion summon is online-only; roster still works offline."}
 
 static func supports(rpc_id: String) -> bool:
 	return rpc_id in [
@@ -634,7 +639,7 @@ static func _combat_action(data: Dictionary) -> Dictionary:
 	var move := str(data.get("move", "light"))
 	if not _combat.get("active", false):
 		return {"success": false, "error": "No active combat"}
-	var ai_move := ["light", "heavy", "tech"][randi() % 3]
+	var ai_move: String = ["light", "heavy", "tech"][randi() % 3]
 	var mult_table := {
 		"light": {"light": 1.0, "heavy": 1.5, "tech": 0.5},
 		"heavy": {"light": 0.5, "heavy": 1.0, "tech": 1.5},

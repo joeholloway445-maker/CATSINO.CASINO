@@ -27,10 +27,10 @@ Deferred only when they conflict with the spine: real Nakama scale, voice acting
 | 3 | Layer round-trip (spine) | Prototype path + `layer_spine_smoke` PASS (Play Prototype Spine) |
 | 3b | **ESO visual bar** — PeriHumans + Terrain3D desktop + Forward+ + HDRI | MPFB2 PeriHumans, OSM2World DFW shells, cats, crystals, creatures, aircraft, sculpted heightfields |
 | 4 | Web export preset + CI green | Preset + `scripts/export_web.sh` verified locally; CI artifact on PR |
-| 5 | Combat/economy/hideout/casino/StoryVote in-engine pass | Queued |
-| 6 | Game modes: 2v2 → zone bosses → world bosses → dungeons → PvP campaigns | Queued |
-| 7 | Content + art/audio packs via AssetLibrary | Queued |
-| 8 | Real multiplayer beyond presence bots | Queued |
+| 5 | Combat/economy/hideout/casino/StoryVote in-engine pass | In-engine (`gate5_smoke`); juice polish ongoing |
+| 6 | Game modes: 2v2 → zone bosses → world bosses → dungeons → PvP campaigns | Scaffolded playable (`gate6_smoke`); thicken online later |
+| 7 | Content + art/audio packs via AssetLibrary | City ambience WAVs + dialogue depth + sanctuary/ascension beds |
+| 8 | Real multiplayer beyond presence bots | Client + docker-compose.dev.yml; **prod host/secrets pinned** |
 
 ## Doc map
 

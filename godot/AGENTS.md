@@ -251,22 +251,14 @@ Existing code — extend these, never create parallel systems:
 | Open-world PvP + bots | built | `src/layers/layer_world.gd` + `src/multiplayer/presence_manager.gd` |
 | Guild wars | built | `ExtraliminalManager.open_liminal_door` + `HideoutRegistry.contest` |
 
-Planned — NOT yet in code (build in this order, inside the systems named):
+Built (Gate 6 scaffold — thicken online later):
 
-1. **2v2** — add `{id="duel_2v2", team_size=2}` to `ArenaModes.MODES`;
-   matchmaking rides the same Arena lobby as 1v1.
-2. **Zone bosses** — Stage-3 `WorldEntity` elites at seeded landmarks per
-   city; spawn from `LandmarkBuilder`/`layer_world`, announce via
-   NotificationUI, pay fragments + charges.
-3. **World bosses** — one server-wide Stage-3+ entity on a StoryVote-able
-   schedule; extend `WorldEntity` with a boss health pool and phase
-   triggers; rewards through `EconomyManager` + `CrownManager`.
-4. **Dungeons** — instanced party runs: reuse the Periliminal's
-   generated-then-static seed pattern (`PeriliminalRuns._seed_ledger`)
-   but WITHOUT the wipe rule; entry doors as `LiminalDoor` variants.
-5. **PvP campaigns** (ESO/WoW-style) — chained `QuestManager` arcs whose
-   stages are contested `TerritoryControl` chunks; faction score through
-   `CrownManager`.
+1. **2v2** — `duel_2v2` in `ArenaModes` + ally bot in `ArenaModeController`.
+2. **Zone bosses** — `ZoneBossSpawner` places Stage-3 elites at landmarks.
+3. **World bosses** — `WorldBossScheduler` + `WorldEntity.setup_boss` phases.
+4. **Dungeons** — `DungeonEntrance` + `DungeonRuns` (seed ledger, no wipe).
+5. **PvP campaigns** — `pvp_campaign_01..03` on `QuestManager` over
+   `TerritoryControl.claim_chunk` progress.
 
 Rule: arena-hosted things are MODES of Soulless Sanctuary's Arena (lobby
 hop), not new reality layers. Promote a mode to a layer only if it gains a

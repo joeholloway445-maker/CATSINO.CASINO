@@ -10,6 +10,7 @@ var _player: ThirdPersonController
 
 func _ready() -> void:
 	LayerManager.current_layer_id = layer_id
+	add_to_group("layer_world")
 
 	_terrain = TerrainBridge.new()
 	add_child(_terrain)
@@ -233,8 +234,12 @@ func _on_chunk_changed(coord: Vector2i) -> void:
 		"liminal":
 			_liminal_enter(coord)
 		"periliminal":
-			PeriliminalRuns.advance_depth()
-			_maybe_bless(coord)
+			if DungeonRuns.active:
+				DungeonRuns.advance_depth()
+				DungeonRuns.try_clear()
+			else:
+				PeriliminalRuns.advance_depth()
+				_maybe_bless(coord)
 	_prev_chunk = coord
 
 ## The Periliminal's one exit: no door exists until the run has gone deep
@@ -524,7 +529,22 @@ func _on_peer_killed(pid: String, rp: RemotePlayer) -> void:
 ## Dying in the open: lose 20% of your tokens and wake up at your hub —
 ## Arlington for the factionless. Getting TO your faction the first time
 ## means surviving this gauntlet (or getting carried).
+func get_local_player() -> ThirdPersonController:
+	return _player
+
 func _on_player_died(killer: String) -> void:
+	# Gate 6 dungeon: eject with no wipe (DungeonRuns owns the flag).
+	if DungeonRuns.active or Engine.has_meta("dungeon_no_wipe"):
+		_player_hp = 100
+		_shield = 0
+		DungeonRuns.eject("death_to_%s" % killer)
+		return
+	# Periliminal wipe path (shared fate) — only when a wipe-run is active.
+	if layer_id == "periliminal" and PeriliminalRuns.active and not Engine.has_meta("dungeon_no_wipe"):
+		PeriliminalRuns.member_died("local_player")
+		_player_hp = 100
+		_shield = 0
+		return
 	var lost := int(EconomyManager.get_balance("tokens") * 0.2)
 	if lost > 0:
 		await EconomyManager.spend_currency("tokens", lost, "open_pvp_death")
