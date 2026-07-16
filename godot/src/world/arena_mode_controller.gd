@@ -2,7 +2,8 @@ class_name ArenaModeController
 extends Node3D
 ## Mode-specific arena rules for playtest_arena / combat_zone entry points.
 ## survival → shrinking safe zone · zombies → feral waves · ctf → yarn deliver
-## duel / duel_2v2 → staged entity opponents. Rewards tokens + prestige on win.
+## duel / duel_2v2 → staged entity opponents · moba → MobaMatch (lanes/shop).
+## Rewards tokens + prestige on win.
 
 signal mode_won(mode_id: String, score: int)
 signal mode_lost(mode_id: String)
@@ -178,61 +179,24 @@ func _tick_duel() -> void:
 		_score = 100
 		_finish(true)
 
-# ── MOBA lane prototype ────────────────────────────────────────────────────
-var _enemy_towers: Array[Node3D] = []
-var _minion_timer := 0.0
+# ── MOBA (Paws of the Ancients) ────────────────────────────────────────────
+var _moba: MobaMatch
 
 func _setup_moba() -> void:
-	# Three lane markers + two opposing tower proxies. Win by dropping both.
-	for i in range(3):
-		var z := float(i - 1) * 12.0
-		add_child(_make_marker(Vector3(-20, 0, z), Color(0.3, 0.6, 1.0), "LaneAlly_%d" % i))
-		var tower := _make_tower(Vector3(22, 0, z), Color(1.0, 0.35, 0.3), "Tower_%d" % i)
-		add_child(tower)
-		_enemy_towers.append(tower)
-	_spawn_ferals(4, 1)
-	NotificationUI.notify_info("Paws of the Ancients — push the lanes. Drop both towers.")
+	_moba = MobaMatch.new()
+	_moba.name = "MobaMatch"
+	add_child(_moba)
+	_moba.match_won.connect(func(s: int):
+		_score = maxi(_score, s)
+		_finish(true))
+	_moba.match_lost.connect(func(): _finish(false))
+	_moba.score_changed.connect(func(s: int): _score = s)
+	_moba.start(player)
 
-func _tick_moba(delta: float) -> void:
-	_prune_dead()
-	_minion_timer += delta
-	if _minion_timer >= 12.0:
-		_minion_timer = 0.0
-		_spawn_ferals(2, 1)
-	# Towers fall when the player stands on them long enough (contact damage proxy).
-	for t in _enemy_towers.duplicate():
-		if not is_instance_valid(t):
-			_enemy_towers.erase(t)
-			continue
-		if player and player.global_position.distance_to(t.global_position) < 3.0:
-			t.set_meta("hp", float(t.get_meta("hp", 100.0)) - delta * 25.0)
-			if float(t.get_meta("hp", 100.0)) <= 0.0:
-				_score += 50
-				_enemy_towers.erase(t)
-				t.queue_free()
-				NotificationUI.notify_win("Tower down!")
-	_refresh_hud("towers %d · minions %d" % [_enemy_towers.size(), _alive.size()])
-	if _enemy_towers.is_empty() and _elapsed > 2.0:
-		_finish(true)
-
-func _make_tower(pos: Vector3, color: Color, node_name: String) -> Node3D:
-	var root := Node3D.new()
-	root.name = node_name
-	root.position = pos
-	root.set_meta("hp", 100.0)
-	var mesh := MeshInstance3D.new()
-	var box := BoxMesh.new()
-	box.size = Vector3(2.2, 5.0, 2.2)
-	mesh.mesh = box
-	var mat := StandardMaterial3D.new()
-	mat.albedo_color = color
-	mat.emission_enabled = true
-	mat.emission = color
-	mat.emission_energy_multiplier = 1.2
-	mesh.material_override = mat
-	mesh.position.y = 2.5
-	root.add_child(mesh)
-	return root
+func _tick_moba(_delta: float) -> void:
+	if _moba == null:
+		return
+	_refresh_hud(_moba.hud_line())
 
 # ── Shared helpers ─────────────────────────────────────────────────────────
 func _spawn_ferals(count: int, stage: int) -> void:

@@ -116,6 +116,26 @@ def main() -> int:
     else:
         fail("playtest_arena missing ArenaModeController")
 
+    print("== moba lane AI + shop ==")
+    for rel in (
+        "src/world/moba/moba_match.gd",
+        "src/world/moba/moba_tower.gd",
+        "src/world/moba/moba_minion.gd",
+        "src/world/moba/moba_shop.gd",
+        "src/world/moba/moba_shop_ui.gd",
+    ):
+        check_exists(rel, "moba")
+    amc = (GODOT / "src/world/arena_mode_controller.gd").read_text()
+    if "MobaMatch" in amc and "_setup_moba" in amc:
+        ok("ArenaModeController wires MobaMatch")
+    else:
+        fail("ArenaModeController missing MobaMatch wiring")
+    shop = (GODOT / "src/world/moba/moba_shop.gd").read_text()
+    if "claw_edge" in shop and "func buy" in shop:
+        ok("MobaShop has catalog + buy()")
+    else:
+        fail("MobaShop catalog/buy incomplete")
+
     print("== metahuman interim ==")
     if (GODOT / "assets/models/player_human.glb").exists():
         ok("player_human.glb present (interim identity mesh)")
