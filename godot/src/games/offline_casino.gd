@@ -44,6 +44,24 @@ static func resolve(rpc_id: String, payload: Variant) -> Dictionary:
 			return await _start_race(data)
 		"combat_action":
 			return await _combat_action(data)
+		"get_wallet":
+			return _get_wallet()
+		"find_match", "find_moba_match":
+			return {"success": true, "ok": true, "match_id": "", "created": false, "practice": true}
+		"get_active_tournaments", "get_tournaments":
+			return {"success": true, "tournaments": [], "ok": true}
+		"join_tournament":
+			return {"success": true, "ok": true, "local": true, "message": "Use local cups offline"}
+		"submit_score":
+			return {"success": true, "ok": true, "score": int(data.get("score", 0))}
+		"quest_action", "get_quests":
+			return {"success": true, "ok": true, "quests": []}
+		"summon_companion":
+			return await _summon_companion_offline(data)
+		"feed_companion", "evolve_companion", "get_my_companions":
+			return {"success": true, "ok": true, "offline": true, "companions": []}
+		"daily_bonus", "claim_daily_bonus":
+			return await _daily_bonus_offline()
 		_:
 			return {"success": false, "error": "Offline: %s unavailable" % rpc_id}
 
@@ -52,7 +70,34 @@ static func supports(rpc_id: String) -> bool:
 		"spin_slots", "play_blackjack", "play_poker", "play_holdem",
 		"draw_fortune", "buy_scratch_card", "predict_match",
 		"submit_puzzle_score", "start_race", "combat_action",
+		"get_wallet", "find_match", "find_moba_match",
+		"get_active_tournaments", "get_tournaments", "join_tournament",
+		"submit_score", "quest_action", "get_quests",
+		"summon_companion", "feed_companion", "evolve_companion", "get_my_companions",
+		"daily_bonus", "claim_daily_bonus",
 	]
+
+static func _get_wallet() -> Dictionary:
+	var coins := 0
+	var gems := 0
+	if EconomyManager:
+		coins = EconomyManager.get_coins()
+		gems = EconomyManager.get_gems()
+	return {
+		"success": true,
+		"ok": true,
+		"coins": coins,
+		"cat_coins": coins,
+		"gems": gems,
+		"balances": {"coins": coins, "cat_coins": coins, "gems": gems},
+	}
+
+static func _daily_bonus_offline() -> Dictionary:
+	if EconomyManager and EconomyManager.has_method("claim_daily_bonus"):
+		var amount: int = await EconomyManager.claim_daily_bonus()
+		return {"success": true, "ok": true, "reward": amount, "coins_granted": amount}
+	_pay(500, "daily_bonus_offline")
+	return {"success": true, "ok": true, "reward": 500, "coins_granted": 500}
 
 static func _as_dict(payload: Variant) -> Dictionary:
 	if payload is Dictionary:
@@ -480,9 +525,12 @@ static func _submit_puzzle_score(data: Dictionary) -> Dictionary:
 
 static func _start_race(data: Dictionary) -> Dictionary:
 	var bet := int(data.get("bet", 50))
-	var spent := await _spend(bet, "race_entry_offline")
-	if not spent.get("success", false):
-		return spent
+	if bet > 0:
+		var spent := await _spend(bet, "race_entry_offline")
+		if not spent.get("success", false):
+			return spent
+	elif bet < 0:
+		return {"success": false, "error": "Invalid bet"}
 	var racers: Array = [{"id": "YOU", "time": randf_range(8.0, 12.0)}]
 	for i in 7:
 		racers.append({"id": "npc_%d" % (i + 1), "time": randf_range(8.0, 14.0)})

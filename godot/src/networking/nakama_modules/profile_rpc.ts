@@ -73,6 +73,6 @@ const ProfileRpc = {
 export function register_profile_rpc(ctx: nkruntime.Context, logger: nkruntime.Logger, nk: nkruntime.Nakama, initializer: nkruntime.Initializer): void {
   initializer.registerRpc("get_profile", ProfileRpc.getProfile);
   initializer.registerRpc("update_profile", ProfileRpc.updateProfile);
-  initializer.registerRpc("get_leaderboard", ProfileRpc.getLeaderboard);
+  // get_leaderboard is owned by leaderboard_rpc.
   logger.info("Profile RPC module loaded");
 }

@@ -42,7 +42,8 @@ const WalletRpc = {
 };
 
 export function register_wallet_rpc(ctx: nkruntime.Context, logger: nkruntime.Logger, nk: nkruntime.Nakama, initializer: nkruntime.Initializer): void {
-  initializer.registerRpc("get_wallet", WalletRpc.getWallet);
+  // get_wallet is owned by economy_rpc (last-register wins). Only register
+  // the legacy claim_daily_bonus alias here; daily_bonus lives on economy_rpc.
   initializer.registerRpc("claim_daily_bonus", WalletRpc.claimDailyBonus);
-  logger.info("Wallet RPC module loaded");
+  logger.info("Wallet RPC module loaded (claim_daily_bonus)");
 }

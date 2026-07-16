@@ -19,8 +19,30 @@ func _ready() -> void:
 	timeline_list.clear()
 	for t in _shown_timelines:
 		timeline_list.add_item(t["name"])
-	status_label.text = "Active mode: %s. Select a timeline, then Submit for Review when ready." % mode.get("name", "")
+	status_label.text = "Active mode: %s. Select a timeline, then Play Sandbox or Submit for Review." % mode.get("name", "")
 	submit_button.pressed.connect(_on_submit_pressed)
+	_ensure_play_button()
+
+func _ensure_play_button() -> void:
+	if has_node("PlaySandboxButton"):
+		return
+	var play := Button.new()
+	play.name = "PlaySandboxButton"
+	play.text = "▶ Play Sandbox"
+	play.position = Vector2(12, 12)
+	play.pressed.connect(_on_play_sandbox)
+	add_child(play)
+	var back := Button.new()
+	back.text = "⬅ Menu"
+	back.position = Vector2(12, 48)
+	back.pressed.connect(_on_back_pressed)
+	add_child(back)
+
+func _on_play_sandbox() -> void:
+	status_label.text = "Launching creator sandbox…"
+	# Forge / replay both drop into a playable arena sandbox for now.
+	Engine.set_meta("arena_queued_mode", "duel")
+	get_tree().change_scene_to_file("res://scenes/world/playtest_arena.tscn")
 
 func _on_submit_pressed() -> void:
 	var selected := timeline_list.get_selected_items()

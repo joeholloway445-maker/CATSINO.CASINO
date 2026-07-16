@@ -19,7 +19,7 @@ func _init_grid() -> void:
 			_coin_grid[Vector2i(x, y)] = randf() < 0.35
 
 func drop_coin(column: int, bet: int) -> void:
-	if not EconomyManager.spend_coins(bet):
+	if not await EconomyManager.spend_coins(bet, "coin_pusher"):
 		push_warning("CoinPusher: insufficient coins")
 		return
 	column = clampi(column, 0, GRID_WIDTH - 1)

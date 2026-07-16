@@ -20,24 +20,32 @@ const RARITY_COLORS := {
 var _pity_counter := 0  # increments until epic/legendary
 
 func _ready() -> void:
-	single_btn.pressed.connect(func(): _summon(1))
-	multi_btn.pressed.connect(func(): _summon(10))
-	faction_option.add_item("Any Faction")
-	faction_option.add_item("SovereignCrown")
-	faction_option.add_item("WildlandsAscendant")
-	faction_option.add_item("VeiledCurrent")
-	faction_option.add_item("Factionless")
+	if single_btn:
+		single_btn.pressed.connect(func(): _summon(1))
+	if multi_btn:
+		multi_btn.pressed.connect(func(): _summon(10))
+	if faction_option:
+		faction_option.add_item("Any Faction")
+		faction_option.add_item("SovereignCrown")
+		faction_option.add_item("WildlandsAscendant")
+		faction_option.add_item("VeiledCurrent")
+		faction_option.add_item("Factionless")
+	UINav.add_back_button(self)
 
 func _summon(count: int) -> void:
 	var factions := ["", "SovereignCrown", "WildlandsAscendant", "VeiledCurrent", "Factionless"]
-	var faction := factions[faction_option.selected]
-	single_btn.disabled = true
-	multi_btn.disabled = true
+	var faction := factions[faction_option.selected] if faction_option else ""
+	if single_btn:
+		single_btn.disabled = true
+	if multi_btn:
+		multi_btn.disabled = true
 
 	NetworkManager.call_rpc("summon_companion", {count=count, faction=faction},
 		func(result: Dictionary):
-			single_btn.disabled = false
-			multi_btn.disabled = false
+			if single_btn:
+				single_btn.disabled = false
+			if multi_btn:
+				multi_btn.disabled = false
 			if result.get("error"):
 				NotificationUI.notify_error(result.error)
 				return

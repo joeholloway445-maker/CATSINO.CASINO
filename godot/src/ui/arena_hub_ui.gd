@@ -198,7 +198,7 @@ func _launch(mode_id: String) -> void:
 			if scene_path != "" and ResourceLoader.exists(scene_path):
 				_launch_arena_mode(mode_id, scene_path)
 			else:
-				_simulate_match(mode_id)
+				NotificationUI.notify_error("Arena scene missing for %s" % mode_id)
 
 ## Online: queue via find_match (catsino_match) then enter practice-synced arena.
 ## Offline / Shift: practice immediately. Match id is stored for score sync.

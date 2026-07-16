@@ -1,4 +1,7 @@
-const LEADERBOARDS = ["weekly_coins", "all_time_wins", "tournament_champion", "racing_lap_times"];
+const LEADERBOARDS = [
+  "weekly_coins", "all_time_wins", "tournament_champion", "racing_lap_times",
+  "global_wins", "global_coins", "slot_wins", "race_wins", "combat_wins", "puzzle_scores",
+];
 const TOP_RECORD_LIMIT = 100;
 const ADMIN_ROLE = "admin";
 

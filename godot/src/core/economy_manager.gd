@@ -168,6 +168,27 @@ func earn_prestige(amount: int, source: String = "gameplay") -> void:
 	_lifetime_prestige += maxi(amount, 0)
 	await earn_currency("prestige", amount, source)
 
+func can_spend_coins(amount: int) -> bool:
+	return amount > 0 and int(_balances.get(CURRENCY_COINS, 0)) >= amount
+
+## Synchronous local debit (no server round-trip). Prefer await spend_coins.
+func spend_coins_local(amount: int, destination: String = "unknown") -> bool:
+	if amount <= 0 or not can_spend_coins(amount):
+		if amount > 0:
+			emit_signal("insufficient_funds", CURRENCY_COINS, amount, _balances[CURRENCY_COINS])
+		return false
+	_adjust_balance(CURRENCY_COINS, -amount)
+	_record_transaction(CURRENCY_COINS, -amount, destination, "spend")
+	_save_local_cache()
+	return true
+
+func add_coins_local(amount: int, source: String = "unknown") -> void:
+	if amount <= 0:
+		return
+	_adjust_balance(CURRENCY_COINS, amount)
+	_record_transaction(CURRENCY_COINS, amount, source, "earn")
+	_save_local_cache()
+
 func spend_coins(amount: int, destination: String = "unknown") -> bool:
 	if amount <= 0:
 		push_warning("EconomyManager: spend_coins called with non-positive amount %d" % amount)
@@ -277,8 +298,18 @@ func _save_local_cache() -> void:
 	if f:
 		f.store_string(JSON.stringify(data))
 
+const OFFLINE_STARTER_COINS := 5000
+
 func _load_local_cache() -> void:
 	if not FileAccess.file_exists("user://economy_cache.json"):
+		# First boot / offline guest — seed enough coins to play every mode.
+		_balances[CURRENCY_COINS] = OFFLINE_STARTER_COINS
+		_balances["chips"] = 500
+		_balances["fragments"] = 100
+		_balances["tokens"] = 100
+		_balances["charges"] = 50
+		_balances["prestige"] = 0
+		_save_local_cache()
 		return
 	var f := FileAccess.open("user://economy_cache.json", FileAccess.READ)
 	if not f:
@@ -289,6 +320,10 @@ func _load_local_cache() -> void:
 			_balances.merge(parsed["balances"], true)
 		_daily_bonus_last_claimed = parsed.get("daily_bonus_last_claimed", "")
 		_daily_bonus_streak       = parsed.get("daily_bonus_streak", 0)
+	# Legacy empty caches still get a playable stake once.
+	if int(_balances.get(CURRENCY_COINS, 0)) <= 0 and _daily_bonus_last_claimed == "":
+		_balances[CURRENCY_COINS] = OFFLINE_STARTER_COINS
+		_save_local_cache()
 
 func _sync_balances_from_server() -> void:
 	if not _nakama_client:
