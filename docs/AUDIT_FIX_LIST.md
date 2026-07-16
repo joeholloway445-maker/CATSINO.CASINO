@@ -29,7 +29,7 @@ Tracked from the 2026-07-15 code audit. Check items off as they land.
 
 ## Still open (content / infra)
 
-- [x] Full MOBA lane AI / item shop (`godot/src/world/moba/*` — waves, towers, nexus, match shop)
+- [x] Full MOBA lane AI / item shop (`godot/src/world/moba/*` — towers/inhibs/nexus, wave types, bots, companion, fountain shop+sell, recall/respawn, XP/CS/KDA/HUD)
 - [ ] Drop real MetaHuman GLBs into `assets/models/metahuman_*.glb`
 - [ ] Nakama realtime live-tested against a real host
 - [ ] Enable gdUnit4 plugin in editor after zero-error smoke open

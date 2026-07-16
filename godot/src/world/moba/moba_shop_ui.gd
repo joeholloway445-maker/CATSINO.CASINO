@@ -1,20 +1,26 @@
 class_name MobaShopUI
 extends CanvasLayer
-## Toggleable in-match shop for Paws of the Ancients. Open with B / shop button.
+## In-match shop with categories, inventory sellback, and base-only gating.
 
 signal closed()
 
 var shop: MobaShop
+var can_shop_cb: Callable # () -> bool
 var _panel: PanelContainer
 var _list: VBoxContainer
+var _inv: VBoxContainer
 var _gold_lbl: Label
+var _status: Label
 var _open := false
+var _category := ""
 
-func setup(p_shop: MobaShop) -> void:
+func setup(p_shop: MobaShop, p_can_shop: Callable = Callable()) -> void:
 	shop = p_shop
+	can_shop_cb = p_can_shop
 	layer = 20
 	_build()
 	shop.gold_changed.connect(_on_gold)
+	shop.inventory_changed.connect(_rebuild_inv)
 	visible = false
 
 func toggle() -> void:
@@ -24,9 +30,13 @@ func toggle() -> void:
 		open()
 
 func open() -> void:
+	if can_shop_cb.is_valid() and not can_shop_cb.call():
+		NotificationUI.notify_error("Shop only at the ally fountain — recall (R) or walk home.")
+		return
 	_open = true
 	visible = true
 	_rebuild_list()
+	_rebuild_inv()
 	_on_gold(shop.gold)
 
 func close() -> void:
@@ -43,17 +53,15 @@ func _build() -> void:
 	root.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(root)
 	_panel = PanelContainer.new()
-	_panel.custom_minimum_size = Vector2(360, 420)
-	_panel.position = Vector2(24, 80)
+	_panel.custom_minimum_size = Vector2(420, 520)
+	_panel.position = Vector2(24, 72)
 	root.add_child(_panel)
 	var margin := MarginContainer.new()
-	margin.add_theme_constant_override("margin_left", 12)
-	margin.add_theme_constant_override("margin_right", 12)
-	margin.add_theme_constant_override("margin_top", 10)
-	margin.add_theme_constant_override("margin_bottom", 10)
+	for m in ["margin_left", "margin_right", "margin_top", "margin_bottom"]:
+		margin.add_theme_constant_override(m, 10)
 	_panel.add_child(margin)
 	var col := VBoxContainer.new()
-	col.add_theme_constant_override("separation", 8)
+	col.add_theme_constant_override("separation", 6)
 	margin.add_child(col)
 	var header := HBoxContainer.new()
 	col.add_child(header)
@@ -69,25 +77,40 @@ func _build() -> void:
 	close_btn.text = "✕"
 	close_btn.pressed.connect(close)
 	header.add_child(close_btn)
-	var hint := Label.new()
-	hint.text = "Match gold only — press B to toggle"
-	hint.modulate = Color(0.7, 0.75, 0.85)
-	col.add_child(hint)
+	_status = Label.new()
+	_status.text = "Fountain only · B toggle · sell 50%"
+	_status.modulate = Color(0.7, 0.75, 0.85)
+	col.add_child(_status)
+	var cats := HBoxContainer.new()
+	col.add_child(cats)
+	for c in ["", "offense", "defense", "utility", "consumable"]:
+		var b := Button.new()
+		b.text = "All" if c.is_empty() else c.capitalize()
+		var cat := c
+		b.pressed.connect(func():
+			_category = cat
+			_rebuild_list())
+		cats.add_child(b)
 	var scroll := ScrollContainer.new()
 	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	scroll.custom_minimum_size = Vector2(0, 300)
+	scroll.custom_minimum_size = Vector2(0, 260)
 	col.add_child(scroll)
 	_list = VBoxContainer.new()
 	_list.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	_list.add_theme_constant_override("separation", 6)
+	_list.add_theme_constant_override("separation", 5)
 	scroll.add_child(_list)
+	var inv_title := Label.new()
+	inv_title.text = "Inventory (sell 50%)"
+	col.add_child(inv_title)
+	_inv = VBoxContainer.new()
+	_inv.add_theme_constant_override("separation", 4)
+	col.add_child(_inv)
 
 func _rebuild_list() -> void:
 	for c in _list.get_children():
 		c.queue_free()
-	for item in shop.catalog():
+	for item in shop.catalog(_category):
 		var row := HBoxContainer.new()
-		row.add_theme_constant_override("separation", 8)
 		var info := VBoxContainer.new()
 		info.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		var name_lbl := Label.new()
@@ -107,16 +130,55 @@ func _rebuild_list() -> void:
 		row.add_child(buy)
 		_list.add_child(row)
 
+func _rebuild_inv() -> void:
+	if _inv == null:
+		return
+	for c in _inv.get_children():
+		c.queue_free()
+	if shop.inventory.is_empty():
+		var empty := Label.new()
+		empty.text = "(empty)"
+		empty.modulate = Color(0.6, 0.6, 0.7)
+		_inv.add_child(empty)
+		return
+	for i in shop.inventory.size():
+		var entry: Dictionary = shop.inventory[i]
+		var row := HBoxContainer.new()
+		var lbl := Label.new()
+		lbl.text = "%s (%dg)" % [entry.get("name", "?"), int(round(float(entry.get("price", 0)) * 0.5))]
+		lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		row.add_child(lbl)
+		var sell := Button.new()
+		sell.text = "Sell"
+		var slot := i
+		sell.pressed.connect(func(): _sell(slot))
+		row.add_child(sell)
+		_inv.add_child(row)
+
 func _buy(item_id: String) -> void:
+	if can_shop_cb.is_valid() and not can_shop_cb.call():
+		NotificationUI.notify_error("Leave fountain — shop closed.")
+		close()
+		return
 	var result := shop.buy(item_id)
 	if not result.get("success", false):
 		NotificationUI.notify_error(str(result.get("error", "Purchase failed")))
 		return
 	NotificationUI.notify_win("Bought %s" % str(result.item.name))
 	_rebuild_list()
+	_rebuild_inv()
+
+func _sell(slot: int) -> void:
+	var result := shop.sell(slot)
+	if not result.get("success", false):
+		NotificationUI.notify_error(str(result.get("error", "Sell failed")))
+		return
+	NotificationUI.notify_info("Sold for %dg" % int(result.get("refund", 0)))
+	_rebuild_list()
+	_rebuild_inv()
 
 func _on_gold(amount: int) -> void:
 	if _gold_lbl:
-		_gold_lbl.text = "%dg" % amount
+		_gold_lbl.text = "%dg · %d/%d slots" % [amount, shop.inventory.size(), MobaShop.MAX_SLOTS]
 	if _open:
 		_rebuild_list()
