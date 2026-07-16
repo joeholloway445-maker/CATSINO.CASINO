@@ -44,6 +44,15 @@ things in, and the conventions that keep 100+ GDScript files consistent.
    time, verifying each in the running game (F5) before the next.
 8. Commit after every green step with a message naming the step.
    Never commit with the error count higher than you found it.
+9. **Asset drops** (models / textures / sounds / logo): follow the
+   section **How to drop assets into slots** below — rename files to
+   exact slot names under `godot/assets/`; do not invent registration
+   code. Owner may hand you a PNG/GLB and say "put this in as logo /
+   metahuman_player / …" — that section is the whole job.
+10. **PeriHumans:** characters/NPCs must ship in the build. Players never
+    install Unreal/MakeHuman/DAZ. Prefer updating
+    `peri_human_player.glb` / `peri_human_npc.glb` (and variant pools).
+    Do not ask the owner to run third-party character tools to play.
 
 ## Fixing a large error count (READ THIS BEFORE FIXING ANYTHING)
 
@@ -409,29 +418,22 @@ go stale the way the other two did.
   re-fetch or re-install any of these; the only remaining step is
   enabling them one at a time, in the editor, after Gate 1 is
   re-confirmed clean.
-- **Audio: `godot/assets/audio/` has nothing but `.gitkeep`.** Zero SFX,
-  music, ambience, or UI sound has been sourced — this is a real, total
-  gap, not started, distinct from the visual-asset work below which has
-  had two full passes.
-- **Model slots still empty** (per `docs/SHIPPING.md`'s own shopping
-  table, never sourced despite being called out there): `player_cat`,
-  `npc_cat`, `creature`, `tree`, `crystal`, `ruin_pillar`,
-  `extraction_gate`, `harvest_node`, `apartment_prop`,
-  `vehicle_aircraft_body` (no CC0 source found — see
-  `assets/models/ATTRIBUTION.md`). Filled so far: vehicle car/boat/
-  spacecraft bodies + variant pools, all four city building types +
-  variant pools, road/sidewalk/streetlight/prop, five PBR facade/ground
-  texture sets (see `assets/models/ATTRIBUTION.md` and
-  `assets/textures/ATTRIBUTION.md` for exact sources/licenses).
-- **Human mesh gap** (full detail in the NPC population bullet above and
-  `assets/models/ATTRIBUTION.md`): the installed `player_human.glb` is a
-  sci-fi robot (tps-demo), not a human, despite its name and older
-  comments. No CC0/MIT photoreal human GLB was found that doesn't
-  require a Blender/MakeHuman export step — that step hasn't been run by
-  anyone yet. Don't re-litigate the search; `docs/ASSET_SHOPPING_LIST.md`
-  has the full source-by-source verdict (including why RenderPeople/
-  TurboSquid/CGTrader free tiers are NOT safe to commit — free-to-download
-  ≠ safe-to-redistribute, and a git push IS redistribution).
+- **Audio:** Kenney Casino / Interface / UI SFX are in `assets/audio/`
+  (see `assets/audio/ATTRIBUTION.md`). Still empty / synthetic until
+  filled: city ambience loops `city_traffic`, `city_crowd`, `neon_hum`,
+  `machine_hum`. Music lives under `assets/music/`.
+- **Model slots still empty** (per `docs/SHIPPING.md`): `player_cat`,
+  `npc_cat`, `creature`, `crystal`, `ruin_pillar`, `extraction_gate`,
+  `harvest_node`, `apartment_prop`, `vehicle_aircraft_body` (no CC0
+  aircraft source yet). Filled: vehicles (car/boat/spacecraft + variants),
+  city buildings + variants, road/sidewalk/streetlight/prop, `tree.glb`,
+  PBR textures. See `assets/models/ATTRIBUTION.md` /
+  `assets/textures/ATTRIBUTION.md`.
+- **Human / PeriHuman mesh:** ship slots `peri_human_player` /
+  `metahuman_player` / `peri_human_npc` / `metahuman_npc` /
+  `player_human` / `npc_human` plus skin-tone variant pools. Players
+  never need Unreal/MakeHuman. Further photoreal faces/hair/clothes bake
+  into the same slots — not a player install step.
 
 ## Conventions
 

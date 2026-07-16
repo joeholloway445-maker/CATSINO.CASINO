@@ -53,5 +53,32 @@
     "craft_speederB.glb",
     "craft_speederC.glb",
     "craft_speederD.glb"
+  ],
+  "metahuman_npc": [
+    "adventurer.glb",
+    "beach.glb",
+    "farmer.glb",
+    "punk.glb",
+    "swat.glb",
+    "king.glb",
+    "spacesuit.glb"
+  ],
+  "peri_human_npc": [
+    "adventurer.glb",
+    "beach.glb",
+    "farmer.glb",
+    "punk.glb",
+    "swat.glb",
+    "king.glb",
+    "spacesuit.glb"
+  ],
+  "npc_human": [
+    "adventurer.glb",
+    "beach.glb",
+    "farmer.glb",
+    "punk.glb",
+    "swat.glb",
+    "king.glb",
+    "spacesuit.glb"
   ]
 }

@@ -17,5 +17,5 @@ func test_metahuman_resolve_tier_known() -> void:
 	assert_str(tier).is_not_empty()
 	# Accept any resolved tier — LFS / missing GLB may fall back to procedural
 	# in sparse checkouts; the API must still return a known label.
-	var allowed := ["metahuman_race", "metahuman_player", "player_human", "player_cat", "procedural_rig"]
+	var allowed := ["peri_human_race", "peri_human_player", "metahuman_race", "metahuman_player", "player_human", "player_cat", "procedural_rig"]
 	assert_bool(tier in allowed).is_true()

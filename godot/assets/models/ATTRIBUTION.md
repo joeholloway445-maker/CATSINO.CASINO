@@ -2,7 +2,12 @@
 
 | File | Source | License |
 |---|---|---|
-| `interim/tps_player.glb`, `player_human.glb` | [godotengine/tps-demo](https://github.com/godotengine/tps-demo) player model | **CC-BY 3.0** — assets Copyright (c) 2018 Juan Linietsky, Fernando Miguel Calabró (corrected: previously mislabeled MIT here; the demo's *code* is MIT, its *art assets* are CC-BY 3.0 per the demo's own LICENSE.md) |
+| `metahuman_player.glb`, `peri_human_player.glb` (from Casual_Hoodie) | [Quaternius Ultimate Modular Males](https://quaternius.com/packs/ultimatemodularcharacters.html) | **CC0** |
+| `metahuman_npc.glb`, `peri_human_npc.glb` (from Casual_2) | Quaternius Ultimate Modular Males | **CC0** |
+| `player_human.glb` (from Suit) | Quaternius Ultimate Modular Males | **CC0** |
+| `npc_human.glb` (from Worker) | Quaternius Ultimate Modular Males | **CC0** |
+| `variants/metahuman_npc/*`, `variants/peri_human_npc/*`, `variants/npc_human/*` | Quaternius Ultimate Modular Males (Adventurer/Beach/Farmer/Punk/Swat/King/Spacesuit) | **CC0** |
+| `interim/tps_player.glb` | [godotengine/tps-demo](https://github.com/godotengine/tps-demo) player (kept as archive) | **CC-BY 3.0** — Juan Linietsky, Fernando Miguel Calabró |
 | `rock.glb` | Terrain3D demo (Tokisan Games) | MIT |
 | `rock_b.glb` | Terrain3D demo (Tokisan Games) | MIT |
 | `vehicle_car_body.glb` (from `sedan.glb`) | [Kenney Car Kit](https://kenney.nl/assets/car-kit) | **CC0** |
@@ -28,30 +33,19 @@
 | `godot/src/vehicles/land_vehicle.gd` | Steering/throttle model adapted from the official [godotengine/godot-demo-projects](https://github.com/godotengine/godot-demo-projects) `3d/truck_town` sample's `vehicles/vehicle.gd` (whole-repo MIT, no split code/asset license unlike tps-demo) — rewritten for our input map, procedural placeholder body/wheels, and VehicleSeat enter/exit instead of their multi-vehicle trailer/tow-truck rig | MIT (code) |
 | `godot/src/vehicles/water_vehicle.gd`, `air_vehicle.gd`, `space_vehicle.gd` | Original — no equivalent official Godot demo exists for buoyancy or flight (unlike VehicleBody3D for land, Godot has no built-in boat/aircraft physics node), so these are from-scratch arcade models | MIT (code) |
 
-**Target:** replace humanoids with **your MetaHuman GLB exports** at:
-- `metahuman_player.glb` (local player identity)
-- `metahuman_npc.glb` (generic NPC — still missing; NPCs currently fall
-  through to `player_human.glb`, see below)
-- `metahuman_<race_id>.glb` optional per-race variants
+**PeriHuman policy:** characters and NPCs **ship inside the game**. Players
+never install Unreal, MakeHuman, DAZ, or Character Creator. Slots:
 
-**No CC0/MIT source for a photoreal human was found that doesn't require a
-DCC-tool export step** (see `docs/ASSET_SHOPPING_LIST.md` "Humans" section
-for what was actually checked and why each was rejected/deferred). Until
-MetaHuman exports land, every human in the game — player AND all 1,000+
-generated NPCs — renders the same `player_human.glb` mesh.
+- `peri_human_player.glb` / `metahuman_player.glb` — local player
+- `peri_human_npc.glb` / `metahuman_npc.glb` — generic NPC
+- `peri_human_<race_id>.glb` / `metahuman_<race_id>.glb` — optional per-race
+- `variants/metahuman_npc/*.glb` (+ peri/npc_human pools) — NPC outfit variety
 
-**Important correction:** that mesh is not actually a human — inspecting
-its glTF materials shows `playerobot` (chassis) and `robotemitter` (glow
-strip); its skinned mesh nodes are named `Robot_Body`/`Robot_Arms`/
-`Robot_Cannons`. It's the tps-demo's sci-fi robot player character, not an
-"interim human" as earlier comments/docs implied. `NpcBody`'s per-NPC
-tinting previously targeted Skin/Hair surface names that don't exist on
-this mesh and silently did nothing; it's been retargeted to also tint the
-real `playerobot`/`robotemitter` surfaces (archetype-flavored chassis
-color + faction-accent glow), and the `Robot_Cannons` mesh is hidden for
-every archetype except Authority (a visible weapon fits "power-holder",
-not "barista"). This is real, visible per-NPC variety within the current
-mesh's actual constraints — it does not make the mesh a human.
+**Current look (2026-07-16):** Quaternius Ultimate Modular Males (**CC0**) —
+stylized humanoids with outfit variety. Above the old TPS robot / capsule
+graybox; **not** full photoreal MetaHuman quality yet. Studio can later
+replace these GLBs with MakeHuman/CC4/MetaHuman bakes; players still just
+download the game. Archive of the old robot: `interim/tps_player.glb`.
 
 **Vehicle asset slots** (AssetLibrary.instance_or — drop a `.glb` in
 `assets/models/` named for the slot, zero code changes needed):
