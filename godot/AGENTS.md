@@ -298,7 +298,7 @@ this goal is locked.
    after a zero-error smoke open. Prefer pure-GDScript (web export).
 8. **Real multiplayer**: wire NetworkManager/Nakama beyond presence bots.
 
-## Current status snapshot (last checked 2026-07-15, post initial prototype spine)
+## Current status snapshot (last checked 2026-07-16, post CI-green)
 
 This section exists because two "status" docs in `docs/` (`IMPLEMENTATION_STATUS.md`,
 `LAUNCH_CHECKLIST_AND_ROADMAP.md`) are point-in-time snapshots that predate
@@ -308,6 +308,23 @@ this section is the most recent concrete read against it. Update this
 section (with today's date) whenever you re-verify a gate — don't let it
 go stale the way the other two did.
 
+- **CI GREEN (2026-07-16, run 29468572375 at b8fcbba).** First successful
+  CI validation since 2026-07-10: headless import + Web export completed
+  in ~12.5 min and uploaded a real `builds/html5` artifact. Getting here
+  required fixing hang cause #2 (after terrain_3d below): the fight-loop
+  pass added `offline_casino.gd` with two `:=` type-inference parse
+  errors, which cascade-broke NetworkManager → EconomyManager →
+  AccountManager → GameManager (5 autoloads from 2 lines), and the
+  headless editor parked on a modal again. Fixed with explicit `: bool`
+  annotations, plus process-level `timeout` wrappers on both godot
+  invocations in godot-ci.yml so any future modal hang fails the STEP in
+  minutes with the SCRIPT ERROR lines visible in the log. TWO operational
+  rules from this saga: (1) pushes from Claude/agent sessions do NOT
+  trigger the pull_request workflow — validate via manual dispatch
+  (`gh workflow run godot-ci.yml --ref <branch>` or the Actions API);
+  (2) a hung in_progress job's logs 404 — only completed jobs' logs
+  download, which is why fast timeouts are what make failures
+  diagnosable.
 - **Initial prototype spine (2026-07-15).** Gate 1 re-verified clean (0
   SCRIPT ERROR / failed autoload on Godot 4.3 headless editor open). Gate 2
   `boot_smoke` PASS. Gate 3 walkable via title **Play Prototype Spine**
