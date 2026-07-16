@@ -49,6 +49,10 @@ things in, and the conventions that keep 100+ GDScript files consistent.
    exact slot names under `godot/assets/`; do not invent registration
    code. Owner may hand you a PNG/GLB and say "put this in as logo /
    metahuman_player / …" — that section is the whole job.
+10. **PeriHumans:** characters/NPCs must ship in the build. Players never
+    install Unreal/MakeHuman/DAZ. Prefer updating
+    `peri_human_player.glb` / `peri_human_npc.glb` (and variant pools).
+    Do not ask the owner to run third-party character tools to play.
 
 ## Fixing a large error count (READ THIS BEFORE FIXING ANYTHING)
 
@@ -488,15 +492,11 @@ go stale the way the other two did.
   city buildings + variants, road/sidewalk/streetlight/prop, `tree.glb`,
   PBR textures, interim `player_human.glb` (tps-demo robot). See
   `assets/models/ATTRIBUTION.md` / `assets/textures/ATTRIBUTION.md`.
-- **Human mesh gap** (full detail in the NPC population bullet above and
-  `assets/models/ATTRIBUTION.md`): the installed `player_human.glb` is a
-  sci-fi robot (tps-demo), not a human, despite its name and older
-  comments. No CC0/MIT photoreal human GLB was found that doesn't
-  require a Blender/MakeHuman export step — that step hasn't been run by
-  anyone yet. Don't re-litigate the search; `docs/ASSET_SHOPPING_LIST.md`
-  has the full source-by-source verdict (including why RenderPeople/
-  TurboSquid/CGTrader free tiers are NOT safe to commit — free-to-download
-  ≠ safe-to-redistribute, and a git push IS redistribution).
+- **Human / PeriHuman mesh:** Quaternius Ultimate Modular Males (**CC0**)
+  now fill `peri_human_player` / `metahuman_player` / `peri_human_npc` /
+  `metahuman_npc` / `player_human` / `npc_human` plus outfit variant pools.
+  Players never need Unreal/MakeHuman. Photoreal MetaHuman-quality faces
+  are a future studio bake into the same slots — not a player install step.
 
 ## Conventions
 
