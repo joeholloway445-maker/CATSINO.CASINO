@@ -24,8 +24,14 @@ func _run() -> void:
 	if sv == null:
 		_fail("StoryVote missing")
 		return
-	print("[gate5_smoke] StoryVote ballots=", StoryVote.BALLOTS.size(),
-		" can_vote=", sv.can_vote("s1_main_story"))
+	var ballot_n := 0
+	if sv.get("BALLOTS") != null:
+		ballot_n = int(sv.get("BALLOTS").size()) if typeof(sv.get("BALLOTS")) != TYPE_NIL else 0
+	# Prefer script constant via has_method — avoid bare Autoload in -s smokes.
+	var can_vote := false
+	if sv.has_method("can_vote"):
+		can_vote = bool(sv.call("can_vote", "s1_main_story"))
+	print("[gate5_smoke] StoryVote ballots=", ballot_n, " can_vote=", can_vote)
 
 	var hr: Node = r.get_node_or_null("HideoutRegistry")
 	if hr == null:
@@ -46,6 +52,22 @@ func _run() -> void:
 		print("[gate5_smoke] get_leaderboard support FAIL")
 	else:
 		print("[gate5_smoke] get_leaderboard support ok")
+	if not OfflineCasino.supports("summon_companion"):
+		ok = false
+		print("[gate5_smoke] summon_companion support FAIL")
+	else:
+		print("[gate5_smoke] summon_companion support ok")
+	# Poker/blackjack parse guards — inference bugs block table scenes.
+	var poker_ok: bool = ResourceLoader.exists("res://src/games/arcade/poker.gd")
+	var bj_ok: bool = ResourceLoader.exists("res://src/games/arcade/blackjack.gd")
+	print("[gate5_smoke] poker.gd=", poker_ok, " blackjack.gd=", bj_ok)
+	if not poker_ok or not bj_ok:
+		ok = false
+	var poker_scr: GDScript = load("res://src/games/arcade/poker.gd") as GDScript
+	var bj_scr: GDScript = load("res://src/games/arcade/blackjack.gd") as GDScript
+	print("[gate5_smoke] poker load=", poker_scr != null, " blackjack load=", bj_scr != null)
+	if poker_scr == null or bj_scr == null:
+		ok = false
 
 	var chips: int = int(eco.get_balance("chips"))
 	print("[gate5_smoke] chips balance=", chips)

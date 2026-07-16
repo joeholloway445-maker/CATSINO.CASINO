@@ -63,17 +63,82 @@ static func resolve(rpc_id: String, payload: Variant) -> Dictionary:
 			return {"success": true, "ok": true, "quests": []}
 		"summon_companion":
 			return _summon_companion_offline(data)
-		"feed_companion", "evolve_companion", "get_my_companions":
-			return {"success": true, "ok": true, "offline": true, "companions": []}
+		"feed_companion":
+			return {"success": true, "ok": true, "offline": true, "fed": true}
+		"evolve_companion":
+			return _evolve_companion_offline(data)
+		"get_my_companions":
+			return _get_my_companions_offline()
 		"daily_bonus", "claim_daily_bonus":
 			return await _daily_bonus_offline()
 		_:
 			return {"success": false, "error": "Offline: %s unavailable" % rpc_id}
 
-static func _summon_companion_offline(_data: Dictionary) -> Dictionary:
-	## Offline stub — live summons go through Nakama companion RPCs.
-	return {"success": true, "ok": true, "offline": true, "summoned": false,
-		"message": "Companion summon is online-only; roster still works offline."}
+## class_name scripts must not bare-ref Autoloads (parse-order races).
+static func _autoload(name: String) -> Node:
+	var tree := Engine.get_main_loop() as SceneTree
+	if tree == null or tree.root == null:
+		return null
+	return tree.root.get_node_or_null(name)
+
+static func _evolve_companion_offline(data: Dictionary) -> Dictionary:
+	var cid = data.get("companion_id", 0)
+	var comps := _autoload("CompanionSystem")
+	var eco := _autoload("EconomyManager")
+	if comps == null:
+		return {"success": false, "error": "CompanionSystem unavailable", "ok": false}
+	var c = comps.call("get_companion", cid)
+	if c == null:
+		return {"success": false, "error": "Companion not found", "ok": false}
+	if eco == null or not eco.call("spend_coins_local", 500, "evolve_companion"):
+		return {"success": false, "error": "Insufficient coins", "ok": false}
+	if typeof(cid) == TYPE_STRING and str(cid).is_valid_int():
+		comps.call("evolve", int(cid))
+	elif typeof(cid) == TYPE_INT:
+		comps.call("evolve", cid)
+	else:
+		return {"success": false, "error": "Evolve needs a numeric roster id offline", "ok": false}
+	return {"success": true, "ok": true, "companion_id": cid, "offline": true}
+
+static func _get_my_companions_offline() -> Dictionary:
+	var list: Array = []
+	var comps := _autoload("CompanionSystem")
+	if comps != null:
+		for id_str in comps.call("get_unlocked_ids"):
+			list.append({"companion_id": id_str, "offline": true})
+	return {"success": true, "ok": true, "companions": list, "offline": true}
+
+static func _summon_companion_offline(data: Dictionary) -> Dictionary:
+	## Local gacha mirror of gacha_rpc.ts (300 / 2500 coins).
+	var count := clampi(int(data.get("count", 1)), 1, 10)
+	if count != 1 and count != 10:
+		count = 1
+	var cost := 2500 if count == 10 else 300
+	var eco := _autoload("EconomyManager")
+	if eco == null or not eco.call("spend_coins_local", cost, "gacha_summon"):
+		return {"success": false, "error": "Insufficient coins", "ok": false}
+	var faction := str(data.get("faction", ""))
+	var results: Array = []
+	var comps := _autoload("CompanionSystem")
+	for _i in count:
+		var pick: Dictionary = CompanionRegistry.get_random(faction)
+		if pick.is_empty():
+			pick = CompanionRegistry.get_random("")
+		var rarity_raw = pick.get("rarity", "common")
+		var rarity := str(rarity_raw).to_lower()
+		if rarity.is_valid_int():
+			# Some roster rows store rarity as 1..5.
+			var names := ["common", "uncommon", "rare", "epic", "legendary"]
+			var ri := clampi(int(rarity_raw) - 1, 0, names.size() - 1)
+			rarity = names[ri]
+		results.append({
+			"companion_id": str(pick.get("id", "FL001")),
+			"faction": CompanionRegistry.normalize_faction(str(pick.get("faction", "Factionless"))),
+			"rarity": rarity,
+		})
+		if comps != null:
+			comps.call("unlock_companion", pick.get("id", ""))
+	return {"success": true, "ok": true, "companions": results, "cost": cost, "offline": true}
 
 static func supports(rpc_id: String) -> bool:
 	return rpc_id in [

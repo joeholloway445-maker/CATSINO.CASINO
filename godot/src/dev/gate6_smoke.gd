@@ -47,6 +47,13 @@ func _run() -> void:
 	print("[gate6_smoke] pvp_campaign_01 accept=", accepted)
 	qm.update_progress("claim_chunk", 3)
 	qm.update_progress("defeat_zone_boss", 1)
+	# Completion should erase active + notify (rewards local).
+	var still_active: bool = qm.is_active("pvp_campaign_01")
+	var done: bool = qm.is_complete("pvp_campaign_01")
+	print("[gate6_smoke] pvp_campaign_01 complete=", done, " still_active=", still_active)
+	if accepted and not done:
+		ok = false
+		print("[gate6_smoke] campaign completion FAIL")
 
 	var zb_script: GDScript = load("res://src/world/zone_boss_spawner.gd") as GDScript
 	var de_script: GDScript = load("res://src/world/dungeon_entrance.gd") as GDScript

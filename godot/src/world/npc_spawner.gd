@@ -144,8 +144,7 @@ static func _scene_for_game_id(game_id: String) -> String:
 		"race", "racing":
 			return "res://scenes/games/racing/race_track.tscn"
 		"combat":
-			return "res://scenes/games/arcade/combat_arena.tscn" if ResourceLoader.exists(
-				"res://scenes/games/arcade/combat_arena.tscn") else ""
+			return "res://scenes/ui/combat_ui.tscn"
 		_:
 			return ""
 

@@ -1,27 +1,38 @@
 extends Node
-## Autoloaded as "WorldBossScheduler". Gate 6 — one server-wide Stage-3+
-## world boss on a StoryVote-able schedule. Offline: local spawn timer.
-## Online: Nakama can drive the same ballot/schedule later.
+## Autoloaded as "WorldBossScheduler". Gate 6 — one Stage-3+ world boss on a
+## local cadence. Online: Nakama can drive the same schedule later.
 
 signal boss_spawned(boss_id: String, pos: Vector3)
 signal boss_defeated(boss_id: String)
 
 const BOSS_INTERVAL_SEC := 20 * 60 # 20 minutes offline cadence
-const BALLOT_ID := "s1_world_boss_window"
+const BOSS_MAX_LIFETIME_SEC := 8 * 60 # despawn if ignored
 
 var _active_boss: WorldEntity = null
 var _boss_id := ""
 var _zone_kills: Dictionary = {} # hub_id -> count
 var _elapsed := 0.0
 var _next_spawn_in := 90.0 # first spawn soon for playability
+var _boss_alive_for := 0.0
 
 func _ready() -> void:
-	# Ensure a ballot exists for the schedule (StoryVote BALLOTS is const —
-	# we document the schedule here and use local timer offline).
 	set_process(true)
 
 func _process(delta: float) -> void:
-	if _active_boss != null and is_instance_valid(_active_boss):
+	if _active_boss != null:
+		if not is_instance_valid(_active_boss):
+			_active_boss = null
+			_boss_id = ""
+			_boss_alive_for = 0.0
+			return
+		_boss_alive_for += delta
+		if _boss_alive_for >= BOSS_MAX_LIFETIME_SEC:
+			NotificationUI.notify_info("The Metroplex Titan fades back into the skyline.")
+			_active_boss.queue_free()
+			_active_boss = null
+			_boss_id = ""
+			_boss_alive_for = 0.0
+			_next_spawn_in = BOSS_INTERVAL_SEC
 		return
 	_elapsed += delta
 	_next_spawn_in -= delta
@@ -34,6 +45,13 @@ func note_zone_kill(hub_id: String) -> void:
 	# Accelerate the next world boss after enough zone kills.
 	if int(_zone_kills.get(hub_id, 0)) >= 2:
 		_next_spawn_in = mini(_next_spawn_in, 30.0)
+
+func clear_active() -> void:
+	if _active_boss != null and is_instance_valid(_active_boss):
+		_active_boss.queue_free()
+	_active_boss = null
+	_boss_id = ""
+	_boss_alive_for = 0.0
 
 func _spawn_world_boss() -> void:
 	var tree := get_tree()
@@ -69,17 +87,16 @@ func _spawn_world_boss() -> void:
 	ent.setup_boss(line, 4, player)
 	ent.died.connect(_on_boss_died)
 	_active_boss = ent
+	_boss_alive_for = 0.0
 	NotificationUI.notify_win("🌋 WORLD BOSS — Metroplex Titan has manifested nearby.")
 	boss_spawned.emit(_boss_id, pos)
-	# Soft StoryVote hook: remind players the schedule is theirs.
-	if StoryVote.can_vote("s1_dlc_theme"):
-		NotificationUI.notify_info("StoryVote still open — your ballot shapes the next boss window.")
 
 func _on_boss_died(ent: WorldEntity) -> void:
 	_active_boss = null
+	_boss_alive_for = 0.0
 	var bounty := ent.bounty() * 5
-	EconomyManager.earn_currency("fragments", bounty, "world_boss_kill")
-	EconomyManager.earn_prestige(50, "world_boss_kill")
+	EconomyManager.earn_currency_local("fragments", bounty, "world_boss_kill")
+	EconomyManager.earn_prestige_local(50, "world_boss_kill")
 	CrownManager.add_score("Top Territory Captures", "local_player", 8, PlayerProfile.faction)
 	QuestManager.update_progress("defeat_world_boss")
 	NotificationUI.notify_win("World boss down — +%d fragments. The Metroplex breathes." % bounty)

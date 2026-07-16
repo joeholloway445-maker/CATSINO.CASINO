@@ -51,7 +51,7 @@ func _action(act: String) -> void:
 			if result.get("outcome"):
 				var payout: int = result.get("payout", 0)
 				result_label.text = "%s | Hand: %s | Payout: %d" % [result.outcome.capitalize(), result.get("hand_name", ""), payout]
-				if payout > 0: NotificationUI.notify_win("Holdem: +%d coins!" % payout)
+				if payout > 0: NotificationUI.notify_win("Holdem: +%d chips!" % payout)
 				AchievementManager.check("win", payout)
 				XPManager.award_game("holdem", payout > 0)
 				_set_action_buttons(false)
