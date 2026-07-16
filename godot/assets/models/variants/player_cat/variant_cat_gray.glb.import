@@ -3,13 +3,13 @@
 importer="scene"
 importer_version=1
 type="PackedScene"
-uid="uid://6dy3qlh4q0qx"
-path="res://.godot/imported/mushroom_tan.glb-fc3bcd7b2fd536550d499e6d893f945f.scn"
+uid="uid://69d9f30fabc11"
+path="res://.godot/imported/variant_cat_gray.glb-933f92c7936de12397985808b23e1204.scn"
 
 [deps]
 
-source_file="res://assets/models/variants/crystal/mushroom_tan.glb"
-dest_files=["res://.godot/imported/mushroom_tan.glb-fc3bcd7b2fd536550d499e6d893f945f.scn"]
+source_file="res://assets/models/variants/player_cat/variant_cat_gray.glb"
+dest_files=["res://.godot/imported/variant_cat_gray.glb-933f92c7936de12397985808b23e1204.scn"]
 
 [params]
 

@@ -155,10 +155,14 @@ static func _tune_surface_material(mat: Material, sname: String, skin_shader: Sh
 		or sname.contains("face") or sname.contains("arm") or sname.contains("leg")
 	)
 	var is_eye := sname.contains("eye") or sname.contains("cornea") or sname.contains("sclera")
-	var is_hair := sname.contains("hair") or sname.contains("brow") or sname.contains("lash")
+	var is_hair := (
+		sname.contains("hair") or sname.contains("brow") or sname.contains("lash")
+		or sname.contains("scalp")
+	)
 	var is_cloth := (
 		sname.contains("cloth") or sname.contains("shirt") or sname.contains("pant")
 		or sname.contains("shoe") or sname.contains("boot") or sname.contains("outfit")
+		or sname.contains("dress") or sname.contains("jacket")
 	)
 	# Forward+ only: full skin shader (too heavy / incomplete on compat).
 	if is_skin and skin_shader != null and not RenderCaps.is_compatibility():

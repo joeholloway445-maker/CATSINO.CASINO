@@ -54,6 +54,9 @@
     "craft_speederC.glb",
     "craft_speederD.glb"
   ],
+  "vehicle_aircraft_body": [
+    "bob.glb"
+  ],
   "metahuman_npc": [
     "variant_male_fair.glb",
     "variant_male_deep.glb",
@@ -75,6 +78,17 @@
     "variant_female_deep.glb",
     "variant_male_navy.glb"
   ],
+  "player_cat": [
+    "variant_cat_orange.glb",
+    "variant_cat_gray.glb",
+    "variant_cat_calico.glb"
+  ],
+  "npc_cat": [
+    "variant_cat_black.glb",
+    "variant_cat_orange.glb",
+    "variant_cat_gray.glb",
+    "variant_cat_calico.glb"
+  ],
   "tree": [
     "tree_pineDefaultB.glb",
     "tree_pineRoundC.glb",
@@ -91,9 +105,18 @@
     "stone_tallF.glb"
   ],
   "crystal": [
-    "mushroom_redTall.glb",
-    "mushroom_red.glb",
-    "mushroom_tan.glb"
+    "variant_crystal_azure.glb",
+    "variant_crystal_violet.glb",
+    "variant_crystal_amber.glb",
+    "variant_crystal_emerald.glb"
+  ],
+  "creature": [
+    "variant_yeti.glb",
+    "variant_alien.glb",
+    "variant_dino.glb",
+    "variant_blue_demon.glb",
+    "variant_wolf.glb",
+    "variant_fox.glb"
   ],
   "apartment_prop": [
     "loungeSofa.glb",

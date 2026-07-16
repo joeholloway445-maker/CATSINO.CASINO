@@ -37,10 +37,22 @@ const WATER_LEVEL_Y := 0.0
 var _noise := FastNoiseLite.new()
 var _loaded: Dictionary = {} # Vector2i -> Node3D (chunk root)
 
+var _ridge := FastNoiseLite.new()
+var _detail := FastNoiseLite.new()
+
 func _ready() -> void:
 	_noise.seed = 0x43415453 # "CATS"
-	_noise.frequency = 0.012
-	_noise.fractal_octaves = 4
+	_noise.frequency = 0.008
+	_noise.fractal_octaves = 5
+	_noise.fractal_gain = 0.5
+	_ridge.seed = 0x43415453 ^ 0xA5A5
+	_ridge.noise_type = FastNoiseLite.TYPE_CELLULAR
+	_ridge.frequency = 0.018
+	_ridge.fractal_octaves = 3
+	_ridge.cellular_return_type = FastNoiseLite.RETURN_DISTANCE
+	_detail.seed = 0x43415453 ^ 0x5C5C
+	_detail.frequency = 0.04
+	_detail.fractal_octaves = 2
 	DiscoveryManager.chunk_repainted.connect(_on_chunk_repainted)
 
 ## Deterministic terrain height at any world position — used by both mesh
@@ -59,7 +71,12 @@ func height_at(world_x: float, world_z: float) -> float:
 		# flat 0.0) — full HEIGHT_SCALE noise would poke rock through the
 		# surface often enough that "coastal" wouldn't read as water.
 		noise_scale = HEIGHT_SCALE * 0.15
-	return elevation + _noise.get_noise_2d(world_x, world_z) * noise_scale
+	# Broad continents + ridge hills + fine gravel — less "single noise blob".
+	var h := _noise.get_noise_2d(world_x, world_z) * 0.65
+	var ridge := 1.0 - clampf(_ridge.get_noise_2d(world_x, world_z), 0.0, 1.0)
+	h += (ridge * 2.0 - 1.0) * 0.25
+	h += _detail.get_noise_2d(world_x, world_z) * 0.12
+	return elevation + h * noise_scale
 
 ## Bigger radius = fewer, larger streaming loads — used while piloting a
 ## vehicle so terrain doesn't have to keep pace with small on-foot-sized

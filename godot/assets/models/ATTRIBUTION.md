@@ -2,9 +2,13 @@
 
 | File | Source | License |
 |---|---|---|
-| `metahuman_player.glb`, `peri_human_player.glb`, `player_human.glb` | Blender Studio [Human Base Meshes](https://www.blender.org/download/demo-files/) `GEO-body_male_realistic` (decimated + simple clothes) | **CC0** |
-| `metahuman_npc.glb`, `peri_human_npc.glb`, `npc_human.glb` | Blender Studio Human Base Meshes `GEO-body_female_realistic` (decimated + simple clothes) | **CC0** |
-| `variants/{metahuman_npc,peri_human_npc,npc_human}/variant_*.glb` | Same bases, skin/cloth color variants | **CC0** |
+| `metahuman_player.glb`, `peri_human_player.glb`, `player_human.glb` | Blender Studio [Human Base Meshes](https://www.blender.org/download/demo-files/) `GEO-body_male_realistic` + fitted cloth/hair/shoes bake (`scripts/bake_visual_gaps.py`) | **CC0** |
+| `metahuman_npc.glb`, `peri_human_npc.glb`, `npc_human.glb` | Blender Studio Human Base Meshes `GEO-body_female_realistic` + fitted cloth/hair/shoes bake | **CC0** |
+| `variants/{metahuman_npc,peri_human_npc,npc_human}/variant_*.glb` | Same bases, skin/hair/cloth color variants | **CC0** |
+| `player_cat.glb` / `npc_cat.glb` + cat variants | Procedural house-cat bake (`scripts/bake_visual_gaps.py`) | **CC0** (original) |
+| `crystal.glb` + crystal variants | Procedural faceted crystal clusters (`scripts/bake_visual_gaps.py`) | **CC0** (original) |
+| `creature.glb` + creature variants | [Quaternius Ultimate Monsters](https://quaternius.com/packs/ultimatemonsters.html) / [Animated Animals](https://quaternius.com/packs/ultimateanimatedanimals.html) (Demon/Yeti/Alien/Dino/Wolf/Fox) | **CC0** |
+| `vehicle_aircraft_body.glb` | [Quaternius Ultimate Spaceships](https://quaternius.com/packs/ultimatespaceships.html) `Bob` | **CC0** |
 | `interim/tps_player.glb` | [godotengine/tps-demo](https://github.com/godotengine/tps-demo) player (archive) | **CC-BY 3.0** |
 | `interim/quaternius_*.glb` (if present) | Quaternius Ultimate Modular Males (earlier interim) | **CC0** |
 | `rock.glb` | Terrain3D demo (Tokisan Games) | MIT |
@@ -29,13 +33,11 @@
 | `variants/vehicle_spacecraft_body/*.glb` (racer + 4 speeders) | [Kenney Space Kit](https://kenney.nl/assets/space-kit) | **CC0** |
 | `tree.glb` + `variants/tree/*` | [Kenney Nature Kit](https://kenney.nl/assets/nature-kit) pines / detailed trees | **CC0** |
 | `rock` variants under `variants/rock/*` | [Kenney Nature Kit](https://kenney.nl/assets/nature-kit) | **CC0** |
-| `crystal.glb` + `variants/crystal/*` | [Kenney Nature Kit](https://kenney.nl/assets/nature-kit) mushrooms (interim crystal-field props) | **CC0** |
 | `ruin_pillar.glb` + `variants/ruin_pillar/*` | [Kenney Castle Kit](https://kenney.nl/assets/castle-kit) pillars / walls | **CC0** |
 | `extraction_gate.glb` | [Kenney Castle Kit](https://kenney.nl/assets/castle-kit) `gate.glb` | **CC0** |
 | `city_door.glb` | [Kenney Castle Kit](https://kenney.nl/assets/castle-kit) `door.glb` | **CC0** |
 | `apartment_prop.glb` + variants | [Kenney Furniture Kit](https://kenney.nl/assets/furniture-kit) | **CC0** |
 | `harvest_node.glb` | [Kenney Furniture Kit](https://kenney.nl/assets/furniture-kit) `bookcaseClosedDoors.glb` | **CC0** |
-| `creature.glb` | [Kenney Furniture Kit](https://kenney.nl/assets/furniture-kit) `bear.glb` (stylized interim) | **CC0** |
 | `neon_sign.glb` | [Kenney Furniture Kit](https://kenney.nl/assets/furniture-kit) `televisionModern.glb` (emissive board shell) | **CC0** |
 | `godot/src/world/overworld/third_person_controller.gd` | Movement/camera physics pattern adapted from godotengine/tps-demo's `player/player.gd` (single-player rewrite, gun-robot/multiplayer scaffolding removed; ability-kit hotbar and cat/identity visual-mode switching are original) | MIT (code) |
 | `godot/src/vehicles/land_vehicle.gd` | Steering/throttle model adapted from the official [godotengine/godot-demo-projects](https://github.com/godotengine/godot-demo-projects) `3d/truck_town` sample's `vehicles/vehicle.gd` (whole-repo MIT, no split code/asset license unlike tps-demo) — rewritten for our input map, procedural placeholder body/wheels, and VehicleSeat enter/exit instead of their multi-vehicle trailer/tow-truck rig | MIT (code) |
@@ -49,11 +51,11 @@ never install Unreal, MakeHuman, DAZ, or Character Creator. Slots:
 - `peri_human_<race_id>.glb` / `metahuman_<race_id>.glb` — optional per-race
 - `variants/metahuman_npc/*.glb` (+ peri/npc_human pools) — NPC outfit variety
 
-**Current look (2026-07-16 bake):** Blender Studio Human Base Meshes
-(**CC0**) — realistic male/female anatomy, decimated for Web/mobile, with
-simple generated clothing + hair so bodies are game-safe. Better human
-proportion/face structure than Quaternius; clothing is still blocky
-placeholders (studio can swap fancier outfits later into the same slots).
+**Current look (2026-07-16 gap-close bake):** Blender Studio Human Base
+Meshes (**CC0**) with fitted shirt/pants shells, scalp hair caps, and
+shoes (`scripts/bake_visual_gaps.py`). Face stays clear. Rebake anytime
+with Blender 4.2+:
+`blender -b -P scripts/bake_visual_gaps.py` (paths inside the script).
 Players never install Blender. Archive: `interim/tps_player.glb`.
 
 **Vehicle asset slots** (AssetLibrary.instance_or — drop a `.glb` in
@@ -64,10 +66,7 @@ Players never install Blender. Archive: `interim/tps_player.glb`.
   not yet wired.
 - `vehicle_boat_body.glb` — ✅ filled (Kenney Watercraft Kit `boat-speed-a.glb`)
 - `vehicle_spacecraft_body.glb` — ✅ filled (Kenney Space Kit `craft_racer.glb`)
-- `vehicle_aircraft_body.glb` — ❌ still empty. No Kenney aircraft kit
-  exists yet (they've teased one but not shipped it as of this writing);
-  no other CC0 single-file source was found. Falls back to the procedural
-  box.
+- `vehicle_aircraft_body.glb` — ✅ filled (Quaternius Ultimate Spaceships `Bob`)
 
 **City asset slots** (MegaCityBuilder / BuildingBuilder):
 - `city_tower.glb` — ✅ filled (Kenney City Kit Commercial `building-skyscraper-c.glb`)
@@ -102,10 +101,13 @@ what each pack actually ships, kept modest for repo size):
 | `vehicle_spacecraft_body` | 5 (racer + 4 speeders) | Kenney Space Kit |
 | `tree` | 6 pines / detailed trees | Kenney Nature Kit |
 | `rock` | 5 rocks / tall stones | Kenney Nature Kit |
-| `crystal` | 3 mushrooms (interim) | Kenney Nature Kit |
+| `crystal` | 4 faceted gem clusters | Procedural bake |
+| `creature` | 6 monsters/animals | Quaternius Monsters / Animals |
+| `player_cat` / `npc_cat` | 3–4 fur variants | Procedural bake |
+| `vehicle_aircraft_body` | 1 (Bob) | Quaternius Spaceships |
 | `apartment_prop` | 6 furniture pieces | Kenney Furniture Kit |
 | `ruin_pillar` | 5 castle pieces | Kenney Castle Kit |
-| `metahuman_npc` / `peri_human_npc` / `npc_human` | 5 skin/cloth variants | Blender Studio Human Base Meshes |
+| `metahuman_npc` / `peri_human_npc` / `npc_human` | 5 skin/hair/cloth variants | Blender Studio Human Base Meshes |
 
 `road_segment`/`sidewalk` stay single-file on purpose — road tiles have
 to interlock at fixed pivots/edges, and swapping them per-instance without

@@ -12,70 +12,47 @@ any third-party character tool**. PeriHumans ship as GLBs in the build.
 `MetahumanCharacter` resolves:
 
 `peri_human_*` / `metahuman_*` → `player_human` / `npc_human` →
-`CharacterRig` last resort.
+`CharacterRig` last resort. Catsino cat mode uses `player_cat` / `npc_cat`.
 
 ### What ships today (no player setup)
 
-Blender Studio **Human Base Meshes** (**CC0**), baked once into:
+Blender Studio **Human Base Meshes** (**CC0**), rebaked with hair + clothes:
 
 | Slot | Role |
 |---|---|
-| `peri_human_player.glb` / `metahuman_player.glb` | Local player (realistic male base) |
-| `peri_human_npc.glb` / `metahuman_npc.glb` | Default NPC (realistic female base) |
-| `variants/metahuman_npc/*.glb` | Skin/cloth color variants for crowds |
+| `peri_human_player.glb` / `metahuman_player.glb` | Local player (realistic male + hair/shirt/pants/shoes) |
+| `peri_human_npc.glb` / `metahuman_npc.glb` | Default NPC (realistic female + hair/clothes) |
+| `variants/metahuman_npc/*.glb` | Skin/hair/cloth color variants for crowds |
+| `player_cat.glb` / `npc_cat.glb` | Catsino house skins |
 
-Realistic anatomy + simple clothes (game-safe). Runtime look-dev tunes
-Skin/Eye/Hair/Cloth materials (soft SSS/rim on Forward+; MetaHumanGodot
-skin shader when surface names match). Not MetaHuman skin-pore cinema
-yet — clothing is still placeholder geometry.
+Rebake: `blender -b -P scripts/bake_visual_gaps.py` (see script header paths).
 
-### Studio-only photoreal upgrade (optional, still zero player friction)
+Runtime look-dev tunes Skin/Eye/Hair/Cloth (soft SSS/rim on Forward+;
+MetaHumanGodot skin shader when surface names match).
 
-If we want closer to ESO faces later, **we** (not players) bake once:
+### Studio-only photoreal upgrade (optional)
 
-1. MakeHuman / CC4 / Unreal MetaHuman → Blender → GLB
-2. Overwrite the same slot filenames above
-3. Ship the new build
-
+Overwrite the same slot filenames with MakeHuman / CC4 / MetaHuman exports.
 Players still only download the game. See `docs/ASSET_PIPELINE.md`.
-
-Skin/eye/hair look-dev shaders live under
-`godot/assets/shaders/metahuman/` (community MetaHumanGodot, MIT).
 
 ## Terrain = Terrain3D (desktop) / ProceduralTerrain (web)
 
-| Target | Backend |
-|---|---|
-| Desktop / native AAA | **Terrain3D** v1.0.0 (Godot 4.3 GDExtension) in `addons/terrain_3d/` |
-| Web export | `ProceduralTerrain` (TerrainBridge falls back automatically) |
-
-`TerrainWorld` prefers AmbientCG / Poly Haven PBR maps for Terrain3D
-grass/dirt. `ProceduralTerrain` UV-maps chunks and applies
-`grass` / `dirt` / `sand` / `asphalt` texture slots by biome.
+Multi-layer height (continental + ridge + detail) with a soft spawn plaza.
+PBR grass/dirt/sand maps on both backends. Terrain3D editor sculpt remains
+a local-GPU authoring step (plugin stays disabled in CI).
 
 ## Lighting / sky
 
-| Platform | Method |
-|---|---|
-| Desktop | `forward_plus` + SSAO / SSIL / SSR / volumetric fog |
-| Mobile / Web | `gl_compatibility` (glow + depth fog only) |
+Desktop Forward+ + HDRI IBL (`kloppenheim_06_1k.hdr`); mobile/web
+`gl_compatibility` with procedural sky fallback.
 
-`DayNightSky` uses Poly Haven HDRI (`kloppenheim_06_1k.hdr`) for sky IBL
-when present, with sun energy still cycling day→night. Falls back to the
-procedural neon-dusk palette if the HDRI is missing.
+## World props
 
-## World props (filled CC0 slots)
-
-Nature / furniture / castle kits fill `tree`, `rock`, `crystal` (interim
-mushrooms), `ruin_pillar`, `extraction_gate`, `apartment_prop`,
-`harvest_node`, `creature` (interim bear), `neon_sign`, `city_door`.
-Variant pools scatter forests/ruins without cloning one mesh.
-
-Still empty / stylized: `player_cat` / `npc_cat`, photoreal creatures,
-`vehicle_aircraft_body`, true gem crystals.
+Filled: trees, rocks, **faceted crystals**, ruins, gates, furniture,
+**Quaternius creatures**, **aircraft (Bob)**, neon, doors, cats.
 
 ## Related
 
-- `godot/AGENTS.md` — slot drop procedure for agents
+- `scripts/bake_visual_gaps.py` — PeriHuman / cat / crystal bake
 - `docs/ASSET_PIPELINE.md` — Blender → GLB
 - `godot/assets/models/ATTRIBUTION.md` — licenses
