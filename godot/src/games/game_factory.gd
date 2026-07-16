@@ -33,21 +33,36 @@ func create_game(type: GameType, variant_id: int) -> Node:
 	var config := get_variant_config(type, variant_id)
 	var instance: Node
 
-	if type in _templates and not _templates[type].is_empty():
+	# Prefer an exact catalog scene for featured lobby variants.
+	var catalog_scene := _catalog_scene_for(type, variant_id)
+	if catalog_scene != "" and ResourceLoader.exists(catalog_scene):
+		var packed: PackedScene = load(catalog_scene) as PackedScene
+		if packed:
+			instance = packed.instantiate()
+		else:
+			instance = Node.new()
+	elif type in _templates and not _templates[type].is_empty():
 		var scene_idx: int = variant_id % _templates[type].size()
 		var scene: PackedScene = _templates[type][scene_idx]
 		instance = scene.instantiate()
 	else:
-		# Fallback — create a plain Node with config attached
 		instance = Node.new()
 		instance.name = "%s_%d" % [GameType.keys()[type], variant_id]
 
-	# Attach config as metadata
 	for key in config:
 		instance.set_meta(key, config[key])
 
 	emit_signal("game_created", type, variant_id, instance)
 	return instance
+
+func create_game_from_catalog(type: int, variant_id: int) -> Node:
+	return create_game(type as GameType, variant_id)
+
+func _catalog_scene_for(type: GameType, variant_id: int) -> String:
+	for entry in get_game_catalog():
+		if int(entry.get("game_type", -1)) == int(type) and int(entry.get("variant_id", -1)) == variant_id:
+			return str(entry.get("scene", ""))
+	return ""
 
 func get_variant_config(type: GameType, variant_id: int) -> Dictionary:
 	if type in _variant_configs and variant_id < _variant_configs[type].size():
@@ -58,6 +73,32 @@ func get_all_variants(type: GameType) -> Array[Dictionary]:
 	if type in _variant_configs:
 		return _variant_configs[type]
 	return []
+
+## Lobby catalog — one featured card per game type with a real scene when possible.
+func get_game_catalog() -> Array:
+	var featured := [
+		{name="Lucky Cat Slots", type=GameType.SLOTS, type_label="Slots", scene="res://scenes/games/slots/slot_machine.tscn", min_bet=10},
+		{name="Neon Circuit", type=GameType.RACING, type_label="Racing", scene="res://scenes/games/racing/race_track.tscn", min_bet=50},
+		{name="Paw Ball", type=GameType.SPORTS, type_label="Sports", scene="res://scenes/games/sports/paw_ball.tscn", min_bet=25},
+		{name="Black Cat 21", type=GameType.CARDS, type_label="Cards", scene="res://scenes/games/arcade/blackjack.tscn", min_bet=10},
+		{name="Whisker Wins Poker", type=GameType.CARDS, type_label="Cards", scene="res://scenes/games/arcade/paw_poker.tscn", min_bet=10},
+		{name="Cat Puzzle", type=GameType.PUZZLE, type_label="Puzzle", scene="res://scenes/games/arcade/cat_puzzle.tscn", min_bet=15},
+		{name="Fortune Wheel", type=GameType.ARCADE, type_label="Arcade", scene="res://scenes/games/arcade/fortune_wheel.tscn", min_bet=20},
+		{name="Scratch Card", type=GameType.ARCADE, type_label="Arcade", scene="res://scenes/games/arcade/scratch_card.tscn", min_bet=15},
+		{name="Coin Pusher", type=GameType.ARCADE, type_label="Arcade", scene="res://scenes/games/arcade/coin_pusher.tscn", min_bet=10},
+	]
+	var out: Array = []
+	for i in featured.size():
+		var e: Dictionary = featured[i]
+		out.append({
+			"name": e.name,
+			"type_label": e.type_label,
+			"game_type": int(e.type),
+			"variant_id": i,
+			"min_bet": int(e.min_bet),
+			"scene": str(e.scene),
+		})
+	return out
 
 # ── Private ────────────────────────────────────────────────────────────────────
 func _generate_variant_configs() -> void:
@@ -131,6 +172,8 @@ func _try_load_default_templates() -> void:
 		GameType.SLOTS:  "res://scenes/games/slots/",
 		GameType.RACING: "res://scenes/games/racing/",
 		GameType.SPORTS: "res://scenes/games/sports/",
+		GameType.CARDS:  "res://scenes/games/arcade/",
+		GameType.PUZZLE: "res://scenes/games/arcade/",
 		GameType.ARCADE: "res://scenes/games/arcade/",
 	}
 	for type in type_paths:

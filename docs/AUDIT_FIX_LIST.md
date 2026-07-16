@@ -31,6 +31,7 @@ Tracked from the 2026-07-15 code audit. Check items off as they land.
 
 - [x] Full MOBA lane AI / item shop (`godot/src/world/moba/*` — towers/inhibs/nexus, wave types, bots, companion, fountain shop+sell, recall/respawn, XP/CS/KDA/HUD)
 - [x] Online MOBA (Nakama `find_moba_match` / `moba_match` + `MobaOnlineClient`; Shift+click = practice)
+- [x] All game modes playable offline path: arena modes (survival/zombies/CTF/duel/conflict), Paws Vegas lobby→catalog scenes, OfflineCasino (fortune/scratch/sports/puzzle/race), wired arcade UIs, slots UI, Arcade Galaxy stations, district Start CTAs (Neon Alley / Coliseum / Forest)
 - [ ] Drop real MetaHuman GLBs into `assets/models/metahuman_*.glb`
 - [ ] Nakama realtime live-tested against a real host (MOBA module ready to deploy)
 - [ ] Enable gdUnit4 plugin in editor after zero-error smoke open

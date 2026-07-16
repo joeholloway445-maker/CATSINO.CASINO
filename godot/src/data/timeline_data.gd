@@ -21,6 +21,9 @@ static func by_id(id: String) -> Dictionary:
 	return {}
 
 static func by_mode(mode: String) -> Array[Dictionary]:
+	# creator_original stores timeline_mode as "original"; timeline rows use "forge".
+	var aliases := {"original": "forge", "forge": "forge", "replay": "replay"}
+	mode = str(aliases.get(mode, mode))
 	var result: Array[Dictionary] = []
 	for t in TIMELINES:
 		if t["mode"] == mode:

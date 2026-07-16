@@ -101,8 +101,18 @@ func _make_district_button(district: Dictionary) -> Button:
 	var btn = Button.new()
 	btn.custom_minimum_size = Vector2(200, 120)
 	btn.text = "%s\n%s\n%s" % [district.icon, district.name, district.desc]
-	btn.pressed.connect(func(): enter_district.emit(district.id))
+	btn.pressed.connect(func(): _travel_district(str(district.id)))
 	return btn
+
+func _travel_district(district_id: String) -> void:
+	enter_district.emit(district_id)
+	var path := "res://scenes/world/%s.tscn" % district_id
+	if district_id == "paw_vegas":
+		path = "res://scenes/world/paw_vegas_hub.tscn"
+	if ResourceLoader.exists(path):
+		get_tree().change_scene_to_file(path)
+	else:
+		NotificationUI.notify_error("District scene missing: %s" % district_id)
 
 func _add_custom_background() -> void:
 	if not ResourceLoader.exists(CUSTOM_BG_PATH):

@@ -44,6 +44,23 @@ const BURST_SYNERGY_THRESHOLD := 0.20
 const BASE_DAMAGE_SCALE      := 12.0
 
 # ── Public API ─────────────────────────────────────────────────────────────────
+## Dictionary-friendly resolver for TournamentManager brackets.
+func quick_resolve(a: Dictionary, b: Dictionary) -> Dictionary:
+	var ca := CharacterData.new()
+	ca.character_name = str(a.get("name", a.get("id", "A")))
+	ca.base_pow = int(a.get("pow", a.get("atk", 40)))
+	ca.base_res = int(a.get("res", a.get("def", 30)))
+	ca.base_spd = int(a.get("spd", 40))
+	ca.base_lck = int(a.get("lck", 20))
+	var cb := CharacterData.new()
+	cb.character_name = str(b.get("name", b.get("id", "B")))
+	cb.base_pow = int(b.get("pow", b.get("atk", 40)))
+	cb.base_res = int(b.get("res", b.get("def", 30)))
+	cb.base_spd = int(b.get("spd", 40))
+	cb.base_lck = int(b.get("lck", 20))
+	var result := resolve_encounter(ca, cb)
+	return a if result.outcome == "win" else b
+
 func resolve_encounter(attacker: CharacterData, defender: CharacterData) -> CombatResult:
 	var result := CombatResult.new()
 	result.attacker_name = attacker.character_name

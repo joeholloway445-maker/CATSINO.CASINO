@@ -227,6 +227,87 @@ def main() -> int:
     else:
         fail("AssetLibrary.sound still force-loops all SFX")
 
+    print("== all modes playable ==")
+    oc = (GODOT / "src/games/offline_casino.gd").read_text()
+    for rpc in (
+        "draw_fortune",
+        "buy_scratch_card",
+        "predict_match",
+        "submit_puzzle_score",
+        "start_race",
+    ):
+        if f'"{rpc}"' in oc:
+            ok(f"OfflineCasino supports {rpc}")
+        else:
+            fail(f"OfflineCasino missing {rpc}")
+    gf = (GODOT / "src/games/game_factory.gd").read_text()
+    if "func get_game_catalog" in gf and "slot_machine.tscn" in gf:
+        ok("GameFactory catalog exposes real scenes")
+    else:
+        fail("GameFactory catalog incomplete")
+    gm = (GODOT / "src/core/game_manager.gd").read_text()
+    if "scene_path" in gm and "change_scene_to_file" in gm:
+        ok("GameManager.enter_game accepts scene paths")
+    else:
+        fail("GameManager.enter_game missing scene launch")
+    lobby = (GODOT / "src/ui/game_lobby_ui.gd").read_text()
+    if "entry.get(\"scene\"" in lobby or 'entry.get("scene"' in lobby:
+        ok("GameLobbyUI launches catalog scenes")
+    else:
+        fail("GameLobbyUI drops catalog scene paths")
+    pv = (GODOT / "src/world/paw_vegas_scene.gd").read_text()
+    if "_ensure_scene_tree" in pv and "GameLobbyUI" in pv:
+        ok("Paws Vegas builds lobby when hub tree is sparse")
+    else:
+        fail("Paws Vegas hub still requires missing nodes")
+    bj = (GODOT / "scenes/games/arcade/blackjack.tscn").read_text()
+    if "blackjack.gd" in bj and "DealBtn" in bj:
+        ok("blackjack scene uses wired blackjack.gd")
+    else:
+        fail("blackjack scene still unwired")
+    slots = (GODOT / "scenes/games/slots/slot_machine.tscn").read_text()
+    if "slot_machine_ui.gd" in slots and "ResultLabel" in slots:
+        ok("slot_machine uses OfflineCasino UI script")
+    else:
+        fail("slot_machine still mismatched paths")
+    ag = (GODOT / "src/world/arcade_galaxy_scene.gd").read_text()
+    if "_build_station_ui" in ag and "fortune_wheel.tscn" in ag:
+        ok("Arcade Galaxy stations launch real games")
+    else:
+        fail("Arcade Galaxy stations still unwired")
+    if "launch_district" in ag:
+        fail("Arcade Galaxy still calls missing launch_district")
+    else:
+        ok("Arcade Galaxy play_cat_wheel fixed")
+    amc_modes = (GODOT / "src/world/arena_mode_controller.gd").read_text()
+    for mode in ("survival", "zombies", "ctf", "conflict", "duel"):
+        if f'"{mode}"' in amc_modes or f"_{mode}" in amc_modes or f"_setup_{mode}" in amc_modes or f"_tick_{mode}" in amc_modes:
+            ok(f"arena controller handles {mode}")
+        else:
+            # conflict uses _setup_conflict; survival uses _setup_survival
+            if f"_setup_{mode}" in amc_modes or f"_tick_{mode}" in amc_modes or (mode == "duel" and "_setup_duel" in amc_modes):
+                ok(f"arena controller handles {mode}")
+            else:
+                fail(f"arena controller missing {mode}")
+    if "_setup_conflict" in amc_modes and "_hero_hp" in amc_modes:
+        ok("arena modes share hero HP combat")
+    else:
+        fail("arena shared hero combat missing")
+    cs = (GODOT / "src/combat/combat_system.gd").read_text()
+    if "func quick_resolve" in cs:
+        ok("CombatSystem.quick_resolve for tournaments")
+    else:
+        fail("CombatSystem.quick_resolve missing")
+    for rel in (
+        "scenes/games/arcade/fortune_wheel.tscn",
+        "scenes/games/arcade/scratch_card.tscn",
+        "scenes/games/arcade/coin_pusher.tscn",
+        "scenes/games/arcade/cat_puzzle.tscn",
+        "scenes/games/sports/paw_ball.tscn",
+        "scenes/games/racing/race_track.tscn",
+    ):
+        check_exists(rel, "playable_scene")
+
     print()
     if failures:
         print(f"{len(failures)} failure(s)")
