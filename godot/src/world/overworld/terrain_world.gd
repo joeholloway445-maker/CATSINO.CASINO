@@ -73,24 +73,47 @@ func _build_terrain3d(seed_key: String, height_scale: float) -> Node3D:
 	if dirt_ta:
 		assets.set_texture(1, dirt_ta)
 
-	# Height from seeded noise (256² keeps first load snappy in CI / Xvfb)
-	var noise := FastNoiseLite.new()
-	noise.seed = hash(seed_key)
-	noise.frequency = 0.002
-	noise.fractal_octaves = 4
+	# Multi-layer height: continental broad + ridged hills + fine detail,
+	# then flatten a spawn plaza so cities don't sit on a peak.
+	var base := FastNoiseLite.new()
+	base.seed = hash(seed_key)
+	base.frequency = 0.0016
+	base.fractal_octaves = 5
+	base.fractal_gain = 0.5
+	var ridges := FastNoiseLite.new()
+	ridges.seed = hash(seed_key) ^ 0xA5A5
+	ridges.noise_type = FastNoiseLite.TYPE_CELLULAR
+	ridges.frequency = 0.0035
+	ridges.fractal_octaves = 3
+	ridges.cellular_return_type = FastNoiseLite.RETURN_DISTANCE
+	var detail := FastNoiseLite.new()
+	detail.seed = hash(seed_key) ^ 0x5C5C
+	detail.frequency = 0.012
+	detail.fractal_octaves = 2
 	var img := Image.create(256, 256, false, Image.FORMAT_RF)
+	var half := img.get_width() * 0.5
+	var plaza_r := 28.0 # world-ish units in image space
 	for x in img.get_width():
 		for y in img.get_height():
-			var h := noise.get_noise_2d(float(x), float(y))
+			var fx := float(x)
+			var fy := float(y)
+			var h := base.get_noise_2d(fx, fy) * 0.65
+			# Invert cellular distance → ridge-like peaks
+			var ridge := 1.0 - clampf(ridges.get_noise_2d(fx, fy), 0.0, 1.0)
+			h += (ridge * 2.0 - 1.0) * 0.28
+			h += detail.get_noise_2d(fx, fy) * 0.12
+			# Soft plaza flatten around origin
+			var dx := fx - half
+			var dy := fy - half
+			var dist := sqrt(dx * dx + dy * dy)
+			var plaza := clampf(1.0 - dist / plaza_r, 0.0, 1.0)
+			plaza = plaza * plaza * (3.0 - 2.0 * plaza) # smoothstep
+			h = lerpf(h, 0.0, plaza)
 			img.set_pixel(x, y, Color(h, 0.0, 0.0, 1.0))
 
 	terrain.region_size = 256
 	if terrain.get("data") != null and terrain.data.has_method("import_images"):
 		terrain.data.import_images([img, null, null], Vector3(-128, 0, -128), 0.0, height_scale)
-
-	# Flatten a plaza around origin so cities / spawn still work
-	if terrain.data.has_method("get_height"):
-		pass
 
 	return terrain
 

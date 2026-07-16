@@ -3,13 +3,13 @@
 importer="scene"
 importer_version=1
 type="PackedScene"
-uid="uid://c8cbv1pjfo0pw"
-path="res://.godot/imported/mushroom_red.glb-6e2cd47e786d375d45d76096ffe7873e.scn"
+uid="uid://d7cb6168d79b2"
+path="res://.godot/imported/variant_cat_orange.glb-6659349f9a3f234967cc1e4534e56899.scn"
 
 [deps]
 
-source_file="res://assets/models/variants/crystal/mushroom_red.glb"
-dest_files=["res://.godot/imported/mushroom_red.glb-6e2cd47e786d375d45d76096ffe7873e.scn"]
+source_file="res://assets/models/variants/npc_cat/variant_cat_orange.glb"
+dest_files=["res://.godot/imported/variant_cat_orange.glb-6659349f9a3f234967cc1e4534e56899.scn"]
 
 [params]
 

@@ -3,13 +3,13 @@
 importer="scene"
 importer_version=1
 type="PackedScene"
-uid="uid://dsenqn5hoa32"
-path="res://.godot/imported/mushroom_redTall.glb-fda3d41dcd5b5e711613172dbb2f17bd.scn"
+uid="uid://973e8f75acacf"
+path="res://.godot/imported/variant_fox.glb-4fd7a805bd27c1e44506ea4d17321af6.scn"
 
 [deps]
 
-source_file="res://assets/models/variants/crystal/mushroom_redTall.glb"
-dest_files=["res://.godot/imported/mushroom_redTall.glb-fda3d41dcd5b5e711613172dbb2f17bd.scn"]
+source_file="res://assets/models/variants/creature/variant_fox.glb"
+dest_files=["res://.godot/imported/variant_fox.glb-4fd7a805bd27c1e44506ea4d17321af6.scn"]
 
 [params]
 

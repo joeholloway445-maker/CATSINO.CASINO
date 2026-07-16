@@ -422,20 +422,15 @@ go stale the way the other two did.
   (see `assets/audio/ATTRIBUTION.md`). Still empty / synthetic until
   filled: city ambience loops `city_traffic`, `city_crowd`, `neon_hum`,
   `machine_hum`. Music lives under `assets/music/`.
-- **Model slots still empty** (per `docs/SHIPPING.md`): `player_cat`,
-  `npc_cat`, `vehicle_aircraft_body` (no CC0 aircraft source yet).
-  Filled this realism pass: `creature`, `crystal` (interim mushrooms),
-  `ruin_pillar`, `extraction_gate`, `harvest_node`, `apartment_prop`,
-  `neon_sign`, `city_door`, Nature Kit tree/rock variant pools, plus
-  vehicles/city kits/PBR textures. See `assets/models/ATTRIBUTION.md`.
-- **Human / PeriHuman mesh:** ship slots `peri_human_player` /
-  `metahuman_player` / `peri_human_npc` / `metahuman_npc` /
-  `player_human` / `npc_human` plus skin-tone variant pools. Runtime
-  look-dev tunes skin/cloth under HDRI. Players never need
-  Unreal/MakeHuman. Further photoreal faces/hair/clothes bake into the
-  same slots — not a player install step.
-- **Lighting / terrain realism:** `DayNightSky` uses Poly Haven HDRI IBL;
-  Terrain3D + ProceduralTerrain consume grass/dirt/sand PBR maps.
+- **Model slots:** core shopping-list slots are filled (cats, creatures,
+  crystals, aircraft, ruins, furniture, city/vehicles, trees/rocks).
+  See `assets/models/ATTRIBUTION.md`. Rebake humans/cats/crystals with
+  `scripts/bake_visual_gaps.py`.
+- **Human / PeriHuman mesh:** hair + fitted clothes + shoes on shipped
+  PeriHuman slots; cat skins for Catsino mode; Quaternius creature pool.
+  Players never need Unreal/MakeHuman.
+- **Lighting / terrain realism:** HDRI IBL; PBR ground; multi-layer
+  ridged heightfields with spawn-plaza flatten (Terrain3D + procedural).
 
 ## How to drop assets into slots (Ziva / any agent — follow verbatim)
 
