@@ -16,6 +16,7 @@ class_name AssetLibrary
 ##   extraction_gate / harvest_node / apartment_prop / neon_sign / city_door
 ##
 ## Mega-city model slots (MegaCityBuilder / BuildingBuilder ask these):
+##   osm2world_<hub>   OSM2World downtown shell (dallas/fort_worth/arlington/denton)
 ##   city_tower        a downtown skyscraper shell
 ##   city_lowrise      a mid/low commercial building
 ##   city_house        a residential structure
