@@ -20,6 +20,12 @@ func _ready() -> void:
 	fold_btn.pressed.connect(func(): _action("fold"))
 	call_btn.pressed.connect(func(): _action("call"))
 	_set_action_buttons(false)
+	var back := Button.new()
+	back.text = "⬅ Back"
+	back.position = Vector2(12, 12)
+	back.pressed.connect(func() -> void:
+		get_tree().change_scene_to_file("res://scenes/world/paw_vegas_hub.tscn"))
+	add_child(back)
 
 func _deal() -> void:
 	NetworkManager.call_rpc("play_holdem", {action="deal", bet=int(bet_spin.value)},

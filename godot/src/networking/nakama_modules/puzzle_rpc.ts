@@ -1,9 +1,15 @@
-const SCORE_TIERS = [
-  { min: 50, payout: 100 },
-  { min: 150, payout: 300 },
-  { min: 300, payout: 750 },
-  { min: 500, payout: 2000 },
-];
+import { spendCoins, payCoins, ok } from "./wallet_util";
+
+/** Matches OfflineCasino tier multipliers on bet. */
+function payoutFor(score: number, bet: number): { payout: number; multiplier: number; tier: string } {
+  let mult = 0;
+  let tier = "No reward";
+  if (score >= 500) { mult = 2.0; tier = "Score 500+"; }
+  else if (score >= 300) { mult = 1.5; tier = "Score 300+"; }
+  else if (score >= 150) { mult = 1.0; tier = "Score 150+"; }
+  else if (score >= 50) { mult = 0.5; tier = "Score 50+"; }
+  return { payout: Math.floor(bet * mult), multiplier: mult, tier };
+}
 
 const PuzzleRpc = {
   submitPuzzleScore: function(ctx: nkruntime.Context, logger: nkruntime.Logger, nk: nkruntime.Nakama, payload: string): string {
@@ -14,22 +20,17 @@ const PuzzleRpc = {
     if (typeof score !== "number" || score < 0 || score > 1000) throw new Error("Invalid score");
     if (!bet || bet < 10 || bet > 5000) throw new Error("Invalid bet");
 
-    let payout = 0;
-    let tier = "";
-    for (const t of SCORE_TIERS) {
-      if (score >= t.min) {
-        payout = t.payout;
-        tier = `Score ${t.min}+`;
-      }
+    spendCoins(nk, userId, bet, "puzzle_entry");
+    const { payout, multiplier, tier } = payoutFor(score, bet);
+    payCoins(nk, userId, payout, "puzzle_win");
+
+    try {
+      nk.leaderboardRecordWrite("puzzle_scores", userId, ctx.username || "player", score, 0, {});
+    } catch (_e) {
+      // leaderboard may not exist yet
     }
 
-    if (payout > 0) {
-      nk.walletsUpdate([{ userId, changeset: { cat_coins: payout }, metadata: { reason: "puzzle_win", score, tier } }], true);
-    }
-
-    nk.leaderboardRecordWrite("puzzle_scores", userId, ctx.username || "player", score, 0, {});
-
-    return JSON.stringify({ score, payout, tier: tier || "No reward", achieved_500: score >= 500 });
+    return ok({ score, payout, multiplier, tier, achieved_500: score >= 500 });
   }
 };
 

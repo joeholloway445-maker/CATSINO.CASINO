@@ -25,6 +25,7 @@ var _active: bool = false
 var _grid: GridContainer
 var _result_label: Label
 var _cell_buttons: Array[Button] = []
+var _server_payout: int = -1  # >=0 means wallet already settled by RPC
 
 func _ready() -> void:
 	_grid = get_node_or_null("VBoxContainer/Grid") as GridContainer
@@ -102,6 +103,11 @@ func _on_card_received(result: Dictionary) -> void:
 	_cells.clear()
 	for c in raw_cells:
 		_cells.append(str(c))
+	# Server / OfflineCasino already settled the wallet when payout is present.
+	if result.has("payout"):
+		_server_payout = int(result.get("payout", 0))
+	else:
+		_server_payout = -1
 
 	card_generated.emit(_cells)
 
@@ -130,9 +136,9 @@ func _check_win() -> void:
 		if counts[sym] >= 3:
 			payout = int(_bet * PAYOUT_TABLE.get(sym, 1))
 			break
-
-	if payout > 0 and EconomyManager:
-		EconomyManager.add_coins(payout, "scratch_win")
+	if _server_payout >= 0:
+		payout = _server_payout
+	# Wallet already settled by buy_scratch_card (online + offline).
 	card_complete.emit(payout > 0, payout)
 
 func is_active() -> bool:

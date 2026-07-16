@@ -19,7 +19,7 @@ func _ready() -> void:
 func _refresh_wallet() -> void:
 	NetworkManager.call_rpc("get_wallet", {},
 		func(result: Dictionary):
-			coins_label.text = "🪙 %d" % result.get("cat_coins", 0)
+			coins_label.text = "🪙 %d" % int(result.get("coins", result.get("cat_coins", 0)))
 	)
 
 func _refresh_profile() -> void:

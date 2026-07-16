@@ -103,14 +103,35 @@ const rpcCombatAction: nkruntime.RpcFunction = function(
 
     if (s.player_hp <= 0 || s.opponent_hp <= 0) {
         const won = s.opponent_hp <= 0 && s.player_hp > 0;
-        if (won && s.bet > 0) {
-            nk.walletUpdate(ctx.userId, { coins: s.bet * 2 }, { reason: "combat_win" });
+        const payout = won && s.bet > 0 ? s.bet * 2 : 0;
+        if (payout > 0) {
+            nk.walletUpdate(ctx.userId, { coins: payout }, { reason: "combat_win" });
         }
         logger.info("rpcCombatAction: %s %s (bet=%d)", ctx.userId, won ? "won" : "lost", s.bet);
-        return JSON.stringify({ success: true, state: s, status: won ? "player_win" : "opponent_win" });
+        return JSON.stringify({
+            success: true,
+            state: s,
+            status: won ? "player_win" : "opponent_win",
+            outcome: won ? "player_wins" : "opponent_wins",
+            player_damage: aiDmg,
+            opponent_damage: playerDmg,
+            opponent_move: ai_move,
+            payout,
+            server_wallet: true,
+        });
     }
 
-    return JSON.stringify({ success: true, state: s, status: "active", ai_move });
+    return JSON.stringify({
+        success: true,
+        state: s,
+        status: "active",
+        ai_move,
+        opponent_move: ai_move,
+        player_damage: aiDmg,
+        opponent_damage: playerDmg,
+        player_hp: s.player_hp,
+        opponent_hp: s.opponent_hp,
+    });
 };
 
 export function register_combat_rpc(

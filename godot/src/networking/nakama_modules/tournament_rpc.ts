@@ -162,5 +162,7 @@ export function register_tournament_rpc(
     initializer.registerRpc("create_tournament", rpcCreateTournament);
     initializer.registerRpc("join_tournament", rpcJoinTournament);
     initializer.registerRpc("get_active_tournaments", rpcGetActiveTournaments);
+    // Client alias used by tournament_ui.gd
+    initializer.registerRpc("get_tournaments", rpcGetActiveTournaments);
     logger.info("tournament_rpc module initialized");
 }
