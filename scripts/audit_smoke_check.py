@@ -116,6 +116,42 @@ def main() -> int:
     else:
         fail("playtest_arena missing ArenaModeController")
 
+    print("== moba lane AI + shop ==")
+    for rel in (
+        "src/world/moba/moba_match.gd",
+        "src/world/moba/moba_tower.gd",
+        "src/world/moba/moba_minion.gd",
+        "src/world/moba/moba_hero_bot.gd",
+        "src/world/moba/moba_shop.gd",
+        "src/world/moba/moba_shop_ui.gd",
+        "src/world/moba/moba_hud.gd",
+        "src/world/moba/moba_fx.gd",
+    ):
+        check_exists(rel, "moba")
+    amc = (GODOT / "src/world/arena_mode_controller.gd").read_text()
+    if "MobaMatch" in amc and "_setup_moba" in amc:
+        ok("ArenaModeController wires MobaMatch")
+    else:
+        fail("ArenaModeController missing MobaMatch wiring")
+    shop = (GODOT / "src/world/moba/moba_shop.gd").read_text()
+    if "claw_edge" in shop and "func buy" in shop and "func sell" in shop:
+        ok("MobaShop has catalog + buy/sell")
+    else:
+        fail("MobaShop catalog/buy/sell incomplete")
+    match_src = (GODOT / "src/world/moba/moba_match.gd").read_text()
+    for needle, label in (
+        ("_begin_recall", "recall"),
+        ("at_fountain", "fountain shop gate"),
+        ("Kind.INHIBITOR", "inhibitors"),
+        ("_do_respawn", "respawn"),
+        ("_spawn_companion", "companion summon"),
+        ("grant_xp_near", "XP radius"),
+    ):
+        if needle in match_src:
+            ok(f"moba detail: {label}")
+        else:
+            fail(f"moba missing detail: {label}")
+
     print("== metahuman interim ==")
     if (GODOT / "assets/models/player_human.glb").exists():
         ok("player_human.glb present (interim identity mesh)")
