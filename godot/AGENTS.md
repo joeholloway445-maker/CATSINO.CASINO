@@ -44,6 +44,11 @@ things in, and the conventions that keep 100+ GDScript files consistent.
    time, verifying each in the running game (F5) before the next.
 8. Commit after every green step with a message naming the step.
    Never commit with the error count higher than you found it.
+9. **Asset drops** (models / textures / sounds / logo): follow the
+   section **How to drop assets into slots** below — rename files to
+   exact slot names under `godot/assets/`; do not invent registration
+   code. Owner may hand you a PNG/GLB and say "put this in as logo /
+   metahuman_player / …" — that section is the whole job.
 
 ## Fixing a large error count (READ THIS BEFORE FIXING ANYTHING)
 
@@ -226,6 +231,102 @@ intended bypass for gated content.
   texture/light/sound packs and the race IdentityLens swap in without
   touching geometry code. Keep new world code on this path.
 
+## How to drop assets into slots (Ziva / any agent — follow verbatim)
+
+**There is no special importer UI.** A “slot” is just an **exact filename**
+in a known folder. `AssetLibrary` looks for that name; if the file exists,
+the whole game upgrades with **zero code changes**. If it doesn’t, the
+procedural fallback stays.
+
+Full tables also live in `docs/SHIPPING.md` §3 and `docs/ASSET_PIPELINE.md`.
+License rules (what is safe to commit): `docs/ASSET_SHOPPING_LIST.md`.
+
+### Procedure (do this for every drop)
+
+1. Work in the real project: open `godot/project.godot` from this repo
+   (never the TPS demo).
+2. Obtain a model as **`.glb`** (preferred) or `.gltf`. If the source is
+   `.blend` / DAZ / MetaHuman / FBX, convert in **Blender → Export GLB**
+   (embedded textures, apply transforms, ~real-world scale).
+3. **Rename** the file to the exact slot name below (case-sensitive).
+4. **Copy** it into the matching folder under `godot/assets/` (paths
+   relative to the `godot/` project root = `res://assets/...`).
+5. In Godot: **Project → Reload Current Project** (or re-open) so it
+   reimports. Wait until the FileSystem dock shows the new file with no
+   red errors.
+6. Press **F5** and check the place that uses that slot (city for
+   `city_tower`, casino for `card_shuffle`, player for `metahuman_player`).
+7. If the license allows public redistribution, commit the file + its
+   `.import` sidecar and add one row to the folder’s `ATTRIBUTION.md`.
+   If the license forbids redistributing source (RenderPeople, most
+   TurboSquid/CGTrader free RF): put the download in
+   `godot/assets/private/` (gitignored) and only commit a cleaned GLB
+   when the license clearly allows it.
+
+**Do NOT:** edit `AssetLibrary` to “register” the file; invent new slot
+names without wiring callers; overwrite a filled slot without backing it
+up; commit non-redistributable marketplace ZIPs.
+
+### Model slots → `godot/assets/models/<slot>.glb`
+
+| Slot filename | What it upgrades |
+|---|---|
+| `metahuman_player.glb` | Local player (preferred photoreal) |
+| `metahuman_npc.glb` | NPCs / peers |
+| `metahuman_<race_id>.glb` | Optional per-race body |
+| `player_human.glb` / `npc_human.glb` | Interim humanoid (robot stand-in today) |
+| `player_cat.glb` / `npc_cat.glb` | Catsino animal skins |
+| `creature.glb` | Wild / PVXC creatures |
+| `tree.glb` / `rock.glb` / `crystal.glb` | Nature / liminal props |
+| `ruin_pillar.glb` / `extraction_gate.glb` / `harvest_node.glb` | Layer props |
+| `apartment_prop.glb` | Hideout furniture |
+| `city_tower.glb` / `city_lowrise.glb` / `city_house.glb` / `city_industrial.glb` | City buildings |
+| `road_segment.glb` / `sidewalk.glb` / `streetlight.glb` / `city_prop.glb` / `neon_sign.glb` | City kit |
+| `vehicle_car_body.glb` / `vehicle_boat_body.glb` / `vehicle_aircraft_body.glb` / `vehicle_spacecraft_body.glb` | Vehicles |
+
+**Variants (optional):** put extra GLBs in
+`godot/assets/models/variants/<slot>/` and list filenames in
+`godot/data/asset_variants.json`. Same slot name, multiple looks.
+
+### Texture slots → `godot/assets/textures/`
+
+Name maps: `<slot>_albedo.png` (or `.jpg`) plus optional `_normal`,
+`_rough`, `_metallic`, `_emissive`. City slots: `facade_brick`,
+`facade_concrete`, `facade_metal`, `facade_glass`, `asphalt`, `sidewalk`,
+`neon`.
+
+### Sound slots → `godot/assets/audio/<slot>.ogg` (`.wav` / `.mp3` also OK)
+
+| Slot | Use |
+|---|---|
+| `ui_click` / `ui_confirm` / `ui_back` / `ui_error` / `ui_hover` / `ui_switch` | UI |
+| `card_shuffle` / `card_place` / `chip_place` / `chips_collide` / `dice_throw` | Casino |
+| `door_slide` | City doors |
+| `city_traffic` / `city_crowd` / `neon_hum` / `machine_hum` | City ambience loops |
+
+### Brand / splash → `godot/assets/ui/`
+
+| File | Effect |
+|---|---|
+| `logo.png` | Title emblem + splash art |
+| `boot_splash.png` | Godot boot splash (also set in `project.godot`) |
+| `icon.png` | App / window icon |
+
+### Sky HDRI → `godot/assets/environments/`
+
+e.g. `kloppenheim_06_1k.hdr` (Poly Haven CC0). Procedural `DayNightSky`
+remains the default mood; HDRI is available for look-dev upgrades.
+
+### Quick verify (agent checklist)
+
+```text
+[ ] File path is exactly res://assets/.../<slot>.<ext>
+[ ] Godot imported it (sidecar .import exists, no import error)
+[ ] F5: the feature that uses the slot shows the new art/sound
+[ ] ATTRIBUTION.md updated if committing
+[ ] Nothing from assets/private/ was committed
+```
+
 ## Game modes (NOT lost — here is where each one lives or goes)
 
 Existing code — extend these, never create parallel systems:
@@ -376,20 +477,17 @@ go stale the way the other two did.
   re-fetch or re-install any of these; the only remaining step is
   enabling them one at a time, in the editor, after Gate 1 is
   re-confirmed clean.
-- **Audio: `godot/assets/audio/` has nothing but `.gitkeep`.** Zero SFX,
-  music, ambience, or UI sound has been sourced — this is a real, total
-  gap, not started, distinct from the visual-asset work below which has
-  had two full passes.
-- **Model slots still empty** (per `docs/SHIPPING.md`'s own shopping
-  table, never sourced despite being called out there): `player_cat`,
-  `npc_cat`, `creature`, `tree`, `crystal`, `ruin_pillar`,
-  `extraction_gate`, `harvest_node`, `apartment_prop`,
-  `vehicle_aircraft_body` (no CC0 source found — see
-  `assets/models/ATTRIBUTION.md`). Filled so far: vehicle car/boat/
-  spacecraft bodies + variant pools, all four city building types +
-  variant pools, road/sidewalk/streetlight/prop, five PBR facade/ground
-  texture sets (see `assets/models/ATTRIBUTION.md` and
-  `assets/textures/ATTRIBUTION.md` for exact sources/licenses).
+- **Audio:** Kenney Casino / Interface / UI SFX are in `assets/audio/`
+  (see `assets/audio/ATTRIBUTION.md`). Still empty / synthetic until
+  filled: city ambience loops `city_traffic`, `city_crowd`, `neon_hum`,
+  `machine_hum`. Music lives under `assets/music/`.
+- **Model slots still empty** (per `docs/SHIPPING.md`): `player_cat`,
+  `npc_cat`, `creature`, `crystal`, `ruin_pillar`, `extraction_gate`,
+  `harvest_node`, `apartment_prop`, `vehicle_aircraft_body` (no CC0
+  aircraft source yet). Filled: vehicles (car/boat/spacecraft + variants),
+  city buildings + variants, road/sidewalk/streetlight/prop, `tree.glb`,
+  PBR textures, interim `player_human.glb` (tps-demo robot). See
+  `assets/models/ATTRIBUTION.md` / `assets/textures/ATTRIBUTION.md`.
 - **Human mesh gap** (full detail in the NPC population bullet above and
   `assets/models/ATTRIBUTION.md`): the installed `player_human.glb` is a
   sci-fi robot (tps-demo), not a human, despite its name and older
