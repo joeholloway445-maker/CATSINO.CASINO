@@ -157,17 +157,30 @@ func contest(site_id: String, attacker_guild: String) -> bool:
 	for cid in PlayerProfile.active_companion_ids:
 		attack += 8 + _rarity_power(CompanionRegistry.get_by_id(str(cid))) / 2
 	var defense := defense_power(site_id) + randi() % 45
+	var s: Dictionary = site(site_id)
+	var pos_arr: Array = s.get("pos", [0.0, 0.0])
+	var pos := Vector3(float(pos_arr[0]) if pos_arr.size() > 0 else 0.0, 1.5,
+		float(pos_arr[1]) if pos_arr.size() > 1 else 0.0)
+	var tree := get_tree()
+	var world: Node3D = null
+	if tree:
+		world = tree.get_first_node_in_group("layer_world") as Node3D
 	if attack <= defense:
 		NotificationUI.notify_error("⚔️ %s's defenders hold the line (%d vs %d). The banner stays." % [holder, attack, defense])
-		EconomyManager.earn_currency("tokens", 5, "hideout_defense_bonus")
+		EconomyManager.earn_currency_local("tokens", 5, "hideout_defense_bonus")
+		if world:
+			SkillVFX.aoe_ring(world, pos, 3.0, Color(0.6, 0.2, 0.2))
 		return false
 	_sites[site_id]["defenders"] = [] # the garrison is routed
 	_sites[site_id]["owner"] = attacker_guild
 	_save()
 	if str(_sites[site_id].get("realm", "")) == "supraliminal":
 		ExtraliminalManager.claim_landmark("hideout_site_%s" % site_id, attacker_guild)
-	EconomyManager.earn_currency("tokens", 40, "hideout_conquest")
+	EconomyManager.earn_currency_local("tokens", 40, "hideout_conquest")
 	NotificationUI.notify_win("🏴 %s routs %s's defenders (%d vs %d) and takes the hideout!" % [attacker_guild, holder, attack, defense])
+	if world:
+		SkillVFX.ultimate_burst(world, pos, 5.0)
+		SkillVFX.aoe_ring(world, pos, 4.5, Color(1.0, 0.85, 0.25))
 	site_changed.emit(site_id)
 	return true
 

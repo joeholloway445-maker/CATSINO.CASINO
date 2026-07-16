@@ -36,6 +36,9 @@ func send(channel: String, text: String, to: String = "") -> void:
 	# Always echo locally (your own message shows immediately either way).
 	message_received.emit(channel, payload.from, text)
 	Hope.record("chat", {"channel": channel, "len": text.length()})
+	# Offline: presence ghosts occasionally answer so channels never feel dead.
+	if not NetworkManager.is_connected_to_server() and channel in ["local", "global", "faction"]:
+		_maybe_ghost_reply(channel, text)
 
 func _scope_key(channel: String, to: String) -> String:
 	match channel:
@@ -74,3 +77,27 @@ func _on_state(state) -> void:
 	elif mid.begins_with("chat_dm"): channel = "whisper"
 	elif mid.begins_with("chat_layer"): channel = "local"
 	message_received.emit(channel, str(d.get("from", "?")), str(d.get("text", "")))
+
+const GHOST_LINES := [
+	"Same layer. Keep your Hope close.",
+	"Heard a Titan on the skyline. Not a rumor.",
+	"Chips only on the floor — cage first.",
+	"Wardens glow at the landmarks. Don't stare too long.",
+	"…yeah. The Liminal never sits still.",
+	"Faction chat is loud tonight. Or maybe that's just me.",
+]
+
+func _maybe_ghost_reply(channel: String, _text: String) -> void:
+	if randf() > 0.35:
+		return
+	var tree := get_tree()
+	if tree == null:
+		return
+	var delay := randf_range(0.6, 1.8)
+	var line: String = GHOST_LINES[randi() % GHOST_LINES.size()]
+	var ghost_name := "Wanderer_%d" % (100 + randi() % 900)
+	if PresenceManager != null and PresenceManager.has_method("ghost_names"):
+		pass
+	tree.create_timer(delay).timeout.connect(func():
+		message_received.emit(channel, ghost_name, line)
+	)

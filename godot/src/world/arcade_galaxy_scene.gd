@@ -127,19 +127,19 @@ func _ui_blackjack() -> void:
 	get_tree().change_scene_to_file("res://scenes/games/arcade/blackjack.tscn")
 
 func play_coin_flip(bet: int) -> bool:
-	if EconomyManager == null or not await EconomyManager.spend_coins(bet, "arcade_coin_flip"):
-		_set_status("Not enough coins")
+	if EconomyManager == null or not EconomyManager.spend_currency_local("chips", bet, "arcade_coin_flip"):
+		_set_status("Not enough chips")
 		return false
 	var win: bool = randf() > 0.5
 	var payout: int = bet * 2 if win else 0
 	if win:
-		EconomyManager.add_coins(payout, "arcade_coin_flip_win")
-	_set_status("Coin flip: %s (+%d)" % ["WIN" if win else "lose", payout])
+		EconomyManager.earn_currency_local("chips", payout, "arcade_coin_flip_win")
+	_set_status("Coin flip: %s (+%d chips)" % ["WIN" if win else "lose", payout])
 	minigame_result.emit("coin_flip", payout)
 	return win
 
 func play_higher_lower(bet: int, guess: String) -> Dictionary:
-	if EconomyManager == null or not await EconomyManager.spend_coins(bet, "arcade_hl"):
+	if EconomyManager == null or not EconomyManager.spend_currency_local("chips", bet, "arcade_hl"):
 		return {"error": "insufficient_funds"}
 	var previous: int = _current_number
 	_current_number = randi_range(1, 10)
@@ -153,7 +153,7 @@ func play_higher_lower(bet: int, guess: String) -> Dictionary:
 	var payout: int = 0
 	if correct:
 		payout = bet * 2
-		EconomyManager.add_coins(payout, "arcade_hl_win")
+		EconomyManager.earn_currency_local("chips", payout, "arcade_hl_win")
 	minigame_result.emit("higher_lower", payout)
 	return {
 		"previous": previous,
@@ -163,7 +163,7 @@ func play_higher_lower(bet: int, guess: String) -> Dictionary:
 	}
 
 func play_scratch_card(bet: int) -> Dictionary:
-	if EconomyManager == null or not await EconomyManager.spend_coins(bet, "arcade_scratch"):
+	if EconomyManager == null or not EconomyManager.spend_currency_local("chips", bet, "arcade_scratch"):
 		return {"error": "insufficient_funds"}
 	var revealed: Array[String] = []
 	for i in range(3):
@@ -174,7 +174,7 @@ func play_scratch_card(bet: int) -> Dictionary:
 	elif revealed[0] == revealed[1] or revealed[1] == revealed[2] or revealed[0] == revealed[2]:
 		payout = bet * 2
 	if payout > 0:
-		EconomyManager.add_coins(payout, "arcade_scratch_win")
+		EconomyManager.earn_currency_local("chips", payout, "arcade_scratch_win")
 	minigame_result.emit("scratch_card", payout)
 	return {"symbols": revealed, "payout": payout}
 

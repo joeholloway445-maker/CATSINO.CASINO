@@ -27,10 +27,10 @@ Deferred only when they conflict with the spine: real Nakama scale, voice acting
 | 3 | Layer round-trip (spine) | Prototype path + `layer_spine_smoke` PASS (Play Prototype Spine) |
 | 3b | **ESO visual bar** — PeriHumans + Terrain3D desktop + Forward+ + HDRI | MPFB2 PeriHumans, OSM2World DFW shells, cats, crystals, creatures, aircraft, sculpted heightfields |
 | 4 | Web export preset + CI green | Preset + `scripts/export_web.sh` verified locally; CI artifact on PR |
-| 5 | Combat/economy/hideout/casino/StoryVote in-engine pass | `gate5_smoke` PASS — poker/blackjack parse, chips floor copy, offline gacha |
-| 6 | Game modes: 2v2 → zone bosses → world bosses → dungeons → PvP campaigns | `gate6_smoke` PASS — boss local rewards, campaign completion + rep |
-| 7 | Content + art/audio packs via AssetLibrary | Ambience + ferryman/warden + open_game (incl. combat UI) |
-| 8 | Real multiplayer beyond presence bots | `gate8_smoke` + module build + docker-compose.dev; **prod pinned** |
+| 5 | Combat/economy/hideout/casino/StoryVote in-engine pass | **Done** — chips floor, juice, quest HUD, hideout VFX |
+| 6 | Game modes: 2v2 → zone bosses → world bosses → dungeons → PvP campaigns | **Done** — playable offline; thicken online with Gate 8 |
+| 7 | Content + art/audio packs via AssetLibrary | **Done** — OSM shells (no Draco), ambience, dialogue, music beds |
+| 8 | Real multiplayer beyond presence bots | Client + docker-compose + `gate8_smoke`; **prod host/secrets owner-only** |
 
 ## Doc map
 

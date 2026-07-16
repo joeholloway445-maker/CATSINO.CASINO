@@ -205,10 +205,10 @@ intended bypass for gated content.
   registered into `WorldLoader.dialogues`. Crowd density is layer
   psychology (Subliminal 12, Liminal 8, Periliminal 6, cities 50) —
   keep it sparse where the lore says lonely. **The installed body mesh
-  is currently a robot, not a human** (see `assets/models/ATTRIBUTION.md`)
+  ships as MPFB2 PeriHuman / humanoid GLBs** (see `assets/models/ATTRIBUTION.md`)
   — `NpcBody` tints whatever surfaces the ACTUAL installed mesh exposes
-  (skin/hair on a MetaHuman export, chassis/glow on the current robot)
-  and hides the robot's cannon appendage for every archetype but
+  (skin/hair on PeriHuman / MetaHuman-slot exports)
+  and hides non-humanoid appendages for every archetype but
   Authority. Never assume the mesh is human without checking its glTF
   material names first.
 - **Asset variety**: `src/core/asset_library.gd`'s `instance_variant(slot,
@@ -412,8 +412,8 @@ go stale the way the other two did.
   enabling them one at a time, in the editor, after Gate 1 is
   re-confirmed clean.
 - **Audio:** Kenney Casino / Interface / UI SFX are in `assets/audio/`
-  (see `assets/audio/ATTRIBUTION.md`). Still empty / synthetic until
-  filled: city ambience loops `city_traffic`, `city_crowd`, `neon_hum`,
+  (see `assets/audio/ATTRIBUTION.md`). City ambience WAVs ship for
+  `city_traffic`, `city_crowd`, `neon_hum`,
   `machine_hum`. Music lives under `assets/music/`.
 - **Model slots:** core shopping-list slots are filled (cats, creatures,
   crystals, aircraft, ruins, furniture, city/vehicles, trees/rocks).
