@@ -55,30 +55,24 @@
     "craft_speederD.glb"
   ],
   "metahuman_npc": [
-    "adventurer.glb",
-    "beach.glb",
-    "farmer.glb",
-    "punk.glb",
-    "swat.glb",
-    "king.glb",
-    "spacesuit.glb"
+    "variant_male_fair.glb",
+    "variant_male_deep.glb",
+    "variant_female_tan.glb",
+    "variant_female_deep.glb",
+    "variant_male_navy.glb"
   ],
   "peri_human_npc": [
-    "adventurer.glb",
-    "beach.glb",
-    "farmer.glb",
-    "punk.glb",
-    "swat.glb",
-    "king.glb",
-    "spacesuit.glb"
+    "variant_male_fair.glb",
+    "variant_male_deep.glb",
+    "variant_female_tan.glb",
+    "variant_female_deep.glb",
+    "variant_male_navy.glb"
   ],
   "npc_human": [
-    "adventurer.glb",
-    "beach.glb",
-    "farmer.glb",
-    "punk.glb",
-    "swat.glb",
-    "king.glb",
-    "spacesuit.glb"
+    "variant_male_fair.glb",
+    "variant_male_deep.glb",
+    "variant_female_tan.glb",
+    "variant_female_deep.glb",
+    "variant_male_navy.glb"
   ]
 }
