@@ -170,6 +170,84 @@
       "shop_id": "arcade_galaxy_gacha",
       "quest_ids": [],
       "dialogue_id": "luminos_dialogue"
+    },
+    {
+      "id": "npc_ferryman_arlington",
+      "name": "The Ferryman",
+      "district": "arlington",
+      "role": "quest_giver",
+      "faction": "Factionless",
+      "emoji": "⛵",
+      "greeting": "Hub to hub, layer to layer — don't fall in.",
+      "position": {"x": 18.0, "y": 0.0, "z": 18.0},
+      "shop_id": "",
+      "quest_ids": [],
+      "dialogue_id": "ferryman_dialogue"
+    },
+    {
+      "id": "npc_ferryman_dallas",
+      "name": "The Ferryman",
+      "district": "dallas",
+      "role": "quest_giver",
+      "faction": "Factionless",
+      "emoji": "⛵",
+      "greeting": "Hub to hub, layer to layer — don't fall in.",
+      "position": {"x": 22.0, "y": 0.0, "z": 20.0},
+      "shop_id": "",
+      "quest_ids": [],
+      "dialogue_id": "ferryman_dialogue"
+    },
+    {
+      "id": "npc_ferryman_fort_worth",
+      "name": "The Ferryman",
+      "district": "fort_worth",
+      "role": "quest_giver",
+      "faction": "Factionless",
+      "emoji": "⛵",
+      "greeting": "Hub to hub, layer to layer — don't fall in.",
+      "position": {"x": 16.0, "y": 0.0, "z": 16.0},
+      "shop_id": "",
+      "quest_ids": [],
+      "dialogue_id": "ferryman_dialogue"
+    },
+    {
+      "id": "npc_ferryman_denton",
+      "name": "The Ferryman",
+      "district": "denton",
+      "role": "quest_giver",
+      "faction": "Factionless",
+      "emoji": "⛵",
+      "greeting": "Hub to hub, layer to layer — don't fall in.",
+      "position": {"x": 14.0, "y": 0.0, "z": 14.0},
+      "shop_id": "",
+      "quest_ids": [],
+      "dialogue_id": "ferryman_dialogue"
+    },
+    {
+      "id": "npc_warden_scout_arlington",
+      "name": "Warden Scout",
+      "district": "arlington",
+      "role": "quest_giver",
+      "faction": "Factionless",
+      "emoji": "🔭",
+      "greeting": "That glow on the landmark isn't neon — it's a claim.",
+      "position": {"x": -12.0, "y": 0.0, "z": 8.0},
+      "shop_id": "",
+      "quest_ids": ["pvp_campaign_01"],
+      "dialogue_id": "warden_scout_dialogue"
+    },
+    {
+      "id": "npc_warden_scout_dallas",
+      "name": "Warden Scout",
+      "district": "dallas",
+      "role": "quest_giver",
+      "faction": "Factionless",
+      "emoji": "🔭",
+      "greeting": "That glow on the landmark isn't neon — it's a claim.",
+      "position": {"x": -14.0, "y": 0.0, "z": 10.0},
+      "shop_id": "",
+      "quest_ids": ["pvp_campaign_01"],
+      "dialogue_id": "warden_scout_dialogue"
     }
   ]
 }

@@ -66,7 +66,7 @@ func _on_spin_pressed() -> void:
 
 func _on_spin_ui_result(segment_name: String, multiplier: float, payout: int) -> void:
 	if _result_label:
-		_result_label.text = "%s (x%.1f) — +%d coins" % [segment_name, multiplier, payout]
+		_result_label.text = "%s (x%.1f) — +%d chips" % [segment_name, multiplier, payout]
 	if payout > 0 and NotificationUI:
 		NotificationUI.notify_win("Fortune: +%d" % payout)
 

@@ -72,19 +72,19 @@ func _render_hand(container: HBoxContainer, cards: Array) -> void:
 func _finish(result: Dictionary) -> void:
 	_set_game_buttons(false)
 	deal_btn.disabled = false
-	var outcome := result.get("outcome", "")
-	var payout: int = result.get("payout", 0)
+	var outcome: String = str(result.get("outcome", ""))
+	var payout: int = int(result.get("payout", 0))
 	match outcome:
 		"blackjack":
-			result_label.text = "BLACKJACK! +%d 🃏" % payout
+			result_label.text = "BLACKJACK! +%d chips 🃏" % payout
 			AchievementManager.check("blackjack")
-		"win": result_label.text = "You WIN! +%d 🎉" % payout
+		"win": result_label.text = "You WIN! +%d chips 🎉" % payout
 		"bust": result_label.text = "BUST! 💸"
-		"dealer_bust": result_label.text = "Dealer busts! +%d 🎉" % payout
+		"dealer_bust": result_label.text = "Dealer busts! +%d chips 🎉" % payout
 		"push": result_label.text = "PUSH — bet returned"
 		"lose": result_label.text = "Dealer wins 😿"
 	if payout > 0:
-		NotificationUI.notify_win("Blackjack: +%d coins!" % payout)
+		NotificationUI.notify_win("Blackjack: +%d chips!" % payout)
 		AchievementManager.check("win", payout)
 	XPManager.award_game("blackjack", payout > 0)
 

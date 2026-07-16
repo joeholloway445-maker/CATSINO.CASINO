@@ -59,8 +59,8 @@ func _animate_result(symbols: Array, result: Dictionary) -> void:
 
 	var payout: int = result.get("payout", 0)
 	if payout > 0:
-		result_label.text = "WIN! +%d coins 🎉" % payout
-		NotificationUI.notify_win("Slots: +%d coins!" % payout)
+		result_label.text = "WIN! +%d chips 🎉" % payout
+		NotificationUI.notify_win("Slots: +%d chips!" % payout)
 		AchievementManager.check("win", payout)
 		AchievementManager.check("spin")
 		if payout >= 10000:

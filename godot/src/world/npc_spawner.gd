@@ -118,8 +118,35 @@ func _open_dialogue(npc_id: String) -> void:
 		_dialogue_ui = packed.instantiate()
 		_dialogue_ui.hide()
 		canvas.add_child(_dialogue_ui)
+		if _dialogue_ui.has_signal("game_opened"):
+			_dialogue_ui.game_opened.connect(_on_dialogue_game_opened)
 	if _dialogue_ui.has_method("open_for_npc"):
 		_dialogue_ui.call("open_for_npc", npc_id)
+
+## Dialogue JSON actions like open_game:blackjack → real table scenes.
+func _on_dialogue_game_opened(game_id: String) -> void:
+	var scene := _scene_for_game_id(game_id)
+	if scene != "" and ResourceLoader.exists(scene):
+		get_tree().change_scene_to_file(scene)
+		return
+	NotificationUI.notify_info("Table '%s' isn't open yet — try the lobby." % game_id)
+
+static func _scene_for_game_id(game_id: String) -> String:
+	match game_id:
+		"blackjack":
+			return "res://scenes/games/arcade/blackjack.tscn"
+		"poker":
+			return "res://scenes/games/arcade/paw_poker.tscn"
+		"holdem":
+			return "res://scenes/games/arcade/holdem.tscn"
+		"slots":
+			return "res://scenes/games/slots/slot_machine.tscn"
+		"race", "racing":
+			return "res://scenes/games/racing/race_track.tscn"
+		"combat":
+			return "res://scenes/ui/combat_ui.tscn"
+		_:
+			return ""
 
 func _exit_tree() -> void:
 	for npc_id in _spawned_npcs.keys():

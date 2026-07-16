@@ -156,6 +156,38 @@ const QUESTS: Array[Dictionary] = [
 		rewards={coins=5000, xp=1000, faction_rep={WildlandsAscendant=500}},
 		prereq=["main_004"],
 	},
+	# Gate 6 — PvP campaign (ESO/WoW-style arcs over TerritoryControl)
+	{
+		id="pvp_campaign_01", type=QuestType.MAIN, name="Claim the Ring",
+		desc="Contest wild chunks around the hubs. Territory is the campaign map.",
+		objectives=[
+			{id="claim_chunk", desc="Claim 3 contested chunks", target=3},
+			{id="defeat_zone_boss", desc="Fell a Stage-3 zone warden", target=1},
+		],
+		rewards={coins=2500, xp=400, fragments=100, faction_rep={SovereignCrown=25}},
+		prereq=[],
+	},
+	{
+		id="pvp_campaign_02", type=QuestType.MAIN, name="Skyline Siege",
+		desc="Push the campaign: clear a dungeon, then break a world boss window.",
+		objectives=[
+			{id="enter_dungeon", desc="Enter a hub dungeon", target=1},
+			{id="clear_dungeon", desc="Clear a dungeon (depth 3+)", target=1},
+			{id="defeat_world_boss", desc="Defeat a Metroplex world boss", target=1},
+		],
+		rewards={coins=8000, xp=1200, gems=25, fragments=300, faction_rep={SovereignCrown=50}},
+		prereq=["pvp_campaign_01"],
+	},
+	{
+		id="pvp_campaign_03", type=QuestType.MAIN, name="Crown of the Conqueror",
+		desc="Hold enough weighted territory for your alliance to crown a Sovereign.",
+		objectives=[
+			{id="claim_chunk", desc="Claim 10 more chunks", target=10},
+			{id="defeat_zone_boss", desc="Fell 2 more zone wardens", target=2},
+		],
+		rewards={coins=12000, xp=2000, fragments=500, chips=1000, faction_rep={SovereignCrown=100}},
+		prereq=["pvp_campaign_02"],
+	},
 ]
 
 var _active: Dictionary = {}   # quest_id -> {state, progress}
@@ -230,18 +262,40 @@ func _check_completion(quest_id: String, quest: Dictionary) -> void:
 	_active.erase(quest_id)
 	_completed.append(quest_id)
 	var rewards: Dictionary = quest.get("rewards", {})
+	var parts: PackedStringArray = []
 	if rewards.get("coins", 0) > 0:
-		EconomyManager.add_coins(rewards["coins"], "quest_reward")
+		EconomyManager.add_coins_local(int(rewards["coins"]), "quest_reward")
+		parts.append("+%d coins" % int(rewards["coins"]))
+	if rewards.get("chips", 0) > 0:
+		EconomyManager.earn_currency_local("chips", int(rewards["chips"]), "quest_reward")
+		parts.append("+%d chips" % int(rewards["chips"]))
+	if rewards.get("fragments", 0) > 0:
+		EconomyManager.earn_currency_local("fragments", int(rewards["fragments"]), "quest_reward")
+		parts.append("+%d fragments" % int(rewards["fragments"]))
 	if rewards.get("xp", 0) > 0:
 		PlayerProfile.add_xp(rewards["xp"])
+		parts.append("+%d XP" % int(rewards["xp"]))
 	if rewards.get("gems", 0) > 0:
-		EconomyManager.earn_gems(rewards["gems"], "quest_reward")
+		EconomyManager.earn_currency_local("gems", int(rewards["gems"]), "quest_reward")
+		parts.append("+%d gems" % int(rewards["gems"]))
+	if rewards.has("faction_rep") and rewards["faction_rep"] is Dictionary:
+		for faction_name in rewards["faction_rep"].keys():
+			var amt: int = int(rewards["faction_rep"][faction_name])
+			if FactionManager != null and amt != 0:
+				FactionManager.add_reputation(str(faction_name), amt)
+				parts.append("%s %+d rep" % [str(faction_name), amt])
 	if rewards.has("companion_unlock"):
 		CompanionSystem.unlock_companion(rewards["companion_unlock"])
+		parts.append("companion unlocked")
 	quest_completed.emit(quest_id, rewards)
 	AchievementManager.check("quest_completed")
 	CrownManager.add_score("Top Quest Completions", "local_player", 1)
 	SkillManager.grant_points(1, quest.get("name", "quest complete"))
+	var qname := str(quest.get("name", quest_id))
+	if parts.is_empty():
+		NotificationUI.notify_win("Quest complete: %s" % qname)
+	else:
+		NotificationUI.notify_win("Quest complete: %s — %s" % [qname, ", ".join(parts)])
 
 ## Compat shims for callers written against the old core quest tracker.
 ## accept_quest also mirrors the action to the Nakama quest RPC so

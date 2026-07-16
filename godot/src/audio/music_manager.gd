@@ -30,8 +30,10 @@ const TRACKS: Dictionary = {
 	#   sanctuary -> hub interiors (Arlington/Dallas/Fort Worth/Denton) —
 	#                distinct from the open-wilds "overworld" track so a
 	#                hub audibly feels safe the moment you cross into it.
-	"ascension": [],
-	"sanctuary": [],
+	# Interim beds until dedicated Suno cuts land — same files, distinct
+	# contexts so hub entry / trial arenas already crossfade correctly.
+	"ascension": ["res://assets/music/noclip.mp3"],
+	"sanctuary": ["res://assets/music/taillights_fade.mp3"],
 }
 
 ## Which context each reality layer wants when you arrive in it.

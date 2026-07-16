@@ -121,6 +121,24 @@ func spend_currency(currency: String, amount: int, destination: String = "unknow
 	await _push_transaction_to_server(currency, -amount, destination, "spend")
 	return true
 
+## Synchronous local debit — used by OfflineCasino so table spins never hang
+## waiting on a Nakama push that isn't there.
+func spend_currency_local(currency: String, amount: int, destination: String = "unknown") -> bool:
+	if amount <= 0 or not _balances.has(currency):
+		return false
+	if int(_balances.get(currency, 0)) < amount:
+		emit_signal("insufficient_funds", currency, amount, _balances.get(currency, 0))
+		return false
+	_adjust_balance(currency, -amount)
+	_record_transaction(currency, -amount, destination, "spend")
+	return true
+
+func earn_currency_local(currency: String, amount: int, source: String = "unknown") -> void:
+	if amount <= 0 or not _balances.has(currency):
+		return
+	_adjust_balance(currency, amount)
+	_record_transaction(currency, amount, source, "earn")
+
 # ── Coin purchases, chips, and equivalent exchange ────────────────────────────
 ## Real-money coin purchase entry point (store hooks call this after the
 ## platform transaction clears). First three purchases — and any purchase
@@ -167,6 +185,13 @@ func influence_level() -> int:
 func earn_prestige(amount: int, source: String = "gameplay") -> void:
 	_lifetime_prestige += maxi(amount, 0)
 	await earn_currency("prestige", amount, source)
+
+## Local prestige grant — boss/quest kills must not hang offline on Nakama push.
+func earn_prestige_local(amount: int, source: String = "gameplay") -> void:
+	if amount <= 0:
+		return
+	_lifetime_prestige += amount
+	earn_currency_local("prestige", amount, source)
 
 func can_spend_coins(amount: int) -> bool:
 	return amount > 0 and int(_balances.get(CURRENCY_COINS, 0)) >= amount

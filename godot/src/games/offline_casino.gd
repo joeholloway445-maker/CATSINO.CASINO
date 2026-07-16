@@ -46,6 +46,11 @@ static func resolve(rpc_id: String, payload: Variant) -> Dictionary:
 			return await _combat_action(data)
 		"get_wallet":
 			return _get_wallet()
+		"get_leaderboard":
+			return _get_leaderboard(data)
+		"story_vote":
+			return {"success": true, "ok": true, "offline": true, "recorded": false,
+				"message": "Story votes sync when online."}
 		"find_match", "find_moba_match":
 			return {"success": true, "ok": true, "match_id": "", "created": false, "practice": true}
 		"get_active_tournaments", "get_tournaments":
@@ -53,24 +58,95 @@ static func resolve(rpc_id: String, payload: Variant) -> Dictionary:
 		"join_tournament":
 			return {"success": true, "ok": true, "local": true, "message": "Use local cups offline"}
 		"submit_score":
-			return {"success": true, "ok": true, "score": int(data.get("score", 0))}
+			return _submit_score_offline(data)
 		"quest_action", "get_quests":
 			return {"success": true, "ok": true, "quests": []}
 		"summon_companion":
-			return await _summon_companion_offline(data)
-		"feed_companion", "evolve_companion", "get_my_companions":
-			return {"success": true, "ok": true, "offline": true, "companions": []}
+			return _summon_companion_offline(data)
+		"feed_companion":
+			return {"success": true, "ok": true, "offline": true, "fed": true}
+		"evolve_companion":
+			return _evolve_companion_offline(data)
+		"get_my_companions":
+			return _get_my_companions_offline()
 		"daily_bonus", "claim_daily_bonus":
 			return await _daily_bonus_offline()
 		_:
 			return {"success": false, "error": "Offline: %s unavailable" % rpc_id}
+
+## class_name scripts must not bare-ref Autoloads (parse-order races).
+static func _autoload(name: String) -> Node:
+	var tree := Engine.get_main_loop() as SceneTree
+	if tree == null or tree.root == null:
+		return null
+	return tree.root.get_node_or_null(name)
+
+static func _evolve_companion_offline(data: Dictionary) -> Dictionary:
+	var cid = data.get("companion_id", 0)
+	var comps := _autoload("CompanionSystem")
+	var eco := _autoload("EconomyManager")
+	if comps == null:
+		return {"success": false, "error": "CompanionSystem unavailable", "ok": false}
+	var c = comps.call("get_companion", cid)
+	if c == null:
+		return {"success": false, "error": "Companion not found", "ok": false}
+	if eco == null or not eco.call("spend_coins_local", 500, "evolve_companion"):
+		return {"success": false, "error": "Insufficient coins", "ok": false}
+	if typeof(cid) == TYPE_STRING and str(cid).is_valid_int():
+		comps.call("evolve", int(cid))
+	elif typeof(cid) == TYPE_INT:
+		comps.call("evolve", cid)
+	else:
+		return {"success": false, "error": "Evolve needs a numeric roster id offline", "ok": false}
+	return {"success": true, "ok": true, "companion_id": cid, "offline": true}
+
+static func _get_my_companions_offline() -> Dictionary:
+	var list: Array = []
+	var comps := _autoload("CompanionSystem")
+	if comps != null:
+		for id_str in comps.call("get_unlocked_ids"):
+			list.append({"companion_id": id_str, "offline": true})
+	return {"success": true, "ok": true, "companions": list, "offline": true}
+
+static func _summon_companion_offline(data: Dictionary) -> Dictionary:
+	## Local gacha mirror of gacha_rpc.ts (300 / 2500 coins).
+	var count := clampi(int(data.get("count", 1)), 1, 10)
+	if count != 1 and count != 10:
+		count = 1
+	var cost := 2500 if count == 10 else 300
+	var eco := _autoload("EconomyManager")
+	if eco == null or not eco.call("spend_coins_local", cost, "gacha_summon"):
+		return {"success": false, "error": "Insufficient coins", "ok": false}
+	var faction := str(data.get("faction", ""))
+	var results: Array = []
+	var comps := _autoload("CompanionSystem")
+	for _i in count:
+		var pick: Dictionary = CompanionRegistry.get_random(faction)
+		if pick.is_empty():
+			pick = CompanionRegistry.get_random("")
+		var rarity_raw = pick.get("rarity", "common")
+		var rarity := str(rarity_raw).to_lower()
+		if rarity.is_valid_int():
+			# Some roster rows store rarity as 1..5.
+			var names := ["common", "uncommon", "rare", "epic", "legendary"]
+			var ri := clampi(int(rarity_raw) - 1, 0, names.size() - 1)
+			rarity = names[ri]
+		results.append({
+			"companion_id": str(pick.get("id", "FL001")),
+			"faction": CompanionRegistry.normalize_faction(str(pick.get("faction", "Factionless"))),
+			"rarity": rarity,
+		})
+		if comps != null:
+			comps.call("unlock_companion", pick.get("id", ""))
+	return {"success": true, "ok": true, "companions": results, "cost": cost, "offline": true}
 
 static func supports(rpc_id: String) -> bool:
 	return rpc_id in [
 		"spin_slots", "play_blackjack", "play_poker", "play_holdem",
 		"draw_fortune", "buy_scratch_card", "predict_match",
 		"submit_puzzle_score", "start_race", "combat_action",
-		"get_wallet", "find_match", "find_moba_match",
+		"get_wallet", "get_leaderboard", "story_vote",
+		"find_match", "find_moba_match",
 		"get_active_tournaments", "get_tournaments", "join_tournament",
 		"submit_score", "quest_action", "get_quests",
 		"summon_companion", "feed_companion", "evolve_companion", "get_my_companions",
@@ -80,17 +156,50 @@ static func supports(rpc_id: String) -> bool:
 static func _get_wallet() -> Dictionary:
 	var coins := 0
 	var gems := 0
+	var chips := 0
 	if EconomyManager:
 		coins = EconomyManager.get_coins()
 		gems = EconomyManager.get_gems()
+		chips = EconomyManager.get_balance("chips")
 	return {
 		"success": true,
 		"ok": true,
 		"coins": coins,
 		"cat_coins": coins,
 		"gems": gems,
-		"balances": {"coins": coins, "cat_coins": coins, "gems": gems},
+		"chips": chips,
+		"balances": {"coins": coins, "cat_coins": coins, "gems": gems, "chips": chips},
 	}
+
+static func _get_leaderboard(data: Dictionary) -> Dictionary:
+	var board_id := str(data.get("board_id", data.get("leaderboard", "global_wins")))
+	var limit := clampi(int(data.get("limit", 20)), 1, 100)
+	var records: Array = []
+	if CrownManager != null:
+		for e in CrownManager.board_records(board_id, limit):
+			records.append({
+				"rank": int(e.get("rank", 0)),
+				"userId": str(e.get("player_id", "")),
+				"username": str(e.get("player_id", "Unknown")),
+				"score": int(e.get("score", 0)),
+				"subscore": 0,
+			})
+	return {
+		"success": true,
+		"ok": true,
+		"leaderboard": board_id,
+		"records": records,
+		"caller_rank": -1,
+		"caller_record": null,
+		"offline": true,
+	}
+
+static func _submit_score_offline(data: Dictionary) -> Dictionary:
+	var board_id := str(data.get("board_id", data.get("leaderboard", "global_wins")))
+	var score := int(data.get("score", 0))
+	if CrownManager != null:
+		CrownManager.add_score(board_id, "local_player", score)
+	return {"success": true, "ok": true, "score": score, "board_id": board_id, "offline": true}
 
 static func _daily_bonus_offline() -> Dictionary:
 	if EconomyManager and EconomyManager.has_method("claim_daily_bonus"):
@@ -110,13 +219,15 @@ static func _as_dict(payload: Variant) -> Dictionary:
 static func _spend(bet: int, reason: String) -> Dictionary:
 	if bet <= 0:
 		return {"success": false, "error": "Invalid bet"}
-	if not EconomyManager or not await EconomyManager.spend_coins(bet, reason):
-		return {"success": false, "error": "Insufficient coins"}
+	# Casino floor spends chips (buy at the cage with coins). Local debit
+	# so OfflineCasino never hangs on a missing Nakama push.
+	if not EconomyManager or not EconomyManager.spend_currency_local("chips", bet, reason):
+		return {"success": false, "error": "Insufficient chips"}
 	return {"success": true}
 
 static func _pay(amount: int, reason: String) -> void:
 	if amount > 0 and EconomyManager:
-		EconomyManager.add_coins(amount, reason)
+		EconomyManager.earn_currency_local("chips", amount, reason)
 
 # ── Slots ─────────────────────────────────────────────────────────────────────
 
@@ -243,8 +354,8 @@ static func _bj_finish(is_double: bool) -> Dictionary:
 	var idx: int = _bj.idx
 	var bet: int = _bj.bet
 	if is_double:
-		if not await EconomyManager.spend_coins(bet, "blackjack_double"):
-			return {"success": false, "error": "Insufficient coins"}
+		if not EconomyManager or not EconomyManager.spend_currency_local("chips", bet, "blackjack_double"):
+			return {"success": false, "error": "Insufficient chips"}
 		bet *= 2
 		player.append(deck[idx])
 		idx += 1
@@ -634,7 +745,7 @@ static func _combat_action(data: Dictionary) -> Dictionary:
 	var move := str(data.get("move", "light"))
 	if not _combat.get("active", false):
 		return {"success": false, "error": "No active combat"}
-	var ai_move := ["light", "heavy", "tech"][randi() % 3]
+	var ai_move: String = ["light", "heavy", "tech"][randi() % 3]
 	var mult_table := {
 		"light": {"light": 1.0, "heavy": 1.5, "tech": 0.5},
 		"heavy": {"light": 0.5, "heavy": 1.0, "tech": 1.5},

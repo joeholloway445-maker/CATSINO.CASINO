@@ -251,22 +251,15 @@ Existing code — extend these, never create parallel systems:
 | Open-world PvP + bots | built | `src/layers/layer_world.gd` + `src/multiplayer/presence_manager.gd` |
 | Guild wars | built | `ExtraliminalManager.open_liminal_door` + `HideoutRegistry.contest` |
 
-Planned — NOT yet in code (build in this order, inside the systems named):
+Built (Gates 5–7 thickened — Gate 8 local docker path; prod secrets pinned):
 
-1. **2v2** — add `{id="duel_2v2", team_size=2}` to `ArenaModes.MODES`;
-   matchmaking rides the same Arena lobby as 1v1.
-2. **Zone bosses** — Stage-3 `WorldEntity` elites at seeded landmarks per
-   city; spawn from `LandmarkBuilder`/`layer_world`, announce via
-   NotificationUI, pay fragments + charges.
-3. **World bosses** — one server-wide Stage-3+ entity on a StoryVote-able
-   schedule; extend `WorldEntity` with a boss health pool and phase
-   triggers; rewards through `EconomyManager` + `CrownManager`.
-4. **Dungeons** — instanced party runs: reuse the Periliminal's
-   generated-then-static seed pattern (`PeriliminalRuns._seed_ledger`)
-   but WITHOUT the wipe rule; entry doors as `LiminalDoor` variants.
-5. **PvP campaigns** (ESO/WoW-style) — chained `QuestManager` arcs whose
-   stages are contested `TerritoryControl` chunks; faction score through
-   `CrownManager`.
+1. **2v2** — `duel_2v2` + ally bots that follow, focus weakest, show HP.
+2. **Zone bosses** — `ZoneBossSpawner` → `setup_boss(..., "ZONE WARDEN")`.
+3. **World bosses** — `WorldBossScheduler` + multiphase `setup_boss`.
+4. **Dungeons** — seeded dens via `DungeonRuns.run_seed()`, no wipe, no blessing exit.
+5. **PvP campaigns** — `pvp_campaign_01..03` + warden-scout dialogue hooks.
+6. **Casino** — OfflineCasino spends/pays **chips**; `get_leaderboard` soft-path.
+7. **Gate 8** — `scripts/build_nakama_modules.sh` + `gate8_smoke` (SKIP if down).
 
 Rule: arena-hosted things are MODES of Soulless Sanctuary's Arena (lobby
 hop), not new reality layers. Promote a mode to a layer only if it gains a

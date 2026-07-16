@@ -37,7 +37,7 @@ func _ready() -> void:
 		puzzle_complete.connect(_on_puzzle_complete_ui)
 	if root is Control:
 		var start_btn := Button.new()
-		start_btn.text = "Start (15 coins)"
+		start_btn.text = "Start (15 chips)"
 		start_btn.position = Vector2(12, 12)
 		start_btn.pressed.connect(func() -> void: start_puzzle(15))
 		root.add_child(start_btn)
@@ -58,7 +58,7 @@ func _on_puzzle_complete_ui(score: int, payout: int) -> void:
 			func(result: Dictionary) -> void:
 				var paid := int(result.get("payout", payout))
 				if _score_label:
-					_score_label.text = "Done! Score %d — +%d coins" % [score, paid]
+					_score_label.text = "Done! Score %d — +%d chips" % [score, paid]
 				if paid > 0 and NotificationUI:
 					NotificationUI.notify_win("Puzzle: +%d" % paid)
 		)

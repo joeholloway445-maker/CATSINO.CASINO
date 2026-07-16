@@ -72,7 +72,7 @@ func _on_cell_revealed_ui(index: int, symbol: String) -> void:
 
 func _on_card_complete_ui(winning: bool, payout: int) -> void:
 	if _result_label:
-		_result_label.text = ("WIN +%d coins!" % payout) if winning else "No match — try again."
+		_result_label.text = ("WIN +%d chips!" % payout) if winning else "No match — try again."
 	if winning and NotificationUI:
 		NotificationUI.notify_win("Scratch: +%d" % payout)
 
