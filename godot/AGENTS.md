@@ -251,14 +251,15 @@ Existing code — extend these, never create parallel systems:
 | Open-world PvP + bots | built | `src/layers/layer_world.gd` + `src/multiplayer/presence_manager.gd` |
 | Guild wars | built | `ExtraliminalManager.open_liminal_door` + `HideoutRegistry.contest` |
 
-Built (Gate 6 scaffold — thicken online later):
+Built (Gates 5–7 thickened — Gate 8 local docker path; prod secrets pinned):
 
-1. **2v2** — `duel_2v2` in `ArenaModes` + ally bot in `ArenaModeController`.
-2. **Zone bosses** — `ZoneBossSpawner` places Stage-3 elites at landmarks.
-3. **World bosses** — `WorldBossScheduler` + `WorldEntity.setup_boss` phases.
-4. **Dungeons** — `DungeonEntrance` + `DungeonRuns` (seed ledger, no wipe).
-5. **PvP campaigns** — `pvp_campaign_01..03` on `QuestManager` over
-   `TerritoryControl.claim_chunk` progress.
+1. **2v2** — `duel_2v2` + ally bots that follow, focus weakest, show HP.
+2. **Zone bosses** — `ZoneBossSpawner` → `setup_boss(..., "ZONE WARDEN")`.
+3. **World bosses** — `WorldBossScheduler` + multiphase `setup_boss`.
+4. **Dungeons** — seeded dens via `DungeonRuns.run_seed()`, no wipe, no blessing exit.
+5. **PvP campaigns** — `pvp_campaign_01..03` + warden-scout dialogue hooks.
+6. **Casino** — OfflineCasino spends/pays **chips**; `get_leaderboard` soft-path.
+7. **Gate 8** — `scripts/build_nakama_modules.sh` + `gate8_smoke` (SKIP if down).
 
 Rule: arena-hosted things are MODES of Soulless Sanctuary's Arena (lobby
 hop), not new reality layers. Promote a mode to a layer only if it gains a

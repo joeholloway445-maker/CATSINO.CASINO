@@ -46,6 +46,11 @@ static func resolve(rpc_id: String, payload: Variant) -> Dictionary:
 			return await _combat_action(data)
 		"get_wallet":
 			return _get_wallet()
+		"get_leaderboard":
+			return _get_leaderboard(data)
+		"story_vote":
+			return {"success": true, "ok": true, "offline": true, "recorded": false,
+				"message": "Story votes sync when online."}
 		"find_match", "find_moba_match":
 			return {"success": true, "ok": true, "match_id": "", "created": false, "practice": true}
 		"get_active_tournaments", "get_tournaments":
@@ -53,7 +58,7 @@ static func resolve(rpc_id: String, payload: Variant) -> Dictionary:
 		"join_tournament":
 			return {"success": true, "ok": true, "local": true, "message": "Use local cups offline"}
 		"submit_score":
-			return {"success": true, "ok": true, "score": int(data.get("score", 0))}
+			return _submit_score_offline(data)
 		"quest_action", "get_quests":
 			return {"success": true, "ok": true, "quests": []}
 		"summon_companion":
@@ -75,7 +80,8 @@ static func supports(rpc_id: String) -> bool:
 		"spin_slots", "play_blackjack", "play_poker", "play_holdem",
 		"draw_fortune", "buy_scratch_card", "predict_match",
 		"submit_puzzle_score", "start_race", "combat_action",
-		"get_wallet", "find_match", "find_moba_match",
+		"get_wallet", "get_leaderboard", "story_vote",
+		"find_match", "find_moba_match",
 		"get_active_tournaments", "get_tournaments", "join_tournament",
 		"submit_score", "quest_action", "get_quests",
 		"summon_companion", "feed_companion", "evolve_companion", "get_my_companions",
@@ -85,17 +91,50 @@ static func supports(rpc_id: String) -> bool:
 static func _get_wallet() -> Dictionary:
 	var coins := 0
 	var gems := 0
+	var chips := 0
 	if EconomyManager:
 		coins = EconomyManager.get_coins()
 		gems = EconomyManager.get_gems()
+		chips = EconomyManager.get_balance("chips")
 	return {
 		"success": true,
 		"ok": true,
 		"coins": coins,
 		"cat_coins": coins,
 		"gems": gems,
-		"balances": {"coins": coins, "cat_coins": coins, "gems": gems},
+		"chips": chips,
+		"balances": {"coins": coins, "cat_coins": coins, "gems": gems, "chips": chips},
 	}
+
+static func _get_leaderboard(data: Dictionary) -> Dictionary:
+	var board_id := str(data.get("board_id", data.get("leaderboard", "global_wins")))
+	var limit := clampi(int(data.get("limit", 20)), 1, 100)
+	var records: Array = []
+	if CrownManager != null:
+		for e in CrownManager.board_records(board_id, limit):
+			records.append({
+				"rank": int(e.get("rank", 0)),
+				"userId": str(e.get("player_id", "")),
+				"username": str(e.get("player_id", "Unknown")),
+				"score": int(e.get("score", 0)),
+				"subscore": 0,
+			})
+	return {
+		"success": true,
+		"ok": true,
+		"leaderboard": board_id,
+		"records": records,
+		"caller_rank": -1,
+		"caller_record": null,
+		"offline": true,
+	}
+
+static func _submit_score_offline(data: Dictionary) -> Dictionary:
+	var board_id := str(data.get("board_id", data.get("leaderboard", "global_wins")))
+	var score := int(data.get("score", 0))
+	if CrownManager != null:
+		CrownManager.add_score(board_id, "local_player", score)
+	return {"success": true, "ok": true, "score": score, "board_id": board_id, "offline": true}
 
 static func _daily_bonus_offline() -> Dictionary:
 	if EconomyManager and EconomyManager.has_method("claim_daily_bonus"):
@@ -115,13 +154,15 @@ static func _as_dict(payload: Variant) -> Dictionary:
 static func _spend(bet: int, reason: String) -> Dictionary:
 	if bet <= 0:
 		return {"success": false, "error": "Invalid bet"}
-	if not EconomyManager or not await EconomyManager.spend_coins(bet, reason):
-		return {"success": false, "error": "Insufficient coins"}
+	# Casino floor spends chips (buy at the cage with coins). Local debit
+	# so OfflineCasino never hangs on a missing Nakama push.
+	if not EconomyManager or not EconomyManager.spend_currency_local("chips", bet, reason):
+		return {"success": false, "error": "Insufficient chips"}
 	return {"success": true}
 
 static func _pay(amount: int, reason: String) -> void:
 	if amount > 0 and EconomyManager:
-		EconomyManager.add_coins(amount, reason)
+		EconomyManager.earn_currency_local("chips", amount, reason)
 
 # ── Slots ─────────────────────────────────────────────────────────────────────
 
@@ -248,8 +289,8 @@ static func _bj_finish(is_double: bool) -> Dictionary:
 	var idx: int = _bj.idx
 	var bet: int = _bj.bet
 	if is_double:
-		if not await EconomyManager.spend_coins(bet, "blackjack_double"):
-			return {"success": false, "error": "Insufficient coins"}
+		if not EconomyManager or not EconomyManager.spend_currency_local("chips", bet, "blackjack_double"):
+			return {"success": false, "error": "Insufficient chips"}
 		bet *= 2
 		player.append(deck[idx])
 		idx += 1

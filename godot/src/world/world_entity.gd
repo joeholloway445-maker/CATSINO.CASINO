@@ -47,6 +47,7 @@ var _loadout_visible := true
 
 var _boss_phases := 0
 var _boss_phase := 0
+var _boss_title := ""
 
 func setup(dex_line: Dictionary, stage: int, target: Node3D) -> void:
 	line = dex_line
@@ -59,12 +60,17 @@ func setup(dex_line: Dictionary, stage: int, target: Node3D) -> void:
 	speed = 2.8 + stage * 0.6
 	_boss_phases = 0
 	_boss_phase = 0
+	_boss_title = ""
+	_rebuild_visual(stage)
 
 ## Gate 6 world/zone boss: bigger pool, multi-phase enrage at 66%/33%.
-func setup_boss(dex_line: Dictionary, stage: int, target: Node3D) -> void:
+## `title` stamps the floating label ("WORLD BOSS" / "ZONE WARDEN").
+func setup_boss(dex_line: Dictionary, stage: int, target: Node3D,
+		title: String = "WORLD BOSS") -> void:
 	setup(dex_line, maxi(stage, 3), target)
 	_boss_phases = 3
 	_boss_phase = 1
+	_boss_title = title
 	max_hp = 400 + stage * 180
 	hp = max_hp
 	damage = 12 + stage * 8
@@ -72,9 +78,17 @@ func setup_boss(dex_line: Dictionary, stage: int, target: Node3D) -> void:
 	if _visual:
 		_visual.scale *= 1.55
 	if _label:
-		_label.text = "WORLD BOSS · %s" % str(stage_info.get("name", "?"))
+		_label.text = "%s · %s" % [_boss_title, str(stage_info.get("name", "?"))]
 		_label.font_size = 52
 	SkillVFX.add_aura_shell(self, Color(1.0, 0.35, 0.15), 0.12)
+
+func _rebuild_visual(stage: int) -> void:
+	if _visual and is_instance_valid(_visual):
+		_visual.queue_free()
+		_visual = null
+	if _label and is_instance_valid(_label):
+		_label.queue_free()
+		_label = null
 
 	var category := str(line.get("category", "Matter"))
 	var bp := BlueprintData.fresh("entity", "world_%s" % line.get("id", "?"), str(stage_info.get("name", "?")))
@@ -129,6 +143,7 @@ func _physics_process(delta: float) -> void:
 
 func take_hit(amount: int) -> void:
 	hp -= amount
+	_hit_juice(amount)
 	if _boss_phases > 0:
 		var ratio := float(hp) / float(maxi(max_hp, 1))
 		var want_phase := 1
@@ -143,11 +158,11 @@ func take_hit(amount: int) -> void:
 			SkillVFX.add_aura_shell(self, Color(1.0, 0.2, 0.05), 0.04 * _boss_phase)
 			# Announce via label — avoid Autoload refs inside class_name compile.
 			if _label:
-				_label.text = "WORLD BOSS · PHASE %d" % _boss_phase
+				_label.text = "%s · PHASE %d" % [_boss_title, _boss_phase]
 	if _label:
 		var shown := str(stage_info.get("name", "?")) if _loadout_visible else "???"
 		if _boss_phases > 0:
-			shown = "WORLD BOSS · %s" % shown
+			shown = "%s · %s" % [_boss_title, shown]
 		_label.text = "%s  %d/%d" % [shown, maxi(hp, 0), max_hp]
 	if _target and is_instance_valid(_target):
 		var away := (global_position - _target.global_position).normalized()
@@ -155,6 +170,32 @@ func take_hit(amount: int) -> void:
 	if hp <= 0:
 		died.emit(self)
 		queue_free()
+
+## Brief albedo flash + floating damage number for combat readability.
+func _hit_juice(amount: int) -> void:
+	if _visual:
+		for child in _visual.get_children():
+			if child is MeshInstance3D and child.material_override is StandardMaterial3D:
+				var mat: StandardMaterial3D = (child.material_override as StandardMaterial3D).duplicate()
+				child.material_override = mat
+				var base := mat.albedo_color
+				mat.albedo_color = Color(1.0, 0.35, 0.25)
+				var tw := create_tween()
+				tw.tween_property(mat, "albedo_color", base, 0.18)
+				break
+	var floater := Label3D.new()
+	floater.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	floater.text = "-%d" % amount
+	floater.font_size = 48
+	floater.outline_size = 8
+	floater.modulate = Color(1.0, 0.45, 0.3)
+	floater.position = Vector3(randf_range(-0.3, 0.3), 2.2, 0.0)
+	add_child(floater)
+	var tw2 := create_tween()
+	tw2.set_parallel(true)
+	tw2.tween_property(floater, "position:y", floater.position.y + 1.2, 0.55)
+	tw2.tween_property(floater, "modulate:a", 0.0, 0.55)
+	tw2.chain().tween_callback(floater.queue_free)
 
 ## Bounty scales with stage — apex-stage kills matter more.
 func bounty() -> int:

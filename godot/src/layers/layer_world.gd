@@ -248,6 +248,10 @@ func _on_chunk_changed(coord: Vector2i) -> void:
 var _blessing_spawned := false
 
 func _maybe_bless(coord: Vector2i) -> void:
+	# Instanced dungeons suppress the Periliminal blessing exit — clear via
+	# DungeonRuns.try_clear() / eject instead.
+	if DungeonRuns != null and DungeonRuns.active:
+		return
 	if _blessing_spawned or not PeriliminalRuns.blessing_ready():
 		return
 	_blessing_spawned = true
@@ -347,22 +351,31 @@ func _maybe_spawn_entity(coord: Vector2i) -> void:
 	var spawn_chance := ENTITY_SPAWN_CHANCE
 	var max_stage := 2 if layer_id == "supraliminal" else 3
 	var min_stage := 1
-	if layer_id == "periliminal":
+	var rng := RandomNumberGenerator.new()
+	rng.randomize()
+	if DungeonRuns != null and DungeonRuns.active:
+		# Stable seed ledger → same dungeon run regenerates the same dens.
+		rng.seed = hash("dungeon_spawn_%s_%d_%d_%d" % [
+			DungeonRuns.dungeon_id, DungeonRuns.run_seed(), coord.x, coord.y])
+		spawn_chance = clampf(0.55 + float(DungeonRuns.depth) * 0.08, 0.45, 0.95)
+		min_stage = 2
+		max_stage = 3
+	elif layer_id == "periliminal":
 		var diff := PeriliminalRuns.difficulty()
 		spawn_chance = clampf(ENTITY_SPAWN_CHANCE * diff, 0.15, 0.9)
 		if diff > 1.6:
 			min_stage = 2 # the hard cases never see a Stage 1 down here
-	if _entities.size() >= MAX_CONCURRENT_ENTITIES or randf() > spawn_chance:
+	if _entities.size() >= MAX_CONCURRENT_ENTITIES or rng.randf() > spawn_chance:
 		return
 	var faction := CompanionRegistry.normalize_faction(PlayerProfile.faction)
 	var line := EntityDexData.random_line(faction)
 	if line.is_empty():
 		return
-	var stage := randi_range(min_stage, max_stage)
+	var stage := rng.randi_range(min_stage, max_stage)
 	var ent := WorldEntity.new()
 	var size := float(HubRegionData.CHUNK_SIZE)
-	var spawn_pos := Vector3(coord.x * size + randf_range(0.2, 0.8) * size, 0,
-		coord.y * size + randf_range(0.2, 0.8) * size)
+	var spawn_pos := Vector3(coord.x * size + rng.randf_range(0.2, 0.8) * size, 0,
+		coord.y * size + rng.randf_range(0.2, 0.8) * size)
 	spawn_pos.y = _terrain.height_at(spawn_pos.x, spawn_pos.z)
 	ent.position = spawn_pos
 	ent.setup(line, stage, _player)
@@ -473,6 +486,7 @@ func _on_cast(sk: Dictionary) -> void:
 		if not is_instance_valid(ent): continue
 		if ent.global_position.distance_to(_player.global_position) > reach: continue
 		ent.take_hit(dmg)
+		SkillVFX.hit_spark(self, ent.global_position)
 		_apply_element_rider(elem, ent, dmg)
 		SkillManager.gain_ultimate(4.0)
 	if not _in_pvp_zone():

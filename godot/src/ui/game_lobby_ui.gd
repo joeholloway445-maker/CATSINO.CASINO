@@ -10,12 +10,16 @@ var bp_xp_bar: ProgressBar
 var bp_label: Label
 var close_button: Button
 var title_label: Label
+var chips_label: Label
+var buy_chips_button: Button
 
 func _ready() -> void:
 	_ensure_ui()
 	title_label.text = "PAWS VEGAS — Game Lobby"
 	if not close_button.pressed.is_connected(_on_close_pressed):
 		close_button.pressed.connect(_on_close_pressed)
+	if buy_chips_button and not buy_chips_button.pressed.is_connected(_on_buy_chips):
+		buy_chips_button.pressed.connect(_on_buy_chips)
 
 	if LiveOpsManager and LiveOpsManager.has_signal("event_started"):
 		LiveOpsManager.event_started.connect(_on_event_updated)
@@ -70,6 +74,14 @@ func _ensure_ui() -> void:
 	title_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	title_label.add_theme_font_size_override("font_size", 22)
 	top.add_child(title_label)
+	chips_label = Label.new()
+	chips_label.name = "ChipsLabel"
+	chips_label.modulate = Color(1.0, 0.88, 0.35)
+	top.add_child(chips_label)
+	buy_chips_button = Button.new()
+	buy_chips_button.name = "BuyChipsButton"
+	buy_chips_button.text = "Buy 500 chips"
+	top.add_child(buy_chips_button)
 	close_button = Button.new()
 	close_button.name = "CloseButton"
 	close_button.text = "Close"
@@ -102,9 +114,32 @@ func _ensure_ui() -> void:
 	events_panel.add_child(events_container)
 
 func refresh() -> void:
+	_refresh_chips()
 	_populate_games()
 	_populate_events()
 	_refresh_battlepass()
+
+func _refresh_chips() -> void:
+	if chips_label == null:
+		return
+	var chips := 0
+	var coins := 0
+	if EconomyManager:
+		chips = EconomyManager.get_balance("chips")
+		coins = EconomyManager.get_coins()
+	chips_label.text = "Chips: %d  ·  Coins: %d" % [chips, coins]
+
+func _on_buy_chips() -> void:
+	# Local cage exchange — avoid await hang when Nakama isn't up.
+	if EconomyManager == null:
+		return
+	const AMOUNT := 500
+	if not EconomyManager.spend_coins_local(AMOUNT, "chip_exchange"):
+		NotificationUI.notify_error("Need %d coins at the cage." % AMOUNT)
+		return
+	EconomyManager.earn_currency_local("chips", AMOUNT, "chip_exchange")
+	NotificationUI.notify_win("Cage exchange — +%d chips." % AMOUNT)
+	_refresh_chips()
 
 func _populate_games() -> void:
 	if game_grid == null:
@@ -137,7 +172,7 @@ func _make_game_card(entry: Dictionary) -> PanelContainer:
 	vbox.add_child(type_label)
 
 	var bet_label := Label.new()
-	bet_label.text = "Min Bet: %d Coins" % entry.get("min_bet", 0)
+	bet_label.text = "Min Bet: %d Chips" % entry.get("min_bet", 0)
 	bet_label.modulate = Color(1.0, 0.85, 0.2)
 	vbox.add_child(bet_label)
 

@@ -1,9 +1,8 @@
 # Pinned — circle back when asked “what’s left”
 
-**Active work:** finish GOTY gates 5–8 + remaining in-repo polish
-(OSM road tiling, ambience/music/dialogue depth, game modes). Do **not**
-start the pinned owner trials below until that pass is done and the owner
-asks what’s left.
+**Active work:** thicken Gates 5–8 play-pass (juice, modes, local Nakama).
+Do **not** start the pinned owner trials below until the owner asks
+what’s left.
 
 ## Pinned — owner trials only
 

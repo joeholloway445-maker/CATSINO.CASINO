@@ -38,6 +38,19 @@ func _player(pid: String) -> Dictionary:
 		"tokens": 0, "guild": "",
 	})
 
+## Snapshot of a board for OfflineCasino / UI (rank order, highest first).
+func board_records(leaderboard: String, limit: int = 20) -> Array:
+	var board: Array = _leaderboards.get(leaderboard, [])
+	var out: Array = []
+	for i in mini(board.size(), maxi(limit, 0)):
+		var e: Dictionary = board[i]
+		out.append({
+			"rank": i + 1,
+			"player_id": str(e.get("player_id", "")),
+			"score": int(e.get("score", 0)),
+		})
+	return out
+
 ## Score into a crown's leaderboard; the #1 automatically wears the crown
 ## (hidden crowns only transfer if the top player has a claim token).
 func add_score(leaderboard: String, player_id: String, score: int, guild: String = "") -> void:

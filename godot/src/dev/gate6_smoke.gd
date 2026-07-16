@@ -61,13 +61,43 @@ func _run() -> void:
 		"faction": "Factionless",
 		"category": "Matter",
 		"stages": [{"name": "Smoke Titan", "desc": ""}],
-	}, 4, null)
+	}, 4, null, "WORLD BOSS")
 	if ent.max_hp < 400:
 		ok = false
 		print("[gate6_smoke] boss hp FAIL ", ent.max_hp)
 	else:
 		print("[gate6_smoke] boss hp=", ent.max_hp)
+	if ent._visual == null:
+		ok = false
+		print("[gate6_smoke] boss visual FAIL")
+	else:
+		print("[gate6_smoke] boss visual ok")
+	# Regular wildlife must also build a mesh (setup() visual regression guard).
+	var wild := WorldEntity.new()
+	root.add_child(wild)
+	wild.setup({
+		"id": "w",
+		"faction": "Factionless",
+		"category": "Energy",
+		"stages": [{"name": "Smoke Wisp", "desc": ""}],
+	}, 1, null)
+	if wild._visual == null:
+		ok = false
+		print("[gate6_smoke] wild visual FAIL")
+	else:
+		print("[gate6_smoke] wild visual ok")
+	wild.queue_free()
 	ent.queue_free()
+
+	# begin again briefly to exercise run_seed() API
+	var seed_again: int = int(dr.begin("dungeon_smoke"))
+	var via_api: int = int(dr.run_seed())
+	if seed_again == 0 or via_api != seed_again:
+		ok = false
+		print("[gate6_smoke] run_seed FAIL ", via_api, " vs ", seed_again)
+	else:
+		print("[gate6_smoke] run_seed ok=", via_api)
+	dr.eject("smoke2")
 
 	print("[gate6_smoke] RESULT=", "PASS" if ok else "FAIL")
 	quit(0 if ok else 1)

@@ -33,7 +33,7 @@ static func place_for_hub(city_root: Node3D, hub_id: String, base_y: float,
 		var ent := WorldEntity.new()
 		holder.add_child(ent)
 		ent.global_position = pos
-		ent.setup(line, 3, player)
+		ent.setup_boss(line, 3, player, "ZONE WARDEN")
 		ent.set_meta("zone_boss", true)
 		ent.set_meta("landmark_id", str(lm.id))
 		ent.died.connect(func(e: WorldEntity): _on_boss_died(e, hub_id))

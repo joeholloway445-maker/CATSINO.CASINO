@@ -18,6 +18,12 @@ var _ledger: Dictionary = {}
 func _ready() -> void:
 	_load()
 
+## Stable seed for the active (or named) dungeon ledger entry.
+func run_seed(p_dungeon_id: String = "") -> int:
+	if p_dungeon_id == "" or p_dungeon_id == dungeon_id:
+		return _seed
+	return int(_ledger.get(p_dungeon_id, {}).get("seed", 0))
+
 ## Begin (or resume) a dungeon. Returns the stable seed.
 func begin(p_dungeon_id: String) -> int:
 	dungeon_id = p_dungeon_id
@@ -31,6 +37,8 @@ func begin(p_dungeon_id: String) -> int:
 	# Suppress Periliminal wipe while this flag is up — LayerWorld death
 	# routes through eject() instead of PeriliminalRuns.member_died.
 	Engine.set_meta("dungeon_no_wipe", true)
+	if MusicManager != null and MusicManager.has_method("play_context"):
+		MusicManager.play_context("liminal")
 	run_started.emit(dungeon_id, _seed)
 	return _seed
 

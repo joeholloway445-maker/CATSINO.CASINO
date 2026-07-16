@@ -340,7 +340,17 @@ func _spawn_ally_bot(pos: Vector3) -> void:
 	mesh.material_override = mat
 	mesh.position.y = 0.8
 	bot.add_child(mesh)
+	var hp_lbl := Label3D.new()
+	hp_lbl.name = "HpLabel"
+	hp_lbl.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	hp_lbl.position.y = 1.9
+	hp_lbl.font_size = 28
+	hp_lbl.outline_size = 4
+	hp_lbl.modulate = Color(0.55, 0.9, 1.0)
+	hp_lbl.text = "ALLY 80/80"
+	bot.add_child(hp_lbl)
 	bot.set_meta("hp", 80)
+	bot.set_meta("max_hp", 80)
 	bot.set_meta("atk_cd", 0.0)
 	_allies.append(bot)
 
@@ -349,14 +359,24 @@ func _drive_allies(delta: float) -> void:
 		if not is_instance_valid(bot):
 			continue
 		var hp: int = int(bot.get_meta("hp", 0))
+		var max_hp: int = int(bot.get_meta("max_hp", 80))
 		if hp <= 0:
 			bot.queue_free()
 			continue
 		var cd: float = float(bot.get_meta("atk_cd", 0.0))
 		cd = maxf(cd - delta, 0.0)
 		bot.set_meta("atk_cd", cd)
-		var target := _nearest_to(bot as Node3D, _alive, 14.0)
+		var hp_lbl := bot.get_node_or_null("HpLabel") as Label3D
+		if hp_lbl:
+			hp_lbl.text = "ALLY %d/%d" % [hp, max_hp]
+		var target := _weakest_in_range(bot as Node3D, _alive, 14.0)
 		if target == null:
+			# Stick with the player when no foe is in range.
+			if player != null and is_instance_valid(player):
+				var to_p: Vector3 = player.global_position - (bot as Node3D).global_position
+				to_p.y = 0.0
+				if to_p.length() > 3.0:
+					(bot as Node3D).global_position += to_p.normalized() * 4.2 * delta
 			continue
 		var to: Vector3 = (target as Node3D).global_position - (bot as Node3D).global_position
 		to.y = 0.0
@@ -365,6 +385,7 @@ func _drive_allies(delta: float) -> void:
 			(bot as Node3D).global_position += to.normalized() * 3.8 * delta
 		elif cd <= 0.0 and target.has_method("take_hit"):
 			target.take_hit(10)
+			SkillVFX.hit_spark(self, (target as Node3D).global_position)
 			bot.set_meta("atk_cd", 0.9)
 		# Feral proximity damages allies lightly
 		if d < 2.2:
@@ -378,6 +399,28 @@ func _nearest_to(from: Node3D, pool: Array[Node], within: float) -> Node:
 			continue
 		var d: float = from.global_position.distance_to((n as Node3D).global_position)
 		if d < best_d:
+			best_d = d
+			best = n
+	return best
+
+## Prefer the wounded feral so 2v2 focus-fire finishes kills.
+func _weakest_in_range(from: Node3D, pool: Array[Node], within: float) -> Node:
+	var best: Node = null
+	var best_hp := 1_000_000
+	var best_d := within
+	for n in pool:
+		if not is_instance_valid(n):
+			continue
+		var d: float = from.global_position.distance_to((n as Node3D).global_position)
+		if d > within:
+			continue
+		var nhp := 9999
+		if n is WorldEntity:
+			nhp = (n as WorldEntity).hp
+		elif n.has_method("get") and n.get("hp") != null:
+			nhp = int(n.get("hp"))
+		if nhp < best_hp or (nhp == best_hp and d < best_d):
+			best_hp = nhp
 			best_d = d
 			best = n
 	return best
