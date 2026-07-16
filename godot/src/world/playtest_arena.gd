@@ -9,7 +9,7 @@ extends Node3D
 ##
 ## When Arena hub queues a mode via Engine meta `arena_queued_mode`, an
 ## ArenaModeController attaches and runs survival / zombies / ctf / duel /
-## moba (Paws of the Ancients — lanes, tower AI, item shop) rules.
+## moba rules. Online moba also sets `moba_online_match_id` for Nakama.
 
 @export var spawn_position := Vector3(0, 2, 0)
 

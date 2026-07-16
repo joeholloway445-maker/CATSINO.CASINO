@@ -192,12 +192,52 @@ func _launch(mode_id: String) -> void:
 		"conflict":
 			# Large faction brackets still use the tournament engine.
 			get_tree().change_scene_to_file("res://scenes/ui/tournament.tscn")
+		"moba":
+			_launch_moba(scene_path)
 		_:
 			if scene_path != "" and ResourceLoader.exists(scene_path):
 				Engine.set_meta("arena_queued_mode", mode_id)
 				get_tree().change_scene_to_file(scene_path)
 			else:
 				_simulate_match(mode_id)
+
+## Online queue when authenticated; otherwise practice (offline MobaMatch).
+## Holding Shift while clicking forces practice even when online.
+func _launch_moba(scene_path: String) -> void:
+	if scene_path.is_empty() or not ResourceLoader.exists(scene_path):
+		_simulate_match("moba")
+		return
+	var force_practice: bool = Input.is_key_pressed(KEY_SHIFT)
+	if force_practice or not NetworkManager.is_connected_to_server():
+		_enter_moba_scene(scene_path, "")
+		if force_practice:
+			NotificationUI.notify_info("Practice mode (offline).")
+		else:
+			NotificationUI.notify_info("Offline — practice match (login for online 5v5).")
+		return
+	NotificationUI.notify_info("Queuing for online Paws of the Ancients…")
+	NetworkManager.call_rpc("find_moba_match", {"mode": "moba"}, func(result: Dictionary):
+		if not result.get("ok", false) and not result.get("match_id", ""):
+			NotificationUI.notify_error("Queue failed — starting practice. (%s)" % str(result.get("error", "?")))
+			_enter_moba_scene(scene_path, "")
+			return
+		var mid := str(result.get("match_id", ""))
+		if mid.is_empty():
+			NotificationUI.notify_error("No match id — practice instead.")
+			_enter_moba_scene(scene_path, "")
+			return
+		var created: bool = bool(result.get("created", false))
+		NotificationUI.notify_info("Match %s — %s" % [mid.substr(0, 8), "created" if created else "joined"])
+		_enter_moba_scene(scene_path, mid)
+	)
+
+func _enter_moba_scene(scene_path: String, match_id: String) -> void:
+	Engine.set_meta("arena_queued_mode", "moba")
+	if match_id != "":
+		Engine.set_meta("moba_online_match_id", match_id)
+	elif Engine.has_meta("moba_online_match_id"):
+		Engine.remove_meta("moba_online_match_id")
+	get_tree().change_scene_to_file(scene_path)
 
 ## Placeholder resolution for modes without bespoke gameplay yet: your
 ## stats + entities vs the field, luck-rolled — pays tokens (arena = PvP)
