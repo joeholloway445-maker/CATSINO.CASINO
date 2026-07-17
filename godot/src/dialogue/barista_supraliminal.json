@@ -1,0 +1,35 @@
+{
+  "greeting": {
+    "line": "Your usual is already on the bar. You're four minutes later than your average.",
+    "line_friendly": "You're within tolerance. Enjoy the pour.",
+    "line_hostile": "Deviation logged. Service denied.",
+    "allow_social_options": true,
+    "options": [
+      {
+        "text": "Tell me more.",
+        "next_key": "lore",
+        "effect": {
+          "disposition": 3
+        }
+      },
+      {
+        "text": "Just passing through.",
+        "next_key": null,
+        "effect": {}
+      }
+    ]
+  },
+  "lore": {
+    "line": "Consistency metrics are up this week. The Crown watches the metrics of every service worker in the city. It's fine. It's all fine. It's optimal, actually.",
+    "allow_social_options": false,
+    "options": [
+      {
+        "text": "I'll remember that.",
+        "next_key": null,
+        "effect": {
+          "disposition": 5
+        }
+      }
+    ]
+  }
+}

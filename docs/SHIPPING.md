@@ -7,7 +7,9 @@ visual bar (`docs/VISUAL_DIRECTION_ESO.md`). Gate table: [`docs/V01_GOTY.md`](V0
 
 Open `godot/project.godot` in **Godot 4.3+** (**Forward+** on desktop). First
 open imports assets; hit Play. Boot: splash → login (or Play Offline) → title.
-Drop MetaHuman GLBs into `godot/assets/models/` per the visual direction doc.
+PeriHuman/MPFB slots already ship; overwrite with cinema MetaHuman/CC4
+GLBs into the same `godot/assets/models/` filenames when ready
+(`docs/VISUAL_DIRECTION_ESO.md`, `docs/PINNED_LEFT.md`).
 
 ### Browser build (HTML5)
 

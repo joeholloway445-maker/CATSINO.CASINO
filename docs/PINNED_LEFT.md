@@ -20,10 +20,14 @@ GLBs onto the same PeriHuman slots. Agents do not start these.
 
 Also owner-local (needs your machine / credentials — not cloud-agent work):
 
-- Terrain3D hand-sculpt of hero regions (local GPU; plugin stays off in CI)
-- Production Nakama host + real `server_config.json` secrets (local docker
-  defaults can be wired for smoke; live multiplayer needs your deploy)
-- Optional dedicated Suno beds for ascension/sanctuary (currently aliased)
+- **Terrain3D hand-sculpt** of hero regions (local GPU; plugin stays off in CI)
+- **Production Nakama host** + real `server_config.json` secrets  
+  Local path already exists: `scripts/build_nakama_modules.sh` +
+  `docker compose -f docker-compose.dev.yml up -d` + `gate8_smoke`
+- **gdUnit4 editor plugin** — enable locally only after a clean project
+  open; keep `project.godot` `[editor_plugins] enabled=` empty for CI
+- Optional: generate dedicated Suno beds for `ascension` / `sanctuary`
+  (currently aliased to `noclip` / `taillights_fade`)
 
 ## Already finished (do not re-open)
 

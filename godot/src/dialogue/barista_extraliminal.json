@@ -1,0 +1,35 @@
+{
+  "greeting": {
+    "line": "The blend changes with the banner. Depends who holds this ground today.",
+    "line_friendly": "Banner or not, you're welcome at my counter.",
+    "line_hostile": "Wrong colors for this ground. Keep walking.",
+    "allow_social_options": true,
+    "options": [
+      {
+        "text": "Tell me more.",
+        "next_key": "lore",
+        "effect": {
+          "disposition": 3
+        }
+      },
+      {
+        "text": "Just passing through.",
+        "next_key": null,
+        "effect": {}
+      }
+    ]
+  },
+  "lore": {
+    "line": "I've served under three flags this month. Uniform one week, metaphors the next. You learn to read a territory by what they let you put in the cup.",
+    "allow_social_options": false,
+    "options": [
+      {
+        "text": "I'll remember that.",
+        "next_key": null,
+        "effect": {
+          "disposition": 5
+        }
+      }
+    ]
+  }
+}

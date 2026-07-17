@@ -1,0 +1,46 @@
+{
+  "greeting": {
+    "line": "Every big win has a story. Some are even true. Buy me a chip and I'll tell one.",
+    "line_friendly": "Ah — a fellow keeper of records. Sit. The files like you.",
+    "line_hostile": "Those binders are sealed. Walk away.",
+    "allow_social_options": true,
+    "options": [
+      {
+        "text": "Show me a sealed file.",
+        "next_key": "sealed",
+        "requirements": {
+          "min_disposition": 20
+        },
+        "effect": {
+          "disposition": 5
+        }
+      },
+      {
+        "text": "What gaps are you not allowed to fill?",
+        "next_key": "gaps",
+        "effect": {
+          "disposition": 3
+        }
+      }
+    ]
+  },
+  "sealed": {
+    "line": "Between file 300 and file 700 there is nothing. I did not lose those files. I was never given them.",
+    "allow_social_options": false,
+    "options": [
+      {
+        "text": "I'll look for what filled the gap.",
+        "next_key": null,
+        "effect": {
+          "disposition": 10,
+          "progression": "main_003"
+        }
+      }
+    ]
+  },
+  "gaps": {
+    "line": "Draw your own conclusions — I'm not allowed to. But if you visit Neon Alley with open eyes, the Current writes in the margins.",
+    "allow_social_options": true,
+    "options": []
+  }
+}

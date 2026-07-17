@@ -1,0 +1,35 @@
+{
+  "greeting": {
+    "line": "Oh — you again. Sorry. Long shift. It's always a long shift.",
+    "line_friendly": "Sit. I'll remake it. No questions asked.",
+    "line_hostile": "We're done for the night. Door's that way.",
+    "allow_social_options": true,
+    "options": [
+      {
+        "text": "Tell me more.",
+        "next_key": "lore",
+        "effect": {
+          "disposition": 3
+        }
+      },
+      {
+        "text": "Just passing through.",
+        "next_key": null,
+        "effect": {}
+      }
+    ]
+  },
+  "lore": {
+    "line": "You ever feel like the routine is... running you? Same cups, same faces. Something's wrong with it lately. Don't tell my manager I said that.",
+    "allow_social_options": false,
+    "options": [
+      {
+        "text": "I'll remember that.",
+        "next_key": null,
+        "effect": {
+          "disposition": 5
+        }
+      }
+    ]
+  }
+}

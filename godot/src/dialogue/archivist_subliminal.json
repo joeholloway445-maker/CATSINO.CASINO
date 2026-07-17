@@ -1,0 +1,35 @@
+{
+  "greeting": {
+    "line": "People call it a hobby. Forty-one binders of things that don't add up is not a hobby.",
+    "line_friendly": "Pull up a binder. I trust your eyes.",
+    "line_hostile": "Those files are not for you. Close the drawer.",
+    "allow_social_options": true,
+    "options": [
+      {
+        "text": "Tell me more.",
+        "next_key": "lore",
+        "effect": {
+          "disposition": 3
+        }
+      },
+      {
+        "text": "Just passing through.",
+        "next_key": null,
+        "effect": {}
+      }
+    ]
+  },
+  "lore": {
+    "line": "Missing time. Doors that weren't there. I write down every account, dates cross-referenced. They laugh at me, but nobody's ever found an error in my files.",
+    "allow_social_options": false,
+    "options": [
+      {
+        "text": "I'll remember that.",
+        "next_key": null,
+        "effect": {
+          "disposition": 5
+        }
+      }
+    ]
+  }
+}

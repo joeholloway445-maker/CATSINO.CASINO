@@ -1,0 +1,35 @@
+{
+  "greeting": {
+    "line": "The library grew another wing last night. I catalogued it. I always catalogue it.",
+    "line_friendly": "I'll show you the wing that grew last night.",
+    "line_hostile": "The exit map is sealed. So is this conversation.",
+    "allow_social_options": true,
+    "options": [
+      {
+        "text": "Tell me more.",
+        "next_key": "lore",
+        "effect": {
+          "disposition": 3
+        }
+      },
+      {
+        "text": "Just passing through.",
+        "next_key": null,
+        "effect": {}
+      }
+    ]
+  },
+  "lore": {
+    "line": "I know where everything is. I can point you to any answer you want. I just can't walk to the exit. I've mapped it, you understand. I know exactly where it is.",
+    "allow_social_options": false,
+    "options": [
+      {
+        "text": "I'll remember that.",
+        "next_key": null,
+        "effect": {
+          "disposition": 5
+        }
+      }
+    ]
+  }
+}

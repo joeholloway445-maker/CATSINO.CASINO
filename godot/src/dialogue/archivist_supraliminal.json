@@ -1,0 +1,35 @@
+{
+  "greeting": {
+    "line": "I can tell you exactly what I'm permitted to know.",
+    "line_friendly": "You're cleared for the permitted shelves.",
+    "line_hostile": "Clearance revoked. Gaps stay gaps.",
+    "allow_social_options": true,
+    "options": [
+      {
+        "text": "Tell me more.",
+        "next_key": "lore",
+        "effect": {
+          "disposition": 3
+        }
+      },
+      {
+        "text": "Just passing through.",
+        "next_key": null,
+        "effect": {}
+      }
+    ]
+  },
+  "lore": {
+    "line": "Notice the gaps in my records? Between file 300 and file 700 there is nothing. I did not lose those files. I was never given them. Draw your own conclusions — I'm not allowed to.",
+    "allow_social_options": false,
+    "options": [
+      {
+        "text": "I'll remember that.",
+        "next_key": null,
+        "effect": {
+          "disposition": 5
+        }
+      }
+    ]
+  }
+}

@@ -105,8 +105,35 @@ def main() -> int:
         fail("AppConfig missing main_menu_scene_path")
 
     print("== dialogue trees ==")
-    for npc in ("barista", "archivist", "authority", "lover", "reflection"):
+    archetypes = ("barista", "archivist", "authority", "lover", "reflection")
+    layers = (
+        "subliminal",
+        "liminal",
+        "supraliminal",
+        "hyperliminal",
+        "extraliminal",
+        "periliminal",
+    )
+    for npc in archetypes:
         check_exists(f"src/dialogue/{npc}.json", "dialogue")
+    print("== per-layer dialogue variants ==")
+    for arch in archetypes:
+        for layer in layers:
+            check_exists(f"src/dialogue/{arch}_{layer}.json", "dialogue_layer")
+    lib = (GODOT / "src/world/npc_dialogue_library.gd").read_text()
+    social = (GODOT / "src/social/npc_dialogue_system.gd").read_text()
+    if "_resolve_npc_key" in social and "LayerManager.current_layer_id" in social:
+        ok("NPCDialogueSystem resolves by current layer")
+    else:
+        fail("NPCDialogueSystem missing layer-aware resolve")
+    if "src/dialogue/%s_%s.json" in lib or 'src/dialogue/%s_%s.json' in lib:
+        ok("NpcDialogueLibrary prefers layer JSON")
+    else:
+        fail("NpcDialogueLibrary missing layer JSON preference")
+    if (ROOT / "scripts/export_layer_dialogue.py").exists():
+        ok("export_layer_dialogue.py present")
+    else:
+        fail("export_layer_dialogue.py missing")
 
     print("== arena mode controller ==")
     check_exists("src/world/arena_mode_controller.gd", "arena_ctrl")
@@ -171,11 +198,18 @@ def main() -> int:
     else:
         fail("ArenaModeController missing online moba path")
 
-    print("== metahuman interim ==")
+    print("== metahuman / PeriHuman slots ==")
     if (GODOT / "assets/models/player_human.glb").exists():
         ok("player_human.glb present (interim identity mesh)")
     else:
         fail("player_human.glb missing")
+    for slot in (
+        "peri_human_player.glb",
+        "peri_human_npc.glb",
+        "metahuman_player.glb",
+        "metahuman_npc.glb",
+    ):
+        check_exists(f"assets/models/{slot}", "metahuman_slot")
     mh = (GODOT / "src/character/metahuman_character.gd").read_text()
     if "func resolve_tier" in mh:
         ok("MetahumanCharacter.resolve_tier")

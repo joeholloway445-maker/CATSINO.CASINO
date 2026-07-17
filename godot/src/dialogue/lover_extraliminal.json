@@ -1,0 +1,35 @@
+{
+  "greeting": {
+    "line": "It's not about the faction. Well. It's not ONLY about the faction. Walk with me?",
+    "line_friendly": "Walk with me. Report later — or never.",
+    "line_hostile": "Recruitment's off. So is the charm.",
+    "allow_social_options": true,
+    "options": [
+      {
+        "text": "Tell me more.",
+        "next_key": "lore",
+        "effect": {
+          "disposition": 3
+        }
+      },
+      {
+        "text": "Just passing through.",
+        "next_key": null,
+        "effect": {}
+      }
+    ]
+  },
+  "lore": {
+    "line": "They told me to recruit you. I told them it was going well. It IS going well — just not the way I report it. We're both in trouble, aren't we.",
+    "allow_social_options": false,
+    "options": [
+      {
+        "text": "I'll remember that.",
+        "next_key": null,
+        "effect": {
+          "disposition": 5
+        }
+      }
+    ]
+  }
+}

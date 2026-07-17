@@ -1,0 +1,35 @@
+{
+  "greeting": {
+    "line": "Steam rises. Cup fills. Your order's ready. Steam rises. Cup fills.",
+    "line_friendly": "You took the cup. Good. That keeps the loop kind.",
+    "line_hostile": "Don't take the cup. Don't come back. The hallway prefers that.",
+    "allow_social_options": true,
+    "options": [
+      {
+        "text": "Tell me more.",
+        "next_key": "lore",
+        "effect": {
+          "disposition": 3
+        }
+      },
+      {
+        "text": "Just passing through.",
+        "next_key": null,
+        "effect": {}
+      }
+    ]
+  },
+  "lore": {
+    "line": "I hand you the cup. I always hand you the cup. If you take it, we start again. If you don't take it... nobody's ever not taken it.",
+    "allow_social_options": false,
+    "options": [
+      {
+        "text": "I'll remember that.",
+        "next_key": null,
+        "effect": {
+          "disposition": 5
+        }
+      }
+    ]
+  }
+}

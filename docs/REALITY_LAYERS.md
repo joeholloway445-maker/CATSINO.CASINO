@@ -15,26 +15,35 @@ of a six-layer cosmology. This doc is the canonical spec; the code under
 | **Extraliminal** | Pokemon-GO-style real-world overlay — roaming faction-exclusive entities, guild halls at claimable landmarks | always | guild wars | landmark | ⚡ Charges |
 | **Periliminal** | The psychological layer. You can't enter it — it takes you after wandering the Liminal too long | pulled only | no | generated-then-static | 🧩 Fragments |
 
-## The six currencies
+## The currencies
 
 1. **🪙 Coins** — the main currency. Purchasable with real-world money,
    usable on anything (internal id stays `cat_coins`).
-2. **🎰 Chips** — only purchasable with coins (`buy_chips`) at a
-   **house-favorable** cage rate (buy costs more than face; sell-back
-   pays less). The casino's dedicated currency for all bets.
-3. **🧩 Fragments** — PvE: earned from and spent on PvE play. Also paid out
+2. **✴️ Ex-Coins** — compliance twin of Coins. **Only** earned by cashing
+   casino chips out at the cage (`cashout_chips_to_ex`). Spendable anywhere
+   Coins are (`spend_coins` drains Ex-Coins first). **Never** purchasable,
+   **never** convertible back into Coins.
+3. **🎰 Chips** — bought with Coins/Ex-Coins (`buy_chips`) at a
+   **house-favorable** cage rate (buy costs more than face). Casino-only
+   spend. Cash-out pays **Ex-Coins only** (never Coins) at a worse rate.
+4. **🧩 Fragments** — PvE: earned from and spent on PvE play. Also paid out
    by casino jackpots, matched 1:1 on your first three coin purchases
    (`purchase_coins`), and during match events.
-4. **⚔️ Tokens** — PvP: earned from and spent on PvP play (territory claims,
+5. **⚔️ Tokens** — PvP: earned from and spent on PvP play (territory claims,
    liminal doors, guild-war stakes). Same jackpot/purchase-match sources as
    fragments.
-5. **⚡ Charges** — primarily from quests and achievements, secondarily the
+6. **⚡ Charges** — primarily from quests and achievements, secondarily the
    casino; spent leveling up companions and entities.
-6. **🌟 Prestige** — our experience. Earned by general gameplay everywhere;
+7. **🌟 Prestige** — our experience. Earned by general gameplay everywhere;
    **influence level** (`EconomyManager.influence_level()`) is our level
    system, derived from lifetime prestige. Spent on **equivalent exchange**
    (`equivalent_exchange(gate, tier)`): buying past race/faction/morality/
-   influence gates — nothing is truly out of reach if you put in the time.
+   influence gates — and on the **Social Politics** / **Wagering Arts**
+   prestige skill lines (soft-power trees in `SkillData`). Nothing is
+   truly out of reach if you put in the time.
+
+Chip cash-out also drips a small randomized amount of 🧩 Fragments,
+⚔️ Tokens, and ⚡ Charges (never Coins).
 
 Legacy note: `gems` still exists as a hidden balance so old shop/battlepass
 code paths don't crash, but it is NOT one of the six — those price points

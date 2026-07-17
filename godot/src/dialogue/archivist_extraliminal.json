@@ -1,0 +1,35 @@
+{
+  "greeting": {
+    "line": "Our records are the accurate ones. Whatever the other keepers told you — burn it.",
+    "line_friendly": "Our history, then. The accurate one.",
+    "line_hostile": "Factionless ears don't get our records.",
+    "allow_social_options": true,
+    "options": [
+      {
+        "text": "Tell me more.",
+        "next_key": "lore",
+        "effect": {
+          "disposition": 3
+        }
+      },
+      {
+        "text": "Just passing through.",
+        "next_key": null,
+        "effect": {}
+      }
+    ]
+  },
+  "lore": {
+    "line": "Every faction keeps its own history now. Same battle, three versions, three heroes. Control the record and you control what the war was FOR.",
+    "allow_social_options": false,
+    "options": [
+      {
+        "text": "I'll remember that.",
+        "next_key": null,
+        "effect": {
+          "disposition": 5
+        }
+      }
+    ]
+  }
+}

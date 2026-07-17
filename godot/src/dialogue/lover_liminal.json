@@ -1,0 +1,35 @@
+{
+  "greeting": {
+    "line": "You came back. You always come back. I can't leave, so... I'm glad.",
+    "line_friendly": "You came back. That means something here.",
+    "line_hostile": "Don't remember me like this. Just go.",
+    "allow_social_options": true,
+    "options": [
+      {
+        "text": "Tell me more.",
+        "next_key": "lore",
+        "effect": {
+          "disposition": 3
+        }
+      },
+      {
+        "text": "Just passing through.",
+        "next_key": null,
+        "effect": {}
+      }
+    ]
+  },
+  "lore": {
+    "line": "I'm less every time you see me. Don't argue, I can feel it. Just — stay until the light shifts, and don't remember me like this.",
+    "allow_social_options": false,
+    "options": [
+      {
+        "text": "I'll remember that.",
+        "next_key": null,
+        "effect": {
+          "disposition": 5
+        }
+      }
+    ]
+  }
+}

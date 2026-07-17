@@ -27,12 +27,16 @@ func _ready() -> void:
 func record_interaction(npc_id: String, tone: String) -> void:
 	if tone not in TONES:
 		return
-	_tones[tone] = int(_tones.get(tone, 0)) + 1
+	# Social Politics "Soft Power" — reputation swings land harder.
+	var weight := 1
+	if typeof(SkillManager) != TYPE_NIL and SkillManager.has_method("social_rep_mult"):
+		weight = int(round(SkillManager.social_rep_mult()))
+	_tones[tone] = int(_tones.get(tone, 0)) + weight
 	if not _met.has(npc_id):
 		_met[npc_id] = {}
-	_met[npc_id][tone] = int(_met[npc_id].get(tone, 0)) + 1
+	_met[npc_id][tone] = int(_met[npc_id].get(tone, 0)) + weight
 	_save()
-	Hope.record("npc_interaction", {"npc": npc_id, "tone": tone})
+	Hope.record("npc_interaction", {"npc": npc_id, "tone": tone, "weight": weight})
 	reputation_changed.emit(tone, total())
 
 func total() -> int:

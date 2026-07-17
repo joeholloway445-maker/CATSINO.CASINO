@@ -1,0 +1,57 @@
+{
+  "greeting": {
+    "line": "Coffee, chips, or both? I remember every order I've ever poured.",
+    "line_friendly": "Your usual — already steaming. On the house this once.",
+    "line_hostile": "We're closing. Take a seat somewhere else.",
+    "allow_social_options": true,
+    "options": [
+      {
+        "text": "What's the house special?",
+        "next_key": "special",
+        "effect": {
+          "disposition": 5
+        }
+      },
+      {
+        "text": "Heard any rumors?",
+        "next_key": "rumor",
+        "effect": {
+          "disposition": 2
+        }
+      }
+    ],
+    "quest_options": [
+      {
+        "text": "About that job you mentioned…",
+        "quest_id": "side_001"
+      }
+    ]
+  },
+  "special": {
+    "line": "Between shifts there's the floor, and the floor always deals. Ask me anything — for the right tip.",
+    "allow_social_options": false,
+    "options": [
+      {
+        "text": "I'll take both.",
+        "next_key": null,
+        "effect": {
+          "disposition": 8,
+          "tone": "nice"
+        }
+      }
+    ]
+  },
+  "rumor": {
+    "line": "I haven't slept since I started here. Don't need to. Between the pours, people talk — Crown agents in the VIP, Current runners under the neon.",
+    "allow_social_options": true,
+    "options": [
+      {
+        "text": "Tell me about Neon Alley.",
+        "next_key": null,
+        "effect": {
+          "disposition": 5
+        }
+      }
+    ]
+  }
+}
