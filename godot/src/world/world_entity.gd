@@ -83,6 +83,7 @@ func setup_boss(dex_line: Dictionary, stage: int, target: Node3D,
 		_label.text = "%s · %s" % [_boss_title, str(stage_info.get("name", "?"))]
 		_label.font_size = 52
 	SkillVFX.add_aura_shell(self, Color(1.0, 0.35, 0.15), 0.12)
+	CombatSfx.play(self, "boss_spawn", global_position, -3.0)
 	_refresh_boss_label()
 
 func is_boss() -> bool:
@@ -167,6 +168,11 @@ func take_hit(amount: int) -> void:
 		var away := (global_position - _target.global_position).normalized()
 		global_position += away * 1.0
 	if hp <= 0:
+		if _boss_phases > 0:
+			# Prefer world parent; CombatSfx also anchors to SceneTree.root.
+			var host: Node = get_parent() if get_parent() != null else self
+			var death_at := global_position
+			CombatSfx.play(host, "boss_death", death_at, -1.0)
 		died.emit(self)
 		queue_free()
 
@@ -177,6 +183,7 @@ func _enter_boss_phase(phase: int) -> void:
 	damage += 4
 	speed += 0.35
 	SkillVFX.add_aura_shell(self, Color(1.0, 0.2, 0.05), 0.04 * _boss_phase)
+	CombatSfx.play(self, "boss_phase", global_position, -2.0)
 	SkillVFX.boss_phase_telegraph(self, Vector3.ZERO, _boss_phase)
 	phase_changed.emit(self, _boss_phase)
 	# Toast via AutoloadGate — bare NotificationUI races class_name compile.

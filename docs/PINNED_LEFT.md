@@ -2,7 +2,10 @@
 
 **Agent-finishable Gates 5–8 thicken (latest):** boss phase telegraphs
 (ground AOE + phase-3 slam column + sticky PHASE label + toast/signal).
-Combat SFX still open on PR #56 when present.
+
+Remaining agent juice: combat SFX slots if PR #56 not yet merged,
+Periliminal floor hazard VFX/HUD, hideout siege combat registration if
+PR #61 not yet merged.
 
 Do **not** start the pinned owner trials below until the owner asks
 what’s left.
@@ -36,5 +39,7 @@ Also owner-local (needs your machine / credentials — not cloud-agent work):
 - Free path: **MPFB2** (CC0) + **OSM2World** (OSM ODbL)
 - Arena HotbarUI + cast resolution (Gate 6)
 - Hideout live WorldEntity siege (Gate 5)
-- PeriliminalGenerator floors + StoryVote Nakama module (Gates 6/8)
+- PeriliminalGenerator real floors (Gate 6)
+- StoryVote Nakama module (Gate 8)
+- Gate 8 board_id↔leaderboard alias + smoke thicken
 - Boss phase telegraphs — AOE ring / phase-3 column + PHASE label + signal (Gate 5/6)

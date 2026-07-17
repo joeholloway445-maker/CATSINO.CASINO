@@ -99,10 +99,14 @@ named `<slot>_albedo.png` (+ `_normal`, `_rough`, `_metallic`,
 exist are used; the per-race identity lens still tints on top, so the same
 wall is a different material on every player's client.
 
-**Interchangeable sounds** — drop looped audio into `godot/assets/audio/`
-as `<slot>.ogg`: `city_traffic`, `city_crowd`, `neon_hum`, `machine_hum`.
-Absent slots are synthesized live (traffic rumble, crowd murmur, neon
-buzz, machine drone) so the city is never silent.
+**Interchangeable sounds** — drop audio into `godot/assets/audio/` as
+`<slot>.ogg` (`.wav` / `.mp3` also OK):
+- City loops: `city_traffic`, `city_crowd`, `neon_hum`, `machine_hum`
+  (absent → live synth beds via `CityAmbience`)
+- Combat one-shots: `skill_cast`, `skill_hit`, `skill_ult`, `skill_shield`,
+  `boss_spawn`, `boss_phase`, `boss_death` (absent → `CombatSfx` synth;
+  wired from `SkillVFX` / `WorldEntity`)
+Absent city/combat slots are synthesized so the game is never silent.
 
 Also worth grabbing (bigger lifts, still free):
 - **godotengine/tps-demo** (github) — reference-quality character
