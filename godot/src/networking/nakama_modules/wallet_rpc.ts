@@ -1,20 +1,4 @@
-const WalletRpc = {
-  getWallet: function(ctx: nkruntime.Context, logger: nkruntime.Logger, nk: nkruntime.Nakama, _payload: string): string {
-    const userId = ctx.userId;
-    if (!userId) throw new Error("Not authenticated");
-    const account = nk.accountGetId(userId);
-    const coins = account.wallet.coins ?? account.wallet.cat_coins ?? 0;
-    const gems = account.wallet.gems ?? 0;
-    return JSON.stringify({
-      success: true,
-      coins,
-      cat_coins: coins,
-      gems,
-      balances: { coins, gems, cat_coins: coins },
-    });
-  },
-
-  claimDailyBonus: function(ctx: nkruntime.Context, logger: nkruntime.Logger, nk: nkruntime.Nakama, _payload: string): string {
+function claimDailyBonus(ctx: nkruntime.Context, logger: nkruntime.Logger, nk: nkruntime.Nakama, _payload: string): string {
     const userId = ctx.userId;
     if (!userId) throw new Error("Not authenticated");
 
@@ -39,11 +23,26 @@ const WalletRpc = {
 
     return JSON.stringify({ success: true, reward, streak: streakData.streak, day: day + 1, coins_granted: reward });
   }
-};
+
+function getWallet(ctx: nkruntime.Context, logger: nkruntime.Logger, nk: nkruntime.Nakama, _payload: string): string {
+    const userId = ctx.userId;
+    if (!userId) throw new Error("Not authenticated");
+    const account = nk.accountGetId(userId);
+    const coins = account.wallet.coins ?? account.wallet.cat_coins ?? 0;
+    const gems = account.wallet.gems ?? 0;
+    return JSON.stringify({
+      success: true,
+      coins,
+      cat_coins: coins,
+      gems,
+      balances: { coins, gems, cat_coins: coins },
+    });
+  }
+
 
 export function register_wallet_rpc(ctx: nkruntime.Context, logger: nkruntime.Logger, nk: nkruntime.Nakama, initializer: nkruntime.Initializer): void {
   // get_wallet is owned by economy_rpc (last-register wins). Only register
   // the legacy claim_daily_bonus alias here; daily_bonus lives on economy_rpc.
-  initializer.registerRpc("claim_daily_bonus", WalletRpc.claimDailyBonus);
+  initializer.registerRpc("claim_daily_bonus", claimDailyBonus);
   logger.info("Wallet RPC module loaded (claim_daily_bonus)");
 }

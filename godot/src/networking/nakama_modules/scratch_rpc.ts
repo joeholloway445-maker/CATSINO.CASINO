@@ -18,7 +18,7 @@ function weightedPick(nk: nkruntime.Nakama): string {
   return SYMBOLS[0];
 }
 
-const rpcBuyScratchCard: nkruntime.RpcFunction = function(
+function rpcBuyScratchCard(
   ctx: nkruntime.Context,
   logger: nkruntime.Logger,
   nk: nkruntime.Nakama,

@@ -13,7 +13,7 @@ function resolveBoardId(data: {[key: string]: unknown}): string {
 }
 
 // Submit a score to the appropriate leaderboard
-const rpcSubmitScore: nkruntime.RpcFunction = function(
+function rpcSubmitScore(
     ctx: nkruntime.Context,
     logger: nkruntime.Logger,
     nk: nkruntime.Nakama,
@@ -65,7 +65,7 @@ const rpcSubmitScore: nkruntime.RpcFunction = function(
 };
 
 // Get top 100 records + caller's own rank
-const rpcGetLeaderboard: nkruntime.RpcFunction = function(
+function rpcGetLeaderboard(
     ctx: nkruntime.Context,
     logger: nkruntime.Logger,
     nk: nkruntime.Nakama,
@@ -163,7 +163,7 @@ const rpcGetLeaderboard: nkruntime.RpcFunction = function(
 };
 
 // Admin-only: reset weekly leaderboard and grant prizes to top 3
-const rpcResetWeeklyLeaderboard: nkruntime.RpcFunction = function(
+function rpcResetWeeklyLeaderboard(
     ctx: nkruntime.Context,
     logger: nkruntime.Logger,
     nk: nkruntime.Nakama,

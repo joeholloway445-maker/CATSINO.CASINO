@@ -18,7 +18,7 @@ interface GuildInvitePayload {
     target_user_id: string;
 }
 
-const rpcCreateGuild: nkruntime.RpcFunction = function(
+function rpcCreateGuild(
     ctx: nkruntime.Context,
     logger: nkruntime.Logger,
     nk: nkruntime.Nakama,
@@ -70,7 +70,7 @@ const rpcCreateGuild: nkruntime.RpcFunction = function(
     });
 };
 
-const rpcJoinGuild: nkruntime.RpcFunction = function(
+function rpcJoinGuild(
     ctx: nkruntime.Context,
     logger: nkruntime.Logger,
     nk: nkruntime.Nakama,
@@ -97,7 +97,7 @@ const rpcJoinGuild: nkruntime.RpcFunction = function(
     return JSON.stringify({ success: true, guild_id });
 };
 
-const rpcLeaveGuild: nkruntime.RpcFunction = function(
+function rpcLeaveGuild(
     ctx: nkruntime.Context,
     logger: nkruntime.Logger,
     nk: nkruntime.Nakama,
@@ -123,7 +123,7 @@ const rpcLeaveGuild: nkruntime.RpcFunction = function(
     return JSON.stringify({ success: true, guild_id });
 };
 
-const rpcGetGuild: nkruntime.RpcFunction = function(
+function rpcGetGuild(
     ctx: nkruntime.Context,
     logger: nkruntime.Logger,
     nk: nkruntime.Nakama,
@@ -175,7 +175,7 @@ const rpcGetGuild: nkruntime.RpcFunction = function(
     });
 };
 
-const rpcInviteToGuild: nkruntime.RpcFunction = function(
+function rpcInviteToGuild(
     ctx: nkruntime.Context,
     logger: nkruntime.Logger,
     nk: nkruntime.Nakama,

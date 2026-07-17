@@ -49,7 +49,7 @@ function calcDamage(atk_pow: number, def_res: number, mult: number): number {
     return Math.max(1, Math.floor(atk_pow * mult - def_res * 0.5));
 }
 
-const rpcCombatAction: nkruntime.RpcFunction = function(
+function rpcCombatAction(
     ctx: nkruntime.Context,
     logger: nkruntime.Logger,
     nk: nkruntime.Nakama,

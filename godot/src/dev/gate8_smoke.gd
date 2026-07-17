@@ -321,7 +321,7 @@ func _run() -> void:
 		print("[gate8_smoke] layer_presence ok")
 
 	# PresenceManager resolves the same RPC when authenticated.
-	var presence: Node = root.get_node_or_null("PresenceManager")
+	# (`presence` already resolved near the top of this smoke.)
 	if presence != null and presence.has_method("join_layer"):
 		await presence.call("join_layer", "liminal")
 		await process_frame

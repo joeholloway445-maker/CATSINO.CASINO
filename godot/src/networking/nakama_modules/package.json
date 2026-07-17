@@ -5,8 +5,8 @@
   "description": "CATSINO.CASINO server-authoritative Nakama RPC modules",
   "scripts": {
     "typecheck": "tsc --noEmit",
-    "build": "esbuild index.ts --bundle --platform=neutral --target=es2017 --format=cjs --tree-shaking=false --outfile=build/index.js",
-    "watch": "esbuild index.ts --bundle --platform=neutral --target=es2017 --format=cjs --tree-shaking=false --outfile=build/index.js --watch"
+    "build": "esbuild index.ts --bundle --platform=neutral --target=es2017 --format=cjs --keep-names --tree-shaking=false --outfile=build/index.js",
+    "watch": "esbuild index.ts --bundle --platform=neutral --target=es2017 --format=cjs --keep-names --tree-shaking=false --outfile=build/index.js --watch"
   },
   "devDependencies": {
     "esbuild": "^0.21.0",

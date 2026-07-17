@@ -83,7 +83,7 @@ function _expireStale(schedule: Schedule): Schedule {
   return schedule;
 }
 
-const rpcGetWorldBossState: nkruntime.RpcFunction = function (_ctx, logger, nk, _payload) {
+function rpcGetWorldBossState(_ctx, logger, nk, _payload) {
   let schedule = _expireStale(_read(nk));
   try {
     _write(nk, schedule);
@@ -100,7 +100,7 @@ const rpcGetWorldBossState: nkruntime.RpcFunction = function (_ctx, logger, nk, 
   });
 };
 
-const rpcClaimWorldBossSpawn: nkruntime.RpcFunction = function (ctx, logger, nk, payload) {
+function rpcClaimWorldBossSpawn(ctx, logger, nk, payload) {
   if (!ctx.userId) {
     return JSON.stringify({ ok: false, success: false, error: "Not authenticated" });
   }
@@ -161,7 +161,7 @@ const rpcClaimWorldBossSpawn: nkruntime.RpcFunction = function (ctx, logger, nk,
   });
 };
 
-const rpcReportWorldBossKill: nkruntime.RpcFunction = function (ctx, logger, nk, payload) {
+function rpcReportWorldBossKill(ctx, logger, nk, payload) {
   if (!ctx.userId) {
     return JSON.stringify({ ok: false, success: false, error: "Not authenticated" });
   }
@@ -197,7 +197,7 @@ const rpcReportWorldBossKill: nkruntime.RpcFunction = function (ctx, logger, nk,
   });
 };
 
-const rpcNoteZoneBossKill: nkruntime.RpcFunction = function (ctx, logger, nk, payload) {
+function rpcNoteZoneBossKill(ctx, logger, nk, payload) {
   if (!ctx.userId) {
     return JSON.stringify({ ok: false, success: false, error: "Not authenticated" });
   }

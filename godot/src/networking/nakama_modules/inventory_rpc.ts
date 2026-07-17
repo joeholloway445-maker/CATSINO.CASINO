@@ -1,5 +1,4 @@
-const InventoryRpc = {
-  getInventory: function(ctx: nkruntime.Context, logger: nkruntime.Logger, nk: nkruntime.Nakama, _payload: string): string {
+function getInventory(ctx: nkruntime.Context, logger: nkruntime.Logger, nk: nkruntime.Nakama, _payload: string): string {
     const userId = ctx.userId;
     if (!userId) throw new Error("Not authenticated");
 
@@ -13,9 +12,9 @@ const InventoryRpc = {
     }
 
     return JSON.stringify({ items });
-  },
+  }
 
-  useItem: function(ctx: nkruntime.Context, logger: nkruntime.Logger, nk: nkruntime.Nakama, payload: string): string {
+function useItem(ctx: nkruntime.Context, logger: nkruntime.Logger, nk: nkruntime.Nakama, payload: string): string {
     const userId = ctx.userId;
     if (!userId) throw new Error("Not authenticated");
 
@@ -46,9 +45,9 @@ const InventoryRpc = {
     }]);
 
     return JSON.stringify({ success: true, item_id, remaining: items[idx]?.quantity ?? 0 });
-  },
+  }
 
-  grantItem: function(ctx: nkruntime.Context, logger: nkruntime.Logger, nk: nkruntime.Nakama, payload: string): string {
+function grantItem(ctx: nkruntime.Context, logger: nkruntime.Logger, nk: nkruntime.Nakama, payload: string): string {
     const userId = ctx.userId;
     if (!userId) throw new Error("Not authenticated");
 
@@ -77,11 +76,11 @@ const InventoryRpc = {
 
     return JSON.stringify({ success: true, item_id, quantity });
   }
-};
+
 
 export function register_inventory_rpc(ctx: nkruntime.Context, logger: nkruntime.Logger, nk: nkruntime.Nakama, initializer: nkruntime.Initializer): void {
-  initializer.registerRpc("get_inventory", InventoryRpc.getInventory);
-  initializer.registerRpc("use_item", InventoryRpc.useItem);
-  initializer.registerRpc("grant_item", InventoryRpc.grantItem);
+  initializer.registerRpc("get_inventory", getInventory);
+  initializer.registerRpc("use_item", useItem);
+  initializer.registerRpc("grant_item", grantItem);
   logger.info("Inventory RPC module loaded");
 }

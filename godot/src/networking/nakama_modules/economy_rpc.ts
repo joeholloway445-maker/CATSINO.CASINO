@@ -65,7 +65,7 @@ function getWalletBalances(
 // ─── RPC: Earn Coins ──────────────────────────────────────────────────────────
 // Called when the server wants to credit coins (e.g., match reward, event payout).
 // Clients SHOULD NOT call this directly — use server-to-server or Nakama hooks.
-const rpcEarnCoins: nkruntime.RpcFunction = function (
+function rpcEarnCoins(
   ctx: nkruntime.Context,
   logger: nkruntime.Logger,
   nk: nkruntime.Nakama,
@@ -101,7 +101,7 @@ const rpcEarnCoins: nkruntime.RpcFunction = function (
 
 // ─── RPC: Spend Coins ─────────────────────────────────────────────────────────
 // Validates balance before deducting. Returns error if insufficient funds.
-const rpcSpendCoins: nkruntime.RpcFunction = function (
+function rpcSpendCoins(
   ctx: nkruntime.Context,
   logger: nkruntime.Logger,
   nk: nkruntime.Nakama,
@@ -143,7 +143,7 @@ const rpcSpendCoins: nkruntime.RpcFunction = function (
 };
 
 // ─── RPC: Get Wallet ──────────────────────────────────────────────────────────
-const rpcGetWallet: nkruntime.RpcFunction = function (
+function rpcGetWallet(
   ctx: nkruntime.Context,
   logger: nkruntime.Logger,
   nk: nkruntime.Nakama,
@@ -183,7 +183,7 @@ const rpcGetWallet: nkruntime.RpcFunction = function (
 // ─── RPC: Daily Bonus ────────────────────────────────────────────────────────
 // 20-hour cooldown with streak tracking.
 // Grants DAILY_BONUS_BASE + streak * DAILY_BONUS_PER_STREAK coins.
-const rpcDailyBonus: nkruntime.RpcFunction = function (
+function rpcDailyBonus(
   ctx: nkruntime.Context,
   logger: nkruntime.Logger,
   nk: nkruntime.Nakama,
