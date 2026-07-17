@@ -7,6 +7,7 @@ or real prod secrets; those still need your machine.
 Remaining agent juice (gates): Periliminal floor hazard VFX/HUD. Gate 8
 thickeners (layer presence, hideout online, world-boss cadence, live CI)
 already on base.
+
 ## Owner trials — in progress
 
 | Trial | Kickoff in repo | You still do |
