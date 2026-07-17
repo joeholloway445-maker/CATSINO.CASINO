@@ -6,8 +6,6 @@ or real prod secrets; those still need your machine.
 
 Remaining agent juice (gates): Periliminal floor hazard VFX/HUD. Hideout
 online + layer presence + siege combat + boss telegraphs already on base.
-presence + hideout siege combat + boss telegraphs + combat SFX + board_id
-alias already on base.
 
 
 ## Owner trials — in progress
