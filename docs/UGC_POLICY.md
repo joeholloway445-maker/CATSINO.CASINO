@@ -63,9 +63,9 @@ ledger (`Marketplace.audit_log`). Direct player-to-player swaps go
 through `TradeManager` with escrow, a house tax on coin legs, and the
 same append-only audit trail.
 
-Currency cage rates are house-favorable: buying chips costs more coins
-than face value; cashing chips out returns fewer (`EconomyManager`
-chip buy/sell spreads).
+Currency cage rates are house-favorable: buying chips costs more
+Coins/Ex-Coins than face value; cashing chips out pays fewer **Ex-Coins**
+(never purchasable Coins) — see `EconomyManager` chip buy / `cashout_chips_to_ex`.
 
 ## Subliminal tiers
 

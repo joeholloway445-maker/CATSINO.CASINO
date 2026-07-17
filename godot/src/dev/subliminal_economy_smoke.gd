@@ -29,6 +29,13 @@ func _run() -> void:
 	await process_frame
 	await process_frame
 
+	# Isolate from prior smoke runs / local saves.
+	sub.set("storage_items", [])
+	sub.set("_storage_expansions_bought", 0)
+	sub.set("_creator_sub_until", 0)
+	sub.call("clear_all_ambient")
+	sub.set("apartment_slots", {})
+
 	# 1) Subliminal auto-spawn hard lock
 	var sub_count: int = int(npc_mgr.call("_npc_count_for_layer", "subliminal"))
 	print("[subliminal_economy_smoke] subliminal_npc_count=", sub_count)
@@ -90,15 +97,16 @@ func _run() -> void:
 		fail.call("storage expansion purchase failed")
 		return
 
-	# 4) House-favorable chip FX
+	# 4) House-favorable chip FX — cashout pays Ex-Coins, never Coins
 	var buy_cost: int = int(economy.call("chip_buy_coin_cost", 100))
-	var sell_pay: int = int(economy.call("chip_sell_coin_payout", 100))
-	print("[subliminal_economy_smoke] chip_buy_100=", buy_cost, " sell_100=", sell_pay)
-	if buy_cost <= 100 or sell_pay >= 100 or buy_cost <= sell_pay:
-		fail.call("chip FX must be house-favorable (buy>100>sell)")
+	var ex_pay: int = int(economy.call("chip_cashout_ex_payout", 100))
+	print("[subliminal_economy_smoke] chip_buy_100=", buy_cost, " cashout_ex_100=", ex_pay)
+	if buy_cost <= 100 or ex_pay >= 100 or buy_cost <= ex_pay:
+		fail.call("chip FX must be house-favorable (buy>100>ex_cashout)")
 		return
 	var chips_before: int = int(economy.call("get_balance", "chips"))
 	var coins_before: int = int(economy.call("get_coins"))
+	var ex_before: int = int(economy.call("get_ex_coins"))
 	if not economy.call("buy_chips_local", 100):
 		fail.call("buy_chips_local failed")
 		return
@@ -108,11 +116,69 @@ func _run() -> void:
 	if int(economy.call("get_coins")) != coins_before - buy_cost:
 		fail.call("coins not debited at house buy rate")
 		return
-	if not economy.call("sell_chips_local", 100):
-		fail.call("sell_chips_local failed")
+	var frag_before: int = int(economy.call("get_balance", "fragments"))
+	var tok_before: int = int(economy.call("get_balance", "tokens"))
+	var chg_before: int = int(economy.call("get_balance", "charges"))
+	var cashout: Dictionary = economy.call("cashout_chips_to_ex_local", 100)
+	if cashout.is_empty():
+		fail.call("cashout_chips_to_ex_local failed")
 		return
-	if int(economy.call("get_coins")) != coins_before - buy_cost + sell_pay:
-		fail.call("sell payout not at house sell rate")
+	if int(economy.call("get_coins")) != coins_before - buy_cost:
+		fail.call("chip cashout must NOT credit Coins")
+		return
+	if int(economy.call("get_ex_coins")) != ex_before + ex_pay:
+		fail.call("chip cashout must credit Ex-Coins at house rate")
+		return
+	var sides: Dictionary = cashout.get("sides", {})
+	print("[subliminal_economy_smoke] cashout_sides=", sides)
+	for cur in ["fragments", "tokens", "charges"]:
+		var gained: int = int(sides.get(cur, 0))
+		if gained < 0 or gained > 6:
+			fail.call("side drop %s out of expected small range" % cur)
+			return
+	# Prestige skill lines present
+	var skills: Node = root.get_node_or_null("SkillManager")
+	if skills == null:
+		fail.call("SkillManager missing")
+		return
+	var lines: Array = skills.call("known_lines")
+	var prestige_lines := 0
+	for line in lines:
+		if str(line.get("source", "")) == "prestige":
+			prestige_lines += 1
+	print("[subliminal_economy_smoke] prestige_lines=", prestige_lines)
+	if prestige_lines < 2:
+		fail.call("expected Social Politics + Wagering Arts prestige lines")
+		return
+	economy.call("earn_prestige_local", 500, "smoke_prestige")
+	var unlocked: bool = skills.call("unlock_with_prestige", "soc_p0")
+	print("[subliminal_economy_smoke] prestige_unlock_soc_p0=", unlocked)
+	if not unlocked or not bool(skills.call("has_prestige_passive", "soc_p0")):
+		fail.call("prestige unlock for Social Politics passive failed")
+		return
+	# Ex-Coins spend like Coins; refused earn from non-cashout source
+	economy.call("earn_ex_coins_local", 10, "quest_reward")
+	if int(economy.call("get_ex_coins")) != ex_before + ex_pay:
+		fail.call("ex_coins must reject non-chip_cashout earn sources")
+		return
+	var spendable_before: int = int(economy.call("get_spendable_coins"))
+	if not economy.call("spend_coins_local", ex_pay, "smoke_spend_ex"):
+		fail.call("spend_coins should accept Ex-Coins")
+		return
+	if int(economy.call("get_ex_coins")) != ex_before:
+		fail.call("spend_coins should drain Ex-Coins first")
+		return
+	if int(economy.call("get_spendable_coins")) != spendable_before - ex_pay:
+		fail.call("spendable total wrong after Ex-Coin spend")
+		return
+	# Compliance: cannot FX chips/ex_coins into Coins
+	var blocked: bool = await economy.call("exchange_currency", "chips", "cat_coins", 10)
+	if blocked:
+		fail.call("chips→Coins FX must be blocked")
+		return
+	blocked = await economy.call("exchange_currency", "ex_coins", "cat_coins", 10)
+	if blocked:
+		fail.call("Ex-Coins→Coins FX must be blocked")
 		return
 
 	# 5) Trade audit trail (propose + cancel)
