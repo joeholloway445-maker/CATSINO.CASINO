@@ -58,6 +58,9 @@ static func resolve(rpc_id: String, payload: Variant) -> Dictionary:
 			return _hideout_offline(rpc_id, data)
 		"find_match", "find_moba_match":
 			return {"success": true, "ok": true, "match_id": "", "created": false, "practice": true}
+		"find_or_create_layer_match":
+			return {"success": true, "ok": true, "match_id": "", "created": false,
+				"offline": true, "practice": true, "layer_id": str(data.get("layer_id", ""))}
 		"get_active_tournaments", "get_tournaments":
 			return {"success": true, "tournaments": [], "ok": true}
 		"join_tournament":
@@ -153,7 +156,7 @@ static func supports(rpc_id: String) -> bool:
 		"get_wallet", "get_leaderboard", "story_vote", "get_story_tallies",
 		"hideout_upsert_site", "hideout_get", "hideout_claim",
 		"hideout_contest_win", "hideout_set_banner",
-		"find_match", "find_moba_match",
+		"find_match", "find_moba_match", "find_or_create_layer_match",
 		"get_active_tournaments", "get_tournaments", "join_tournament",
 		"submit_score", "quest_action", "get_quests",
 		"summon_companion", "feed_companion", "evolve_companion", "get_my_companions",

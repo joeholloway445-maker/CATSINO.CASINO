@@ -4,7 +4,7 @@
 (`hideout_rpc` + HideoutRegistry sync).
 
 Remaining agent juice: Periliminal floor hazard VFX/HUD, hideout siege
-combat registration if PR #61 not yet merged. Layer presence lives on PR #60.
+combat registration if PR #61 not yet merged.
 
 Do **not** start the pinned owner trials below until the owner asks
 what’s left.
@@ -42,4 +42,5 @@ Also owner-local (needs your machine / credentials — not cloud-agent work):
 - StoryVote Nakama module (Gate 8)
 - Gate 8 board_id↔leaderboard alias + smoke thicken
 - Boss phase telegraphs — AOE ring / phase-3 column + PHASE label + signal (Gate 5/6)
+- Gate 8 layer presence match + PresenceManager live join
 - Hideout online claim/contest RPCs + HideoutRegistry sync (Gate 8)

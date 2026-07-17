@@ -125,10 +125,14 @@ func _fire_visit_quest_triggers(district: District) -> void:
 
 # ── Private ────────────────────────────────────────────────────────────────────
 func _poll_player_counts() -> void:
-	# In a real implementation, query Nakama match presence
-	# For now, simulate with random counts
+	# Prefer live PresenceManager headcount when in a layer match / ghosts.
+	var live := 0
+	if PresenceManager != null and PresenceManager.has_method("presence_count"):
+		live = int(PresenceManager.presence_count())
 	for district in _player_counts:
-		_player_counts[district] = randi() % 150
+		# Blend a soft ambient baseline with live presence so hubs never read as empty.
+		var ambient := 12 + (hash(str(district)) % 40)
+		_player_counts[district] = ambient + live
 		emit_signal("player_count_updated", district, _player_counts[district])
 
 func update_player_count(district: District, count: int) -> void:
