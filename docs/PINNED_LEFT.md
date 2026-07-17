@@ -5,8 +5,6 @@
 
 Remaining agent juice: Periliminal floor hazard VFX/HUD.
 
-Remaining agent juice: Periliminal floor hazard VFX/HUD.
-
 Do **not** start the pinned owner trials below until the owner asks
 what’s left.
 
