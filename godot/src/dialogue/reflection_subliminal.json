@@ -1,0 +1,35 @@
+{
+  "greeting": {
+    "line": "Don't stare. You'll notice the differences, and then you won't sleep.",
+    "line_friendly": "You can stare. I'll tell you which pause is yours.",
+    "line_hostile": "Stop looking. You won't sleep either way.",
+    "allow_social_options": true,
+    "options": [
+      {
+        "text": "Tell me more.",
+        "next_key": "lore",
+        "effect": {
+          "disposition": 3
+        }
+      },
+      {
+        "text": "Just passing through.",
+        "next_key": null,
+        "effect": {}
+      }
+    ]
+  },
+  "lore": {
+    "line": "Check your own footage sometime. The pauses. The little errands you don't remember running. One of us is losing time, and I know which one I'd bet on.",
+    "allow_social_options": false,
+    "options": [
+      {
+        "text": "I'll remember that.",
+        "next_key": null,
+        "effect": {
+          "disposition": 5
+        }
+      }
+    ]
+  }
+}

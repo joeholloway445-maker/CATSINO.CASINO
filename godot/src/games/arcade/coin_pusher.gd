@@ -19,8 +19,8 @@ func _init_grid() -> void:
 			_coin_grid[Vector2i(x, y)] = randf() < 0.35
 
 func drop_coin(column: int, bet: int) -> void:
-	if not EconomyManager.spend_coins(bet):
-		push_warning("CoinPusher: insufficient coins")
+	if EconomyManager == null or not EconomyManager.spend_currency_local("chips", bet, "coin_pusher"):
+		push_warning("CoinPusher: insufficient chips")
 		return
 	column = clampi(column, 0, GRID_WIDTH - 1)
 	# Animate new coin dropping into column
@@ -35,7 +35,7 @@ func drop_coin(column: int, bet: int) -> void:
 	var fallen: int = _count_fallen()
 	var payout: int = _calculate_payout(fallen, bet)
 	if payout > 0:
-		EconomyManager.add_coins(payout)
+		EconomyManager.earn_currency_local("chips", payout, "coin_pusher_win")
 	# Animate fallen coins
 	var fall_anim = create_tween()
 	fall_anim.tween_interval(0.3)

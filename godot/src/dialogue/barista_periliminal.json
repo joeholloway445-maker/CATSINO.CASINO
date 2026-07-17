@@ -1,0 +1,35 @@
+{
+  "greeting": {
+    "line": "I brewed what you're craving. You always crave it. Sit. Stay a while.",
+    "line_friendly": "Stay. One more cup. You always stay.",
+    "line_hostile": "Craving denied. Leave before you remember why you came.",
+    "allow_social_options": true,
+    "options": [
+      {
+        "text": "Tell me more.",
+        "next_key": "lore",
+        "effect": {
+          "disposition": 3
+        }
+      },
+      {
+        "text": "Just passing through.",
+        "next_key": null,
+        "effect": {}
+      }
+    ]
+  },
+  "lore": {
+    "line": "One more cup won't hurt. That's true, isn't it? It's always been true before. Comfort, stimulation, meaning — I stock all three.",
+    "allow_social_options": false,
+    "options": [
+      {
+        "text": "I'll remember that.",
+        "next_key": null,
+        "effect": {
+          "disposition": 5
+        }
+      }
+    ]
+  }
+}

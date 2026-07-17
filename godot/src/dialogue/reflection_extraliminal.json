@@ -1,0 +1,35 @@
+{
+  "greeting": {
+    "line": "You wear no banner? I wear ours. Same face, different flag. Strange, isn't it.",
+    "line_friendly": "Same face, my flag. Walk under it a while.",
+    "line_hostile": "Factionless mirror — I have nothing for you.",
+    "allow_social_options": true,
+    "options": [
+      {
+        "text": "Tell me more.",
+        "next_key": "lore",
+        "effect": {
+          "disposition": 3
+        }
+      },
+      {
+        "text": "Just passing through.",
+        "next_key": null,
+        "effect": {}
+      }
+    ]
+  },
+  "lore": {
+    "line": "I believed in something and it gave me an army. You stayed free and it gave you nothing to hold. Which of us do you pity? Careful — I'm asking myself the same thing.",
+    "allow_social_options": false,
+    "options": [
+      {
+        "text": "I'll remember that.",
+        "next_key": null,
+        "effect": {
+          "disposition": 5
+        }
+      }
+    ]
+  }
+}

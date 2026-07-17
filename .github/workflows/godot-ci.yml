@@ -8,7 +8,12 @@ on:
     branches: [main]
     paths: ['godot/**', '.github/workflows/godot-ci.yml', 'scripts/install_addons.sh']
   pull_request:
-    paths: ['godot/**', '.github/workflows/godot-ci.yml', 'scripts/install_addons.sh']
+    paths:
+      - 'godot/**'
+      - '.github/workflows/godot-ci.yml'
+      - 'scripts/install_addons.sh'
+      - 'scripts/ci_rebuild_godot_class_cache.sh'
+      - 'scripts/audit_smoke_check.py'
   workflow_dispatch: {}
 
 env:
@@ -88,6 +93,39 @@ jobs:
           path: builds/html5
           if-no-files-found: error
 
+  headless-smokes:
+    name: Headless gate smokes (boot/5/6/8)
+    runs-on: ubuntu-22.04
+    timeout-minutes: 20
+    container:
+      image: barichello/godot-ci:4.3
+    steps:
+      - uses: actions/checkout@v4
+        # No LFS — smokes exercise scripts/autoloads, not full GLB import.
+      - name: Run boot + gate5 + gate6 (+ gate8 SKIP without Nakama)
+        run: |
+          set -e
+          # --quit-after 20 aborts the filesystem scan before class_name
+          # cache is written; smokes then fail with AAATheme/etc undeclared.
+          bash scripts/ci_rebuild_godot_class_cache.sh godot
+          cd godot
+          for smoke in boot_smoke gate5_smoke gate6_smoke gate8_smoke dialogue_layer_smoke; do
+            echo "=== $smoke ==="
+            set +e
+            timeout 120 godot --headless --path . -s "res://src/dev/${smoke}.gd"
+            EXIT=$?
+            set -e
+            if [ "$EXIT" = "124" ]; then
+              echo "::error::$smoke hung"
+              exit 1
+            fi
+            if [ "$EXIT" != "0" ]; then
+              echo "::error::$smoke failed (exit $EXIT)"
+              exit 1
+            fi
+          done
+          echo "All headless smokes OK (gate8 may SKIP without docker)"
+
   test-gdunit4:
     name: gdUnit4 unit tests
     runs-on: ubuntu-22.04
@@ -104,15 +142,10 @@ jobs:
           GODOT_BIN: godot
         run: |
           if [ -d godot/addons/gdUnit4 ] && [ -d godot/test ] && [ "$(find godot/test -name '*Test*.gd' -o -name '*test*.gd' 2>/dev/null | head -1)" ]; then
-            cd godot
             # Rebuild global class cache without a full asset --import.
             # Full import + Terrain3D/LFS hung for 15+ minutes in CI.
-            # --editor --quit-after regenerates class_name registrations
-            # that GdUnitCmdTool needs (e.g. GdUnitHtmlReport).
-            timeout 90 godot --headless --editor --quit-after 20 || true
-            if [ ! -f .godot/global_script_class_cache.cfg ]; then
+            if ! bash scripts/ci_rebuild_godot_class_cache.sh godot; then
               echo "Class cache missing after editor quit — falling back to Python smoke checks."
-              cd ..
               if command -v python3 >/dev/null 2>&1; then
                 python3 scripts/audit_smoke_check.py
               elif command -v python >/dev/null 2>&1; then
@@ -124,6 +157,7 @@ jobs:
               fi
               exit $?
             fi
+            cd godot
             "$GODOT_BIN" --headless --path . -s -d res://addons/gdUnit4/bin/GdUnitCmdTool.gd \
               -a test/ -c --ignoreHeadlessMode
             EXIT=$?

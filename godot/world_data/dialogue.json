@@ -8,16 +8,16 @@
       "nodes": [
         {
           "id": "greeting",
-          "text": "Welcome, high roller! My wares are the finest in Paw Vegas! What can I do for you?",
+          "text": "Welcome, high roller! My wares are the finest in Paws Vegas! What can I do for you?",
           "options": [
             {"label": "Show me your shop", "next_node": "END", "action": "shop_open"},
-            {"label": "Tell me about Paw Vegas", "next_node": "lore"},
+            {"label": "Tell me about Paws Vegas", "next_node": "lore"},
             {"label": "Nothing, thanks", "next_node": "END", "action": "nothing"}
           ]
         },
         {
           "id": "lore",
-          "text": "Paw Vegas never sleeps. The coins flow like water here — but only to those clever enough to catch them.",
+          "text": "Paws Vegas never sleeps. The coins flow like water here — but only to those clever enough to catch them.",
           "options": [
             {"label": "Wise words. Show me your shop.", "next_node": "END", "action": "shop_open"},
             {"label": "Goodbye", "next_node": "END", "action": "nothing"}
@@ -312,6 +312,77 @@
           "options": [
             {"label": "Worth a pull!", "next_node": "END", "action": "shop_open"},
             {"label": "I'll save my coins", "next_node": "END", "action": "nothing"}
+          ]
+        }
+      ]
+    },
+    {
+      "dialogue_id": "ferryman_dialogue",
+      "start_node": "greeting",
+      "nodes": [
+        {
+          "id": "greeting",
+          "text": "Hub to hub, layer to layer — I don't care which bank you step off. Just don't fall in.",
+          "text_friendly": "You again. Good. The current likes familiar faces.",
+          "text_hostile": "Keep moving. Ferries don't wait for grudges.",
+          "options": [
+            {"label": "What's beyond the dungeon seal?", "next_node": "dungeon"},
+            {"label": "Heard about wardens at the landmarks?", "next_node": "wardens"},
+            {"label": "I'll find my own crossing", "next_node": "END", "action": "nothing"}
+          ]
+        },
+        {
+          "id": "dungeon",
+          "text": "Generated once, then static. Death kicks you out with your pockets. The Periliminal is the one that keeps what it kills — don't confuse them.",
+          "options": [
+            {"label": "How deep before it pays?", "next_node": "depth"},
+            {"label": "Thanks.", "next_node": "END", "action": "nothing"}
+          ]
+        },
+        {
+          "id": "depth",
+          "text": "Three floors if you're counting. The seal remembers your seed — same bones every return.",
+          "options": [
+            {"label": "Understood", "next_node": "END", "action": "nothing"}
+          ]
+        },
+        {
+          "id": "wardens",
+          "text": "Stage-three glow at the landmarks. Drop one and the Titan starts checking its calendar.",
+          "options": [
+            {"label": "I'll look for the glow", "next_node": "END", "action": "nothing"}
+          ]
+        }
+      ]
+    },
+    {
+      "dialogue_id": "warden_scout_dialogue",
+      "start_node": "greeting",
+      "nodes": [
+        {
+          "id": "greeting",
+          "text": "You see that glow on the landmark? That's not neon. That's a claim.",
+          "text_friendly": "Glad you're here — I need someone who can take a bite.",
+          "text_hostile": "If you're not here for the warden, clear the plaza.",
+          "options": [
+            {"label": "A zone boss?", "next_node": "boss"},
+            {"label": "Can I help take it down?", "next_node": "help"},
+            {"label": "About the territory campaign…", "next_node": "END", "action": "quest_accept:pvp_campaign_01"},
+            {"label": "Not my fight", "next_node": "END", "action": "nothing"}
+          ]
+        },
+        {
+          "id": "boss",
+          "text": "Stage three. Fragments and prestige if you drop it. Two of those and the Titan starts checking its calendar.",
+          "options": [
+            {"label": "I'll look for the glow.", "next_node": "END", "action": "nothing"}
+          ]
+        },
+        {
+          "id": "help",
+          "text": "Hotbar's live. Element riders still count. Don't stand in the bite.",
+          "options": [
+            {"label": "I'm ready", "next_node": "END", "action": "quest_accept:pvp_campaign_01"}
           ]
         }
       ]

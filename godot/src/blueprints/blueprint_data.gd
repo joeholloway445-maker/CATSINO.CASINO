@@ -121,7 +121,7 @@ static func fresh(kind: String, base_id: String, display_name: String) -> Dictio
 		"base_id": base_id,
 		"params": params,
 		"audio": audio,
-		"author": PlayerProfile.username if PlayerProfile else "unknown",
+		"author": _author_name(),
 		"version": 1,
 		"locked": [],
 		# UGC governance (see docs/UGC_POLICY.md):
@@ -138,6 +138,12 @@ static func fresh(kind: String, base_id: String, display_name: String) -> Dictio
 		"price": 0,
 		"copies_sold": 0,
 	}
+
+static func _author_name() -> String:
+	var profile := AutoloadGate.get_node("PlayerProfile")
+	if profile == null:
+		return "unknown"
+	return str(profile.get("username")) if str(profile.get("username")) != "" else "unknown"
 
 ## Deterministic seed so procedural detail (scratches, rune layout, particle
 ## phase) is stable per blueprint but unique across them.

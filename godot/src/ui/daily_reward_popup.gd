@@ -13,6 +13,7 @@ var _dismiss_btn: Button
 func _ready() -> void:
 	_build_ui()
 	_check_claim()
+	UINav.add_back_button(self)
 
 func _build_ui() -> void:
 	var panel = PanelContainer.new()

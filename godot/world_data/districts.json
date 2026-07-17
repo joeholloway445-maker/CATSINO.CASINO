@@ -4,7 +4,7 @@
   "districts": [
     {
       "id": "paw_vegas",
-      "display_name": "Paw Vegas",
+      "display_name": "Paws Vegas",
       "description": "The glittering heart of the city — neon signs, slot machines, and endless excitement.",
       "scene_path": "res://scenes/world/paw_vegas_hub.tscn",
       "music_track": "res://assets/audio/music/paw_vegas_theme.ogg",

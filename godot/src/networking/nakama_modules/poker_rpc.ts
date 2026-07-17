@@ -1,4 +1,4 @@
-const HAND_RANKS = ["High Card", "One Pair", "Two Pair", "Three of a Kind", "Straight", "Flush", "Full House", "Four of a Kind", "Straight Flush", "Royal Flush"];
+import { spendCoins, payCoins, cardDicts, normalizeHeld, ok } from "./wallet_util";
 
 const PAYOUTS: Record<string, number> = {
   "High Card": 0,
@@ -40,7 +40,7 @@ function evaluateHand(cards: number[]): string {
   if (counts[0] === 4) return "Four of a Kind";
   if (counts[0] === 3 && counts[1] === 2) return "Full House";
   if (isFlush) return "Flush";
-  if (isStraight) return "Straight";
+  if (isStraight || isRoyalStraight) return "Straight";
   if (counts[0] === 3) return "Three of a Kind";
   if (counts[0] === 2 && counts[1] === 2) return "Two Pair";
   if (counts[0] === 2) return "One Pair";
@@ -52,11 +52,12 @@ const PokerRpc = {
     const userId = ctx.userId;
     if (!userId) throw new Error("Not authenticated");
 
-    const { action, bet, held } = JSON.parse(payload || "{}");
+    const data = JSON.parse(payload || "{}");
+    const { action, bet } = data;
     if (!bet || bet < 10 || bet > 50000) throw new Error("Invalid bet");
 
     if (action === "deal") {
-      nk.walletsUpdate([{ userId, changeset: { cat_coins: -bet }, metadata: { reason: "poker_deal" } }], true);
+      spendCoins(nk, userId, bet, "poker_deal");
       const deck = shuffleDeck();
       const cards = deck.slice(0, 5);
       nk.storageWrite([{
@@ -67,14 +68,14 @@ const PokerRpc = {
         permissionRead: 1,
         permissionWrite: 1
       }]);
-      return JSON.stringify({ cards });
+      return ok({ cards: cardDicts(cards) });
     }
 
     if (action === "draw") {
       const sessions = nk.storageRead([{ collection: "poker_session", key: "hand", userId }]);
       if (!sessions || sessions.length === 0) throw new Error("No active hand");
-      const session = JSON.parse(sessions[0].value);
-      const heldArr: boolean[] = held || [false, false, false, false, false];
+      const session = JSON.parse(sessions[0].value as string);
+      const heldArr = normalizeHeld(data);
       const deck: number[] = session.deck;
       let deckIdx = 5;
       const newCards = session.cards.map((card: number, i: number) => {
@@ -84,11 +85,9 @@ const PokerRpc = {
       const handName = evaluateHand(newCards);
       const multiplier = PAYOUTS[handName] || 0;
       const payout = session.bet * multiplier;
-      if (payout > 0) {
-        nk.walletsUpdate([{ userId, changeset: { cat_coins: payout }, metadata: { reason: "poker_win", hand: handName } }], true);
-      }
+      payCoins(nk, userId, payout, "poker_win");
       nk.storageDelete([{ collection: "poker_session", key: "hand", userId }]);
-      return JSON.stringify({ cards: newCards, hand_name: handName, payout, multiplier });
+      return ok({ cards: cardDicts(newCards), hand_name: handName, payout, multiplier });
     }
 
     throw new Error("Unknown action");

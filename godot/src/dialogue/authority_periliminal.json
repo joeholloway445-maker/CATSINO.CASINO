@@ -1,0 +1,35 @@
+{
+  "greeting": {
+    "line": "Look at you. After everything, this is what you brought me?",
+    "line_friendly": "Straighten up. Try again. I'll watch.",
+    "line_hostile": "Disappoint me again and there is no again.",
+    "allow_social_options": true,
+    "options": [
+      {
+        "text": "Tell me more.",
+        "next_key": "lore",
+        "effect": {
+          "disposition": 3
+        }
+      },
+      {
+        "text": "Just passing through.",
+        "next_key": null,
+        "effect": {}
+      }
+    ]
+  },
+  "lore": {
+    "line": "I only ever wanted you to do it RIGHT. Was that so much? Stand up straight. Try again. Disappoint me again.",
+    "allow_social_options": false,
+    "options": [
+      {
+        "text": "I'll remember that.",
+        "next_key": null,
+        "effect": {
+          "disposition": 5
+        }
+      }
+    ]
+  }
+}

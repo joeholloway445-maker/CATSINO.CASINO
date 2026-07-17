@@ -1,17 +1,29 @@
 extends Node
-## Autoloaded as "SubliminalManager". The invite-only start layer: every
-## player gets one small apartment — their start screen AND their UGC studio.
-## Invites: max 3 outstanding at a time; a creator subscription (gems) raises
-## the cap. All creator-mode/UGC building routes through here.
+## Autoloaded as "SubliminalManager". Each player's private safe zone:
+## start screen, UGC studio, and capped item storage. NOTHING auto-spawns
+## here — ambient figures require an active creator subscription (pay gate).
+## Invites: max 3 outstanding at a time; creator subscription raises the cap.
 
 signal invite_sent(code: String)
 signal invite_redeemed(code: String, by_player: String)
 signal apartment_updated()
+signal storage_changed()
+signal ambient_changed()
 
 const SAVE_PATH := "user://subliminal.json"
 const FREE_INVITE_CAP := 3
 const CREATOR_INVITE_CAP := 10
 const CREATOR_SUB_COINS := 2500 # per 30 days
+
+## Private item-storage caps. Free players get a small locker; creator
+## subscription and one-time expansions raise the ceiling. Carry inventory
+## (InventoryManager) is separate — this is the Subliminal vault.
+const FREE_STORAGE_SLOTS := 24
+const CREATOR_STORAGE_BONUS := 48
+const STORAGE_EXPANSION_SLOTS := 16
+const STORAGE_EXPANSION_COINS := 4500
+const MAX_STORAGE_EXPANSIONS := 8
+const MAX_CREATOR_AMBIENT := 12
 
 ## Subliminal tiers: buy the space that fits you. Grid = placeable UGC
 ## slots; capacity = concurrent guests; public tiers can open to strangers.
@@ -82,6 +94,14 @@ var _invited_by: String = ""
 var _creator_sub_until: int = 0
 var apartment_slots: Dictionary = {} # "x,y" -> {blueprint_id, params}
 
+## Private storage locker (item dicts). Cap = free + creator bonus + expansions.
+var storage_items: Array = []
+var _storage_expansions_bought: int = 0
+
+## Creator-paid ambient figures only — never auto-generated. Each entry:
+## {id, archetype, display_name, placed_at}
+var ambient_npcs: Array = []
+
 func _ready() -> void:
 	_load()
 
@@ -131,8 +151,113 @@ func buy_creator_subscription() -> bool:
 	var now := int(Time.get_unix_time_from_system())
 	_creator_sub_until = maxi(_creator_sub_until, now) + 30 * 24 * 3600
 	_save()
-	NotificationUI.notify_win("Creator subscription active — %d invites, full studio tools! 🛠️" % CREATOR_INVITE_CAP)
+	NotificationUI.notify_win("Creator subscription active — %d invites, ambient spawn, +%d storage. 🛠️" % [CREATOR_INVITE_CAP, CREATOR_STORAGE_BONUS])
+	Hope.record("creator_sub", {"until": _creator_sub_until})
 	return true
+
+# ── Private item storage (safe zone locker) ───────────────────────────────────
+
+func storage_capacity() -> int:
+	var cap := FREE_STORAGE_SLOTS
+	if is_creator():
+		cap += CREATOR_STORAGE_BONUS
+	cap += _storage_expansions_bought * STORAGE_EXPANSION_SLOTS
+	return cap
+
+func storage_used() -> int:
+	return storage_items.size()
+
+func storage_expansions_bought() -> int:
+	return _storage_expansions_bought
+
+func buy_storage_expansion() -> bool:
+	if _storage_expansions_bought >= MAX_STORAGE_EXPANSIONS:
+		NotificationUI.notify_error("Storage expansion limit reached (%d)." % MAX_STORAGE_EXPANSIONS)
+		return false
+	if not await EconomyManager.spend_coins(STORAGE_EXPANSION_COINS, "subliminal_storage_expansion"):
+		return false
+	_storage_expansions_bought += 1
+	_save()
+	storage_changed.emit()
+	Hope.record("storage_expansion", {"bought": _storage_expansions_bought, "cap": storage_capacity()})
+	NotificationUI.notify_win("Subliminal locker +%d slots (now %d)." % [STORAGE_EXPANSION_SLOTS, storage_capacity()])
+	return true
+
+func store_item(item: Dictionary) -> bool:
+	if item.is_empty() or str(item.get("id", "")) == "":
+		return false
+	if storage_used() >= storage_capacity():
+		NotificationUI.notify_error("Subliminal storage full (%d/%d). Buy an expansion or creator sub." % [storage_used(), storage_capacity()])
+		return false
+	var item_id := str(item.id)
+	for existing in storage_items:
+		if str(existing.get("id", "")) == item_id:
+			NotificationUI.notify_error("That item is already in your Subliminal locker.")
+			return false
+	storage_items.append(item.duplicate(true))
+	_save()
+	storage_changed.emit()
+	Hope.record("subliminal_store", {"item": item_id})
+	return true
+
+func withdraw_item(item_id: String) -> Dictionary:
+	for i in range(storage_items.size()):
+		if str(storage_items[i].get("id", "")) == item_id:
+			var item: Dictionary = storage_items[i]
+			storage_items.remove_at(i)
+			_save()
+			storage_changed.emit()
+			Hope.record("subliminal_withdraw", {"item": item_id})
+			return item
+	return {}
+
+# ── Creator-gated ambient NPC placement (never automatic) ─────────────────────
+
+## Place a single ambient figure in YOUR Subliminal. Hard pay-gate: active
+## creator subscription required. The world never seeds these for free.
+func place_ambient_npc(archetype: String, display_name: String = "") -> Dictionary:
+	if not is_creator():
+		NotificationUI.notify_error("Ambient figures in your Subliminal require a Creator subscription.")
+		return {}
+	if ambient_npcs.size() >= MAX_CREATOR_AMBIENT:
+		NotificationUI.notify_error("Ambient figure cap reached (%d). Remove one first." % MAX_CREATOR_AMBIENT)
+		return {}
+	var clean_arch := archetype.strip_edges().to_lower()
+	if clean_arch == "":
+		clean_arch = "reflection"
+	var entry := {
+		"id": "sub_amb_%d_%d" % [Time.get_ticks_msec(), ambient_npcs.size()],
+		"archetype": clean_arch,
+		"display_name": display_name if display_name != "" else clean_arch.capitalize(),
+		"placed_at": Time.get_datetime_string_from_system(),
+		"layer": "subliminal",
+		"district": "player_apartment",
+		"auto_spawned": false,
+		"creator_paid": true,
+	}
+	ambient_npcs.append(entry)
+	_save()
+	ambient_changed.emit()
+	Hope.record("subliminal_ambient_place", {"id": entry.id, "archetype": clean_arch})
+	NotificationUI.notify_info("Placed '%s' in your Subliminal (creator-gated)." % entry.display_name)
+	return entry
+
+func remove_ambient_npc(npc_id: String) -> bool:
+	for i in range(ambient_npcs.size()):
+		if str(ambient_npcs[i].get("id", "")) == npc_id:
+			ambient_npcs.remove_at(i)
+			_save()
+			ambient_changed.emit()
+			Hope.record("subliminal_ambient_remove", {"id": npc_id})
+			return true
+	return false
+
+func clear_all_ambient() -> void:
+	if ambient_npcs.is_empty():
+		return
+	ambient_npcs.clear()
+	_save()
+	ambient_changed.emit()
 
 ## Place a blueprint instance into an apartment slot. Every roster entity is
 ## also a blueprint (see EntityBlueprint) — the apartment is where they get
@@ -163,6 +288,9 @@ func _save() -> void:
 			"apartment": apartment_slots,
 			"tier": _tier_id,
 			"public": is_public,
+			"storage": storage_items,
+			"storage_expansions": _storage_expansions_bought,
+			"ambient": ambient_npcs,
 		}))
 
 func _load() -> void:
@@ -180,3 +308,13 @@ func _load() -> void:
 	_tier_id = str(d.get("tier", "studio"))
 	APARTMENT_GRID = tier_by_id(_tier_id).grid
 	is_public = bool(d.get("public", false))
+	storage_items = d.get("storage", [])
+	if not storage_items is Array:
+		storage_items = []
+	_storage_expansions_bought = int(d.get("storage_expansions", 0))
+	ambient_npcs = d.get("ambient", [])
+	if not ambient_npcs is Array:
+		ambient_npcs = []
+	# Expired creator sub → strip ambient figures (pay gate reasserts).
+	if not is_creator() and not ambient_npcs.is_empty():
+		ambient_npcs.clear()

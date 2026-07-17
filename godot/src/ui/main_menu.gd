@@ -17,7 +17,7 @@ const CUSTOM_BG_PATH := "res://assets/ui/custom_bg.png"
 const THEME_SONG_PATH := "res://assets/audio/theme_song.ogg"
 
 const DISTRICTS = [
-	{id="paw_vegas",     name="Paw Vegas",     icon="🎰", desc="Slots, cards, and neon lights."},
+	{id="paw_vegas",     name="Paws Vegas",     icon="🎰", desc="Slots, cards, and neon lights."},
 	{id="cat_coliseum",  name="Cat Coliseum",   icon="⚔️", desc="Combat arena. Prove yourself."},
 	{id="neon_alley",    name="Neon Alley",     icon="🏁", desc="Racing district. High speed."},
 	{id="cat_forest",    name="Cat Forest",     icon="🌿", desc="Quests, companions, and mystery."},
@@ -55,31 +55,37 @@ func _build_ui() -> void:
 	root.add_child(quick_row)
 
 	for action in [
-		{label="🎒 Inventory", sig="open_inventory"},
-		{label="🐾 Companions", sig="open_companions"},
-		{label="🛒 Shop", sig="open_shop"},
-		{label="🏆 Achievements", sig="open_achievements"},
-		{label="🌐 Game Modes", sig="open_game_modes", scene="res://scenes/ui/game_mode_store.tscn"},
-		{label="🗺️ Overworld", sig="", scene="res://scenes/layers/supraliminal.tscn"},
-		{label="🌀 Reality Layers", sig="", scene="res://scenes/layers/layer_select.tscn"},
-		{label="🌗 Ascension", sig="", scene="res://scenes/ui/ascension.tscn"},
-		{label="🔴 The PVXC", sig="", scene="res://scenes/pvxc/pvxc_gate.tscn"},
-		{label="🏟️ Arena", sig="", scene="res://scenes/ui/arena_hub.tscn"},
-		{label="👑 Crown Hall", sig="", scene="res://scenes/ui/crown_hall.tscn"},
-		{label="📖 Skills", sig="", scene="res://scenes/ui/skill_tree.tscn"},
-		{label="🏦 Bank & Guild", sig="", scene="res://scenes/ui/city_services.tscn"},
-		{label="🗳️ Wager Hall", sig="", scene="res://scenes/ui/arena_hub.tscn"},
-		{label="⚙️ Settings", sig="open_settings"},
+		{label="🎒 Inventory", scene="res://scenes/ui/inventory.tscn"},
+		{label="🐾 Companions", scene="res://scenes/ui/companion_viewer.tscn"},
+		{label="🛒 Shop", scene="res://scenes/ui/shop.tscn"},
+		{label="🏆 Achievements", scene="res://scenes/ui/achievements.tscn"},
+		{label="🌐 Game Modes", scene="res://scenes/ui/game_mode_store.tscn"},
+		{label="🗺️ Overworld", scene="res://scenes/layers/supraliminal.tscn"},
+		{label="🌀 Reality Layers", scene="res://scenes/layers/layer_select.tscn"},
+		{label="🌗 Ascension", scene="res://scenes/ui/ascension.tscn"},
+		{label="🔴 The PVXC", scene="res://scenes/pvxc/pvxc_gate.tscn"},
+		{label="🏟️ Arena", scene="res://scenes/ui/arena_hub.tscn"},
+		{label="⚔️ Combat", scene="res://scenes/ui/combat_ui.tscn"},
+		{label="🏁 Tournaments", scene="res://scenes/ui/tournament.tscn"},
+		{label="👑 Crown Hall", scene="res://scenes/ui/crown_hall.tscn"},
+		{label="📖 Skills", scene="res://scenes/ui/skill_tree.tscn"},
+		{label="🏦 Bank & Guild", scene="res://scenes/ui/city_services.tscn"},
+		{label="📜 Quests", scene="res://scenes/ui/quest.tscn"},
+		{label="🎁 Daily", scene="res://scenes/ui/daily_reward.tscn"},
+		{label="🎰 Gacha", scene="res://scenes/ui/gacha.tscn"},
+		{label="📊 Leaderboard", scene="res://scenes/ui/leaderboard.tscn"},
+		{label="🗳️ Wager Hall", scene="res://scenes/ui/arena_hub.tscn"},
+		{label="⚙️ Settings", scene="res://scenes/ui/settings.tscn"},
 	]:
 		var btn = Button.new()
 		btn.text = action.label
-		var sig_name: String = action.sig
-		var scene_path: String = action.get("scene", "")
+		var scene_path: String = str(action.get("scene", ""))
 		btn.pressed.connect(func():
-			if sig_name != "":
-				emit_signal(sig_name)
-			if scene_path != "":
-				get_tree().change_scene_to_file(scene_path))
+			if scene_path != "" and ResourceLoader.exists(scene_path):
+				get_tree().change_scene_to_file(scene_path)
+			elif scene_path != "":
+				NotificationUI.notify_error("Scene missing: %s" % scene_path)
+		)
 		quick_row.add_child(btn)
 
 	# District grid
@@ -101,8 +107,18 @@ func _make_district_button(district: Dictionary) -> Button:
 	var btn = Button.new()
 	btn.custom_minimum_size = Vector2(200, 120)
 	btn.text = "%s\n%s\n%s" % [district.icon, district.name, district.desc]
-	btn.pressed.connect(func(): enter_district.emit(district.id))
+	btn.pressed.connect(func(): _travel_district(str(district.id)))
 	return btn
+
+func _travel_district(district_id: String) -> void:
+	enter_district.emit(district_id)
+	var path := "res://scenes/world/%s.tscn" % district_id
+	if district_id == "paw_vegas":
+		path = "res://scenes/world/paw_vegas_hub.tscn"
+	if ResourceLoader.exists(path):
+		get_tree().change_scene_to_file(path)
+	else:
+		NotificationUI.notify_error("District scene missing: %s" % district_id)
 
 func _add_custom_background() -> void:
 	if not ResourceLoader.exists(CUSTOM_BG_PATH):

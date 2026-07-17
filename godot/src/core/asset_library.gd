@@ -7,23 +7,16 @@ class_name AssetLibrary
 ## file names each slot expects.
 ##
 ## Slot -> expected file (first that exists wins):
-##   metahuman_player   MetaHuman GLB export (identity — preferred)
-##   metahuman_npc      MetaHuman GLB for NPCs / peers
-##   metahuman_<race>   optional per-race MetaHuman variant
-##   player_human       interim humanoid (TPS demo) until MetaHuman lands
-##   npc_human          interim NPC humanoid
-##   player_cat         optional Catsino house skin
-##   npc_cat            optional Catsino NPC skin
-##   creature          assets/models/creature.glb
-##   tree              assets/models/tree.glb
-##   crystal           assets/models/crystal.glb
-##   ruin_pillar       assets/models/ruin_pillar.glb
-##   rock              assets/models/rock.glb
-##   extraction_gate   assets/models/extraction_gate.glb
-##   harvest_node      assets/models/harvest_node.glb
-##   apartment_prop    assets/models/apartment_prop.glb
+##   peri_human_player / metahuman_player   shipped PeriHuman (identity)
+##   peri_human_npc / metahuman_npc         shipped PeriHuman NPCs
+##   peri_human_<race> / metahuman_<race>   optional per-race variant
+##   player_human / npc_human               aliases of the PeriHuman bake
+##   player_cat / npc_cat                   optional Catsino house skins
+##   creature / tree / crystal / ruin_pillar / rock
+##   extraction_gate / harvest_node / apartment_prop / neon_sign / city_door
 ##
 ## Mega-city model slots (MegaCityBuilder / BuildingBuilder ask these):
+##   osm2world_<hub>   OSM2World downtown shell (dallas/fort_worth/arlington/denton)
 ##   city_tower        a downtown skyscraper shell
 ##   city_lowrise      a mid/low commercial building
 ##   city_house        a residential structure
@@ -69,7 +62,7 @@ static var _variants_loaded := false
 static var _variant_scene_cache: Dictionary = {}  # "slot/file" -> PackedScene or null
 
 ## Returns an instantiated Node3D for the slot, or null if no real asset
-## is installed (caller then builds its procedural fallback).
+## is installed / import failed (caller then builds its procedural fallback).
 static func instance(slot: String) -> Node3D:
 	if _cache.has(slot):
 		var packed: PackedScene = _cache[slot]
@@ -77,10 +70,13 @@ static func instance(slot: String) -> Node3D:
 	for ext in SEARCH_EXTENSIONS:
 		var path := "res://assets/models/%s.%s" % [slot, ext]
 		if ResourceLoader.exists(path):
-			var res := load(path)
+			var res = load(path)
+			# Failed imports (e.g. Draco-required GLBs) yield null / non-scenes.
 			if res is PackedScene:
 				_cache[slot] = res
 				return res.instantiate()
+			_cache[slot] = null
+			return null
 	_cache[slot] = null
 	return null
 
@@ -91,9 +87,20 @@ static func has_asset(slot: String) -> bool:
 			return true
 	return false
 
-## True if a real (non-procedural) asset is installed for the slot.
+## True if the slot loads as a PackedScene (file presence ≠ valid import).
 static func has(slot: String) -> bool:
-	return has_asset(slot)
+	if _cache.has(slot):
+		return _cache[slot] != null
+	for ext in SEARCH_EXTENSIONS:
+		var path := "res://assets/models/%s.%s" % [slot, ext]
+		if ResourceLoader.exists(path):
+			var res = load(path)
+			if res is PackedScene:
+				_cache[slot] = res
+				return true
+			_cache[slot] = null
+			return false
+	return false
 
 ## Convenience: try the slot; if absent, call `fallback` (a Callable that
 ## returns Node3D). Applies the identity lens material to real assets'
@@ -188,7 +195,7 @@ static func sound(slot: String, looped: bool = false) -> AudioStream:
 		return _audio_cache[cache_key]
 	for ext in AUDIO_EXTENSIONS:
 		var path := "res://assets/audio/%s.%s" % [slot, ext]
-		if ResourceLoader.exists(path):
+		if ResourceLoader.exists(path) and AutoloadGate.import_binary_ready(path):
 			var res := load(path)
 			if res is AudioStream:
 				# Duplicate before mutating import defaults so one-shot and

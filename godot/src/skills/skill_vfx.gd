@@ -5,7 +5,13 @@ class_name SkillVFX
 ## their cast resolvers.
 
 static func _tint() -> Color:
-	return IdentityLens.sensorium().light
+	var lens := AutoloadGate.get_node("IdentityLens")
+	if lens == null or not lens.has_method("sensorium"):
+		return Color.WHITE
+	var senso: Variant = lens.call("sensorium")
+	if senso is Dictionary:
+		return senso.get("light", Color.WHITE)
+	return Color.WHITE
 
 ## Quick burst at the caster on any cast.
 static func cast_flash(parent: Node3D, at: Vector3) -> void:

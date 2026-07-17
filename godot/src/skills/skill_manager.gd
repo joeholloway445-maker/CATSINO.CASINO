@@ -101,6 +101,9 @@ func is_unlocked(skill_id: String) -> bool:
 func unlock(skill_id: String) -> bool:
 	if is_unlocked(skill_id):
 		return true
+	# Prestige lines spend 🌟 Prestige, not skill points.
+	if is_prestige_skill(skill_id):
+		return unlock_with_prestige(skill_id)
 	if skill_points <= 0:
 		NotificationUI.notify_error("No skill points. Influence levels and quests grant them.")
 		return false
@@ -109,6 +112,58 @@ func unlock(skill_id: String) -> bool:
 	_ranks[skill_id] = {"rank": 1, "xp": 0, "morph": ""}
 	_save()
 	return true
+
+## Prestige soft-power trees (Social Politics, Wagering Arts).
+func is_prestige_skill(skill_id: String) -> bool:
+	for line in known_lines():
+		if str(line.get("source", "")) != "prestige":
+			continue
+		for a in line.get("actives", []):
+			if a.get("id", "") == skill_id:
+				return true
+		if line.get("ultimate", {}).get("id", "") == skill_id:
+			return true
+		for p in line.get("passives", []):
+			if p.get("id", "") == skill_id:
+				return true
+	return false
+
+func prestige_unlock_cost(skill_id: String) -> int:
+	# Ultimates cost more; passives a bit less; actives baseline.
+	if skill_id.ends_with("_ult") or skill_id.contains("_ult"):
+		return 200
+	if skill_id.contains("_p"):
+		return 75
+	return 100
+
+## Spend Prestige to unlock a social/wagering node. Influence level is
+## unchanged (lifetime prestige still counts) — this is the designed sink.
+func unlock_with_prestige(skill_id: String) -> bool:
+	if is_unlocked(skill_id):
+		return true
+	if not is_prestige_skill(skill_id):
+		return unlock(skill_id)
+	var cost := prestige_unlock_cost(skill_id)
+	if not EconomyManager.spend_currency_local("prestige", cost, "prestige_skill_%s" % skill_id):
+		NotificationUI.notify_error("Need %d 🌟 Prestige to unlock this (social/wagering tree)." % cost)
+		return false
+	_unlocked[skill_id] = true
+	_ranks[skill_id] = {"rank": 1, "xp": 0, "morph": ""}
+	_save()
+	Hope.record("prestige_skill_unlock", {"id": skill_id, "cost": cost})
+	NotificationUI.notify_win("🌟 Prestige spent — unlocked %s." % find_skill(skill_id).get("name", skill_id))
+	return true
+
+func has_prestige_passive(passive_id: String) -> bool:
+	return is_unlocked(passive_id)
+
+## Soft combat/economy hooks for prestige passives (call sites may use these).
+func social_rep_mult() -> float:
+	return 1.20 if has_prestige_passive("soc_p0") else 1.0
+
+func wagering_edge_relief() -> float:
+	# Fraction of house edge returned to the player (still net house-favored).
+	return 0.03 if has_prestige_passive("wag_p0") else 0.0
 
 func rank_of(skill_id: String) -> int:
 	return _ranks.get(skill_id, {}).get("rank", 0)

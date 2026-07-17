@@ -34,7 +34,7 @@ const FRAME_STATS: Record<string, RacerStats> = {
     "surge":   { spd: 85,  lck: 85,  pow: 120, res: 80  },
 };
 
-const RACE_PAYOUT: Record<number, number> = { 1: 3, 2: 1.5, 3: 0 };
+const RACE_PAYOUT: Record<number, number> = { 1: 3, 2: 1.5, 3: 1.0 };
 
 const rpcStartRace: nkruntime.RpcFunction = function(
     ctx: nkruntime.Context,
@@ -55,18 +55,16 @@ const rpcStartRace: nkruntime.RpcFunction = function(
 
     const playerStats = FRAME_STATS[frame_id] ?? { spd: 90, lck: 90, pow: 90, res: 90 };
 
-    // Simulate 3 AI opponents
-    const opponents = ["npc_bolt", "npc_phantom", "npc_crimson"];
-    const oppFrames = ["bolt", "veil", "tremor"];
+    // 7 AI opponents → 8-racer field (matches RaceUI rows + OfflineCasino)
+    const opponents = ["npc_bolt", "npc_phantom", "npc_crimson", "npc_veil", "npc_surge", "npc_zephyr", "npc_bastion"];
+    const oppFrames = ["bolt", "veil", "tremor", "zephyr", "surge", "bastion", "bolt"];
 
     const racers: Array<{ id: string; time: number; position: number }> = [];
 
-    // Player race
     let playerTime = 0;
     for (let i = 0; i < TRACK_SEGMENTS; i++) playerTime += resolveSegment(playerStats, nk);
-    racers.push({ id: ctx.userId, time: playerTime, position: 0 });
+    racers.push({ id: "YOU", time: playerTime, position: 0 });
 
-    // AI races
     for (let a = 0; a < opponents.length; a++) {
         const stats = FRAME_STATS[oppFrames[a]] ?? { spd: 90, lck: 90, pow: 90, res: 90 };
         let t = 0;
@@ -77,7 +75,7 @@ const rpcStartRace: nkruntime.RpcFunction = function(
     racers.sort((a, b) => a.time - b.time);
     racers.forEach((r, i) => { r.position = i + 1; });
 
-    const playerResult = racers.find(r => r.id === ctx.userId)!;
+    const playerResult = racers.find(r => r.id === "YOU")!;
     const payout = bet > 0 ? Math.floor(bet * (RACE_PAYOUT[playerResult.position] ?? 0)) : 0;
 
     if (payout > 0) {
@@ -93,6 +91,7 @@ const rpcStartRace: nkruntime.RpcFunction = function(
         finish_time: playerResult.time.toFixed(2),
         results: racers.map(r => ({ id: r.id, position: r.position, time: r.time.toFixed(2) })),
         payout,
+        server_wallet: true,
     });
 };
 

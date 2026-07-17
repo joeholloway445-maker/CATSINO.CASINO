@@ -1,76 +1,73 @@
-# Visual direction: realistic ESO bar
+# Visual direction: realistic ESO bar + shipped PeriHumans
 
-**Why the screenshots looked ugly:** the game had **zero character/environment
-GLBs**. Controllers fell back to an orange capsule “cat,” cities were box
-meshes, and ground was a flat noise plane on `gl_compatibility`. That was a
-graybox, not the art direction.
+**Why early screenshots looked ugly:** zero character/environment GLBs —
+orange capsules, box cities, flat ground.
 
-**Locked direction for AAA GOTY v0.1:** Elder Scrolls Online–class realism —
-human(oid) MetaHumans, sculpted terrain, Forward+ lighting on desktop.
+**Locked direction for AAA GOTY v0.1:** Elder Scrolls Online–class realism
+on desktop where possible; **players never install Unreal, MakeHuman, or
+any third-party character tool**. PeriHumans ship as GLBs in the build.
 
-## Characters = MetaHumans (Godot runtime)
+## Characters = PeriHumans (shipped)
 
-Epic now licenses finished MetaHumans for use outside Unreal (Unity/Godot).
-Authoring still happens in **Unreal MetaHuman Creator** (UE 5.6+). This repo
-does **not** ship MetaHuman binary assets (you bring your own exports).
+`MetahumanCharacter` resolves:
 
-### Pipeline (you run this once per hero / race)
+`peri_human_*` / `metahuman_*` → `player_human` / `npc_human` →
+`CharacterRig` last resort. Catsino cat mode uses `player_cat` / `npc_cat`.
 
-1. Create or Mesh-to-MetaHuman in Unreal 5.6+.
-2. Export → Blender (ARKit morph bake if needed — see
-   [MetaHumanGodot](https://github.com/ibrews/MetaHumanGodot) / Capafy pipeline).
-3. Export **GLB** into:
-   - `godot/assets/models/metahuman_player.glb` — local player
-   - `godot/assets/models/metahuman_npc.glb` — peers / NPCs
-   - optional `metahuman_<race_id>.glb` per Identity race
-4. Open the project in Godot **Forward+**. Skin/eye/hair look-dev shaders are
-   vendored under `godot/assets/shaders/metahuman/` (community MetaHumanGodot,
-   MIT / not Epic-affiliated).
+### What ships today (no player setup)
 
-### Runtime resolver
+**MPFB2** (MakeHuman for Blender, CC0 asset packs) studio bake — textured
+skin, high-poly eyes, teeth, brows/lashes, hair, shirt/pants/shoes:
 
-`MetahumanCharacter` (`godot/src/character/metahuman_character.gd`):
+| Slot | Role |
+|---|---|
+| `peri_human_player.glb` / `metahuman_player.glb` | Local player (MPFB male + wardrobe) |
+| `peri_human_npc.glb` / `metahuman_npc.glb` | Default NPC (MPFB female + wardrobe) |
+| `variants/metahuman_npc/*.glb` | Skin/hair/cloth color variants for crowds |
+| `player_cat.glb` / `npc_cat.glb` | Catsino house skins |
 
-`metahuman_*` → `player_human` / `npc_human` (interim TPS demo mesh) →
-`CharacterRig` procedural last resort.
+Rebake: `python3 scripts/bake_mpfb_characters.py` (needs Blender 4.2 + MPFB
+extension + CC0 packs; see script header). Fallback mesh bake remains in
+`scripts/bake_visual_gaps.py`.
 
-Orange capsules are **gone** from the default path.
+Runtime look-dev tunes Skin/Eye/Hair/Cloth (soft SSS/rim on Forward+;
+MetaHumanGodot skin shader when surface names match).
 
-### Interim mesh (until your MetaHumans land)
+### Optional cinema upgrade (owner trials)
 
-MIT Godot TPS demo player is staged as `player_human.glb` / `npc_human.glb`
-so layers already show a real humanoid, not a capsule. Replace these files
-with MetaHuman exports without code changes.
+Overwrite the same slot filenames with CC4 / MetaHuman / DAZ exports.
+Players still only download the game. See `docs/PINNED_LEFT.md`.
+
+## Cities = OSM2World futuristic DFW shells
+
+`MegaCityBuilder` loads `osm2world_<hub>.glb` as the visual downtown when
+present (dallas / fort_worth / arlington / denton). Layout JSON in
+`world_data/osm/` stays the gameplay brain (streets, landmarks, venues).
+Bake: `python3 scripts/bake_osm2world_cities.py` (Java + OSM2World + Blender).
+Attribution: © OpenStreetMap contributors (ODbL) — see
+`godot/world_data/osm/ATTRIBUTION.md`.
 
 ## Terrain = Terrain3D (desktop) / ProceduralTerrain (web)
 
-| Target | Backend |
-|---|---|
-| Desktop / native AAA | **Terrain3D** v1.0.0 (Godot 4.3 GDExtension) in `addons/terrain_3d/` |
-| Web export | `ProceduralTerrain` (TerrainBridge falls back automatically) |
+Multi-layer height (continental + ridge + detail) with a soft spawn plaza.
+PBR grass/dirt/sand maps on both backends. Terrain3D editor sculpt remains
+a local-GPU authoring step (plugin stays disabled in CI).
 
-`TerrainBridge` + `TerrainWorld` generate a noise heightfield with grass/dirt
-auto-shader when Terrain3D’s classes are present.
+## Lighting / sky
 
-Sculpt hero regions in the editor (Terrain3D tools), or import World
-Machine / Gaea heightmaps — see Terrain3D docs.
+Desktop Forward+ + HDRI IBL (`kloppenheim_06_1k.hdr`); mobile/web
+`gl_compatibility` with procedural sky fallback.
 
-## Renderer
+## World props
 
-| Platform | Method |
-|---|---|
-| Desktop | `forward_plus` (SSAO / SSIL / volumetric fog / glow) |
-| Mobile / Web | `gl_compatibility` |
-
-## What you still drop in by hand
-
-- MetaHuman GLBs (above)
-- City kits → `city_tower.glb`, etc. (`docs/SHIPPING.md` §3)
-- PBR ground textures into Terrain3D texture assets / `assets/terrain/`
-- HDRI (optional) for studio-quality reflection probes
+Filled: trees, rocks, **faceted crystals**, ruins, gates, furniture,
+**Quaternius creatures**, **aircraft (Bob)**, neon, doors, cats.
 
 ## Related
 
-- `docs/V01_GOTY.md` — goal lock
-- `docs/ADDONS.md` — Terrain3D native-only note (web fallback kept)
-- `godot/assets/models/ATTRIBUTION.md` — interim mesh licenses
+- `scripts/bake_mpfb_characters.py` — MPFB2 PeriHuman studio bake
+- `scripts/bake_osm2world_cities.py` — OSM2World DFW shells
+- `scripts/bake_visual_gaps.py` — cat / crystal / gap bake
+- `docs/PINNED_LEFT.md` — pinned GOTY gates + owner trials
+- `docs/ASSET_PIPELINE.md` — Blender → GLB
+- `godot/assets/models/ATTRIBUTION.md` — licenses

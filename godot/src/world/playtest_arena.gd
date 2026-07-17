@@ -8,7 +8,8 @@ extends Node3D
 ## regardless of zone — see PvxcZone._apply_phase() for that override.
 ##
 ## When Arena hub queues a mode via Engine meta `arena_queued_mode`, an
-## ArenaModeController attaches and runs survival / zombies / ctf / duel rules.
+## ArenaModeController attaches and runs survival / zombies / ctf / duel /
+## moba rules. Online moba also sets `moba_online_match_id` for Nakama.
 
 @export var spawn_position := Vector3(0, 2, 0)
 

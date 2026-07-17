@@ -1,7 +1,9 @@
 extends Node
 class_name PeriliminalGenerator
 
-# Generates a personalized Periliminal gauntlet based on Hope profile
+# Generates a personalized Periliminal gauntlet based on Hope profile.
+# Floors are real content packs (entities + hazards + exits) applied by
+# LayerWorld — not a denser random-spawn stand-in.
 
 const TRAP_TYPES = [
 	"arena_combat",       # Aggression trap
@@ -33,9 +35,38 @@ class TrapFloor:
 	var exits: Array[String]
 	var psychological_weight: float
 
-func generate_gauntlet() -> Dictionary:
-	var hope_profile = Hope.get_profile()
-	var difficulty_curve = PeriliminalRuns.difficulty()
+var _rng := RandomNumberGenerator.new()
+
+## class_name scripts must not bare-ref Autoloads (parse-order races).
+static func _autoload(name: String) -> Node:
+	var tree := Engine.get_main_loop() as SceneTree
+	if tree == null or tree.root == null:
+		return null
+	return tree.root.get_node_or_null(name)
+
+static func _player_faction() -> String:
+	var pp := _autoload("PlayerProfile")
+	if pp == null:
+		return "Factionless"
+	return CompanionRegistry.normalize_faction(str(pp.get("faction")))
+
+## `p_seed` makes dungeon / wipe-run gauntlets deterministic per ledger seed.
+func generate_gauntlet(p_seed: int = 0) -> Dictionary:
+	var hope_profile: Dictionary = {
+		"aggression": 0.5, "caution": 0.5, "curiosity": 0.5, "greed": 0.5,
+		"fear": 0.0, "lust": 0.0, "boredom": 0.0, "anxiety": 0.0,
+	}
+	var hope := _autoload("Hope")
+	if hope != null and hope.has_method("combat_profile"):
+		hope_profile = hope.call("combat_profile")
+
+	var difficulty_curve := 1.0
+	var runs := _autoload("PeriliminalRuns")
+	if runs != null and runs.has_method("difficulty"):
+		difficulty_curve = float(runs.call("difficulty"))
+
+	var used_seed := p_seed if p_seed != 0 else randi()
+	_rng.seed = used_seed
 
 	# Calculate minimum depth required
 	var min_depth = _calculate_min_depth(hope_profile, difficulty_curve)
@@ -46,25 +77,61 @@ func generate_gauntlet() -> Dictionary:
 	for floor_num in range(min_depth):
 		floors.append(_generate_floor(floor_num, hope_profile, difficulty_curve))
 
+	var blessing := 3
+	if runs != null and runs.has_method("blessing_depth"):
+		blessing = int(runs.call("blessing_depth"))
+
 	return {
 		"min_depth": min_depth,
 		"max_depth": max_depth,
 		"floors": floors,
-		"seed": randi(),
+		"seed": used_seed,
 		"difficulty": difficulty_curve,
-		"blessing_depth": PeriliminalRuns.blessing_depth()
+		"blessing_depth": blessing
 	}
+
+## Resolve a floor entity token (`DEX_ID@stage` or legacy/special tokens)
+## into `{line, stage}` for WorldEntity.setup.
+static func resolve_entity_token(token: String) -> Dictionary:
+	var raw := str(token)
+	if raw.is_empty():
+		return {}
+	var stage := 1
+	var id_part := raw
+	if "@" in raw:
+		var bits := raw.split("@")
+		id_part = bits[0]
+		stage = clampi(int(bits[1]) if bits.size() > 1 else 1, 1, 3)
+	elif raw.begins_with("entity_"):
+		# Legacy placeholder: entity_<category>_<stage>
+		var parts := raw.split("_")
+		if parts.size() >= 3:
+			var cat := parts[1].capitalize()
+			stage = clampi(int(parts[2]), 1, 3)
+			var line := EntityDexData.random_line_in_category(_player_faction(), cat)
+			if line.is_empty():
+				return {}
+			return {"line": line, "stage": stage}
+	elif raw.begins_with("psyche_illusion") or raw.begins_with("terror_manifestation"):
+		var psyche := EntityDexData.random_line_in_category(_player_faction(), "Psyche")
+		if psyche.is_empty():
+			return {}
+		return {"line": psyche, "stage": 2 if raw.begins_with("terror") else 1}
+	var found := EntityDexData.by_id(id_part)
+	if found.is_empty():
+		return {}
+	return {"line": found, "stage": stage}
 
 func _calculate_min_depth(profile: Dictionary, difficulty: float) -> int:
 	var base_depth = 8
 
 	# Each axis adds depth based on intensity
-	var aggression_depth = int(profile.get("aggression", 0) * 1.2)  # Aggressive = deeper
-	var caution_depth = int(profile.get("caution", 0) * 1.0)        # Cautious = slightly deeper
-	var curiosity_depth = int(profile.get("curiosity", 0) * 1.3)    # Curious = deeper
-	var greed_depth = int(profile.get("greed", 0) * 1.1)            # Greedy = deeper
-	var fear_depth = int(profile.get("fear", 0) * 1.5)              # Fearful = much deeper
-	var anxiety_depth = int(profile.get("anxiety", 0) * 1.6)        # Anxious = deepest
+	var aggression_depth = int(float(profile.get("aggression", 0)) * 1.2)
+	var caution_depth = int(float(profile.get("caution", 0)) * 1.0)
+	var curiosity_depth = int(float(profile.get("curiosity", 0)) * 1.3)
+	var greed_depth = int(float(profile.get("greed", 0)) * 1.1)
+	var fear_depth = int(float(profile.get("fear", 0)) * 1.5)
+	var anxiety_depth = int(float(profile.get("anxiety", 0)) * 1.6)
 
 	var total = base_depth + aggression_depth + caution_depth + curiosity_depth + greed_depth + fear_depth + anxiety_depth
 
@@ -72,40 +139,34 @@ func _calculate_min_depth(profile: Dictionary, difficulty: float) -> int:
 	if difficulty > 1.5:
 		total += int((difficulty - 1.5) * 7)  # Cruel players go deeper
 
-	return clamp(total, 8, 20)
+	return clampi(total, 8, 20)
 
 func _generate_floor(floor_num: int, profile: Dictionary, difficulty: float) -> Dictionary:
 	# Determine primary trap type for this floor (cycle through axes)
 	var trap_type = TRAP_TYPES[floor_num % TRAP_TYPES.size()]
-	var axis_index = floor_num % TRAP_AXES.size()
-	var trap_axis = TRAP_AXES[axis_index]
 
 	# Scale difficulty by floor depth
-	var floor_difficulty = clamp(1.0 + (float(floor_num) / 20.0) * difficulty, 1.0, 3.0)
+	var floor_difficulty = clampf(1.0 + (float(floor_num) / 20.0) * difficulty, 1.0, 3.0)
 
 	# Generate trap-specific content
 	var trap = TrapFloor.new()
-	trap.trap_type = trap_type
-	trap.difficulty = int(floor_difficulty * 100)
-	trap.psychological_weight = float(floor_num) / 20.0  # Weight increases toward bottom
-
 	match trap_type:
 		"arena_combat":
-			trap = _generate_arena_trap(floor_num, profile["aggression"], floor_difficulty)
+			trap = _generate_arena_trap(floor_num, float(profile.get("aggression", 0.5)), floor_difficulty)
 		"falling_certainties":
-			trap = _generate_certainty_trap(floor_num, profile["caution"], floor_difficulty)
+			trap = _generate_certainty_trap(floor_num, float(profile.get("caution", 0.5)), floor_difficulty)
 		"forbidden_library":
-			trap = _generate_library_trap(floor_num, profile["curiosity"], floor_difficulty)
+			trap = _generate_library_trap(floor_num, float(profile.get("curiosity", 0.5)), floor_difficulty)
 		"infinite_vault":
-			trap = _generate_vault_trap(floor_num, profile["greed"], floor_difficulty)
+			trap = _generate_vault_trap(floor_num, float(profile.get("greed", 0.5)), floor_difficulty)
 		"personified_terror":
-			trap = _generate_terror_trap(floor_num, profile["fear"], floor_difficulty)
+			trap = _generate_terror_trap(floor_num, float(profile.get("fear", 0.0)), floor_difficulty)
 		"halls_of_desire":
-			trap = _generate_desire_trap(floor_num, profile["lust"], floor_difficulty)
+			trap = _generate_desire_trap(floor_num, float(profile.get("lust", 0.0)), floor_difficulty)
 		"waiting_room":
-			trap = _generate_waiting_trap(floor_num, profile["boredom"], floor_difficulty)
+			trap = _generate_waiting_trap(floor_num, float(profile.get("boredom", 0.0)), floor_difficulty)
 		"moral_gauntlet":
-			trap = _generate_moral_trap(floor_num, profile["anxiety"], floor_difficulty)
+			trap = _generate_moral_trap(floor_num, float(profile.get("anxiety", 0.0)), floor_difficulty)
 
 	return {
 		"floor": floor_num,
@@ -122,6 +183,7 @@ func _generate_arena_trap(floor_num: int, aggression: float, difficulty: float) 
 	var trap = TrapFloor.new()
 	trap.trap_type = "arena_combat"
 	trap.difficulty = int(difficulty * 100)
+	trap.psychological_weight = float(floor_num) / 20.0
 
 	# Generate entities for arena
 	var entity_count = int(1 + (floor_num / 5.0) + (aggression * 0.5))
@@ -136,7 +198,7 @@ func _generate_arena_trap(floor_num: int, aggression: float, difficulty: float) 
 	trap.hazards.append({
 		"type": "damage_floor",
 		"damage_per_second": int(5.0 * difficulty),
-		"safe_zones": max(1, int(3 - (floor_num / 5.0)))
+		"safe_zones": maxi(1, int(3 - (floor_num / 5.0)))
 	})
 
 	# Exit: win all arena battles
@@ -148,6 +210,7 @@ func _generate_certainty_trap(floor_num: int, caution: float, difficulty: float)
 	var trap = TrapFloor.new()
 	trap.trap_type = "falling_certainties"
 	trap.difficulty = int(difficulty * 100)
+	trap.psychological_weight = float(floor_num) / 20.0
 
 	# Non-Euclidean hallway with unstable floor
 	trap.hazards.append({
@@ -158,7 +221,7 @@ func _generate_certainty_trap(floor_num: int, caution: float, difficulty: float)
 
 	# Illusion entities (not real threats)
 	for i in range(2):
-		trap.entities.append("psyche_illusion_%d" % floor_num)
+		trap.entities.append(_pick_random_entity("Psyche", 1))
 
 	# Exit: walk forward despite uncertainty
 	trap.exits.append("reach_hallway_end")
@@ -169,13 +232,14 @@ func _generate_library_trap(floor_num: int, curiosity: float, difficulty: float)
 	var trap = TrapFloor.new()
 	trap.trap_type = "forbidden_library"
 	trap.difficulty = int(difficulty * 100)
+	trap.psychological_weight = float(floor_num) / 20.0
 
 	# Knowledge costs: each book read drains something precious
 	var book_count = int(3 + (floor_num / 4.0) + (curiosity * 5.0))
 	trap.hazards.append({
 		"type": "knowledge_cost",
 		"books": book_count,
-		"cost_per_book": ["memory", "stat_temporary", "lifespan"][int(floor_num / 7.0)]
+		"cost_per_book": ["memory", "stat_temporary", "lifespan"][int(floor_num / 7.0) % 3]
 	})
 
 	# Exit: leave without reading the final book
@@ -187,12 +251,13 @@ func _generate_vault_trap(floor_num: int, greed: float, difficulty: float) -> Tr
 	var trap = TrapFloor.new()
 	trap.trap_type = "infinite_vault"
 	trap.difficulty = int(difficulty * 100)
+	trap.psychological_weight = float(floor_num) / 20.0
 
 	# Infinite resources but deeper = more dangerous
 	var depth_into_vault = floor_num
 	trap.hazards.append({
 		"type": "environmental_danger",
-		"pressure": int(10.0 * (depth_into_vault / 20.0)),
+		"pressure": int(10.0 * (float(depth_into_vault) / 20.0) * (1.0 + greed)),
 		"toxic_gas": true
 	})
 
@@ -209,16 +274,17 @@ func _generate_terror_trap(floor_num: int, fear: float, difficulty: float) -> Tr
 	var trap = TrapFloor.new()
 	trap.trap_type = "personified_terror"
 	trap.difficulty = int(difficulty * 100)
+	trap.psychological_weight = float(floor_num) / 20.0
 
 	# Manifestation of player's personal fears (from profile)
-	trap.entities.append("terror_manifestation_%d" % floor_num)
+	trap.entities.append(_pick_random_entity("Psyche", clampi(2 + int(fear * 2.0), 2, 3)))
 
 	# Terror increases with floor depth
 	trap.hazards.append({
 		"type": "psychological_pressure",
-		"sanity_drain": int(5.0 * (float(floor_num) / 20.0)),
+		"sanity_drain": maxi(1, int(5.0 * (float(floor_num) / 20.0) * difficulty)),
 		"hallucinations": true,
-		"escape_chance": max(10, int(50.0 - (fear * 30.0)))
+		"escape_chance": maxi(10, int(50.0 - (fear * 30.0)))
 	})
 
 	# Exit: face the terror or run
@@ -231,11 +297,12 @@ func _generate_desire_trap(floor_num: int, lust: float, difficulty: float) -> Tr
 	var trap = TrapFloor.new()
 	trap.trap_type = "halls_of_desire"
 	trap.difficulty = int(difficulty * 100)
+	trap.psychological_weight = float(floor_num) / 20.0
 
 	# Everything the player desires is available
 	trap.hazards.append({
 		"type": "hollow_satisfaction",
-		"emptiness_per_indulgence": int(10.0 * (float(floor_num) / 20.0)),
+		"emptiness_per_indulgence": int(10.0 * (float(floor_num) / 20.0) * (1.0 + lust)),
 		"identity_erosion": true
 	})
 
@@ -248,12 +315,14 @@ func _generate_waiting_trap(floor_num: int, boredom: float, difficulty: float) -
 	var trap = TrapFloor.new()
 	trap.trap_type = "waiting_room"
 	trap.difficulty = int(difficulty * 100)
+	trap.psychological_weight = float(floor_num) / 20.0
 
 	# Nothing happens. You wait.
 	trap.hazards.append({
 		"type": "temporal_stasis",
 		"requires_time_passage": int(30 - (boredom * 10.0)),  # Bored players escape faster
-		"despair_buildup": true
+		"despair_buildup": true,
+		"drain": maxi(1, int(2.0 * difficulty))
 	})
 
 	# Exit: accept stasis and walk out
@@ -265,6 +334,7 @@ func _generate_moral_trap(floor_num: int, anxiety: float, difficulty: float) -> 
 	var trap = TrapFloor.new()
 	trap.trap_type = "moral_gauntlet"
 	trap.difficulty = int(difficulty * 100)
+	trap.psychological_weight = float(floor_num) / 20.0
 
 	# Series of impossible moral choices
 	var choice_count = int(2 + (floor_num / 5.0))
@@ -272,7 +342,7 @@ func _generate_moral_trap(floor_num: int, anxiety: float, difficulty: float) -> 
 		"type": "moral_dilemma",
 		"choices": choice_count,
 		"accumulated_guilt": true,
-		"sanity_cost": int(10.0 * anxiety)
+		"sanity_cost": maxi(1, int(10.0 * maxf(anxiety, 0.2) * difficulty))
 	})
 
 	# Exit: commit to a choice despite uncertainty
@@ -294,6 +364,9 @@ func _describe_floor(trap_type: String, floor_num: int) -> String:
 	return descriptions.get(trap_type, "Unknown Floor %d" % floor_num)
 
 func _pick_random_entity(category: String, stage: int) -> String:
-	# Pick a random entity from EntityDexData for given category and stage
-	var stage_clamped = clamp(stage, 1, 3)
-	return "entity_%s_%d" % [category.to_lower(), stage_clamped]
+	# Real EntityDexData line id + stage — LayerWorld spawns these as WorldEntity.
+	var stage_clamped := clampi(stage, 1, 3)
+	var line := EntityDexData.random_line_in_category(_player_faction(), category, _rng)
+	if line.is_empty():
+		return "entity_%s_%d" % [category.to_lower(), stage_clamped]
+	return "%s@%d" % [str(line.get("id", "")), stage_clamped]

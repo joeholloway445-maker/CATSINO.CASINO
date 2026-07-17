@@ -146,9 +146,31 @@ static func _rarity_power(ent: Dictionary) -> int:
 	return clampi(int(r), 1, 5) * 11
 
 ## ── Contest: fight the defenders, take the ground ──────────────────────
-## Attacker strength reads the player as they stand; the hold reads the
-## garrison. Defeated defenders are scattered (released from the site);
-## a successful attack transfers ownership on the spot.
+## Preferred path: GuildHideout spawns live WorldEntity defenders and calls
+## `resolve_contest_win` when the garrison is cleared. `contest()` remains as
+## a soft offline fallback (dice) when no live siege is available.
+
+## Transfer ownership after a live siege clears the garrison. No dice.
+func resolve_contest_win(site_id: String, attacker_guild: String) -> bool:
+	var holder := owner_of(site_id)
+	if holder == "" or holder == attacker_guild:
+		return false
+	_sites[site_id]["defenders"] = []
+	_sites[site_id]["owner"] = attacker_guild
+	_save()
+	if str(_sites[site_id].get("realm", "")) == "supraliminal":
+		ExtraliminalManager.claim_landmark("hideout_site_%s" % site_id, attacker_guild)
+	EconomyManager.earn_currency_local("tokens", 40, "hideout_conquest")
+	NotificationUI.notify_win("🏴 %s clears the garrison and takes the hideout from %s!" % [attacker_guild, holder])
+	var s: Dictionary = site(site_id)
+	var pos_arr: Array = s.get("pos", [0.0, 0.0])
+	var pos := Vector3(float(pos_arr[0]) if pos_arr.size() > 0 else 0.0, 1.5,
+		float(pos_arr[1]) if pos_arr.size() > 1 else 0.0)
+	_play_contest_vfx(pos, true)
+	site_changed.emit(site_id)
+	return true
+
+## Soft fallback — used when a live siege cannot start. Prefer resolve_contest_win.
 func contest(site_id: String, attacker_guild: String) -> bool:
 	var holder := owner_of(site_id)
 	if holder == "" or holder == attacker_guild:
@@ -157,19 +179,36 @@ func contest(site_id: String, attacker_guild: String) -> bool:
 	for cid in PlayerProfile.active_companion_ids:
 		attack += 8 + _rarity_power(CompanionRegistry.get_by_id(str(cid))) / 2
 	var defense := defense_power(site_id) + randi() % 45
+	var s: Dictionary = site(site_id)
+	var pos_arr: Array = s.get("pos", [0.0, 0.0])
+	var pos := Vector3(float(pos_arr[0]) if pos_arr.size() > 0 else 0.0, 1.5,
+		float(pos_arr[1]) if pos_arr.size() > 1 else 0.0)
 	if attack <= defense:
 		NotificationUI.notify_error("⚔️ %s's defenders hold the line (%d vs %d). The banner stays." % [holder, attack, defense])
-		EconomyManager.earn_currency("tokens", 5, "hideout_defense_bonus")
+		EconomyManager.earn_currency_local("tokens", 5, "hideout_defense_bonus")
+		_play_contest_vfx(pos, false)
 		return false
-	_sites[site_id]["defenders"] = [] # the garrison is routed
-	_sites[site_id]["owner"] = attacker_guild
-	_save()
-	if str(_sites[site_id].get("realm", "")) == "supraliminal":
-		ExtraliminalManager.claim_landmark("hideout_site_%s" % site_id, attacker_guild)
-	EconomyManager.earn_currency("tokens", 40, "hideout_conquest")
-	NotificationUI.notify_win("🏴 %s routs %s's defenders (%d vs %d) and takes the hideout!" % [attacker_guild, holder, attack, defense])
-	site_changed.emit(site_id)
-	return true
+	return resolve_contest_win(site_id, attacker_guild)
+
+## Load SkillVFX by path — never reference the class_name at parse time.
+## Autoloads that name class_name types fail hard on cold CI class caches.
+func _play_contest_vfx(pos: Vector3, won: bool) -> void:
+	var tree := get_tree()
+	if tree == null:
+		return
+	var world: Node3D = tree.get_first_node_in_group("layer_world") as Node3D
+	if world == null:
+		world = tree.current_scene as Node3D
+	if world == null:
+		return
+	var vfx: GDScript = load("res://src/skills/skill_vfx.gd") as GDScript
+	if vfx == null:
+		return
+	if won:
+		vfx.call("ultimate_burst", world, pos, 5.0)
+		vfx.call("aoe_ring", world, pos, 4.5, Color(1.0, 0.85, 0.25))
+	else:
+		vfx.call("aoe_ring", world, pos, 3.0, Color(0.6, 0.2, 0.2))
 
 func _save() -> void:
 	var f := FileAccess.open(SAVE_PATH, FileAccess.WRITE)

@@ -14,7 +14,7 @@ const FACTION_DATA = [
 		slot_bonus = "+10% slot multiplier",
 		combat_bonus = "+5% combat damage",
 		companion_bonus = "High-rarity companions",
-		lore = "The SovereignCrown rules Paw Vegas from the Crown Tower. Membership is by invitation only — or by proving yourself undeniable.",
+		lore = "The SovereignCrown rules Paws Vegas from the Crown Tower. Membership is by invitation only — or by proving yourself undeniable.",
 	},
 	{
 		id = "WildlandsAscendant",
@@ -70,7 +70,7 @@ func _build_ui() -> void:
 	root.add_child(title)
 
 	var subtitle = Label.new()
-	subtitle.text = "Your faction shapes your bonuses, companions, and allegiance in Paw Vegas."
+	subtitle.text = "Your faction shapes your bonuses, companions, and allegiance in Paws Vegas."
 	subtitle.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	subtitle.autowrap_mode = TextServer.AUTOWRAP_WORD
 	root.add_child(subtitle)

@@ -10,6 +10,7 @@ var _player: ThirdPersonController
 
 func _ready() -> void:
 	LayerManager.current_layer_id = layer_id
+	add_to_group("layer_world")
 
 	_terrain = TerrainBridge.new()
 	add_child(_terrain)
@@ -173,14 +174,16 @@ func _ensure_city(hub_id: String) -> void:
 	spawner.position = origin
 	add_child(spawner)
 
-## Ambient human population for non-city layers. Density is part of each
-## layer's psychology: the Subliminal is a sparse, almost-normal
-## neighborhood; the Liminal holds a handful of looping figures; the
-## Periliminal's few faces are personal apparitions, never a crowd.
-## Supraliminal cities populate per-hub in _ensure_city instead.
+## Ambient human population for non-city layers. The Subliminal is each
+## player's private safe zone — NOTHING auto-spawns there. Ambient figures
+## in a Subliminal require an active creator subscription (pay gate).
+## The Liminal holds a handful of looping figures; the Periliminal's few
+## faces are personal apparitions, never a crowd. Supraliminal cities
+## populate per-hub in _ensure_city instead.
 func _populate_layer_npcs(near: Vector3) -> void:
+	if layer_id == "subliminal":
+		return # hard lock — no automatic ambient NPCs in private zones
 	var district_and_cap := {
-		"subliminal": ["player_apartment", 12],
 		"liminal": ["liminal_hub", 8],
 		"extraliminal": ["territories", 24],
 		"periliminal": ["abstract_realm", 6],
@@ -233,9 +236,140 @@ func _on_chunk_changed(coord: Vector2i) -> void:
 		"liminal":
 			_liminal_enter(coord)
 		"periliminal":
-			PeriliminalRuns.advance_depth()
-			_maybe_bless(coord)
+			if DungeonRuns.active:
+				DungeonRuns.advance_depth()
+				_apply_periliminal_floor(coord)
+				DungeonRuns.try_clear()
+			else:
+				PeriliminalRuns.advance_depth()
+				_apply_periliminal_floor(coord)
+				_maybe_bless(coord)
 	_prev_chunk = coord
+
+var _periliminal_gauntlet: Dictionary = {}
+var _active_floor: Dictionary = {}
+var _active_floor_hazards: Array = []
+var _floor_hazard_tick := 0.0
+var _floor_applied_depth := -1
+
+func _ensure_periliminal_gauntlet() -> void:
+	if not _periliminal_gauntlet.is_empty():
+		return
+	var gen := PeriliminalGenerator.new()
+	var seed := 0
+	if DungeonRuns != null and DungeonRuns.active:
+		seed = int(DungeonRuns.run_seed())
+	elif PeriliminalRuns != null and PeriliminalRuns.has_method("run_seed"):
+		seed = int(PeriliminalRuns.run_seed())
+	_periliminal_gauntlet = gen.generate_gauntlet(seed)
+
+## Instantiate the Hope-driven trap floor for the current depth — real
+## entities + hazards, not denser random dens.
+func _apply_periliminal_floor(coord: Vector2i) -> void:
+	_ensure_periliminal_gauntlet()
+	var floors: Array = _periliminal_gauntlet.get("floors", [])
+	if floors.is_empty():
+		return
+	var depth := 0
+	if DungeonRuns != null and DungeonRuns.active:
+		depth = int(DungeonRuns.depth)
+	elif PeriliminalRuns != null:
+		depth = int(PeriliminalRuns.depth)
+	if depth <= 0:
+		return
+	if depth == _floor_applied_depth:
+		return
+	_floor_applied_depth = depth
+	_clear_floor_entities()
+	_active_floor_hazards.clear()
+	_floor_hazard_tick = 0.0
+	var floor: Dictionary = floors[(depth - 1) % floors.size()]
+	_active_floor = floor
+	var trap := str(floor.get("trap_type", "unknown")).replace("_", " ")
+	var desc := str(floor.get("description", ""))
+	NotificationUI.notify_info("Floor %d — %s. %s" % [depth, trap, desc])
+	if Hope != null and Hope.has_method("record"):
+		Hope.record("periliminal_floor", {
+			"depth": depth, "trap": floor.get("trap_type", ""),
+			"dungeon": DungeonRuns != null and DungeonRuns.active,
+		})
+	for token in floor.get("entities", []):
+		_spawn_floor_entity(str(token), coord)
+	for hz in floor.get("hazards", []):
+		if hz is Dictionary:
+			_active_floor_hazards.append(hz)
+	var exits: Array = floor.get("exits", [])
+	if not exits.is_empty():
+		NotificationUI.notify_info("Exit: %s" % str(exits[0]).replace("_", " "))
+
+func _clear_floor_entities() -> void:
+	for id in _entities.keys():
+		var ent: WorldEntity = _entities[id]
+		if is_instance_valid(ent):
+			ent.queue_free()
+	_entities.clear()
+
+func _spawn_floor_entity(token: String, coord: Vector2i) -> void:
+	var resolved: Dictionary = PeriliminalGenerator.resolve_entity_token(token)
+	if resolved.is_empty():
+		return
+	var line: Dictionary = resolved.get("line", {})
+	var stage: int = int(resolved.get("stage", 1))
+	if line.is_empty():
+		return
+	var ent := WorldEntity.new()
+	var size := float(HubRegionData.CHUNK_SIZE)
+	var rng := RandomNumberGenerator.new()
+	rng.seed = hash("floor_ent_%s_%d_%d_%s" % [
+		str(_periliminal_gauntlet.get("seed", 0)), coord.x, coord.y, token])
+	var spawn_pos := Vector3(
+		coord.x * size + rng.randf_range(0.25, 0.75) * size, 0,
+		coord.y * size + rng.randf_range(0.25, 0.75) * size)
+	spawn_pos.y = _terrain.height_at(spawn_pos.x, spawn_pos.z)
+	ent.position = spawn_pos
+	ent.setup(line, stage, _player)
+	ent.bit_player.connect(func(dmg): _on_entity_bite(ent, dmg))
+	ent.died.connect(_on_entity_died)
+	add_child(ent)
+	_entities[ent.get_instance_id()] = ent
+
+func _tick_floor_hazards() -> void:
+	if _active_floor_hazards.is_empty() or not is_instance_valid(_player):
+		return
+	for hz in _active_floor_hazards:
+		if not hz is Dictionary:
+			continue
+		var kind := str(hz.get("type", ""))
+		var dmg := 0
+		match kind:
+			"damage_floor":
+				dmg = int(hz.get("damage_per_second", 3))
+			"unstable_floor":
+				# Occasional slip — soft percent of fall damage each tick.
+				if randf() > float(hz.get("safe_tiles_percentage", 50)) / 100.0:
+					dmg = maxi(1, int(hz.get("fall_damage", 10)) / 4)
+			"environmental_danger":
+				dmg = maxi(1, int(hz.get("pressure", 2)))
+			"psychological_pressure", "moral_dilemma":
+				dmg = maxi(1, int(hz.get("sanity_drain", hz.get("sanity_cost", 2))))
+			"temporal_stasis":
+				dmg = maxi(1, int(hz.get("drain", 1)))
+			"knowledge_cost", "hollow_satisfaction":
+				dmg = 1 # soft bleed — the trap is psychological
+			_:
+				continue
+		if dmg <= 0:
+			continue
+		var hit := dmg
+		if _shield > 0:
+			var ab := mini(_shield, hit)
+			_shield -= ab
+			hit -= ab
+		_player_hp -= hit
+		_refresh_hud_vitals()
+		if _player_hp <= 0:
+			_on_player_died(str(_active_floor.get("trap_type", "the floor")))
+			return
 
 ## The Periliminal's one exit: no door exists until the run has gone deep
 ## enough (personal — PeriliminalRuns.blessing_ready reads your Hope
@@ -243,6 +377,10 @@ func _on_chunk_changed(coord: Vector2i) -> void:
 var _blessing_spawned := false
 
 func _maybe_bless(coord: Vector2i) -> void:
+	# Instanced dungeons suppress the Periliminal blessing exit — clear via
+	# DungeonRuns.try_clear() / eject instead.
+	if DungeonRuns != null and DungeonRuns.active:
+		return
 	if _blessing_spawned or not PeriliminalRuns.blessing_ready():
 		return
 	_blessing_spawned = true
@@ -335,29 +473,37 @@ var _entities: Dictionary = {} # instance_id -> WorldEntity
 const ENTITY_SPAWN_CHANCE := 0.35
 const MAX_CONCURRENT_ENTITIES := 3
 
+## Used by EntityCombatSpawner so encounter entities take hotbar hits.
+func _register_world_entity(ent: WorldEntity) -> void:
+	if ent == null:
+		return
+	_entities[ent.get_instance_id()] = ent
+	ent.bit_player.connect(func(dmg): _on_entity_bite(ent, dmg))
+	ent.died.connect(_on_entity_died)
+
 func _maybe_spawn_entity(coord: Vector2i) -> void:
-	# The Periliminal spawns to YOUR measure: PeriliminalRuns.difficulty()
-	# folds Hope's playstyle read and your word-of-mouth reputation into
-	# the spawn rate and the stages the layer sends at you.
+	# Periliminal / dungeon runs use PeriliminalGenerator floors
+	# (`_apply_periliminal_floor`) — do not fall back to denser dens.
+	if layer_id == "periliminal":
+		return
+	if DungeonRuns != null and DungeonRuns.active:
+		return
 	var spawn_chance := ENTITY_SPAWN_CHANCE
 	var max_stage := 2 if layer_id == "supraliminal" else 3
 	var min_stage := 1
-	if layer_id == "periliminal":
-		var diff := PeriliminalRuns.difficulty()
-		spawn_chance = clampf(ENTITY_SPAWN_CHANCE * diff, 0.15, 0.9)
-		if diff > 1.6:
-			min_stage = 2 # the hard cases never see a Stage 1 down here
-	if _entities.size() >= MAX_CONCURRENT_ENTITIES or randf() > spawn_chance:
+	var rng := RandomNumberGenerator.new()
+	rng.randomize()
+	if _entities.size() >= MAX_CONCURRENT_ENTITIES or rng.randf() > spawn_chance:
 		return
 	var faction := CompanionRegistry.normalize_faction(PlayerProfile.faction)
 	var line := EntityDexData.random_line(faction)
 	if line.is_empty():
 		return
-	var stage := randi_range(min_stage, max_stage)
+	var stage := rng.randi_range(min_stage, max_stage)
 	var ent := WorldEntity.new()
 	var size := float(HubRegionData.CHUNK_SIZE)
-	var spawn_pos := Vector3(coord.x * size + randf_range(0.2, 0.8) * size, 0,
-		coord.y * size + randf_range(0.2, 0.8) * size)
+	var spawn_pos := Vector3(coord.x * size + rng.randf_range(0.2, 0.8) * size, 0,
+		coord.y * size + rng.randf_range(0.2, 0.8) * size)
 	spawn_pos.y = _terrain.height_at(spawn_pos.x, spawn_pos.z)
 	ent.position = spawn_pos
 	ent.setup(line, stage, _player)
@@ -374,12 +520,13 @@ func _on_entity_bite(ent: WorldEntity, dmg: int) -> void:
 		hit -= ab
 	_player_hp -= hit
 	SkillVFX.hit_spark(self, _player.global_position)
+	_refresh_hud_vitals()
 	if _player_hp <= 0:
 		_on_player_died(str(ent.stage_info.get("name", "the wilds")))
 
 func _on_entity_died(ent: WorldEntity) -> void:
 	_entities.erase(ent.get_instance_id())
-	EconomyManager.earn_currency("fragments", ent.bounty(), "world_entity_kill")
+	EconomyManager.earn_currency_local("fragments", ent.bounty(), "world_entity_kill")
 	QuestManager.update_progress("defeat_entity")
 	# The only way to bond with an entity is to defeat it — solo, or with
 	# Hope's help. CaptureSystem rolls the moment: your remaining HP is
@@ -387,8 +534,13 @@ func _on_entity_died(ent: WorldEntity) -> void:
 	var hp_ratio := clampf(float(_player_hp) / 100.0, 0.0, 1.0)
 	CaptureSystem.on_defeated(ent, hp_ratio)
 
+var _hud_hp_bar: ProgressBar
+var _hud_shield_bar: ProgressBar
+var _hud_hp_label: Label
+
 func _build_hud() -> void:
 	var layer := CanvasLayer.new()
+	layer.name = "LayerHud"
 	add_child(layer)
 	var back := Button.new()
 	back.text = "⬅ Catsino"
@@ -398,11 +550,56 @@ func _build_hud() -> void:
 		LayerManager.transition_to("hyperliminal"))
 	layer.add_child(back)
 
+	var quest_btn := Button.new()
+	quest_btn.text = "Quests (J)"
+	quest_btn.position = Vector2(120, 10)
+	quest_btn.pressed.connect(_open_quest_log)
+	layer.add_child(quest_btn)
+
 	var name_lbl := Label.new()
 	name_lbl.text = RealityLayers.by_id(layer_id).get("name", layer_id)
 	name_lbl.position = Vector2(10, 44)
 	name_lbl.modulate = Color(1, 1, 1, 0.7)
 	layer.add_child(name_lbl)
+
+	_hud_hp_label = Label.new()
+	_hud_hp_label.position = Vector2(10, 72)
+	layer.add_child(_hud_hp_label)
+	_hud_hp_bar = ProgressBar.new()
+	_hud_hp_bar.position = Vector2(10, 96)
+	_hud_hp_bar.custom_minimum_size = Vector2(220, 16)
+	_hud_hp_bar.max_value = 100
+	_hud_hp_bar.show_percentage = false
+	_hud_hp_bar.modulate = Color(0.85, 0.25, 0.3)
+	layer.add_child(_hud_hp_bar)
+	_hud_shield_bar = ProgressBar.new()
+	_hud_shield_bar.position = Vector2(10, 116)
+	_hud_shield_bar.custom_minimum_size = Vector2(220, 10)
+	_hud_shield_bar.max_value = 100
+	_hud_shield_bar.show_percentage = false
+	_hud_shield_bar.modulate = Color(0.35, 0.75, 1.0)
+	layer.add_child(_hud_shield_bar)
+	_refresh_hud_vitals()
+
+func _refresh_hud_vitals() -> void:
+	if _hud_hp_bar == null:
+		return
+	_hud_hp_bar.value = _player_hp
+	_hud_shield_bar.value = _shield
+	_hud_hp_label.text = "HP %d/100   Shield %d" % [_player_hp, _shield]
+
+func _open_quest_log() -> void:
+	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+	if ResourceLoader.exists("res://scenes/ui/quest.tscn"):
+		get_tree().change_scene_to_file("res://scenes/ui/quest.tscn")
+	else:
+		NotificationUI.notify_info("Quest log unavailable.")
+
+func _unhandled_input(event: InputEvent) -> void:
+	if event is InputEventKey and event.pressed and not event.echo:
+		if event.keycode == KEY_J:
+			_open_quest_log()
+			get_viewport().set_input_as_handled()
 
 func _in_pvp_zone() -> bool:
 	match layer_id:
@@ -444,6 +641,7 @@ func _on_cast(sk: Dictionary) -> void:
 		"shield":
 			_shield = maxi(_shield, int(30 * power))
 			SkillVFX.shield_bubble(self, _player, 6.0)
+			_refresh_hud_vitals()
 			return
 		"mobility":
 			_player.global_position += -_player.global_transform.basis.z * (6.0 + 6.0 * power)
@@ -468,6 +666,7 @@ func _on_cast(sk: Dictionary) -> void:
 		if not is_instance_valid(ent): continue
 		if ent.global_position.distance_to(_player.global_position) > reach: continue
 		ent.take_hit(dmg)
+		SkillVFX.hit_spark(self, ent.global_position)
 		_apply_element_rider(elem, ent, dmg)
 		SkillManager.gain_ultimate(4.0)
 	if not _in_pvp_zone():
@@ -524,7 +723,22 @@ func _on_peer_killed(pid: String, rp: RemotePlayer) -> void:
 ## Dying in the open: lose 20% of your tokens and wake up at your hub —
 ## Arlington for the factionless. Getting TO your faction the first time
 ## means surviving this gauntlet (or getting carried).
+func get_local_player() -> ThirdPersonController:
+	return _player
+
 func _on_player_died(killer: String) -> void:
+	# Gate 6 dungeon: eject with no wipe (DungeonRuns owns the flag).
+	if DungeonRuns.active or Engine.has_meta("dungeon_no_wipe"):
+		_player_hp = 100
+		_shield = 0
+		DungeonRuns.eject("death_to_%s" % killer)
+		return
+	# Periliminal wipe path (shared fate) — only when a wipe-run is active.
+	if layer_id == "periliminal" and PeriliminalRuns.active and not Engine.has_meta("dungeon_no_wipe"):
+		PeriliminalRuns.member_died("local_player")
+		_player_hp = 100
+		_shield = 0
+		return
 	var lost := int(EconomyManager.get_balance("tokens") * 0.2)
 	if lost > 0:
 		await EconomyManager.spend_currency("tokens", lost, "open_pvp_death")
@@ -546,6 +760,12 @@ func _unhandled_key_input(event: InputEvent) -> void:
 func _process(_delta: float) -> void:
 	if is_instance_valid(_player):
 		PresenceManager.report_position(_player.global_position)
+	# Hope-driven trap floors tick hazards once per second.
+	if layer_id == "periliminal" and not _active_floor_hazards.is_empty():
+		_floor_hazard_tick += _delta
+		if _floor_hazard_tick >= 1.0:
+			_floor_hazard_tick = 0.0
+			_tick_floor_hazards()
 	# The wilds bite back: in open PvP, nearby hostiles take swings at you.
 	if is_instance_valid(_player) and _in_pvp_zone():
 		_hostile_tick += _delta

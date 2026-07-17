@@ -8,7 +8,7 @@ extends Control
 ## server isn't reachable (or in addition to server tournaments).
 const LOCAL_CUPS = [
 	{name="Alley Cat Cup", entry_fee=250, field=8},
-	{name="Paw Vegas Invitational", entry_fee=750, field=16},
+	{name="Paws Vegas Invitational", entry_fee=750, field=16},
 ]
 
 var _local_log: VBoxContainer
@@ -17,6 +17,7 @@ func _ready() -> void:
 	TournamentManager.tournament_round_complete.connect(_on_round_complete)
 	TournamentManager.tournament_finished.connect(_on_tournament_finished)
 	_refresh()
+	UINav.add_back_button(self)
 
 func _refresh() -> void:
 	if NetworkManager.is_connected_to_server():

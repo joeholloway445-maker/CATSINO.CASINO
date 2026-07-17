@@ -37,10 +37,22 @@ const WATER_LEVEL_Y := 0.0
 var _noise := FastNoiseLite.new()
 var _loaded: Dictionary = {} # Vector2i -> Node3D (chunk root)
 
+var _ridge := FastNoiseLite.new()
+var _detail := FastNoiseLite.new()
+
 func _ready() -> void:
 	_noise.seed = 0x43415453 # "CATS"
-	_noise.frequency = 0.012
-	_noise.fractal_octaves = 4
+	_noise.frequency = 0.008
+	_noise.fractal_octaves = 5
+	_noise.fractal_gain = 0.5
+	_ridge.seed = 0x43415453 ^ 0xA5A5
+	_ridge.noise_type = FastNoiseLite.TYPE_CELLULAR
+	_ridge.frequency = 0.018
+	_ridge.fractal_octaves = 3
+	_ridge.cellular_return_type = FastNoiseLite.RETURN_DISTANCE
+	_detail.seed = 0x43415453 ^ 0x5C5C
+	_detail.frequency = 0.04
+	_detail.fractal_octaves = 2
 	DiscoveryManager.chunk_repainted.connect(_on_chunk_repainted)
 
 ## Deterministic terrain height at any world position — used by both mesh
@@ -59,7 +71,12 @@ func height_at(world_x: float, world_z: float) -> float:
 		# flat 0.0) — full HEIGHT_SCALE noise would poke rock through the
 		# surface often enough that "coastal" wouldn't read as water.
 		noise_scale = HEIGHT_SCALE * 0.15
-	return elevation + _noise.get_noise_2d(world_x, world_z) * noise_scale
+	# Broad continents + ridge hills + fine gravel — less "single noise blob".
+	var h := _noise.get_noise_2d(world_x, world_z) * 0.65
+	var ridge := 1.0 - clampf(_ridge.get_noise_2d(world_x, world_z), 0.0, 1.0)
+	h += (ridge * 2.0 - 1.0) * 0.25
+	h += _detail.get_noise_2d(world_x, world_z) * 0.12
+	return elevation + h * noise_scale
 
 ## Bigger radius = fewer, larger streaming loads — used while piloting a
 ## vehicle so terrain doesn't have to keep pace with small on-foot-sized
@@ -105,12 +122,17 @@ func _build_chunk(coord: Vector2i) -> Node3D:
 				Vector3(x0, 0, z0), Vector3(x0 + step, 0, z0),
 				Vector3(x0 + step, 0, z0 + step), Vector3(x0, 0, z0 + step),
 			]
+			var uvs := [
+				Vector2(0, 0), Vector2(1, 0), Vector2(1, 1), Vector2(0, 1),
+			]
 			for i in range(corners.size()):
 				var w: Vector3 = corners[i]
 				corners[i].y = height_at(origin.x + w.x, origin.z + w.z)
 			for idx in [0, 1, 2, 0, 2, 3]:
+				st.set_uv(uvs[idx] * (size / 8.0)) # tile PBR maps ~8m
 				st.add_vertex(corners[idx])
 	st.generate_normals()
+	st.generate_tangents()
 	var mesh := st.commit()
 
 	var mi := MeshInstance3D.new()
@@ -154,21 +176,45 @@ func _build_water_surface(size: float) -> MeshInstance3D:
 	var mat := StandardMaterial3D.new()
 	mat.albedo_color = WATER_SURFACE_COLOR
 	mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-	mat.roughness = 0.05
-	mat.metallic = 0.3
+	mat.roughness = 0.04
+	mat.metallic = 0.45
+	mat.specular = 0.7
+	if not RenderCaps.is_compatibility() and "refraction_enabled" in mat:
+		mat.refraction_enabled = true
+		mat.refraction_scale = 0.02
 	mi.material_override = mat
 	return mi
 
 func _chunk_material(chunk: WorldChunk) -> StandardMaterial3D:
+	var biome := str(chunk.biome.get("biome", "plains"))
 	var color: Color = HUB_COLOR if chunk.is_hub else BIOME_COLORS.get(
-		str(chunk.biome.get("biome", "plains")), BIOME_COLORS["plains"])
+		biome, BIOME_COLORS["plains"])
 	if chunk.dominant_pack != null:
 		color = color.lerp(chunk.dominant_pack.texture_tint, 0.35)
-	# All hard mesh renders through the player's race lens — the same chunk
-	# is made of different stuff on different players' clients.
-	var mat := IdentityLens.world_material(color)
-	mat.roughness = maxf(mat.roughness, 0.7) # ground stays walkable-matte
+	# PBR ground maps when installed (Poly Haven grass/dirt/sand/asphalt).
+	# Hub plazas stay asphalt; coastal → sand; ashland/ruins → dirt; else grass.
+	var slot := "asphalt" if chunk.is_hub else _biome_ground_slot(biome)
+	var mat: StandardMaterial3D
+	if AssetLibrary.has_texture(slot):
+		mat = AssetLibrary.material(slot, color, 0.2, 0.0, 0.85)
+	else:
+		# All hard mesh renders through the player's race lens — the same chunk
+		# is made of different stuff on different players' clients.
+		mat = IdentityLens.world_material(color)
+		mat.roughness = maxf(mat.roughness, 0.7) # ground stays walkable-matte
+	mat.roughness = maxf(mat.roughness, 0.72)
 	return mat
+
+func _biome_ground_slot(biome: String) -> String:
+	match biome:
+		"coastal":
+			return "sand" if AssetLibrary.has_texture("sand") else "dirt"
+		"ashland", "ruins":
+			return "dirt" if AssetLibrary.has_texture("dirt") else "asphalt"
+		"crystal_field":
+			return "dirt" if AssetLibrary.has_texture("dirt") else "grass"
+		_:
+			return "grass" if AssetLibrary.has_texture("grass") else "dirt"
 
 ## Low-poly biome props (crystals, ruins pillars, trees) from the chunk's
 ## deterministic prop_seed — no imported assets.
@@ -187,10 +233,14 @@ func _scatter_props(root: Node3D, chunk: WorldChunk, size: float) -> void:
 		var px := rng.randf() * size
 		var pz := rng.randf() * size
 		# Real asset if installed (docs/SHIPPING.md), procedural otherwise.
-		var prop: Node3D = AssetLibrary.instance_or(slot,
+		# Prefer variant pools so forests/ruins don't clone one mesh.
+		var prop: Node3D = AssetLibrary.instance_variant_or(slot, rng,
 			func(): return _make_prop(biome, rng),
-			BIOME_COLORS.get(biome, Color.WHITE), 0.2)
+			BIOME_COLORS.get(biome, Color.WHITE), 0.15)
 		prop.position = Vector3(px, height_at(root.position.x + px, root.position.z + pz), pz)
+		prop.rotation.y = rng.randf() * TAU
+		var sc := rng.randf_range(0.85, 1.25)
+		prop.scale = Vector3(sc, sc, sc)
 		root.add_child(prop)
 
 func _make_prop(biome: String, rng: RandomNumberGenerator) -> MeshInstance3D:

@@ -6,7 +6,7 @@ extends Control
 
 const CATEGORIES := {
 	"World Overview": "world",
-	"Paw Vegas": "paw_vegas",
+	"Paws Vegas": "paw_vegas",
 	"Cat Coliseum": "cat_coliseum",
 	"Neon Alley": "neon_alley",
 	"Cat Forest": "cat_forest",

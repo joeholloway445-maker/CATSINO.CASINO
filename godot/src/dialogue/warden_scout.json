@@ -1,0 +1,48 @@
+{
+  "greeting": {
+    "line": "You see that glow on the landmark? That's not neon. That's a claim.",
+    "line_friendly": "Glad you're here — I need someone who can take a bite.",
+    "line_hostile": "If you're not here for the warden, clear the plaza.",
+    "allow_social_options": true,
+    "options": [
+      {
+        "text": "A zone boss?",
+        "next_key": "boss",
+        "effect": { "disposition": 3 }
+      },
+      {
+        "text": "Can I help take it down?",
+        "next_key": "help",
+        "effect": { "disposition": 5 }
+      }
+    ],
+    "quest_options": [
+      {
+        "text": "About the territory campaign…",
+        "quest_id": "pvp_campaign_01"
+      }
+    ]
+  },
+  "boss": {
+    "line": "Stage three. Fragments and prestige if you drop it. Two of those and the Titan starts checking its calendar.",
+    "allow_social_options": false,
+    "options": [
+      {
+        "text": "I'll look for the glow.",
+        "next_key": null,
+        "effect": { "disposition": 4 }
+      }
+    ]
+  },
+  "help": {
+    "line": "Hotbar's live. Element riders still count. Don't stand in the bite.",
+    "allow_social_options": false,
+    "options": [
+      {
+        "text": "Understood.",
+        "next_key": null,
+        "effect": { "disposition": 6, "tone": "nice" }
+      }
+    ]
+  }
+}

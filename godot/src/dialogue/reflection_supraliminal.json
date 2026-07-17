@@ -1,0 +1,35 @@
+{
+  "greeting": {
+    "line": "I took the optimization. No more doubt. You could too — oh. But you're me. Awkward.",
+    "line_friendly": "Borrow my silence for an hour. It fits.",
+    "line_hostile": "Keep your noise. I already optimized past you.",
+    "allow_social_options": true,
+    "options": [
+      {
+        "text": "Tell me more.",
+        "next_key": "lore",
+        "effect": {
+          "disposition": 3
+        }
+      },
+      {
+        "text": "Just passing through.",
+        "next_key": null,
+        "effect": {}
+      }
+    ]
+  },
+  "lore": {
+    "line": "They sanded off the hesitation, the second-guessing, the three a.m. spirals. I have your talent and none of your noise. Your life fits me better than it ever fit you.",
+    "allow_social_options": false,
+    "options": [
+      {
+        "text": "I'll remember that.",
+        "next_key": null,
+        "effect": {
+          "disposition": 5
+        }
+      }
+    ]
+  }
+}

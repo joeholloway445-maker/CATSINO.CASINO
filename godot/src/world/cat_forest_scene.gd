@@ -14,6 +14,58 @@ const NPC_DIALOGUES: Dictionary = {
 
 func _ready() -> void:
 	_seed_quests()
+	_build_ui()
+
+func _build_ui() -> void:
+	var layer := CanvasLayer.new()
+	add_child(layer)
+	var root := VBoxContainer.new()
+	root.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	layer.add_child(root)
+
+	var title := Label.new()
+	title.text = "🌿 CAT FOREST"
+	title.add_theme_font_size_override("font_size", 24)
+	root.add_child(title)
+
+	var status := Label.new()
+	status.name = "Status"
+	status.text = "Talk to locals or advance a hunt."
+	root.add_child(status)
+
+	for npc_id in NPC_DIALOGUES.keys():
+		var btn := Button.new()
+		btn.text = "Talk: %s" % NPC_DIALOGUES[npc_id]["name"]
+		var id := int(npc_id)
+		btn.pressed.connect(func() -> void:
+			var d := talk_to_npc(id)
+			status.text = "%s — %s" % [d.get("speaker", "?"), str(d.get("dialogue", [])).substr(0, 80)]
+		)
+		root.add_child(btn)
+
+	for quest in _active_quests:
+		var qbtn := Button.new()
+		qbtn.text = "Advance: %s" % quest["name"]
+		var qid: String = quest["id"]
+		qbtn.pressed.connect(func() -> void:
+			update_quest_progress(qid, 1)
+			status.text = "Progressed %s" % qid
+		)
+		root.add_child(qbtn)
+
+	var explore := Button.new()
+	explore.text = "Explore Nearby Chunk"
+	explore.pressed.connect(func() -> void:
+		explore_chunk(Vector3(randf_range(-200, 200), 0, randf_range(-200, 200)), "local_player", 3)
+		status.text = "You push deeper into the canopy."
+	)
+	root.add_child(explore)
+
+	var back := Button.new()
+	back.text = "⬅ Menu"
+	back.pressed.connect(func() -> void:
+		get_tree().change_scene_to_file("res://scenes/ui/main_menu.tscn"))
+	root.add_child(back)
 
 func _seed_quests() -> void:
 	_active_quests = [

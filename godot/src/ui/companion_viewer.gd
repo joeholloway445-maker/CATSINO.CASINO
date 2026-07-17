@@ -22,6 +22,7 @@ const RARITY_STARS = {1: "★", 2: "★★", 3: "★★★", 4: "★★★★", 
 func _ready() -> void:
 	_build_ui()
 	_load_companions()
+	UINav.add_back_button(self)
 
 func _build_ui() -> void:
 	var root = HBoxContainer.new()

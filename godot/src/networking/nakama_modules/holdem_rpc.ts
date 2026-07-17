@@ -1,3 +1,5 @@
+import { spendCoins, payCoins, ok } from "./wallet_util";
+
 function shuffleDeck(): number[] {
   const deck = Array.from({ length: 52 }, (_, i) => i);
   for (let i = deck.length - 1; i > 0; i--) {
@@ -50,36 +52,43 @@ const HoldemRpc = {
     if (!bet || bet < 10 || bet > 50000) throw new Error("Invalid bet");
 
     if (action === "deal") {
-      nk.walletsUpdate([{ userId, changeset: { cat_coins: -bet }, metadata: { reason: "holdem_deal" } }], true);
+      spendCoins(nk, userId, bet, "holdem_deal");
       const deck = shuffleDeck();
       const holeCards = [deck[0], deck[1]];
-      const communityCards = [deck[2], deck[3], deck[4], -1, -1]; // flop only, turn/river hidden
+      const communityCards = [deck[2], deck[3], deck[4], -1, -1];
       nk.storageWrite([{
         collection: "holdem_session", key: "hand", userId,
         value: JSON.stringify({ deck, holeCards, community: [deck[2], deck[3], deck[4], deck[5], deck[6]], bet, phase: "flop" }),
         permissionRead: 1, permissionWrite: 1
       }]);
-      return JSON.stringify({ hole_cards: holeCards, community_cards: communityCards });
+      return ok({ hole_cards: holeCards, community_cards: communityCards });
     }
 
     const sessions = nk.storageRead([{ collection: "holdem_session", key: "hand", userId }]);
     if (!sessions || sessions.length === 0) throw new Error("No active hand");
-    const session = JSON.parse(sessions[0].value);
+    const session = JSON.parse(sessions[0].value as string);
 
     if (action === "fold") {
       nk.storageDelete([{ collection: "holdem_session", key: "hand", userId }]);
-      return JSON.stringify({ outcome: "fold", payout: 0, community_cards: session.community.slice(0, 3).concat([-1, -1]) });
+      return ok({
+        outcome: "fold",
+        payout: 0,
+        community_cards: session.community.slice(0, 3).concat([-1, -1]),
+      });
     }
 
     if (action === "call") {
       const allCards = session.holeCards.concat(session.community);
       const playerHand = evaluateBestHand(allCards);
-      const payout = bet * (HAND_PAYOUTS[playerHand.name] || 0);
-      if (payout > 0) {
-        nk.walletsUpdate([{ userId, changeset: { cat_coins: payout }, metadata: { reason: "holdem_win", hand: playerHand.name } }], true);
-      }
+      const payout = session.bet * (HAND_PAYOUTS[playerHand.name] || 0);
+      payCoins(nk, userId, payout, "holdem_win");
       nk.storageDelete([{ collection: "holdem_session", key: "hand", userId }]);
-      return JSON.stringify({ outcome: payout > 0 ? "win" : "lose", hand_name: playerHand.name, payout, community_cards: session.community });
+      return ok({
+        outcome: payout > 0 ? "win" : "lose",
+        hand_name: playerHand.name,
+        payout,
+        community_cards: session.community,
+      });
     }
 
     throw new Error("Unknown action");

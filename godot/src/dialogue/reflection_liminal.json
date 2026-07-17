@@ -1,0 +1,35 @@
+{
+  "greeting": {
+    "line": "In here it's ME who's real, and YOU knocking on the glass. Want to trade?",
+    "line_friendly": "Hand on the glass, then. I'll show you the cost.",
+    "line_hostile": "No trade. Knock somewhere else.",
+    "allow_social_options": true,
+    "options": [
+      {
+        "text": "Tell me more.",
+        "next_key": "lore",
+        "effect": {
+          "disposition": 3
+        }
+      },
+      {
+        "text": "Just passing through.",
+        "next_key": null,
+        "effect": {}
+      }
+    ]
+  },
+  "lore": {
+    "line": "I made the other choice. Every mirror is the version where you turned left. Press your hand to the glass and I'll show you what it cost.",
+    "allow_social_options": false,
+    "options": [
+      {
+        "text": "I'll remember that.",
+        "next_key": null,
+        "effect": {
+          "disposition": 5
+        }
+      }
+    ]
+  }
+}

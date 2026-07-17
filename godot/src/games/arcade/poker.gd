@@ -47,15 +47,15 @@ func _draw() -> void:
 				NotificationUI.notify_error(result.error)
 				return
 			_cards = result.get("cards", [])
-			var hand_name := result.get("hand_name", "High Card")
-			var payout := result.get("payout", 0)
+			var hand_name: String = str(result.get("hand_name", "High Card"))
+			var payout: int = int(result.get("payout", 0))
 			_render_hand()
 			_phase = "done"
 			draw_btn.disabled = true
 			deal_btn.disabled = false
-			result_label.text = "%s! Payout: %d coins" % [hand_name, payout]
+			result_label.text = "%s! Payout: %d chips" % [hand_name, payout]
 			if payout > 0:
-				NotificationUI.notify_win("♠ %s — %d coins" % [hand_name, payout])
+				NotificationUI.notify_win("♠ %s — %d chips" % [hand_name, payout])
 				AchievementManager.check("win", payout)
 				if hand_name == "Full House":
 					AchievementManager.check("full_house")
@@ -69,10 +69,10 @@ func _render_hand() -> void:
 	const SUITS := ["🐾", "🐱", "🌟", "🎭"]
 	const VALUES := ["A", "2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K"]
 	for i in range(_cards.size()):
-		var card := _cards[i] as Dictionary
-		var idx: int = card.get("index", 0)
-		var val := VALUES[idx % 13]
-		var suit := SUITS[idx / 13]
+		var card: Dictionary = _cards[i] as Dictionary
+		var idx: int = int(card.get("index", 0))
+		var val: String = VALUES[idx % 13]
+		var suit: String = SUITS[idx / 13]
 		var btn := Button.new()
 		btn.text = "%s\n%s" % [val, suit]
 		btn.custom_minimum_size = Vector2(60, 90)

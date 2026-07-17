@@ -8,6 +8,6 @@ All files below are **CC0** from [Kenney.nl](https://kenney.nl).
 | `ui_click`, `ui_confirm`, `ui_back`, `ui_error` | [Interface Sounds](https://kenney.nl/assets/interface-sounds) |
 | `ui_hover`, `ui_switch` | [UI Audio](https://kenney.nl/assets/ui-audio) |
 
-Drop additional loops as `city_traffic.ogg`, `city_crowd.ogg`, `neon_hum.ogg`,
-`machine_hum.ogg` for city ambience (synthesized until present).
+| `city_traffic`, `city_crowd`, `neon_hum`, `machine_hum` | Procedural loop bake (same beds as `CityAmbience` synth) — replace with Kenney/Sonniss when available | **CC0** (original) |
+
 Sonniss GDC bundles (when downloaded) go here too — do not commit multi-GB archives.

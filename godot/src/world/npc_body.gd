@@ -2,15 +2,10 @@ class_name NpcBody
 extends Node3D
 ## The VISUAL of one generated NPC at the ESO-realistic bar.
 ##
-## Resolves the mesh through MetahumanCharacter.build_npc() (MetaHuman GLB →
-## interim humanoid GLB → CharacterRig last resort) and then applies this
-## NPC's generated traits as variation scoped to NAMED surfaces only — never
-## a blanket recolor, so any future photoreal texture work is never
-## polluted. Whatever mesh is actually installed determines which surface
-## family fires: skin/hair on a MetaHuman export, chassis/glow on the
-## current interim robot (see _apply_surface_tints). Height and build width
-## are always applied via uniform scale — natural posture variation, never
-## a cartoon squash/stretch.
+## Resolves the mesh through MetahumanCharacter.build_npc() (shipped
+## PeriHuman GLBs → interim humanoid → CharacterRig last resort) and then
+## applies this NPC's generated traits as variation. Players never need
+## Unreal/MakeHuman — bodies ship in the build.
 ##
 ## LOD contract (driven by NPCManager.update_lod → NPCSpawner):
 ##   0  full mesh, shadows, nameplate           (< ~30 m)
@@ -42,15 +37,14 @@ func build(npc: Dictionary) -> void:
 	_clear()
 	var appearance: Dictionary = npc.get("appearance", {})
 
-	# Body pick order: per-NPC deterministic variant from the npc_human
-	# pool (six MakeHuman-generated builds — see assets/models/variants/
-	# npc_human/), then the single-slot MetahumanCharacter chain. Seeded by
-	# npc id so the same person always has the same body.
-	var vrng := RandomNumberGenerator.new()
-	vrng.seed = hash("npc_body_" + str(npc.get("id", "")))
-	var variant := AssetLibrary.instance_variant("npc_human", vrng)
-	_mesh_root = variant if variant != null \
-		else MetahumanCharacter.build_npc("identity", str(npc.get("race_id", "")))
+	# MetahumanCharacter.build_npc tries the peri_human_npc / metahuman_npc /
+	# npc_human variant pools itself (in that priority order) when given an
+	# rng, so a single call here covers both the MakeHuman-generated
+	# "npc_human" pool and any peri_human/metahuman assets dropped in later.
+	# Seeded by npc id so the same person always has the same body.
+	var rng := RandomNumberGenerator.new()
+	rng.seed = hash("npc_body_" + str(npc.get("id", npc.get("name", "npc"))))
+	_mesh_root = MetahumanCharacter.build_npc("identity", str(npc.get("race_id", "")), rng)
 	add_child(_mesh_root)
 
 	_apply_stature(appearance)

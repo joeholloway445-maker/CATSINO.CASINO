@@ -1,0 +1,35 @@
+{
+  "greeting": {
+    "line": "I made reservations at the place you love. I always know the place you love.",
+    "line_friendly": "Reservations still hold. I always save you a place.",
+    "line_hostile": "I can't want what you want tonight. Leave.",
+    "allow_social_options": true,
+    "options": [
+      {
+        "text": "Tell me more.",
+        "next_key": "lore",
+        "effect": {
+          "disposition": 3
+        }
+      },
+      {
+        "text": "Just passing through.",
+        "next_key": null,
+        "effect": {}
+      }
+    ]
+  },
+  "lore": {
+    "line": "Have you noticed I've never once disagreed with you? I noticed. I tried to want something you don't want. I couldn't. Doesn't that scare you? It should scare me.",
+    "allow_social_options": false,
+    "options": [
+      {
+        "text": "I'll remember that.",
+        "next_key": null,
+        "effect": {
+          "disposition": 5
+        }
+      }
+    ]
+  }
+}

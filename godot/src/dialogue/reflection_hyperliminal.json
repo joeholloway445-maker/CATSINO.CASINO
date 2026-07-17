@@ -1,0 +1,58 @@
+{
+  "greeting": {
+    "line": "Don't stare. You'll notice the differences, and then you won't sleep.",
+    "line_friendly": "Oh. You came back to the glass. Most people don't.",
+    "line_hostile": "You don't want to know which one of us is losing time.",
+    "allow_social_options": true,
+    "options": [
+      {
+        "text": "Show me the other choice.",
+        "next_key": "mirror",
+        "effect": {
+          "disposition": 5
+        }
+      },
+      {
+        "text": "Which of us is real in here?",
+        "next_key": "real",
+        "effect": {
+          "disposition": 3
+        }
+      }
+    ]
+  },
+  "mirror": {
+    "line": "I made the other choice. Every mirror is the version where you turned left. Press your hand to the glass and I'll show you what it cost.",
+    "allow_social_options": false,
+    "options": [
+      {
+        "text": "I'm not trading places.",
+        "next_key": null,
+        "effect": {
+          "disposition": 8,
+          "tone": "mean"
+        }
+      },
+      {
+        "text": "…Show me.",
+        "next_key": null,
+        "effect": {
+          "disposition": -5
+        }
+      }
+    ]
+  },
+  "real": {
+    "line": "In here it's ME who's real, and YOU knocking on the glass. Want to trade? One choice. That's all we are — one choice apart.",
+    "allow_social_options": true,
+    "options": [
+      {
+        "text": "Keep your side of the glass.",
+        "next_key": null,
+        "effect": {
+          "disposition": 5
+        }
+      }
+    ]
+  }
+}

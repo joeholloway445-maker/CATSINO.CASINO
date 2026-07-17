@@ -1,0 +1,36 @@
+# Local Nakama for Gate 8 smoke — exposes ports the game client expects
+# (AccountManager defaults: 127.0.0.1:7350 / defaultkey).
+#
+#   docker compose -f docker-compose.dev.yml up -d
+#   # optional: copy godot/server_config.example.json → godot/server_config.json
+#   # and set nakama_host/port/key to match (defaults already match this file).
+#
+# Production secrets stay pinned for the owner — see docs/PINNED_LEFT.md.
+services:
+  nakama-db:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_PASSWORD: nakama
+      POSTGRES_DB: nakama
+    volumes: [nakama_db_dev:/var/lib/postgresql/data]
+
+  nakama:
+    image: registry.heroiclabs.com/heroiclabs/nakama:3.21.1
+    depends_on: [nakama-db]
+    entrypoint:
+      - "/bin/sh"
+      - "-ecx"
+      - >
+        /nakama/nakama migrate up --database.address postgres:nakama@nakama-db:5432/nakama &&
+        exec /nakama/nakama --name periliminal-dev
+        --database.address postgres:nakama@nakama-db:5432/nakama
+        --socket.server_key "defaultkey"
+        --runtime.js_entrypoint "index.js"
+    volumes:
+      - ./godot/src/networking/nakama_modules/build:/nakama/data/modules
+    ports:
+      - "7350:7350"
+      - "7351:7351"
+
+volumes:
+  nakama_db_dev:

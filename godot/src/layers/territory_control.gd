@@ -50,6 +50,7 @@ func claim_chunk(coord: Vector2i, alliance: String, player_id: String) -> bool:
 		_contribution[alliance].get(player_id, 0) + weight
 	EconomyManager.earn_currency("tokens", weight, "territory_claim")
 	CrownManager.add_score("Top Territory Captures", player_id, weight, alliance)
+	QuestManager.update_progress("claim_chunk")
 	chunk_claimed.emit(coord, alliance)
 	_recompute_sovereign()
 	return true

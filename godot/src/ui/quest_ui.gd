@@ -20,10 +20,12 @@ func _ready() -> void:
 	_register_faction_quests()
 	_build_ui()
 	_refresh()
-	QuestManager.quest_accepted.connect(func(_id): _populate_all())
-	QuestManager.quest_completed.connect(func(_id, _r): _populate_all())
-	QuestManager.quest_failed.connect(func(_id): _populate_all())
-	QuestManager.objective_progress.connect(func(_q, _o, _c, _t): _populate_all())
+	if QuestManager:
+		QuestManager.quest_accepted.connect(func(_id): _populate_all())
+		QuestManager.quest_completed.connect(func(_id, _r): _populate_all())
+		QuestManager.quest_failed.connect(func(_id): _populate_all())
+		QuestManager.objective_progress.connect(func(_q, _o, _c, _t): _populate_all())
+	UINav.add_back_button(self)
 
 func _build_ui() -> void:
 	var root := VBoxContainer.new()

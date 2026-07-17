@@ -21,7 +21,9 @@ var _current_filter: String = "all"
 func _ready() -> void:
 	_build_ui()
 	_populate()
-	AchievementManager.achievement_unlocked.connect(_on_achievement_unlocked)
+	if AchievementManager and AchievementManager.has_signal("achievement_unlocked"):
+		AchievementManager.achievement_unlocked.connect(_on_achievement_unlocked)
+	UINav.add_back_button(self)
 
 func _build_ui() -> void:
 	var root = VBoxContainer.new()

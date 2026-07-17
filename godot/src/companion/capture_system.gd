@@ -30,11 +30,11 @@ func on_defeated(entity: WorldEntity, player_hp_ratio: float) -> void:
 	var stage_num := int(entity.stage_num)
 
 	# Category → base chance. Some kinds are more bond-inclined than others.
-	var cat := str(entity.line.get("category", "Matter"))
-	var base := {
+	var cat: String = str(entity.line.get("category", "Matter"))
+	var base: float = float({
 		"Matter": 0.55, "Gravity": 0.50, "Energy": 0.45,
 		"Entropy": 0.35, "Psyche": 0.30, "Quantum": 0.25,
-	}.get(cat, 0.4)
+	}.get(cat, 0.4))
 
 	# Bigger fights are rarer catches. Stage 3 caps around 15% before help.
 	var stage_penalty := 0.15 * (stage_num - 1)

@@ -10,10 +10,11 @@ var _refresh_timer: Timer
 var _current_player_username: String = ""
 
 func _ready() -> void:
-	_current_player_username = AccountManager.get_username() if AccountManager.has_method("get_username") else ""
+	_current_player_username = AccountManager.get_username() if AccountManager and AccountManager.has_method("get_username") else ""
 	_build_ui()
 	_start_auto_refresh()
 	refresh_leaderboard(_current_tab)
+	UINav.add_back_button(self)
 
 func _build_ui() -> void:
 	var layout = VBoxContainer.new()

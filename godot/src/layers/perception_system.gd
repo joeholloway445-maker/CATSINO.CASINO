@@ -66,11 +66,21 @@ static func perceive(viewer: Dictionary, target: Dictionary) -> Dictionary:
 
 ## Convenience for the local player's profile dict.
 static func local_profile() -> Dictionary:
+	var profile := AutoloadGate.get_node("PlayerProfile")
+	var race_id := ""
+	var faction := "Factionless"
+	var frame := ""
+	var mod := ""
+	var level := 1
+	if profile != null:
+		level = int(profile.get("level"))
+		faction = str(profile.get("faction"))
+		race_id = str(profile.get("selected_race_id"))
+		frame = str(profile.get("selected_frame"))
+		mod = str(profile.get("selected_mod"))
 	return {
-		"level": PlayerProfile.level,
-		"faction": PlayerProfile.faction,
+		"level": level,
+		"faction": faction,
 		"alignment": "neutral",
-		"stats": CharacterCreatorLogic.build_starting_stats(
-			PlayerProfile.selected_race_id, PlayerProfile.faction,
-			PlayerProfile.selected_frame, PlayerProfile.selected_mod),
+		"stats": CharacterCreatorLogic.build_starting_stats(race_id, faction, frame, mod),
 	}

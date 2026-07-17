@@ -232,7 +232,7 @@ export function register_companion_rpc(
     initializer: nkruntime.Initializer
 ): void {
     initializer.registerRpc("unlock_companion", rpcUnlockCompanion);
-    initializer.registerRpc("evolve_companion", rpcEvolveCompanion);
+    // evolve_companion is owned by companion_evolve_rpc (feed + evolve).
     initializer.registerRpc("equip_roster", rpcEquipRoster);
     initializer.registerRpc("get_my_companions", rpcGetMyCompanions);
     logger.info("companion_rpc module initialized");

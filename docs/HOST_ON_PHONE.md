@@ -2,51 +2,45 @@
 
 You do **not** need the App Store.
 
-I already built the game and uploaded it here:  
-**https://github.com/joeholloway445-maker/CATSINO.CASINO/releases/tag/prototype-web-v0.1**
+## Option A — One click (GitHub Pages) ← updated 2026-07-17
 
-I **cannot** finish putting it on `play.catsino.casino` from this computer — that site is still a GoDaddy “parked” page, and I don’t have your hosting login/password.
+1. On your phone open:  
+   **https://joeholloway445-maker.github.io/CATSINO.CASINO/**
+2. Tap **Play Offline** → **Play Prototype Spine**.
 
----
+That’s the current slim Web rebuild of the prototype (boot + layer spine verified).
+Hard-refresh (or clear site data) if you still see the old Jul 15 build.
 
-## Option A — One click (GitHub Pages)
+If GitHub Pages is unset on the repo:  
+Settings → Pages → Branch **`gh-pages`** → folder **`/`** → Save → wait 1–2 min.
 
-1. Open: https://github.com/joeholloway445-maker/CATSINO.CASINO/settings/pages  
-2. Under **Branch**, pick **`gh-pages`** → folder **`/`** → Save.  
-3. Wait 1–2 minutes.  
-4. On your phone open:  
-   `https://joeholloway445-maker.github.io/CATSINO.CASINO/`  
-5. Tap **Play Offline** → **Play Prototype Spine**.
-
-(If the game stuck-loads, your host must send special security headers. Then use Option B.)
-
----
-
-## Option B — Your domain (what you said you have)
+## Option B — Your domain
 
 You want the phone to open something like **`https://play.catsino.casino`**.
 
-1. Download the zip from the release link above.  
-2. Unzip it (you’ll see `index.html`, `index.wasm`, `index.pck`, …).  
-3. In GoDaddy / Hostinger **File Manager**, open the folder for `play.catsino.casino` (or create that subdomain first).  
-4. Upload **all** those unzipped files into the public web folder (`public_html` / `www`).  
-5. Make sure HTTPS is on for that subdomain.  
-6. On your phone open: `https://play.catsino.casino`  
-7. **Play Offline** → **Play Prototype Spine**.
+1. Rebuild locally: `bash scripts/export_web.sh` (needs Godot 4.3 + Web templates).
+2. Upload everything in `builds/html5/` (keep `_headers`) to the subdomain’s
+   public web folder on GoDaddy / Hostinger / Cloudflare / Netlify.
+3. Open `https://play.catsino.casino` → **Play Offline** → **Play Prototype Spine**.
 
-If you use **Cloudflare** or **Netlify**, keep the `_headers` file in that folder (it sets the headers Godot needs).
+I **cannot** finish wiring `play.catsino.casino` without your hosting login —
+that domain is still a parked page from here.
 
----
+## Option C — Desktop Godot (full art)
 
-## Option C — Tell me your hosting login (or invite me)
+For the complete visual set (OSM city shells, music, HDRI, PeriHumans):
 
-If you add Hostinger/GoDaddy/Cloudflare access (or paste a deploy token into the repo secrets), I can upload and wire DNS for you next.
+1. Install newest stable **Godot 4.x** (4.3+).
+2. Open `godot/project.godot`.
+3. Press F5 → **Play Offline** → **Play Prototype Spine**.
 
----
+## Older zip
 
-## What I already did for you
+[prototype-web-v0.1](https://github.com/joeholloway445-maker/CATSINO.CASINO/releases/tag/prototype-web-v0.1)
+is the Jul 15 HTML5 tarball. Prefer Option A (live Pages) unless you need an
+offline zip.
 
-- Built the browser game  
-- Uploaded release `prototype-web-v0.1`  
-- Pushed a `gh-pages` branch with the files  
-- Fixed deploy scripts so VPS deploy uses `builds/html5`
+## Screenshot walkthrough
+
+See **[`docs/PROTOTYPE_VIEW.md`](PROTOTYPE_VIEW.md)** for the 2026-07-17
+in-engine tour (title, layers, arena, Paws Vegas, casino).

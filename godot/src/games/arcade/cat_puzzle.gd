@@ -16,6 +16,79 @@ var _board: Array = []
 var _moves_remaining: int = MOVE_LIMIT
 var _score: int = 0
 var _bet: int = 0
+var _grid: GridContainer
+var _score_label: Label
+var _moves_label: Label
+var _selected: Vector2i = Vector2i(-1, -1)
+var _tile_buttons: Array = []
+
+func _ready() -> void:
+	var root := get_parent() if get_parent() else self
+	_grid = root.get_node_or_null("BoardGrid") as GridContainer
+	var info := root.get_node_or_null("InfoBar")
+	if info:
+		_score_label = info.get_node_or_null("ScoreLabel") as Label
+		_moves_label = info.get_node_or_null("MovesLabel") as Label
+	if not board_updated.is_connected(_on_board_updated_ui):
+		board_updated.connect(_on_board_updated_ui)
+	if not move_made.is_connected(_on_move_ui):
+		move_made.connect(_on_move_ui)
+	if not puzzle_complete.is_connected(_on_puzzle_complete_ui):
+		puzzle_complete.connect(_on_puzzle_complete_ui)
+	if root is Control:
+		var start_btn := Button.new()
+		start_btn.text = "Start (15 chips)"
+		start_btn.position = Vector2(12, 12)
+		start_btn.pressed.connect(func() -> void: start_puzzle(15))
+		root.add_child(start_btn)
+	start_puzzle(0)  # free practice board; paid start spends via RPC on finish
+
+func _on_board_updated_ui(board: Array) -> void:
+	_render_board(board)
+
+func _on_move_ui(remaining: int) -> void:
+	if _moves_label:
+		_moves_label.text = "Moves: %d" % remaining
+	if _score_label:
+		_score_label.text = "Score: %d" % _score
+
+func _on_puzzle_complete_ui(score: int, payout: int) -> void:
+	if _bet > 0:
+		NetworkManager.call_rpc("submit_puzzle_score", {bet = _bet, score = score},
+			func(result: Dictionary) -> void:
+				var paid := int(result.get("payout", payout))
+				if _score_label:
+					_score_label.text = "Done! Score %d — +%d chips" % [score, paid]
+				if paid > 0 and NotificationUI:
+					NotificationUI.notify_win("Puzzle: +%d" % paid)
+		)
+	elif _score_label:
+		_score_label.text = "Done! Score %d (practice)" % score
+
+func _render_board(board: Array) -> void:
+	if _grid == null:
+		return
+	for c in _grid.get_children():
+		c.queue_free()
+	_tile_buttons.clear()
+	for r in board.size():
+		var row_btns: Array = []
+		for c in board[r].size():
+			var btn := Button.new()
+			btn.text = str(board[r][c])
+			btn.custom_minimum_size = Vector2(48, 48)
+			var pos := Vector2i(r, c)
+			btn.pressed.connect(func() -> void: _on_tile_pressed(pos))
+			_grid.add_child(btn)
+			row_btns.append(btn)
+		_tile_buttons.append(row_btns)
+
+func _on_tile_pressed(pos: Vector2i) -> void:
+	if _selected.x < 0:
+		_selected = pos
+		return
+	swap(_selected.x, _selected.y, pos.x, pos.y)
+	_selected = Vector2i(-1, -1)
 
 func start_puzzle(bet: int) -> void:
 	_bet = bet

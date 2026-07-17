@@ -26,7 +26,7 @@ const SLOTS_VARIANTS: Array[Dictionary] = [
 
 const RACING_VARIANTS: Array[Dictionary] = [
 	{id="race_sprint", name="Neon Sprint", laps=1, track="neon_alley", ai_count=5, prize_mult=2},
-	{id="race_circuit", name="Paw Vegas Circuit", laps=3, track="paw_vegas", ai_count=7, prize_mult=5},
+	{id="race_circuit", name="Paws Vegas Circuit", laps=3, track="paw_vegas", ai_count=7, prize_mult=5},
 	{id="race_endurance", name="Forest Endurance", laps=10, track="cat_forest", ai_count=3, prize_mult=15},
 	{id="race_drag", name="Alley Drag", laps=1, track="drag_strip", ai_count=1, prize_mult=2},
 	{id="race_coliseum", name="Coliseum Grand Prix", laps=5, track="coliseum_ring", ai_count=11, prize_mult=20},
