@@ -79,6 +79,16 @@ func _run() -> void:
 		print("[gate6_smoke] boss visual FAIL")
 	else:
 		print("[gate6_smoke] boss visual ok")
+	# Phase + death SFX path — drop through 66%/33% without crashing headless.
+	var phase_before: int = ent._boss_phase
+	ent.take_hit(int(ent.max_hp * 0.40))  # into phase 2
+	ent.take_hit(int(ent.max_hp * 0.35))  # into phase 3
+	print("[gate6_smoke] boss phase ", phase_before, "→", ent._boss_phase)
+	if ent._boss_phase < 3:
+		ok = false
+		print("[gate6_smoke] boss phase FAIL")
+	ent.take_hit(ent.hp + 1)  # death + boss_death SFX
+	print("[gate6_smoke] boss death SFX path ok")
 	# Regular wildlife must also build a mesh (setup() visual regression guard).
 	var wild := WorldEntity.new()
 	root.add_child(wild)
@@ -94,7 +104,7 @@ func _run() -> void:
 	else:
 		print("[gate6_smoke] wild visual ok")
 	wild.queue_free()
-	ent.queue_free()
+	# ent already queue_free'd on death — don't double-free.
 
 	# begin again briefly to exercise run_seed() API
 	var seed_again: int = int(dr.begin("dungeon_smoke"))

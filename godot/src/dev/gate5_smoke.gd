@@ -96,6 +96,28 @@ func _run() -> void:
 	if we_script == null:
 		ok = false
 
+	# Combat juice wiring — SkillVFX + CombatSfx (Gate 5/7 cast/hit audio).
+	var vfx_scr: GDScript = load("res://src/skills/skill_vfx.gd") as GDScript
+	var sfx_scr: GDScript = load("res://src/audio/combat_sfx.gd") as GDScript
+	print("[gate5_smoke] SkillVFX=", vfx_scr != null, " CombatSfx=", sfx_scr != null)
+	if vfx_scr == null or sfx_scr == null:
+		ok = false
+	else:
+		var host := Node3D.new()
+		r.add_child(host)
+		# Fire-and-forget paths must not throw headless (synth/AssetLibrary).
+		SkillVFX.cast_flash(host, Vector3.ZERO)
+		SkillVFX.hit_spark(host, Vector3(1, 0, 0))
+		SkillVFX.ultimate_burst(host, Vector3.ZERO, 4.0)
+		SkillVFX.shield_bubble(host, host, 0.1)
+		print("[gate5_smoke] SkillVFX cast/hit/ult/shield ok")
+		for slot in ["skill_cast", "skill_hit", "skill_ult", "skill_shield",
+				"boss_spawn", "boss_phase", "boss_death"]:
+			CombatSfx.play(host, slot, Vector3.ZERO)
+		print("[gate5_smoke] CombatSfx slots ok")
+		# Leave host for SceneTree quit — early queue_free trips SkillVFX
+		# particle/shield timer lambdas under headless.
+
 	print("[gate5_smoke] RESULT=", "PASS" if ok else "FAIL")
 	quit(0 if ok else 1)
 

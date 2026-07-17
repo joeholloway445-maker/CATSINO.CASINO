@@ -2,7 +2,8 @@ class_name SkillVFX
 ## One-shot skill visuals, colored by the caster's frame sensorium — your
 ## Bolt strike flashes white-hot, a Blight cast hazes green. All GPU
 ## particles + emissive meshes, auto-freed. Host scenes call these from
-## their cast resolvers.
+## their cast resolvers. Combat SFX rides alongside via CombatSfx (AssetLibrary
+## slots with procedural fallback) so every cast host inherits audio juice.
 
 static func _tint() -> Color:
 	return IdentityLens.sensorium().light
@@ -11,6 +12,7 @@ static func _tint() -> Color:
 static func cast_flash(parent: Node3D, at: Vector3) -> void:
 	var p := _particles(parent, at + Vector3(0, 1.2, 0), 24, 0.5, _tint(), 2.0)
 	p.one_shot = true
+	CombatSfx.play(parent, "skill_cast", at)
 
 ## Expanding ground ring for AoE skills.
 static func aoe_ring(parent: Node3D, at: Vector3, radius: float, color: Color = Color.TRANSPARENT) -> void:
@@ -79,6 +81,8 @@ static func shield_bubble(parent: Node3D, follow: Node3D, duration: float = 6.0)
 	follow.add_child(bub)
 	follow.get_tree().create_timer(duration).timeout.connect(func():
 		if is_instance_valid(bub): bub.queue_free())
+	var at := follow.global_position if is_instance_valid(follow) else parent.global_position
+	CombatSfx.play(parent, "skill_shield", at)
 
 ## Big vertical column + shockwave for ultimates.
 ## A reality-tear pillar, not a particle puff — the holographic shader
@@ -88,6 +92,7 @@ static func ultimate_burst(parent: Node3D, at: Vector3, radius: float) -> void:
 	aoe_ring(parent, at, radius, c)
 	var p := _particles(parent, at, 160, 1.2, c, 6.0)
 	p.one_shot = true
+	CombatSfx.play(parent, "skill_ult", at, -4.0)
 	var col := MeshInstance3D.new()
 	var cyl := CylinderMesh.new()
 	cyl.top_radius = 0.8
@@ -169,6 +174,7 @@ static func add_aura_shell(root: Node3D, color: Color, size: float = 0.06) -> vo
 static func hit_spark(parent: Node3D, at: Vector3) -> void:
 	var p := _particles(parent, at + Vector3(0, 1.0, 0), 16, 0.35, Color(1.0, 0.8, 0.4), 3.0)
 	p.one_shot = true
+	CombatSfx.play(parent, "skill_hit", at, -8.0)
 
 static func _particles(parent: Node3D, at: Vector3, amount: int, life: float, color: Color, speed: float) -> GPUParticles3D:
 	var p := GPUParticles3D.new()

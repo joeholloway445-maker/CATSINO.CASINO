@@ -275,7 +275,7 @@ We have successfully implemented 12 production-ready systems totaling **5,150+ l
 #### Audio Implementation (80 hours)
 - [ ] 6 faction/layer music themes (3-5 min loops each)
 - [ ] 144 entity vocalization samples (roars, chirps, wails)
-- [ ] Combat SFX: 28 ability sounds + impact sounds
+- [x] Combat SFX: cast/hit/ult/shield + boss spawn/phase/death via SkillVFX/CombatSfx (AssetLibrary slots; thicken per-ability packs later)
 - [ ] UI sounds (button clicks, confirmations, errors)
 - [ ] Ambient layer sounds (wind, water, electricity, etc.)
 - [ ] NPC voice-over for dialogue (optional, can be text-only MVP)
