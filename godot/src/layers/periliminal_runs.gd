@@ -28,6 +28,10 @@ func _ready() -> void:
 	_load_ledger()
 	LayerManager.pulled_into_periliminal.connect(func(): begin_run(["local_player"]))
 
+## Stable seed for the active wipe-run (0 when idle).
+func run_seed() -> int:
+	return _run_seed
+
 func begin_run(members: Array[String]) -> void:
 	if active:
 		return

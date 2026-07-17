@@ -104,6 +104,47 @@ func _run() -> void:
 		print("[gate6_smoke] run_seed FAIL ", via_api, " vs ", seed_again)
 	else:
 		print("[gate6_smoke] run_seed ok=", via_api)
+
+	# Gate 6 real floors: PeriliminalGenerator produces seeded floors with
+	# entities/hazards/exits (not denser-spawn stand-ins).
+	var gen := PeriliminalGenerator.new()
+	var g1: Dictionary = gen.generate_gauntlet(via_api)
+	var g2: Dictionary = gen.generate_gauntlet(via_api)
+	var floors: Array = g1.get("floors", [])
+	print("[gate6_smoke] gauntlet floors=", floors.size(), " seed=", g1.get("seed", 0))
+	if floors.is_empty() or int(g1.get("seed", 0)) != via_api:
+		ok = false
+		print("[gate6_smoke] gauntlet FAIL")
+	else:
+		var f0: Dictionary = floors[0]
+		if not f0.has("trap_type") or not f0.has("hazards") or not f0.has("exits"):
+			ok = false
+			print("[gate6_smoke] floor fields FAIL keys=", f0.keys())
+		else:
+			print("[gate6_smoke] floor0 trap=", f0.get("trap_type"),
+				" hazards=", (f0.get("hazards", []) as Array).size(),
+				" entities=", (f0.get("entities", []) as Array).size())
+		# Same seed → same floor trap sequence.
+		var floors2: Array = g2.get("floors", [])
+		if floors2.is_empty() or str(floors2[0].get("trap_type", "")) != str(f0.get("trap_type", "")):
+			ok = false
+			print("[gate6_smoke] gauntlet determinism FAIL")
+		else:
+			print("[gate6_smoke] gauntlet determinism ok")
+		# Entity tokens resolve to real dex lines.
+		var ents: Array = f0.get("entities", [])
+		if not ents.is_empty():
+			var resolved: Dictionary = PeriliminalGenerator.resolve_entity_token(str(ents[0]))
+			if resolved.is_empty() or not (resolved.get("line", {}) is Dictionary):
+				ok = false
+				print("[gate6_smoke] resolve_entity FAIL token=", ents[0])
+			elif str((resolved.get("line", {}) as Dictionary).get("id", "")).is_empty():
+				ok = false
+				print("[gate6_smoke] resolve_entity empty id token=", ents[0])
+			else:
+				print("[gate6_smoke] resolve_entity ok=",
+					(resolved.get("line", {}) as Dictionary).get("id", ""),
+					"@", resolved.get("stage", 1))
 	dr.eject("smoke2")
 
 	print("[gate6_smoke] RESULT=", "PASS" if ok else "FAIL")

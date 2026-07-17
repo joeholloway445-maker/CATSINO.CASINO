@@ -332,6 +332,38 @@ static func random_line(faction: String) -> Dictionary:
 		return {}
 	return pool[randi() % pool.size()]
 
+## Lookup a dex line by id across faction + Factionless + single-stage pools.
+static func by_id(entity_id: String) -> Dictionary:
+	if entity_id.is_empty():
+		return {}
+	for l in LINES:
+		if str(l.get("id", "")) == entity_id:
+			return l
+	for l in SINGLE_STAGE_LINES:
+		if str(l.get("id", "")) == entity_id:
+			return l
+	for l in FACTIONLESS_LINES:
+		if str(l.get("id", "")) == entity_id:
+			return l
+	return {}
+
+## Seeded category pick for Periliminal gauntlet floors.
+static func random_line_in_category(faction: String, category: String, rng: RandomNumberGenerator = null) -> Dictionary:
+	var want := category
+	var pool: Array[Dictionary] = []
+	for l in by_faction(faction):
+		if str(l.get("category", "")) == want:
+			pool.append(l)
+	if pool.is_empty():
+		for l in by_faction("Factionless"):
+			if str(l.get("category", "")) == want:
+				pool.append(l)
+	if pool.is_empty():
+		return {}
+	if rng != null:
+		return pool[rng.randi() % pool.size()]
+	return pool[randi() % pool.size()]
+
 ## Picks the strongest stage that exists for a line, at or below `max_stage`.
 static func stage_for(line: Dictionary, max_stage: int) -> Dictionary:
 	var stages: Array = line.get("stages", [])
