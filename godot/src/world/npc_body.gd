@@ -41,6 +41,8 @@ func build(npc: Dictionary) -> void:
 	rng.seed = hash(str(npc.get("id", npc.get("name", "npc"))))
 	_mesh_root = MetahumanCharacter.build_npc("identity", str(npc.get("race_id", "")), rng)
 	add_child(_mesh_root)
+	# Belt-and-suspenders: whatever GLB we got, force upright human proportions.
+	_force_upright_human(_mesh_root)
 
 	_apply_stature(appearance)
 	_apply_surface_tints(appearance, str(npc.get("faction", "")))
@@ -78,14 +80,75 @@ func lod() -> int:
 	return _lod
 
 ## ── Trait application ─────────────────────────────────────────────────────
+## Correct Z-up / cm-scale humanoid GLBs in place. Safe no-op for already
+## upright ~1.8 m PeriHuman variants.
+func _force_upright_human(root: Node3D) -> void:
+	if root == null:
+		return
+	root.rotation = Vector3.ZERO
+	var aabb := _world_aabb(root)
+	if aabb.size == Vector3.ZERO:
+		return
+	var sx := aabb.size.x
+	var sy := aabb.size.y
+	var sz := aabb.size.z
+	var tallest := maxf(sx, maxf(sy, sz))
+	if tallest < 0.35:
+		return
+	if sy < tallest * 0.55:
+		if sz >= sx and sz >= sy:
+			root.rotate_object_local(Vector3.RIGHT, -PI * 0.5)
+		elif sx >= sy and sx >= sz:
+			root.rotate_object_local(Vector3.FORWARD, PI * 0.5)
+		aabb = _world_aabb(root)
+		tallest = maxf(aabb.size.x, maxf(aabb.size.y, aabb.size.z))
+	if tallest > 2.5:
+		var s := 1.80 / maxf(aabb.size.y, 0.01)
+		root.scale *= s
+		aabb = _world_aabb(root)
+	if absf(aabb.position.y) > 0.02:
+		root.position.y -= aabb.position.y
+
+
+func _world_aabb(root: Node3D) -> AABB:
+	var merged := AABB()
+	var any := false
+	for mi in _find_meshes(root):
+		if mi.mesh == null:
+			continue
+		for i in 8:
+			var c: Vector3 = mi.to_global(mi.get_aabb().get_endpoint(i))
+			if not any:
+				merged = AABB(c, Vector3.ZERO)
+				any = true
+			else:
+				merged = merged.expand(c)
+	# Express in root-local space for plant-feet math.
+	if any and root.is_inside_tree():
+		var local := AABB()
+		var first := true
+		for mi in _find_meshes(root):
+			if mi.mesh == null:
+				continue
+			for i in 8:
+				var c: Vector3 = root.to_local(mi.to_global(mi.get_aabb().get_endpoint(i)))
+				if first:
+					local = AABB(c, Vector3.ZERO)
+					first = false
+				else:
+					local = local.expand(c)
+		return local
+	return merged if any else AABB()
+
+
 func _apply_stature(appearance: Dictionary) -> void:
 	if _mesh_root == null:
 		return
 	var height := clampf(float(appearance.get("height_m", 1.72)), HEIGHT_MIN, HEIGHT_MAX)
 	var h_scale := height / AUTHORED_HEIGHT
 	var width: float = BUILD_WIDTH.get(str(appearance.get("build", "average")), 1.0)
-	# Natural posture variation only — never balloon or squash a human.
-	_mesh_root.scale = Vector3(h_scale * width, h_scale, h_scale * width)
+	# Multiply — never replace — so upright/normalize scale corrections stick.
+	_mesh_root.scale = _mesh_root.scale * Vector3(h_scale * width, h_scale, h_scale * width)
 
 ## Tint identifiable surfaces on WHATEVER mesh is actually installed.
 ## MetaHuman exports name surfaces Skin/Face/Body/Hair/Eyelash — those get

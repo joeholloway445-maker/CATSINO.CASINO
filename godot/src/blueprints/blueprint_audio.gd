@@ -9,6 +9,8 @@ const MIX_RATE := 22050.0
 ## Fire-and-forget: plays the blueprint's audio signature at `parent`,
 ## frees itself when done. Returns the player so callers can reposition it.
 static func play(parent: Node, bp: Dictionary, volume_db: float = -8.0) -> AudioStreamPlayer:
+	if parent == null or not is_instance_valid(parent) or parent.get_tree() == null:
+		return null
 	var a: Dictionary = bp.get("audio", {})
 	if a.is_empty():
 		return null
@@ -23,8 +25,12 @@ static func play(parent: Node, bp: Dictionary, volume_db: float = -8.0) -> Audio
 	parent.add_child(player)
 	player.play()
 	_fill(player.get_stream_playback(), a)
-	# Free once the tail is done.
-	parent.get_tree().create_timer(attack + decay + 0.3).timeout.connect(player.queue_free)
+	# Free once the tail is done — instance id so a freed player never trips the lambda.
+	var pid := player.get_instance_id()
+	parent.get_tree().create_timer(attack + decay + 0.3).timeout.connect(func():
+		var n := instance_from_id(pid)
+		if n != null:
+			n.queue_free())
 	return player
 
 static func _fill(pb: AudioStreamGeneratorPlayback, a: Dictionary) -> void:

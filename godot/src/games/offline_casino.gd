@@ -151,7 +151,7 @@ static func supports(rpc_id: String) -> bool:
 		"spin_slots", "play_blackjack", "play_poker", "play_holdem",
 		"draw_fortune", "buy_scratch_card", "predict_match",
 		"submit_puzzle_score", "start_race", "combat_action",
-		"get_wallet", "get_leaderboard", "story_vote",
+		"get_wallet", "get_leaderboard", "story_vote", "get_story_tallies",
 		"find_match", "find_moba_match", "find_or_create_layer_match",
 		"get_active_tournaments", "get_tournaments", "join_tournament",
 		"submit_score", "quest_action", "get_quests",
@@ -196,6 +196,7 @@ static func _get_leaderboard(data: Dictionary) -> Dictionary:
 		"success": true,
 		"ok": true,
 		"leaderboard": board_id,
+		"board_id": board_id,
 		"records": records,
 		"caller_rank": -1,
 		"caller_record": null,
@@ -208,7 +209,10 @@ static func _submit_score_offline(data: Dictionary) -> Dictionary:
 	var crown := _autoload("CrownManager")
 	if crown != null:
 		crown.call("add_score", board_id, "local_player", score)
-	return {"success": true, "ok": true, "score": score, "board_id": board_id, "offline": true}
+	return {
+		"success": true, "ok": true, "score": score,
+		"board_id": board_id, "leaderboard": board_id, "offline": true,
+	}
 
 static func _daily_bonus_offline() -> Dictionary:
 	var eco := _autoload("EconomyManager")

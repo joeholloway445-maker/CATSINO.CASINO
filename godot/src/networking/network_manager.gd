@@ -29,17 +29,34 @@ func _get_session():
 func _resolve_rpc_id(rpc_id: String) -> String:
 	return str(RPC_ALIASES.get(rpc_id, rpc_id))
 
+## Gate 8: clients send `board_id`; Nakama historically expected `leaderboard`.
+## Mirror both keys on outbound payloads so either side can read either name.
+func _normalize_payload(rpc_id: String, payload: Variant) -> Variant:
+	if not payload is Dictionary:
+		return payload
+	var p: Dictionary = (payload as Dictionary).duplicate(true)
+	if rpc_id in ["get_leaderboard", "submit_score"]:
+		if p.has("board_id") and not p.has("leaderboard"):
+			p["leaderboard"] = p["board_id"]
+		elif p.has("leaderboard") and not p.has("board_id"):
+			p["board_id"] = p["leaderboard"]
+		if not p.has("leaderboard") and not p.has("board_id"):
+			p["leaderboard"] = "global_wins"
+			p["board_id"] = "global_wins"
+	return p
+
 func call_rpc(rpc_id: String, payload: Variant, callback: Callable) -> void:
 	if rpc_id in SOFT_SUCCESS_RPCS:
 		callback.call({"success": true, "ok": true})
 		return
 	var resolved_id := _resolve_rpc_id(rpc_id)
-	var payload_str: String = JSON.stringify(payload) if payload is Dictionary or payload is Array else str(payload)
+	var normalized: Variant = _normalize_payload(resolved_id, payload)
+	var payload_str: String = JSON.stringify(normalized) if normalized is Dictionary or normalized is Array else str(normalized)
 	var client = _get_client()
 	var session = _get_session()
 	if not client or not session or session.is_expired():
 		if OfflineCasino.supports(resolved_id):
-			var local: Dictionary = await OfflineCasino.resolve(resolved_id, payload)
+			var local: Dictionary = await OfflineCasino.resolve(resolved_id, normalized if normalized is Dictionary else {})
 			if local.get("error") and not local.get("success", false):
 				rpc_error.emit(401, str(local.get("error", "Not authenticated")))
 			callback.call(_normalize_response(resolved_id, local))
@@ -68,6 +85,14 @@ func _normalize_response(rpc_id: String, data: Dictionary) -> Dictionary:
 		out["success"] = true
 	if out.has("ok") and not out.has("success"):
 		out["success"] = bool(out.ok)
+	# Leaderboard field alias — echo both names for UI callers.
+	if rpc_id in ["get_leaderboard", "submit_score"]:
+		if out.has("leaderboard") and not out.has("board_id"):
+			out["board_id"] = out["leaderboard"]
+		elif out.has("board_id") and not out.has("leaderboard"):
+			out["leaderboard"] = out["board_id"]
+		if not out.has("records") and out.has("entries"):
+			out["records"] = out["entries"]
 	# Wallet / economy shape for EconomyManager + HUD
 	if rpc_id in ["get_wallet", "daily_bonus", "earn_coins", "spend_coins"]:
 		var coins := int(out.get("coins", out.get("cat_coins", 0)))
@@ -105,6 +130,12 @@ func _normalize_response(rpc_id: String, data: Dictionary) -> Dictionary:
 				t["entry_count"] = t["participant_count"]
 		if not out.has("tournaments") and list.size() > 0:
 			out["tournaments"] = list
+	# Matchmaking — ensure success flag when only `ok` is set
+	if rpc_id in ["find_match", "find_moba_match"]:
+		if out.has("ok") and not out.has("success"):
+			out["success"] = bool(out.ok)
+		if out.has("matchId") and not out.has("match_id"):
+			out["match_id"] = out["matchId"]
 	return out
 
 func is_connected_to_server() -> bool:

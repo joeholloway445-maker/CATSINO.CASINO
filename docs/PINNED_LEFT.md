@@ -1,8 +1,12 @@
 # Pinned — circle back when asked “what’s left”
 
-**Agent-finishable Gates 5–8 thicken (latest):** arena HotbarUI + skill casts;
-hideout live sieges; PeriliminalGenerator floors; StoryVote Nakama module;
-**layer presence** (`find_or_create_layer_match` + PresenceManager live join).
+**Agent-finishable Gates 5–8 thicken (latest):** Gate 8 layer presence
+(`find_or_create_layer_match` + PresenceManager live join) on top of
+`board_id`↔`leaderboard` alias + thicker `gate8_smoke`.
+
+Remaining agent juice: combat SFX slots + boss phase telegraphs (PR #56 —
+do not duplicate), Periliminal floor hazard VFX/HUD, hideout siege combat
+registration if PR #61 not yet merged.
 
 Do **not** start the pinned owner trials below until the owner asks
 what’s left.
@@ -36,5 +40,7 @@ Also owner-local (needs your machine / credentials — not cloud-agent work):
 - Free path: **MPFB2** (CC0) + **OSM2World** (OSM ODbL)
 - Arena HotbarUI + cast resolution (Gate 6)
 - Hideout live WorldEntity siege (Gate 5)
-- PeriliminalGenerator floors + StoryVote Nakama (Gate 6/8)
+- PeriliminalGenerator real floors (Gate 6)
+- StoryVote Nakama module (Gate 8)
+- Gate 8 board_id↔leaderboard alias + smoke thicken
 - Gate 8 layer presence match + PresenceManager live join

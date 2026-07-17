@@ -350,7 +350,7 @@ To compete with ESO, WoW, CoD, GTA, Destiny, and Apex, these systems still need 
 
 #### C. **Audio Implementation** (20 hours)
 - [ ] 144 entity vocalization samples
-- [ ] Combat SFX (hit sounds, spell casts, enemy voices)
+- [x] Combat SFX (cast/hit/ult/shield + boss spawn/phase/death via CombatSfx; enemy voice packs later)
 - [ ] Faction-specific music themes
 - [ ] Layer ambience tracks
 - [ ] UI sound effects
