@@ -1,12 +1,9 @@
 extends Node
 ## Autoloaded as "PresenceManager". Other players in the world.
 ##
-## Online path: one Nakama match per reality layer ("layer_<id>"); position
-## broadcast at 10Hz over the socket, remote states fanned out as signals.
-## Written against the NakamaSocket API (connect_async / join_match_async /
-## send_match_state_async / received_match_state) — the bundled addon is a
-## stub, so the moment the official nakama-godot addon replaces it and
-## AccountManager authenticates, this goes live with no changes here.
+## Online path: one Nakama match per reality layer via
+## `find_or_create_layer_match` RPC → join_match_async(real match_id).
+## Position broadcast at 10Hz; remote states fan out as peer_* signals.
 ##
 ## Offline path: ghost bots — stand-ins built from the entity roster so
 ## layers never feel empty, and PvP zones never feel like an empty gym.
@@ -46,6 +43,8 @@ var _match_id := ""
 var _accum := 0.0
 var _my_pos := Vector3.ZERO
 var _ghosts: Dictionary = {} # id -> {pos, dir, profile, retarget, tier, aggression, caution, misfire_cd, attack_cd, hits_landed}
+var _online_peers: Dictionary = {} # peer_id -> profile
+var _current_layer := ""
 
 func _ready() -> void:
 	LayerManager.layer_changed.connect(func(_f, to): join_layer(to))
@@ -55,13 +54,50 @@ func join_layer(layer_id: String) -> void:
 	for gid in _ghosts.keys():
 		peer_left.emit(gid)
 	_ghosts.clear()
+	for pid in _online_peers.keys():
+		peer_left.emit(pid)
+	_online_peers.clear()
 	_match_id = ""
+	_current_layer = layer_id
+
+	if layer_id in ["hyperliminal", "subliminal"]:
+		return # menus and your apartment stay yours
 
 	if await _try_connect_socket():
-		var result = await _socket.join_match_async("layer_%s" % layer_id)
-		_match_id = str(result.get("match_id", "layer_%s" % layer_id))
+		var match_id := await _resolve_layer_match(layer_id)
+		if match_id.is_empty():
+			_spawn_ghosts(layer_id)
+			return
+		var result = await _socket.join_match_async(match_id)
+		if result != null and result.has_method("is_exception") and result.is_exception():
+			push_warning("PresenceManager: join_match failed: %s" % result.get_exception().message)
+			_spawn_ghosts(layer_id)
+			return
+		if result is Dictionary and str(result.get("match_id", "")) != "":
+			_match_id = str(result.get("match_id"))
+		else:
+			_match_id = match_id
+		print("[PresenceManager] joined layer=%s match=%s" % [layer_id, _match_id])
 	else:
 		_spawn_ghosts(layer_id)
+
+## RPC → real Nakama match id for this layer (empty = fall back to ghosts).
+func _resolve_layer_match(layer_id: String) -> String:
+	if not NetworkManager.is_connected_to_server():
+		return ""
+	var done := false
+	var match_id := ""
+	NetworkManager.call_rpc("find_or_create_layer_match", {"layer_id": layer_id},
+		func(result: Dictionary):
+			if bool(result.get("solo", false)):
+				match_id = ""
+			else:
+				match_id = str(result.get("match_id", ""))
+			done = true)
+	var deadline := Time.get_ticks_msec() + 6000
+	while not done and Time.get_ticks_msec() < deadline:
+		await get_tree().process_frame
+	return match_id
 
 func _try_connect_socket() -> bool:
 	if not NetworkManager.is_connected_to_server():
@@ -72,8 +108,10 @@ func _try_connect_socket() -> bool:
 			return false
 		_socket = client.create_socket()
 		_socket.received_match_state.connect(_on_match_state)
+		if _socket.has_signal("received_match_presence_event"):
+			_socket.received_match_presence_event.connect(_on_match_presence)
 		var result = await _socket.connect_async(AccountManager.get_nakama_session())
-		if result.is_exception():
+		if result != null and result.has_method("is_exception") and result.is_exception():
 			push_warning("PresenceManager: socket connect failed: %s" % result.get_exception().message)
 			_socket = null
 			return false
@@ -179,7 +217,30 @@ func _on_match_state(state) -> void:
 	if pid == "" or pid == PlayerProfile.username:
 		return
 	var arr: Array = data.get("pos", [0, 0, 0])
-	peer_updated.emit(pid, Vector3(arr[0], arr[1], arr[2]))
+	var profile: Dictionary = data.get("profile", {})
+	if not _online_peers.has(pid):
+		_online_peers[pid] = profile
+		peer_joined.emit(pid, profile)
+	else:
+		_online_peers[pid] = profile
+	peer_updated.emit(pid, Vector3(float(arr[0]), float(arr[1]), float(arr[2])))
+
+func _on_match_presence(event) -> void:
+	# NakamaModels.MatchPresenceEvent or raw dict — leave leaves.
+	var leaves: Array = []
+	if event is Dictionary:
+		leaves = event.get("leaves", [])
+	elif event != null and "leaves" in event:
+		leaves = event.leaves
+	for leave in leaves:
+		var uid := ""
+		if leave is Dictionary:
+			uid = str(leave.get("user_id", leave.get("userId", "")))
+		elif leave != null:
+			uid = str(leave.get("user_id") if "user_id" in leave else "")
+		if uid != "" and _online_peers.has(uid):
+			_online_peers.erase(uid)
+			peer_left.emit(uid)
 
 ## Offline stand-ins: named from the roster, profiled so perception works,
 ## tiered so the crowd feels alive without every bot being a threat.
@@ -225,7 +286,21 @@ func _roll_tier() -> int:
 	return BotTier.STATIC
 
 func peer_profile(peer_id: String) -> Dictionary:
+	if _online_peers.has(peer_id):
+		return _online_peers[peer_id]
 	return _ghosts.get(peer_id, {}).get("profile", {})
 
 func peer_tier(peer_id: String) -> int:
+	if _online_peers.has(peer_id):
+		return BotTier.ADAPTIVE # real players — treat as full threat for UI
 	return int(_ghosts.get(peer_id, {}).get("tier", BotTier.STATIC))
+
+## Live + ghost headcount for district / HUD polls.
+func presence_count() -> int:
+	return _online_peers.size() + _ghosts.size()
+
+func is_online_match() -> bool:
+	return _match_id != ""
+
+func current_match_id() -> String:
+	return _match_id
