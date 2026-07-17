@@ -1,10 +1,9 @@
 # Pinned — circle back when asked “what’s left”
 
-**Agent-finishable Gates 5–8 thicken (latest):** Gate 8 layer presence
-(`find_or_create_layer_match` + PresenceManager live join).
+**Agent-finishable Gates 5–8 thicken (latest):** hideout sieges register
+defenders into LayerWorld combat (hotbar + bites).
 
-Remaining agent juice: Periliminal floor hazard VFX/HUD, hideout siege
-combat registration if PR #61 not yet merged.
+Remaining agent juice: Periliminal floor hazard VFX/HUD.
 
 Do **not** start the pinned owner trials below until the owner asks
 what’s left.
@@ -37,7 +36,7 @@ Also owner-local (needs your machine / credentials — not cloud-agent work):
 - MPFB2 PeriHuman studio bake
 - Free path: **MPFB2** (CC0) + **OSM2World** (OSM ODbL)
 - Arena HotbarUI + cast resolution (Gate 6)
-- Hideout live WorldEntity siege (Gate 5)
+- Hideout live WorldEntity siege + LayerWorld combat registration (Gate 5)
 - PeriliminalGenerator real floors (Gate 6)
 - StoryVote Nakama module (Gate 8)
 - Gate 8 board_id↔leaderboard alias + smoke thicken
