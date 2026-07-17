@@ -147,6 +147,64 @@ func _run() -> void:
 					"@", resolved.get("stage", 1))
 	dr.eject("smoke2")
 
+	# Arena hotbar cast path — free-roam mode (no wave loop) + skill hits.
+	var arena_script: GDScript = load("res://src/world/arena_mode_controller.gd") as GDScript
+	var player := Node3D.new()
+	player.name = "SmokePlayer"
+	root.add_child(player)
+	player.global_position = Vector3.ZERO
+	var arena: Node = arena_script.new()
+	root.add_child(arena)
+	arena.call("setup", "smoke_cast", player) # hits free-roam branch, still attaches hotbar
+	var hotbar_ok := arena.get_node_or_null("ArenaHotbar") != null
+	print("[gate6_smoke] arena hotbar=", hotbar_ok)
+	if not hotbar_ok:
+		ok = false
+	var foe := WorldEntity.new()
+	arena.add_child(foe)
+	foe.setup({
+		"id": "arena_foe",
+		"faction": "Factionless",
+		"category": "Energy",
+		"stages": [{"name": "Arena Smoke", "desc": ""}],
+	}, 1, player)
+	foe.global_position = Vector3(2, 0, 0)
+	arena.call("register_foe", foe)
+	var hp_before: int = foe.hp
+	var hits_seen := [0]
+	if arena.has_signal("cast_resolved"):
+		arena.connect("cast_resolved", func(_sid, hits): hits_seen[0] = hits)
+	var sk := {
+		"id": "smoke_a0", "name": "Smoke Strike", "kind": "damage",
+		"shape": "single", "radius": 4.0, "power": 1.2, "element": "energy",
+	}
+	arena.call("_on_cast", sk)
+	await process_frame
+	print("[gate6_smoke] arena cast hits=", hits_seen[0], " foe_hp=", foe.hp, "/", hp_before)
+	if hits_seen[0] < 1 or foe.hp >= hp_before:
+		ok = false
+		print("[gate6_smoke] arena cast FAIL")
+	else:
+		print("[gate6_smoke] arena cast ok")
+	arena.set("_running", false)
+	arena.queue_free()
+	player.queue_free()
+
+	# Hideout live-siege resolve (no dice)
+	var hr: Node = root.get_node_or_null("HideoutRegistry")
+	if hr:
+		hr.call("register_site", "smoke_hideout", "supraliminal", "arlington", Vector3(10, 0, 10))
+		var sites: Dictionary = hr.get("_sites")
+		if sites.has("smoke_hideout"):
+			sites["smoke_hideout"]["owner"] = "RivalGuild"
+			sites["smoke_hideout"]["defenders"] = ["crew_a"]
+		var flipped: bool = hr.call("resolve_contest_win", "smoke_hideout", "SmokeGuild")
+		print("[gate6_smoke] hideout resolve_contest_win=", flipped)
+		if not flipped:
+			ok = false
+	else:
+		print("[gate6_smoke] HideoutRegistry missing — skip")
+
 	print("[gate6_smoke] RESULT=", "PASS" if ok else "FAIL")
 	quit(0 if ok else 1)
 

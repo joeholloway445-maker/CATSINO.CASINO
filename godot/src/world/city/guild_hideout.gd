@@ -16,6 +16,8 @@ var _player: Node3D
 var _banner: MeshInstance3D
 var _title: Label3D
 var _in_ring := false
+var _siege_alive: Array[Node] = []
+var _siege_active := false
 
 func setup(p_site_id: String, p_realm: String, p_hub_id: String,
 		p_accent: Color, player: Node3D, world_pos: Vector3) -> void:
@@ -125,7 +127,55 @@ func _on_e() -> void:
 		if _owner() == guild:
 			NotificationUI.notify_win("🏴 %s claims this hideout. Station defenders (G) before you leave — or lose it." % guild)
 	elif owner != guild:
-		HideoutRegistry.contest(site_id, guild)
+		_begin_siege(guild)
+
+## Live siege: spawn stationed companions (or a skeleton crew) as WorldEntity
+## defenders. Clear them all → ownership transfers. No dice roll.
+func _begin_siege(attacker_guild: String) -> void:
+	if _siege_active:
+		NotificationUI.notify_info("Siege already underway — drop the garrison.")
+		return
+	var holder := _owner()
+	if holder == "" or holder == attacker_guild:
+		return
+	_siege_active = true
+	_siege_alive.clear()
+	var roster: Array = HideoutRegistry.defenders(site_id).duplicate()
+	if roster.is_empty():
+		# Unguarded sites still field a skeleton crew — never a free flip.
+		roster = ["siege_crew_a", "siege_crew_b"]
+	NotificationUI.notify_info("⚔️ Siege on %s — defeat %d defender(s)!" % [holder, roster.size()])
+	SkillVFX.aoe_ring(self, global_position + Vector3(0, 1.5, 0), 4.0, Color(1.0, 0.35, 0.2))
+	var i := 0
+	for cid in roster:
+		var ent := WorldEntity.new()
+		var data := CompanionRegistry.get_by_id(str(cid))
+		if data.is_empty():
+			data = {
+				"id": str(cid),
+				"faction": "Factionless",
+				"category": "Matter",
+				"stages": [{"name": "Hideout Guard", "desc": "Stationed steel."}],
+			}
+		var stage := mini(3, 1 + int(PlayerProfile.level / 20))
+		ent.setup(data, stage, _player)
+		var ang := TAU * float(i) / float(maxi(roster.size(), 1))
+		ent.position = Vector3(cos(ang) * 5.5, 0.1, sin(ang) * 5.5 + 4.0)
+		add_child(ent)
+		_siege_alive.append(ent)
+		ent.died.connect(_on_siege_defender_died.bind(attacker_guild))
+		i += 1
+
+func _on_siege_defender_died(_ent: WorldEntity, attacker_guild: String) -> void:
+	var keep: Array[Node] = []
+	for n in _siege_alive:
+		if is_instance_valid(n) and (n is WorldEntity) and (n as WorldEntity).hp > 0:
+			keep.append(n)
+	_siege_alive = keep
+	SkillVFX.hit_spark(self, global_position + Vector3(0, 2, 0))
+	if _siege_alive.is_empty() and _siege_active:
+		_siege_active = false
+		HideoutRegistry.resolve_contest_win(site_id, attacker_guild)
 
 func _station_next_defender() -> void:
 	for cid in PlayerProfile.active_companion_ids.duplicate():
