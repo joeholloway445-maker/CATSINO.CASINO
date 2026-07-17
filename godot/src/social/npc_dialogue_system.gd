@@ -75,8 +75,12 @@ func _resolve_npc_key(npc_id: String) -> String:
 	return ""
 
 func _base_npc_id(npc_id: String) -> String:
-	for layer in NpcDialogueLibrary.LAYERS:
-		var suffix := "_" + layer
+	# Explicit String typing — Godot 4.3 cannot infer `:=` from untyped Array elems.
+	for layer_name: String in [
+		"subliminal", "liminal", "supraliminal",
+		"hyperliminal", "extraliminal", "periliminal",
+	]:
+		var suffix: String = "_" + layer_name
 		if npc_id.ends_with(suffix):
 			return npc_id.substr(0, npc_id.length() - suffix.length())
 	return npc_id

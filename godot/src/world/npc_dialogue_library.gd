@@ -9,8 +9,10 @@ class_name NpcDialogueLibrary
 ## (e.g. "barista_subliminal"). NPCManager registers these into
 ## WorldLoader.dialogues at boot so npc_dialogue_ui works unchanged.
 
-const ARCHETYPES := ["barista", "archivist", "authority", "lover", "reflection"]
-const LAYERS := ["subliminal", "liminal", "supraliminal", "hyperliminal", "extraliminal", "periliminal"]
+const ARCHETYPES: Array[String] = ["barista", "archivist", "authority", "lover", "reflection"]
+const LAYERS: Array[String] = [
+	"subliminal", "liminal", "supraliminal", "hyperliminal", "extraliminal", "periliminal",
+]
 
 ## greeting line, then a deeper "lore" line, per archetype per layer.
 const LINES := {
