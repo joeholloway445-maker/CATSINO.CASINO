@@ -1,10 +1,9 @@
 # Pinned — circle back when asked “what’s left”
 
-**Agent-finishable Gates 5–8 thicken (latest):** Gate 8 `layer_presence` +
-world-boss shared cadence; live CI job fails if `gate8_smoke` SKIPs.
+**Agent-finishable Gates 5–8 thicken (latest):** Gate 8 world-boss shared
+cadence + live CI job (fails if `gate8_smoke` SKIPs).
 
-Remaining agent juice: Periliminal floor hazard VFX/HUD, hideout siege
-combat registration if PR #61 not yet merged.
+Remaining agent juice: Periliminal floor hazard VFX/HUD.
 
 Do **not** start the pinned owner trials below until the owner asks
 what’s left.
@@ -37,11 +36,11 @@ Also owner-local (needs your machine / credentials — not cloud-agent work):
 - MPFB2 PeriHuman studio bake
 - Free path: **MPFB2** (CC0) + **OSM2World** (OSM ODbL)
 - Arena HotbarUI + cast resolution (Gate 6)
-- Hideout live WorldEntity siege (Gate 5)
+- Hideout live WorldEntity siege + LayerWorld combat registration (Gate 5)
 - PeriliminalGenerator real floors (Gate 6)
 - StoryVote Nakama module (Gate 8)
 - Gate 8 board_id↔leaderboard alias + smoke thicken
 - Boss phase telegraphs — AOE ring / phase-3 column + PHASE label + signal (Gate 5/6)
-- Gate 8 layer presence (`join_layer_presence` + match relay; ghost fallback)
+- Gate 8 layer presence match + PresenceManager live join
 - Gate 8 world-boss shared cadence (`get_world_boss_state` / claim / kill)
 - Gate 8 live CI job (docker compose + fail on SKIP)

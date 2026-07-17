@@ -154,13 +154,13 @@ jobs:
       - name: Start local Nakama
         run: |
           set -e
+          # Postgres healthcheck gates Nakama start (avoids migrate crash loops).
           docker compose -f docker-compose.dev.yml up -d
           echo "Waiting for Nakama :7350..."
-          for i in $(seq 1 60); do
+          for i in $(seq 1 90); do
             if (echo >/dev/tcp/127.0.0.1/7350) >/dev/null 2>&1; then
-              # Avoid false-ready during migrate/restart — require 3 consecutive opens.
               ok=1
-              for j in 1 2 3; do
+              for j in 1 2 3 4 5; do
                 sleep 1
                 if ! (echo >/dev/tcp/127.0.0.1/7350) >/dev/null 2>&1; then
                   ok=0
@@ -174,11 +174,15 @@ jobs:
                 exit 0
               fi
             fi
+            if [ $((i % 10)) -eq 0 ]; then
+              docker compose -f docker-compose.dev.yml ps || true
+              docker compose -f docker-compose.dev.yml logs --no-color | tail -40 || true
+            fi
             sleep 2
           done
           echo "::error::Nakama did not become ready on :7350"
           docker compose -f docker-compose.dev.yml ps || true
-          docker compose -f docker-compose.dev.yml logs --no-color | tail -120
+          docker compose -f docker-compose.dev.yml logs --no-color | tail -160
           exit 1
 
       - name: Install Godot 4.3
