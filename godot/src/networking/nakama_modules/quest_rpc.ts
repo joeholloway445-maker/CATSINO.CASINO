@@ -32,7 +32,7 @@ const QUEST_REWARDS: Record<string, { coins: number; xp: number; gems?: number }
     "sovereign_trial":      { coins: 3000, xp: 600, gems: 15 },
 };
 
-const rpcQuestAction: nkruntime.RpcFunction = function(
+function rpcQuestAction(
     ctx: nkruntime.Context,
     logger: nkruntime.Logger,
     nk: nkruntime.Nakama,
@@ -97,7 +97,7 @@ const rpcQuestAction: nkruntime.RpcFunction = function(
     return JSON.stringify({ success: true, quest: quests[quest_id] });
 };
 
-const rpcGetQuests: nkruntime.RpcFunction = function(
+function rpcGetQuests(
     ctx: nkruntime.Context,
     _logger: nkruntime.Logger,
     nk: nkruntime.Nakama,

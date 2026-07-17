@@ -31,7 +31,7 @@ interface SlotsPayload {
     multiplier?: number;
 }
 
-const rpcSpinSlots: nkruntime.RpcFunction = function(
+function rpcSpinSlots(
     ctx: nkruntime.Context,
     logger: nkruntime.Logger,
     nk: nkruntime.Nakama,

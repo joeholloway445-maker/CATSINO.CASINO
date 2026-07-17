@@ -13,7 +13,7 @@ const PAYOUT_TABLE: Record<string, number> = {
     "away": 2,
 };
 
-const rpcPredictMatch: nkruntime.RpcFunction = function(
+function rpcPredictMatch(
     ctx: nkruntime.Context,
     logger: nkruntime.Logger,
     nk: nkruntime.Nakama,

@@ -53,7 +53,7 @@ interface PlayerResult {
 }
 
 // ─── RPC: Find or create match ───────────────────────────────────────────────
-const rpcFindMatch: nkruntime.RpcFunction = function (
+function rpcFindMatch(
   ctx: nkruntime.Context,
   logger: nkruntime.Logger,
   nk: nkruntime.Nakama,
@@ -83,7 +83,7 @@ const rpcFindMatch: nkruntime.RpcFunction = function (
 };
 
 // ─── Match handlers ───────────────────────────────────────────────────────────
-const matchInit: nkruntime.MatchInitFunction<MatchState> = function (
+function catsinoMatchInit(
   ctx: nkruntime.Context,
   logger: nkruntime.Logger,
   nk: nkruntime.Nakama,
@@ -109,7 +109,7 @@ const matchInit: nkruntime.MatchInitFunction<MatchState> = function (
   };
 };
 
-const matchJoinAttempt: nkruntime.MatchJoinAttemptFunction<MatchState> = function (
+function catsinoMatchJoinAttempt(
   ctx: nkruntime.Context,
   logger: nkruntime.Logger,
   nk: nkruntime.Nakama,
@@ -133,7 +133,7 @@ const matchJoinAttempt: nkruntime.MatchJoinAttemptFunction<MatchState> = functio
   return { state, accept: true };
 };
 
-const matchJoin: nkruntime.MatchJoinFunction<MatchState> = function (
+function catsinoMatchJoin(
   ctx: nkruntime.Context,
   logger: nkruntime.Logger,
   nk: nkruntime.Nakama,
@@ -186,7 +186,7 @@ const matchJoin: nkruntime.MatchJoinFunction<MatchState> = function (
   return { state };
 };
 
-const matchLeave: nkruntime.MatchLeaveFunction<MatchState> = function (
+function catsinoMatchLeave(
   ctx: nkruntime.Context,
   logger: nkruntime.Logger,
   nk: nkruntime.Nakama,
@@ -216,7 +216,7 @@ const matchLeave: nkruntime.MatchLeaveFunction<MatchState> = function (
   return { state };
 };
 
-const matchLoop: nkruntime.MatchLoopFunction<MatchState> = function (
+function catsinoMatchLoop(
   ctx: nkruntime.Context,
   logger: nkruntime.Logger,
   nk: nkruntime.Nakama,
@@ -264,7 +264,7 @@ const matchLoop: nkruntime.MatchLoopFunction<MatchState> = function (
   return { state };
 };
 
-const matchTerminate: nkruntime.MatchTerminateFunction<MatchState> = function (
+function catsinoMatchTerminate(
   ctx: nkruntime.Context,
   logger: nkruntime.Logger,
   nk: nkruntime.Nakama,
@@ -387,12 +387,12 @@ export function register_matchmaking(
 ): void {
   initializer.registerRpc("find_match", rpcFindMatch);
   initializer.registerMatch("catsino_match", {
-    matchInit,
-    matchJoinAttempt,
-    matchJoin,
-    matchLeave,
-    matchLoop,
-    matchTerminate,
+    matchInit: catsinoMatchInit,
+    matchJoinAttempt: catsinoMatchJoinAttempt,
+    matchJoin: catsinoMatchJoin,
+    matchLeave: catsinoMatchLeave,
+    matchLoop: catsinoMatchLoop,
+    matchTerminate: catsinoMatchTerminate,
   });
 
   logger.info("matchmaking module loaded — match: catsino_match, rpc: find_match");

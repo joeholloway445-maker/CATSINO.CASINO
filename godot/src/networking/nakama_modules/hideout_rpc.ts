@@ -144,7 +144,7 @@ function _canClaim(
     return { ok: true, reason: "" };
 }
 
-const rpcHideoutUpsertSite: nkruntime.RpcFunction = function (
+function rpcHideoutUpsertSite(
     ctx: nkruntime.Context,
     logger: nkruntime.Logger,
     nk: nkruntime.Nakama,
@@ -188,7 +188,7 @@ const rpcHideoutUpsertSite: nkruntime.RpcFunction = function (
     return _ok({ site, claim_cost_tokens: CLAIM_COST_TOKENS });
 };
 
-const rpcHideoutGet: nkruntime.RpcFunction = function (
+function rpcHideoutGet(
     _ctx: nkruntime.Context,
     logger: nkruntime.Logger,
     nk: nkruntime.Nakama,
@@ -211,7 +211,7 @@ const rpcHideoutGet: nkruntime.RpcFunction = function (
     return _ok({ sites, count: sites.length });
 };
 
-const rpcHideoutClaim: nkruntime.RpcFunction = function (
+function rpcHideoutClaim(
     ctx: nkruntime.Context,
     logger: nkruntime.Logger,
     nk: nkruntime.Nakama,
@@ -276,7 +276,7 @@ const rpcHideoutClaim: nkruntime.RpcFunction = function (
     });
 };
 
-const rpcHideoutContestWin: nkruntime.RpcFunction = function (
+function rpcHideoutContestWin(
     ctx: nkruntime.Context,
     logger: nkruntime.Logger,
     nk: nkruntime.Nakama,
@@ -327,7 +327,7 @@ const rpcHideoutContestWin: nkruntime.RpcFunction = function (
     });
 };
 
-const rpcHideoutSetBanner: nkruntime.RpcFunction = function (
+function rpcHideoutSetBanner(
     ctx: nkruntime.Context,
     logger: nkruntime.Logger,
     nk: nkruntime.Nakama,

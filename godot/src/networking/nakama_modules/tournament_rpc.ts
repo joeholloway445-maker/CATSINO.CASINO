@@ -10,7 +10,7 @@ interface TournamentPayload {
     entry_fee?: number;
 }
 
-const rpcCreateTournament: nkruntime.RpcFunction = function(
+function rpcCreateTournament(
     ctx: nkruntime.Context,
     logger: nkruntime.Logger,
     nk: nkruntime.Nakama,
@@ -57,7 +57,7 @@ const rpcCreateTournament: nkruntime.RpcFunction = function(
     return JSON.stringify({ success: true, tournament: tournamentData });
 };
 
-const rpcJoinTournament: nkruntime.RpcFunction = function(
+function rpcJoinTournament(
     ctx: nkruntime.Context,
     logger: nkruntime.Logger,
     nk: nkruntime.Nakama,
@@ -121,7 +121,7 @@ const rpcJoinTournament: nkruntime.RpcFunction = function(
     });
 };
 
-const rpcGetActiveTournaments: nkruntime.RpcFunction = function(
+function rpcGetActiveTournaments(
     ctx: nkruntime.Context,
     logger: nkruntime.Logger,
     nk: nkruntime.Nakama,

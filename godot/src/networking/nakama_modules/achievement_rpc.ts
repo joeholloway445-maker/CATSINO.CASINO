@@ -19,7 +19,7 @@ interface AchievementPayload {
     evidence?: Record<string, unknown>;
 }
 
-const rpcClaimAchievement: nkruntime.RpcFunction = function(
+function rpcClaimAchievement(
     ctx: nkruntime.Context,
     logger: nkruntime.Logger,
     nk: nkruntime.Nakama,
@@ -83,7 +83,7 @@ const rpcClaimAchievement: nkruntime.RpcFunction = function(
     return JSON.stringify({ success: true, achievement_id, xp_granted: xpGrant });
 };
 
-const rpcGetAchievements: nkruntime.RpcFunction = function(
+function rpcGetAchievements(
     ctx: nkruntime.Context,
     logger: nkruntime.Logger,
     nk: nkruntime.Nakama,

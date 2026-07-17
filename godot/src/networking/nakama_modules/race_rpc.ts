@@ -36,7 +36,7 @@ const FRAME_STATS: Record<string, RacerStats> = {
 
 const RACE_PAYOUT: Record<number, number> = { 1: 3, 2: 1.5, 3: 1.0 };
 
-const rpcStartRace: nkruntime.RpcFunction = function(
+function rpcStartRace(
     ctx: nkruntime.Context,
     logger: nkruntime.Logger,
     nk: nkruntime.Nakama,

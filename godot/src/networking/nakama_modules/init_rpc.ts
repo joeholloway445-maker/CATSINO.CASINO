@@ -14,6 +14,5 @@ export function register_init_rpc(ctx: nkruntime.Context, logger: nkruntime.Logg
     }
   }
 
-  logger.info("All RPCs registered. Server ready.");
-  logger.info("=== Modules: slots, blackjack, poker, holdem, fortune, scratch, sports, combat, race, gacha, shop, quest, achievement, battlepass, event, leaderboard, score, profile, wallet, friend, guild, tournament, chat, companion, companion_evolve, economy, matchmaking, inventory, puzzle ===");
+  logger.info("init_rpc: leaderboards ready (RPC modules register next)");
 }

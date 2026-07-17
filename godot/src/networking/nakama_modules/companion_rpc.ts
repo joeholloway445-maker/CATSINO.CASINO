@@ -11,7 +11,7 @@ interface EquipRosterPayload {
     companion_ids: string[];
 }
 
-const rpcUnlockCompanion: nkruntime.RpcFunction = function(
+function rpcUnlockCompanion(
     ctx: nkruntime.Context,
     logger: nkruntime.Logger,
     nk: nkruntime.Nakama,
@@ -71,7 +71,7 @@ const rpcUnlockCompanion: nkruntime.RpcFunction = function(
     return JSON.stringify({ success: true, companion_id, data: companionData });
 };
 
-const rpcEvolveCompanion: nkruntime.RpcFunction = function(
+function rpcEvolveCompanion(
     ctx: nkruntime.Context,
     logger: nkruntime.Logger,
     nk: nkruntime.Nakama,
@@ -138,7 +138,7 @@ const rpcEvolveCompanion: nkruntime.RpcFunction = function(
     });
 };
 
-const rpcEquipRoster: nkruntime.RpcFunction = function(
+function rpcEquipRoster(
     ctx: nkruntime.Context,
     logger: nkruntime.Logger,
     nk: nkruntime.Nakama,
@@ -190,7 +190,7 @@ const rpcEquipRoster: nkruntime.RpcFunction = function(
     return JSON.stringify({ success: true, active_roster: companion_ids });
 };
 
-const rpcGetMyCompanions: nkruntime.RpcFunction = function(
+function rpcGetMyCompanions(
     ctx: nkruntime.Context,
     logger: nkruntime.Logger,
     nk: nkruntime.Nakama,

@@ -47,8 +47,7 @@ function evaluateHand(cards: number[]): string {
   return "High Card";
 }
 
-const PokerRpc = {
-  playPoker: function(ctx: nkruntime.Context, logger: nkruntime.Logger, nk: nkruntime.Nakama, payload: string): string {
+function playPoker(ctx: nkruntime.Context, logger: nkruntime.Logger, nk: nkruntime.Nakama, payload: string): string {
     const userId = ctx.userId;
     if (!userId) throw new Error("Not authenticated");
 
@@ -92,9 +91,9 @@ const PokerRpc = {
 
     throw new Error("Unknown action");
   }
-};
+
 
 export function register_poker_rpc(ctx: nkruntime.Context, logger: nkruntime.Logger, nk: nkruntime.Nakama, initializer: nkruntime.Initializer): void {
-  initializer.registerRpc("play_poker", PokerRpc.playPoker);
+  initializer.registerRpc("play_poker", playPoker);
   logger.info("Poker RPC module loaded");
 }

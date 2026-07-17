@@ -18,7 +18,7 @@ interface ChatPayload {
     limit?: number;
 }
 
-const rpcGetChatHistory: nkruntime.RpcFunction = function(
+function rpcGetChatHistory(
     ctx: nkruntime.Context,
     logger: nkruntime.Logger,
     nk: nkruntime.Nakama,
@@ -58,7 +58,7 @@ const rpcGetChatHistory: nkruntime.RpcFunction = function(
     });
 };
 
-const rpcSendSystemMessage: nkruntime.RpcFunction = function(
+function rpcSendSystemMessage(
     ctx: nkruntime.Context,
     logger: nkruntime.Logger,
     nk: nkruntime.Nakama,
@@ -96,7 +96,7 @@ const rpcSendSystemMessage: nkruntime.RpcFunction = function(
     return JSON.stringify({ success: true, channel, message });
 };
 
-const rpcGetActiveDistricts: nkruntime.RpcFunction = function(
+function rpcGetActiveDistricts(
     ctx: nkruntime.Context,
     logger: nkruntime.Logger,
     nk: nkruntime.Nakama,

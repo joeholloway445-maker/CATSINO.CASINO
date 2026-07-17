@@ -6,7 +6,7 @@ interface FactionScorePayload {
 
 const FACTION_WAR_KEY = "faction_war_scores";
 
-const rpcGetActiveEvents: nkruntime.RpcFunction = function(
+function rpcGetActiveEvents(
     _ctx: nkruntime.Context,
     _logger: nkruntime.Logger,
     nk: nkruntime.Nakama,
@@ -28,7 +28,7 @@ const rpcGetActiveEvents: nkruntime.RpcFunction = function(
     return JSON.stringify({ events: [activeEvent], server_time: new Date().toISOString() });
 };
 
-const rpcSubmitFactionScore: nkruntime.RpcFunction = function(
+function rpcSubmitFactionScore(
     ctx: nkruntime.Context,
     logger: nkruntime.Logger,
     nk: nkruntime.Nakama,
@@ -67,7 +67,7 @@ const rpcSubmitFactionScore: nkruntime.RpcFunction = function(
     return JSON.stringify({ success: true, scores });
 };
 
-const rpcGetFactionScores: nkruntime.RpcFunction = function(
+function rpcGetFactionScores(
     _ctx: nkruntime.Context,
     logger: nkruntime.Logger,
     nk: nkruntime.Nakama,
