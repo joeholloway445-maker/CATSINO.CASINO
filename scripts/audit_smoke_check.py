@@ -215,6 +215,23 @@ def main() -> int:
         ok("Nakama index registers moba_match")
     else:
         fail("Nakama index missing register_moba_match")
+    print("== gate8 layer presence ==")
+    check_exists("src/networking/nakama_modules/layer_presence.ts", "layer_presence_ts")
+    lp = (GODOT / "src/networking/nakama_modules/layer_presence.ts").read_text()
+    if "register_layer_presence" in idx and "find_or_create_layer_match" in lp:
+        ok("Nakama index registers layer_presence")
+    else:
+        fail("Nakama index missing layer_presence")
+    pm = (GODOT / "src/multiplayer/presence_manager.gd").read_text()
+    if "find_or_create_layer_match" in pm and "_resolve_layer_match" in pm:
+        ok("PresenceManager resolves real layer matches")
+    else:
+        fail("PresenceManager missing layer match resolve")
+    oc = (GODOT / "src/games/offline_casino.gd").read_text()
+    if "find_or_create_layer_match" in oc:
+        ok("OfflineCasino soft-paths find_or_create_layer_match")
+    else:
+        fail("OfflineCasino missing layer match soft-path")
     hub = (GODOT / "src/ui/arena_hub_ui.gd").read_text()
     if "find_moba_match" in hub and "_launch_moba" in hub:
         ok("Arena hub queues find_moba_match")
