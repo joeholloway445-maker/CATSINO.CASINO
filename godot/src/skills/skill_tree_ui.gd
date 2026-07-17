@@ -36,16 +36,26 @@ func _ready() -> void:
 	_refresh_points()
 
 func _refresh_points() -> void:
-	_points_lbl.text = "Skill points: %d   •   Bar II: %s" % [
-		SkillManager.skill_points,
+	var prestige := 0
+	if EconomyManager:
+		prestige = EconomyManager.get_balance("prestige")
+	_points_lbl.text = "Skill points: %d   •   Prestige: %d 🌟   •   Bar II: %s" % [
+		SkillManager.skill_points, prestige,
 		"unlocked (ascended)" if SkillManager.can_swap() else "locked — ascend at level 50"]
 
 func _build_line(list: VBoxContainer, line: Dictionary) -> void:
 	var header := Label.new()
-	header.text = "━ %s ━" % line.name
+	var is_prestige: bool = str(line.get("source", "")) == "prestige"
+	header.text = "━ %s ━%s" % [line.name, "  (🌟 Prestige)" if is_prestige else ""]
 	header.add_theme_font_size_override("font_size", 19)
-	header.modulate = Color(0.85, 0.8, 1.0)
+	header.modulate = Color(1.0, 0.85, 0.45) if is_prestige else Color(0.85, 0.8, 1.0)
 	list.add_child(header)
+	if is_prestige:
+		var note := Label.new()
+		note.text = "Unlocks spend Prestige — social leverage & house craft, not combat skill points."
+		note.modulate = Color(0.75, 0.7, 0.55)
+		note.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		list.add_child(note)
 
 	# ATTUNEMENT: every line can channel one of the six entity forces —
 	# your unarmed strikes can bend gravity, your gunplay can carry
@@ -77,12 +87,34 @@ func _build_line(list: VBoxContainer, line: Dictionary) -> void:
 	_build_skill(list, line.ultimate, true)
 
 	for p in line.get("passives", []):
-		var pl := Label.new()
-		pl.text = "◈ %s — %s" % [p.name, p.desc]
-		pl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-		pl.modulate = Color(0.6, 0.7, 0.6)
-		list.add_child(pl)
+		if str(line.get("source", "")) == "prestige":
+			_build_prestige_passive(list, p)
+		else:
+			var pl := Label.new()
+			pl.text = "◈ %s — %s" % [p.name, p.desc]
+			pl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+			pl.modulate = Color(0.6, 0.7, 0.6)
+			list.add_child(pl)
 	list.add_child(HSeparator.new())
+
+func _build_prestige_passive(list: VBoxContainer, p: Dictionary) -> void:
+	var row := HBoxContainer.new()
+	list.add_child(row)
+	var pl := Label.new()
+	var owned := SkillManager.is_unlocked(str(p.id))
+	pl.text = "%s ◈ %s — %s" % ["✓" if owned else "○", p.name, p.desc]
+	pl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	pl.modulate = Color(0.85, 0.8, 0.5) if owned else Color(0.6, 0.7, 0.6)
+	pl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	row.add_child(pl)
+	if not owned:
+		var cost: int = SkillManager.prestige_unlock_cost(str(p.id))
+		var ub := Button.new()
+		ub.text = "Unlock (%d 🌟)" % cost
+		ub.pressed.connect(func():
+			if SkillManager.unlock_with_prestige(str(p.id)):
+				get_tree().reload_current_scene())
+		row.add_child(ub)
 
 func _build_skill(list: VBoxContainer, sk: Dictionary, is_ult: bool) -> void:
 	var row := VBoxContainer.new()
@@ -105,7 +137,11 @@ func _build_skill(list: VBoxContainer, sk: Dictionary, is_ult: bool) -> void:
 
 	if not SkillManager.is_unlocked(sk.id):
 		var unlock := Button.new()
-		unlock.text = "Unlock (1 ✴️)"
+		if SkillManager.is_prestige_skill(sk.id):
+			var cost: int = SkillManager.prestige_unlock_cost(sk.id)
+			unlock.text = "Unlock (%d 🌟)" % cost
+		else:
+			unlock.text = "Unlock (1 ✴️)"
 		unlock.pressed.connect(func():
 			if SkillManager.unlock(sk.id):
 				get_tree().reload_current_scene())

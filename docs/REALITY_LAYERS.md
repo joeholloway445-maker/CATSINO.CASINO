@@ -38,7 +38,12 @@ of a six-layer cosmology. This doc is the canonical spec; the code under
    **influence level** (`EconomyManager.influence_level()`) is our level
    system, derived from lifetime prestige. Spent on **equivalent exchange**
    (`equivalent_exchange(gate, tier)`): buying past race/faction/morality/
-   influence gates — nothing is truly out of reach if you put in the time.
+   influence gates — and on the **Social Politics** / **Wagering Arts**
+   prestige skill lines (soft-power trees in `SkillData`). Nothing is
+   truly out of reach if you put in the time.
+
+Chip cash-out also drips a small randomized amount of 🧩 Fragments,
+⚔️ Tokens, and ⚡ Charges (never Coins).
 
 Legacy note: `gems` still exists as a hidden balance so old shop/battlepass
 code paths don't crash, but it is NOT one of the six — those price points

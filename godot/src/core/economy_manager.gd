@@ -247,7 +247,9 @@ func cashout_chips_to_ex(chip_amount: int) -> bool:
 	if not await spend_currency("chips", chip_amount, "chip_cashout"):
 		return false
 	await earn_ex_coins(payout, "chip_cashout")
+	var sides := _grant_cashout_side_drops(chip_amount)
 	_record_fx_audit("chip_cashout", "chips", chip_amount, CURRENCY_EX_COINS, payout)
+	Hope.record("chip_cashout_sides", sides)
 	return true
 
 ## Local (offline) cage buy — same house spread, no Nakama round-trip.
@@ -262,17 +264,39 @@ func buy_chips_local(chip_amount: int) -> bool:
 	return true
 
 func sell_chips_local(chip_amount: int) -> bool:
-	return cashout_chips_to_ex_local(chip_amount)
+	return not cashout_chips_to_ex_local(chip_amount).is_empty()
 
-func cashout_chips_to_ex_local(chip_amount: int) -> bool:
+func cashout_chips_to_ex_local(chip_amount: int) -> Dictionary:
 	var payout := chip_cashout_ex_payout(chip_amount)
 	if chip_amount <= 0 or payout <= 0:
-		return false
+		return {}
 	if not spend_currency_local("chips", chip_amount, "chip_cashout"):
-		return false
+		return {}
 	earn_ex_coins_local(payout, "chip_cashout_local")
+	var sides := _grant_cashout_side_drops(chip_amount)
 	_record_fx_audit("chip_cashout_local", "chips", chip_amount, CURRENCY_EX_COINS, payout)
-	return true
+	Hope.record("chip_cashout_sides", sides)
+	return {"ex_coins": payout, "sides": sides}
+
+## Small randomized extras on every chip cash-out. Caps stay tiny so this
+## is flavor + drip progression, not a farm. Never grants Coins or Ex-Coins.
+## Wagering Arts passive "Cage Regular" (wag_p1) adds +1 to each drip that lands.
+func _grant_cashout_side_drops(chip_amount: int) -> Dictionary:
+	var scale := mini(2, int(chip_amount / 250)) # 0..2 from size
+	var cage_regular := false
+	if typeof(SkillManager) != TYPE_NIL and SkillManager.has_method("has_prestige_passive"):
+		cage_regular = bool(SkillManager.has_prestige_passive("wag_p1"))
+	var sides := {"fragments": 0, "tokens": 0, "charges": 0}
+	for cur in sides.keys():
+		# ~70% chance each currency drips something; amount 1..(2+scale)
+		if randf() > 0.70:
+			continue
+		var amt := randi_range(1, 2 + scale)
+		if cage_regular:
+			amt += 1
+		sides[cur] = amt
+		earn_currency_local(cur, amt, "chip_cashout_side")
+	return sides
 
 ## Cross-currency exchange via Coins (house-favorable both legs).
 ## Compliance locks:

@@ -373,6 +373,89 @@ static func gunplay() -> Dictionary:
 		],
 	}
 
+## ── PRESTIGE LINES: social politics & wagering ─────────────────────────────
+## Universal soft-power trees. Unlocked with 🌟 Prestige (not skill points) —
+## these are how influence spent on people and on the house comes back as
+## permanent leverage. Same active/ultimate/morph shape as combat lines so
+## the skill tree UI treats them identically.
+static func social_politics() -> Dictionary:
+	return {
+		"id": "line_prestige_social", "name": "Social Politics",
+		"source": "prestige", "source_id": "social",
+		"actives": [
+			{"id": "soc_a0", "name": "Read the Room", "kind": "control", "shape": "aoe", "radius": 8.0,
+			 "power": 0.7, "cost": 16, "cooldown": 7.0,
+			 "lore": "You hear the version of the conversation everyone is pretending not to have.",
+			 "morphs": _morphs_for("Read the Room", "control")},
+			{"id": "soc_a1", "name": "Faction Favor", "kind": "buff", "shape": "self", "radius": 0.0,
+			 "power": 1.1, "cost": 22, "cooldown": 10.0,
+			 "lore": "A name dropped in the right ear. For a while, your banner opens doors that usually stay shut.",
+			 "morphs": _morphs_for("Faction Favor", "buff")},
+			{"id": "soc_a2", "name": "Word Travels", "kind": "control", "shape": "line", "radius": 12.0,
+			 "power": 0.9, "cost": 20, "cooldown": 8.0,
+			 "lore": "You plant a rumor with legs. By the time it reaches the next district, it has your preferred ending.",
+			 "morphs": _morphs_for("Word Travels", "control")},
+			{"id": "soc_a3", "name": "Broker's Smile", "kind": "chance", "shape": "single", "radius": 4.0,
+			 "power": 1.0, "cost": 18, "cooldown": 6.0,
+			 "lore": "Trade, invite, or apology — the other party walks away sure they got the better deal.",
+			 "morphs": _morphs_for("Broker's Smile", "chance")},
+			{"id": "soc_a4", "name": "Quiet Majority", "kind": "control", "shape": "aoe", "radius": 9.0,
+			 "power": 1.2, "cost": 26, "cooldown": 12.0,
+			 "lore": "You don't shout the vote down. You make the room discover it already agreed with you.",
+			 "morphs": _morphs_for("Quiet Majority", "control")},
+		],
+		"ultimate": {
+			"id": "soc_ult", "name": "Crown Whisper",
+			"kind": "buff", "shape": "aoe", "radius": 14.0,
+			"power": 3.0, "ult_cost": 160, "cooldown": 1.0,
+			"lore": "For one minute every NPC who matters treats you like you already run the room. Some of them will keep treating you that way after.",
+		},
+		"passives": [
+			{"id": "soc_p0", "name": "Soft Power", "desc": "Word-of-mouth reputation swings land 20%% harder (praise and slight alike)."},
+			{"id": "soc_p1", "name": "Guild Ear", "desc": "Guild invites and hideout contests show intent tells — hostility reads a beat earlier."},
+			{"id": "soc_p2", "name": "Ballot Weight", "desc": "StoryVote ballots you cast count as 1.25 votes (still one ballot; the room just listens closer)."},
+		],
+	}
+
+static func wagering_arts() -> Dictionary:
+	return {
+		"id": "line_prestige_wager", "name": "Wagering Arts",
+		"source": "prestige", "source_id": "wager",
+		"actives": [
+			{"id": "wag_a0", "name": "Count the Felt", "kind": "chance", "shape": "self", "radius": 0.0,
+			 "power": 1.0, "cost": 14, "cooldown": 5.0,
+			 "lore": "You see the house edge as a number, not a mood. Briefly, the next wager tilts a hair your way.",
+			 "morphs": _morphs_for("Count the Felt", "chance")},
+			{"id": "wag_a1", "name": "Double or Nothing", "kind": "chance", "shape": "single", "radius": 3.0,
+			 "power": 1.6, "cost": 24, "cooldown": 9.0,
+			 "lore": "You stake the last hit. Win and it lands twice; lose and the house keeps the swing.",
+			 "morphs": _morphs_for("Double or Nothing", "chance")},
+			{"id": "wag_a2", "name": "Cage Sense", "kind": "buff", "shape": "self", "radius": 0.0,
+			 "power": 0.9, "cost": 18, "cooldown": 8.0,
+			 "lore": "Chip buy and cash-out rates sharpen in your head — you stop leaving value on the counter.",
+			 "morphs": _morphs_for("Cage Sense", "buff")},
+			{"id": "wag_a3", "name": "PVXC Tell", "kind": "control", "shape": "aoe", "radius": 7.0,
+			 "power": 1.1, "cost": 22, "cooldown": 10.0,
+			 "lore": "In the extraction circle you read who is bluffing a leave and who is waiting to knife the bag.",
+			 "morphs": _morphs_for("PVXC Tell", "control")},
+			{"id": "wag_a4", "name": "House Memory", "kind": "chance", "shape": "line", "radius": 10.0,
+			 "power": 1.25, "cost": 26, "cooldown": 11.0,
+			 "lore": "Every loss you've eaten in this room pays one secret forward. The felt remembers its debtors.",
+			 "morphs": _morphs_for("House Memory", "chance")},
+		],
+		"ultimate": {
+			"id": "wag_ult", "name": "All-In Hour",
+			"kind": "chance", "shape": "aoe", "radius": 12.0,
+			"power": 4.0, "ult_cost": 180, "cooldown": 1.0,
+			"lore": "For thirty seconds every chip, token, and wager you touch runs hot. The house still favors itself — just less.",
+		},
+		"passives": [
+			{"id": "wag_p0", "name": "Felt Reader", "desc": "Casino side-game variance tips 3%% toward you (still house-favorable overall)."},
+			{"id": "wag_p1", "name": "Cage Regular", "desc": "Chip cash-out side drops (fragments/tokens/charges) roll one extra die."},
+			{"id": "wag_p2", "name": "Stakes Blood", "desc": "PVXC entry stakes refund 10%% on a clean extract."},
+		],
+	}
+
 ## Every skill refracts at rank IV: one morph deepens the effect (the skill
 ## sees a weapon when it looks at you), one bends it to utility (it sees a
 ## survivor).
@@ -399,4 +482,8 @@ static func lines_for(race_id: String, frame_id: String, ascended: String, facti
 	# Disciplines are universal too — everyone can walk into a Stockyards.
 	out.append(unarmed_way())
 	out.append(gunplay())
+	# Prestige soft-power trees — social politics & wagering. Everyone knows
+	# the lines; unlocking nodes spends 🌟 Prestige (see SkillManager).
+	out.append(social_politics())
+	out.append(wagering_arts())
 	return out

@@ -152,14 +152,23 @@ func _on_buy_chips() -> void:
 
 func _on_cashout_chips() -> void:
 	# Compliance: chips → Ex-Coins only (never back into purchasable Coins).
+	# Side drops: small random fragments / tokens / charges.
 	if EconomyManager == null:
 		return
 	const AMOUNT := 500
 	var payout: int = EconomyManager.chip_cashout_ex_payout(AMOUNT)
-	if not EconomyManager.cashout_chips_to_ex_local(AMOUNT):
+	var result: Dictionary = EconomyManager.cashout_chips_to_ex_local(AMOUNT)
+	if result.is_empty():
 		NotificationUI.notify_error("Need %d chips to cash out for %d Ex-Coins." % [AMOUNT, payout])
 		return
-	NotificationUI.notify_win("Cashed out %d chips → %d Ex-Coins (not Coins)." % [AMOUNT, payout])
+	var sides: Dictionary = result.get("sides", {})
+	var extras: Array[String] = []
+	for cur in ["fragments", "tokens", "charges"]:
+		var n: int = int(sides.get(cur, 0))
+		if n > 0:
+			extras.append("+%d %s" % [n, cur])
+	var side_txt := (" · " + ", ".join(extras)) if not extras.is_empty() else ""
+	NotificationUI.notify_win("Cashed out %d chips → %d Ex-Coins%s" % [AMOUNT, int(result.ex_coins), side_txt])
 	_refresh_chips()
 
 func _populate_games() -> void:

@@ -116,7 +116,11 @@ func _run() -> void:
 	if int(economy.call("get_coins")) != coins_before - buy_cost:
 		fail.call("coins not debited at house buy rate")
 		return
-	if not economy.call("cashout_chips_to_ex_local", 100):
+	var frag_before: int = int(economy.call("get_balance", "fragments"))
+	var tok_before: int = int(economy.call("get_balance", "tokens"))
+	var chg_before: int = int(economy.call("get_balance", "charges"))
+	var cashout: Dictionary = economy.call("cashout_chips_to_ex_local", 100)
+	if cashout.is_empty():
 		fail.call("cashout_chips_to_ex_local failed")
 		return
 	if int(economy.call("get_coins")) != coins_before - buy_cost:
@@ -124,6 +128,33 @@ func _run() -> void:
 		return
 	if int(economy.call("get_ex_coins")) != ex_before + ex_pay:
 		fail.call("chip cashout must credit Ex-Coins at house rate")
+		return
+	var sides: Dictionary = cashout.get("sides", {})
+	print("[subliminal_economy_smoke] cashout_sides=", sides)
+	for cur in ["fragments", "tokens", "charges"]:
+		var gained: int = int(sides.get(cur, 0))
+		if gained < 0 or gained > 6:
+			fail.call("side drop %s out of expected small range" % cur)
+			return
+	# Prestige skill lines present
+	var skills: Node = root.get_node_or_null("SkillManager")
+	if skills == null:
+		fail.call("SkillManager missing")
+		return
+	var lines: Array = skills.call("known_lines")
+	var prestige_lines := 0
+	for line in lines:
+		if str(line.get("source", "")) == "prestige":
+			prestige_lines += 1
+	print("[subliminal_economy_smoke] prestige_lines=", prestige_lines)
+	if prestige_lines < 2:
+		fail.call("expected Social Politics + Wagering Arts prestige lines")
+		return
+	economy.call("earn_prestige_local", 500, "smoke_prestige")
+	var unlocked: bool = skills.call("unlock_with_prestige", "soc_p0")
+	print("[subliminal_economy_smoke] prestige_unlock_soc_p0=", unlocked)
+	if not unlocked or not bool(skills.call("has_prestige_passive", "soc_p0")):
+		fail.call("prestige unlock for Social Politics passive failed")
 		return
 	# Ex-Coins spend like Coins; refused earn from non-cashout source
 	economy.call("earn_ex_coins_local", 10, "quest_reward")
