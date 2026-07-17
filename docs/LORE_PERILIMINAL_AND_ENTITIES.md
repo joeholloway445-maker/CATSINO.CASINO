@@ -147,7 +147,7 @@ Once you reach your minimum depth, the blessing door manifests. Exiting through 
 
 ## Entities: What They Represent
 
-Entities aren't just mechanical companions. Each of the 144 entities in the dex is a *manifestation* of a psychological or physical archetype. They're divided into six categories:
+Entities aren't just mechanical companions. Each of the 600 authored entities in the dex is a *manifestation* of a psychological or physical archetype. They're divided into six categories across 270 creature lines:
 
 ### **Energy Entities: Boundless Force**
 

@@ -82,10 +82,10 @@
 
 ### 👤 TO DELEGATE: Creative/Content Work
 
-#### 1. **Entity Deep-Dives** (144 entities × custom lore)
+#### 1. **Entity Deep-Dives** (600 authored entities × custom lore)
 - **Task**: Write 2-4 sentence personal narrative for each entity
 - **Example**: "Surling was a solar deity before the layers fragmented. Now trapped between realities, it seeks to ignite the world."
-- **Effort**: 144 × 5 min = 12 hours of writing
+- **Effort**: 600 entity-stage entries of lore expansion remain a substantial writing pass
 - **Recommendation**: 
   - Auto-generate base lore prompts using Claude or GPT via API
   - Hand-refine 20-30% of highest-rarity entities
@@ -96,11 +96,11 @@
 - **Task**: Run Perchance.org generator for entity visuals, race/frame/mod variants
 - **Effort**: 
   - Set up Perchance account: 30 min
-  - Generate 144 entity images: 2 hours (Perchance queue)
+  - Generate 600 entity-stage images (Perchance queue)
   - Generate 80 race/frame/mod variants: 1 hour
   - Organize + upload to repo: 1 hour
 - **Recommendation**: 
-  - Start with core 144 (one stage per entity)
+  - Start with the 270 creature lines and expand stage-specific variants from there
   - Expand to all 3 stages + faction variants post-launch
   - **Delegate to**: Artist/visual designer who can configure Perchance prompts
 
@@ -160,7 +160,7 @@
 
 ### **Weeks 2-3: Content Generation (Delegated)**
 
-- [ ] Generate 144 entity visuals via Perchance
+- [ ] Generate 600 entity-stage visuals via Perchance
 - [ ] Author dialogue trees for core NPCs (6-12 priority NPCs)
 - [ ] Curate audio assets (Kenney + Sonniss)
 - [ ] Write entity deep-dive lore (auto-generate base + hand-refine)

@@ -302,4 +302,4 @@ The next documents will detail:
 - **Quest Hooks by Faction**: Specific storylines that reward faction alignment.
 - **Periliminal Psychology**: How the gauntlet targets your specific Hope profile.
 - **Layer Lore**: Deep history of each layer and what its "real purpose" might be.
-- **Entity Lore**: Why these specific 144 entities exist, what they represent, their evolutionary meaning.
+- **Entity Lore**: Why these specific 600 authored entities exist, what they represent, and how their mixed-stage progression is structured.

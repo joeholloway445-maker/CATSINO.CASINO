@@ -1,7 +1,7 @@
 # n8n Entity Image Generation Automation
 
 **Status**: Ready to Deploy  
-**Estimated Runtime**: 4-6 hours for 432 images (144 entities × 3 stages)  
+**Estimated Runtime**: queue-length dependent for 600 stage-specific images  
 **Cost**: $0 (Perchance free tier, n8n free tier)
 
 ---
@@ -231,7 +231,7 @@ const generateManifest = (organized_structure) => {
   const manifest = {
     version: "1.0.0",
     generated_at: new Date().toISOString(),
-    total_images: 432,
+    total_images: 600,
     entities: {}
   };
 
@@ -268,7 +268,7 @@ Headers:
   Authorization: Bearer {{github_token}}
   Content-Type: application/json
 Body: {
-  "message": "feat: auto-generate 432 entity sprites via Perchance + n8n",
+  "message": "feat: auto-generate 600 entity sprites via Perchance + n8n",
   "content": "{{base64_encode(all_images)}}",
   "branch": "claude/intelligent-fermi-yyigzo"
 }
@@ -284,9 +284,9 @@ Body: {
   "content": "✅ Entity image generation complete!",
   "embeds": [{
     "title": "Asset Pipeline Complete",
-    "description": "432 entity sprites generated and committed",
+    "description": "600 entity sprites generated and committed",
     "fields": [
-      { "name": "Entities", "value": "144", "inline": true },
+      { "name": "Entities", "value": "600", "inline": true },
       { "name": "Stages", "value": "3 per entity", "inline": true },
       { "name": "Commit", "value": "[View on GitHub](https://github.com/...)", "inline": false }
     ],
@@ -317,7 +317,7 @@ GODOT_PATH=/home/user/CATSINO.CASINO/godot
 - [ ] Load entity database CSV to public URL
 - [ ] Configure all 12 nodes with credentials
 - [ ] Test with 1 batch (20 images)
-- [ ] If successful, run full batch (432 images)
+- [ ] If successful, run full batch (600 images)
 - [ ] Monitor progress via Discord notifications
 - [ ] Commit generated assets to repo
 - [ ] Verify Godot can load asset manifest
@@ -328,7 +328,7 @@ GODOT_PATH=/home/user/CATSINO.CASINO/godot
 
 **If n8n automation fails**, manual process (1 person, 8 hours):
 
-1. Use `perchance_prompt_generator.gd` to export CSV of all 432 prompts
+1. Use `perchance_prompt_generator.gd` to export CSV of all 600 prompts
 2. Visit https://perchance.org
 3. Create batch job with prompt CSV
 4. Generate all images (2-4 hours wait)
@@ -371,8 +371,8 @@ Cost: $0 (all free tools)
 ## Next Steps
 
 1. **This Week**: Deploy n8n workflow (10 hours my time)
-2. **Next 6 Hours**: Generate 432 entity images
+2. **Next phase**: Generate 600 entity images
 3. **Week 1**: Polish generated images (4 hours community effort)
 4. **Week 2**: Integrate into Godot character selection UI
 
-**Result**: All 144 entities visible with 3 evolution stages by end of Week 1
+**Result**: Full 600-entity authored pool visible once all mixed-stage renders are completed

@@ -163,7 +163,7 @@ only if it grows persistent worlds/economy of its own.
 
 ## Extraliminal (`extraliminal_manager.gd`)
 
-- Roaming entities rolled rarity-weighted from your faction's exclusive roster (~150 each; Factionless = Lone Wolf set). Full authored pool: ~604.
+- Roaming entities rolled rarity-weighted from your faction's exclusive roster (150 each; Factionless = Lone Wolf set). Full authored pool: 600.
 - Landmarks are claimable **guild halls**. A guild war starts when one
   challenger **opens a liminal door** at the landmark (Secret-Power-style
   hidden entrance, staked in Tokens) and their guild pours through to fight.

@@ -162,7 +162,7 @@
   - Progression (3 achievements): Novice (Lvl 10), Seasoned (Lvl 50), Legendary (Lvl 99)
   - Faction (5 achievements): Crown/Veiled/Wildlands join, Champion tier, Triple Agent
   - Quests (2 achievements): Quest Seeker, Lore Master
-  - Collection (3 achievements): Collector, Complete Dex (all 144 entities), Equipment Master
+  - Collection (3 achievements): Collector, Complete Dex (all 600 authored entities), Equipment Master
   - Social (2 achievements): Ally Maker, Beloved
   - Seasonal (1 achievement): Season 1 Victor
 
@@ -209,9 +209,9 @@
 - 20 playable races with unique perception mechanics
 - 20 frames (sensory/emotional perspectives)
 - 20 mods (interaction systems)
-- **144 entities** (48 per faction × 6 categories × 8 entities each)
+- **600 authored entities** across 270 creature lines (150 per roster)
   - 6 categories: Energy, Entropy, Gravity, Matter, Psyche, Quantum
-  - 3 stages per entity (evolution progression)
+  - Core factions use mixed evolution counts: 30 three-stage, 18 two-stage, 24 one-stage lines each
   - Detailed descriptions for each stage
 
 **Entity Categories & Examples**:
@@ -339,7 +339,7 @@ To compete with ESO, WoW, CoD, GTA, Destiny, and Apex, these systems still need 
 - [ ] Settings menu (graphics, audio, control remapping)
 
 #### B. **Visual Polish** (60 hours)
-- [ ] Entity sprite generation (144 base + 3 stage variants = 432 images)
+- [ ] Entity sprite generation (600 stage-specific entity images)
 - [ ] Race/frame/mod visual variants (80+ images for player character)
 - [ ] Ability particle effects
 - [ ] Status effect visual indicators
@@ -349,7 +349,7 @@ To compete with ESO, WoW, CoD, GTA, Destiny, and Apex, these systems still need 
 - [ ] Title/badge cosmetics rendering
 
 #### C. **Audio Implementation** (20 hours)
-- [ ] 144 entity vocalization samples
+- [ ] 270 entity-line vocalization samples
 - [ ] Combat SFX (hit sounds, spell casts, enemy voices)
 - [ ] Faction-specific music themes
 - [ ] Layer ambience tracks
@@ -636,7 +636,7 @@ PHASE 1 (COMPLETE) ✅
 ├─ Character Progression (99 levels, 3 skill trees)
 ├─ Achievements (35 achievements)
 ├─ PvP Arena & Leaderboards
-├─ Lore Foundation (6 layers, 4 factions, 144 entities)
+├─ Lore Foundation (6 layers, 4 factions, 600 authored entities)
 ├─ Faction System (reputation, titles)
 ├─ NPC Dialogue & Disposition
 ├─ Periliminal Generator (personalized gauntlets)
@@ -676,7 +676,7 @@ PHASE 4 (AAA MATURITY) → 36+ months
 **Periliminal.Space** has evolved from a concept into a production-ready core game with:
 - ✅ 12 major systems, all tested and integrated
 - ✅ 27 quests across all factions
-- ✅ 144 unique entities with lore
+- ✅ 600 authored entities across 270 lines with lore
 - ✅ 28 faction-exclusive abilities
 - ✅ 12 craftable items
 - ✅ 99-level progression

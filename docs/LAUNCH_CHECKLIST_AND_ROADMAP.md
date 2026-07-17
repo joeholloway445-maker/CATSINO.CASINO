@@ -19,7 +19,7 @@ We have successfully implemented 12 production-ready systems totaling **5,150+ l
 - Craft items from 12 recipes
 - Unlock 35 achievements
 - Command 28 faction-exclusive abilities in combat
-- Collect all 144 entities with lore descriptions
+- Collect all 600 authored entities with lore descriptions
 
 **What's NOT implemented yet** (but architecture is ready):
 - UI/UX (visual implementation)
@@ -49,7 +49,7 @@ We have successfully implemented 12 production-ready systems totaling **5,150+ l
 | **Dialogue** | ✅ Complete | 280 | Disposition-based options, NPC memory, branching |
 | **Periliminal** | ✅ Complete | 320 | 8 trap types, Hope profile reading, procedural generation |
 | **Titles** | ✅ Complete | 280 | 11 titles, multipliers, stat effects, cosmetics |
-| **Lore** | ✅ Complete | 77KB | 6 layers, 4 factions, 20 races, 20 frames, 20 mods, 144 entities |
+| **Lore** | ✅ Complete | 77KB | 6 layers, 4 factions, 20 races, 20 frames, 20 mods, 600 authored entities |
 
 **Total Code**: 5,150+ lines of production-ready GDScript
 
@@ -87,7 +87,7 @@ We have successfully implemented 12 production-ready systems totaling **5,150+ l
 - Quest depth (branching, multiple solutions)
 - Faction system with reputation tiers
 - PvP arena with ranking system
-- 144 unique enemies (vs. ESO's 300+)
+- 270 unique creature lines / 600 authored entities (vs. ESO's 300+)
 - NPC dialogue with disposition
 - Achievement system
 
@@ -256,9 +256,9 @@ We have successfully implemented 12 production-ready systems totaling **5,150+ l
 **Deliverables**: Fully functional UI for all systems
 
 #### Visual Asset Generation (200 hours)
-- [ ] 144 entity base images (stage 2, main form)
-- [ ] 144 entity × 2 evolution variants (stage 1, stage 3) = 288 additional
-- [ ] **Total entity sprites**: 432 images
+- [ ] 270 entity-line base images (main form per line)
+- [ ] 330 additional evolution/single-stage renders to cover the full 600-entity authored pool
+- [ ] **Total entity sprites**: 600 images
 - [ ] 20 race base visuals
 - [ ] 20 frame overlay visuals
 - [ ] 20 mod variant visuals
@@ -274,7 +274,7 @@ We have successfully implemented 12 production-ready systems totaling **5,150+ l
 
 #### Audio Implementation (80 hours)
 - [ ] 6 faction/layer music themes (3-5 min loops each)
-- [ ] 144 entity vocalization samples (roars, chirps, wails)
+- [ ] 270 entity-line vocalization samples (roars, chirps, wails)
 - [ ] Combat SFX: 28 ability sounds + impact sounds
 - [ ] UI sounds (button clicks, confirmations, errors)
 - [ ] Ambient layer sounds (wind, water, electricity, etc.)
@@ -676,7 +676,7 @@ Per season:
 ├─ Dialogue (disposition, branching)
 ├─ Periliminal Generator (8 trap types, procedural)
 ├─ Titles (11 unique titles, cosmetics)
-└─ Lore (6 layers, 4 factions, 144 entities)
+└─ Lore (6 layers, 4 factions, 600 authored entities)
 
 = 5,150+ LINES OF PRODUCTION READY CODE
 
@@ -684,7 +684,7 @@ Per season:
 
 + 27 COMPLETE QUEST CHAINS
 
-+ 144 ENTITIES WITH FULL DESCRIPTIONS & LORE
++ 600 AUTHORED ENTITIES WITH FULL DESCRIPTIONS & LORE
 
 = EVERYTHING NEEDED TO LAUNCH MVP
 
