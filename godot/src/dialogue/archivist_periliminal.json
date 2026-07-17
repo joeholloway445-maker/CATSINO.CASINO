@@ -1,0 +1,35 @@
+{
+  "greeting": {
+    "line": "You left this memory here. No — you wouldn't remember. Shall I read it back to you?",
+    "line_friendly": "I'll read back what you filed. Gently.",
+    "line_hostile": "You don't want those memories tonight. Leave them buried.",
+    "allow_social_options": true,
+    "options": [
+      {
+        "text": "Tell me more.",
+        "next_key": "lore",
+        "effect": {
+          "disposition": 3
+        }
+      },
+      {
+        "text": "Just passing through.",
+        "next_key": null,
+        "effect": {}
+      }
+    ]
+  },
+  "lore": {
+    "line": "I keep everything you dropped: the words you swallowed, the day you pretended didn't happen. You filed them with me. I'm very good at my job.",
+    "allow_social_options": false,
+    "options": [
+      {
+        "text": "I'll remember that.",
+        "next_key": null,
+        "effect": {
+          "disposition": 5
+        }
+      }
+    ]
+  }
+}

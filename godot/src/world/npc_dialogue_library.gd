@@ -9,8 +9,10 @@ class_name NpcDialogueLibrary
 ## (e.g. "barista_subliminal"). NPCManager registers these into
 ## WorldLoader.dialogues at boot so npc_dialogue_ui works unchanged.
 
-const ARCHETYPES := ["barista", "archivist", "authority", "lover", "reflection"]
-const LAYERS := ["subliminal", "liminal", "supraliminal", "hyperliminal", "extraliminal", "periliminal"]
+const ARCHETYPES: Array[String] = ["barista", "archivist", "authority", "lover", "reflection"]
+const LAYERS: Array[String] = [
+	"subliminal", "liminal", "supraliminal", "hyperliminal", "extraliminal", "periliminal",
+]
 
 ## greeting line, then a deeper "lore" line, per archetype per layer.
 const LINES := {
@@ -147,7 +149,15 @@ const LINES := {
 }
 
 ## Build one WorldLoader-format dialogue block for an archetype × layer pair.
+## Prefers shipped `src/dialogue/<archetype>_<layer>.json` when present so
+## social trees and world NPCs stay in sync; falls back to LINES.
 static func build_dialogue(archetype: String, layer: String) -> Dictionary:
+	var json_path := "res://src/dialogue/%s_%s.json" % [archetype, layer]
+	if FileAccess.file_exists(json_path):
+		var raw := FileAccess.get_file_as_string(json_path)
+		var data = JSON.parse_string(raw)
+		if data is Dictionary and not data.is_empty():
+			return _world_block_from_social_tree(archetype, layer, data)
 	var pair: Array = LINES.get(archetype, {}).get(layer, ["...", "..."])
 	return {
 		"dialogue_id": "%s_%s" % [archetype, layer],
@@ -164,6 +174,64 @@ static func build_dialogue(archetype: String, layer: String) -> Dictionary:
 			{
 				"id": "depth",
 				"text": str(pair[1]),
+				"options": [
+					{"label": "...I'll remember that.", "next_node": "END", "action": "nothing"},
+				],
+			},
+		],
+	}
+
+## Convert NPCDialogueSystem JSON (greeting/lore keys) → WorldLoader block.
+static func _world_block_from_social_tree(archetype: String, layer: String, data: Dictionary) -> Dictionary:
+	var nodes: Array = []
+	for key in data.keys():
+		var node_data = data[key]
+		if not node_data is Dictionary:
+			continue
+		if not node_data.has("line") and not node_data.has("options"):
+			continue
+		var options: Array = []
+		for opt in node_data.get("options", []):
+			if not opt is Dictionary:
+				continue
+			var next_key = opt.get("next_key")
+			options.append({
+				"label": str(opt.get("text", "...")),
+				"next_node": str(next_key) if next_key != null and str(next_key) != "" else "END",
+				"action": "nothing",
+			})
+		if options.is_empty():
+			options.append({"label": "Leave", "next_node": "END", "action": "nothing"})
+		nodes.append({
+			"id": str(key),
+			"text": str(node_data.get("line", "...")),
+			"options": options,
+		})
+	if nodes.is_empty():
+		var pair: Array = LINES.get(archetype, {}).get(layer, ["...", "..."])
+		return build_dialogue_from_lines(archetype, layer, pair)
+	return {
+		"dialogue_id": "%s_%s" % [archetype, layer],
+		"start_node": "greeting",
+		"nodes": nodes,
+	}
+
+static func build_dialogue_from_lines(archetype: String, layer: String, pair: Array) -> Dictionary:
+	return {
+		"dialogue_id": "%s_%s" % [archetype, layer],
+		"start_node": "greeting",
+		"nodes": [
+			{
+				"id": "greeting",
+				"text": str(pair[0] if pair.size() > 0 else "..."),
+				"options": [
+					{"label": "Tell me more.", "next_node": "depth"},
+					{"label": "Just passing through.", "next_node": "END", "action": "nothing"},
+				],
+			},
+			{
+				"id": "depth",
+				"text": str(pair[1] if pair.size() > 1 else "..."),
 				"options": [
 					{"label": "...I'll remember that.", "next_node": "END", "action": "nothing"},
 				],

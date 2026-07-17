@@ -1,0 +1,35 @@
+{
+  "greeting": {
+    "line": "The system works because everyone does their part. You look like someone who does their part.",
+    "line_friendly": "You look like someone who does their part. Good.",
+    "line_hostile": "Off-grid behavior. Step away from the desk.",
+    "allow_social_options": true,
+    "options": [
+      {
+        "text": "Tell me more.",
+        "next_key": "lore",
+        "effect": {
+          "disposition": 3
+        }
+      },
+      {
+        "text": "Just passing through.",
+        "next_key": null,
+        "effect": {}
+      }
+    ]
+  },
+  "lore": {
+    "line": "People call it control. I call it care at scale. Nobody goes hungry on my grid, and all it costs is everything being exactly where I put it.",
+    "allow_social_options": false,
+    "options": [
+      {
+        "text": "I'll remember that.",
+        "next_key": null,
+        "effect": {
+          "disposition": 5
+        }
+      }
+    ]
+  }
+}

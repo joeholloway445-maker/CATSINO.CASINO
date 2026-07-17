@@ -51,9 +51,10 @@ bar needs photoreal proportions, not stylized/toon):
 | Sketchfab (CC0-tagged realistic humans) | Login-gated; check license per model |
 | RenderPeople free samples | Realistic, but license forbids redistribution of 3D data — private only |
 
-**Net result:** until MetaHuman exports land (or Blender/MakeHuman), player
-and generated NPCs share `player_human.glb`. Drop MetaHuman GLBs into the
-documented slots — `MetahumanCharacter` picks them up automatically.
+**Net result:** ship slots are filled with **MPFB2 CC0** PeriHuman /
+`metahuman_*.glb` meshes (`MetahumanCharacter.resolve_tier` prefers them
+over `player_human.glb`). Cinema upgrades (Epic MetaHuman / CC4 / DAZ)
+overwrite the same filenames — owner-only; see `PINNED_LEFT.md`.
 
 ### Extended source list (owner-provided) — with license verdicts
 
@@ -78,11 +79,11 @@ redistributing the source files — those enter via
 | **Kenney / Quaternius** | Stylized only | Cars / boats / space | Full city kits | ✅ **CC0 — USED heavily** |
 | **MetaHuman (UE → Blender → GLB)** | ESO-bar humans | — | — | Preferred photoreal path; see `VISUAL_DIRECTION_ESO.md` |
 
-Practical priority: (1) MetaHuman exports; (2) Blender Studio / MakeHuman
-CC0; (3) CC4 if purchased; (4) verified CC0 Sketchfab finds;
-(5) AI gens for creatures/props/structures under clear ownership.
-RenderPeople / TurboSquid / CGTrader free sections = mood boards +
-`assets/private/` experiments only.
+Practical priority: (1) **done** — MPFB2 CC0 in ship slots; (2) cinema
+MetaHuman / CC4 / DAZ overwrite when owner exports; (3) verified CC0
+Sketchfab finds; (4) AI gens for creatures/props/structures under clear
+ownership. RenderPeople / TurboSquid / CGTrader free sections = mood
+boards + `assets/private/` experiments only.
 
 ---
 
