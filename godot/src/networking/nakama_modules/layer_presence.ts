@@ -11,7 +11,7 @@ interface LayerState {
   joins: number;
 }
 
-const rpcFindOrCreateLayerMatch: nkruntime.RpcFunction = function (
+export function rpcFindOrCreateLayerMatch(
   ctx: nkruntime.Context,
   logger: nkruntime.Logger,
   nk: nkruntime.Nakama,
@@ -73,7 +73,7 @@ const rpcFindOrCreateLayerMatch: nkruntime.RpcFunction = function (
   });
 };
 
-const matchInit: nkruntime.MatchInitFunction<LayerState> = function (
+export function layerMatchInit(
   _ctx,
   logger,
   _nk,
@@ -88,7 +88,7 @@ const matchInit: nkruntime.MatchInitFunction<LayerState> = function (
   };
 };
 
-const matchJoinAttempt: nkruntime.MatchJoinAttemptFunction<LayerState> = function (
+export function layerMatchJoinAttempt(
   _ctx,
   _logger,
   _nk,
@@ -101,7 +101,7 @@ const matchJoinAttempt: nkruntime.MatchJoinAttemptFunction<LayerState> = functio
   return { state, accept: true };
 };
 
-const matchJoin: nkruntime.MatchJoinFunction<LayerState> = function (
+export function layerMatchJoin(
   _ctx,
   logger,
   _nk,
@@ -117,7 +117,7 @@ const matchJoin: nkruntime.MatchJoinFunction<LayerState> = function (
   return { state };
 };
 
-const matchLeave: nkruntime.MatchLeaveFunction<LayerState> = function (
+export function layerMatchLeave(
   _ctx,
   logger,
   _nk,
@@ -132,7 +132,7 @@ const matchLeave: nkruntime.MatchLeaveFunction<LayerState> = function (
   return { state };
 };
 
-const matchLoop: nkruntime.MatchLoopFunction<LayerState> = function (
+export function layerMatchLoop(
   _ctx,
   _logger,
   _nk,
@@ -149,7 +149,7 @@ const matchLoop: nkruntime.MatchLoopFunction<LayerState> = function (
   return { state };
 };
 
-const matchTerminate: nkruntime.MatchTerminateFunction<LayerState> = function (
+export function layerMatchTerminate(
   _ctx,
   _logger,
   _nk,
@@ -161,7 +161,7 @@ const matchTerminate: nkruntime.MatchTerminateFunction<LayerState> = function (
   return { state };
 };
 
-const matchSignal: nkruntime.MatchSignalFunction<LayerState> = function (
+export function layerMatchSignal(
   _ctx,
   _logger,
   _nk,
@@ -179,15 +179,5 @@ export function register_layer_presence(
   _nk: nkruntime.Nakama,
   initializer: nkruntime.Initializer
 ): void {
-  initializer.registerRpc("find_or_create_layer_match", rpcFindOrCreateLayerMatch);
-  initializer.registerMatch("layer_presence", {
-    matchInit,
-    matchJoinAttempt,
-    matchJoin,
-    matchLeave,
-    matchLoop,
-    matchTerminate,
-    matchSignal,
-  });
   logger.info("layer_presence module initialized");
 }

@@ -18,7 +18,7 @@ interface ChatPayload {
     limit?: number;
 }
 
-const rpcGetChatHistory: nkruntime.RpcFunction = function(
+export function rpcGetChatHistory(
     ctx: nkruntime.Context,
     logger: nkruntime.Logger,
     nk: nkruntime.Nakama,
@@ -58,7 +58,7 @@ const rpcGetChatHistory: nkruntime.RpcFunction = function(
     });
 };
 
-const rpcSendSystemMessage: nkruntime.RpcFunction = function(
+export function rpcSendSystemMessage(
     ctx: nkruntime.Context,
     logger: nkruntime.Logger,
     nk: nkruntime.Nakama,
@@ -96,7 +96,7 @@ const rpcSendSystemMessage: nkruntime.RpcFunction = function(
     return JSON.stringify({ success: true, channel, message });
 };
 
-const rpcGetActiveDistricts: nkruntime.RpcFunction = function(
+export function rpcGetActiveDistricts(
     ctx: nkruntime.Context,
     logger: nkruntime.Logger,
     nk: nkruntime.Nakama,
@@ -127,8 +127,7 @@ export function register_chat_rpc(
     nk: nkruntime.Nakama,
     initializer: nkruntime.Initializer
 ): void {
-    initializer.registerRpc("get_chat_history", rpcGetChatHistory);
-    initializer.registerRpc("send_system_message", rpcSendSystemMessage);
-    initializer.registerRpc("get_active_districts", rpcGetActiveDistricts);
+
+
     logger.info("chat_rpc module initialized");
 }

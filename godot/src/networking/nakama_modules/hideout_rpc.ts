@@ -144,7 +144,7 @@ function _canClaim(
     return { ok: true, reason: "" };
 }
 
-const rpcHideoutUpsertSite: nkruntime.RpcFunction = function (
+export function rpcHideoutUpsertSite(
     ctx: nkruntime.Context,
     logger: nkruntime.Logger,
     nk: nkruntime.Nakama,
@@ -188,7 +188,7 @@ const rpcHideoutUpsertSite: nkruntime.RpcFunction = function (
     return _ok({ site, claim_cost_tokens: CLAIM_COST_TOKENS });
 };
 
-const rpcHideoutGet: nkruntime.RpcFunction = function (
+export function rpcHideoutGet(
     _ctx: nkruntime.Context,
     logger: nkruntime.Logger,
     nk: nkruntime.Nakama,
@@ -211,7 +211,7 @@ const rpcHideoutGet: nkruntime.RpcFunction = function (
     return _ok({ sites, count: sites.length });
 };
 
-const rpcHideoutClaim: nkruntime.RpcFunction = function (
+export function rpcHideoutClaim(
     ctx: nkruntime.Context,
     logger: nkruntime.Logger,
     nk: nkruntime.Nakama,
@@ -276,7 +276,7 @@ const rpcHideoutClaim: nkruntime.RpcFunction = function (
     });
 };
 
-const rpcHideoutContestWin: nkruntime.RpcFunction = function (
+export function rpcHideoutContestWin(
     ctx: nkruntime.Context,
     logger: nkruntime.Logger,
     nk: nkruntime.Nakama,
@@ -327,7 +327,7 @@ const rpcHideoutContestWin: nkruntime.RpcFunction = function (
     });
 };
 
-const rpcHideoutSetBanner: nkruntime.RpcFunction = function (
+export function rpcHideoutSetBanner(
     ctx: nkruntime.Context,
     logger: nkruntime.Logger,
     nk: nkruntime.Nakama,
@@ -368,10 +368,9 @@ export function register_hideout_rpc(
     _nk: nkruntime.Nakama,
     initializer: nkruntime.Initializer
 ): void {
-    initializer.registerRpc("hideout_upsert_site", rpcHideoutUpsertSite);
-    initializer.registerRpc("hideout_get", rpcHideoutGet);
-    initializer.registerRpc("hideout_claim", rpcHideoutClaim);
-    initializer.registerRpc("hideout_contest_win", rpcHideoutContestWin);
-    initializer.registerRpc("hideout_set_banner", rpcHideoutSetBanner);
+
+
+
+
     logger.info("hideout_rpc module initialized");
 }

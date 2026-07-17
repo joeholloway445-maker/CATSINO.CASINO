@@ -33,7 +33,7 @@ const PREMIUM_TIER_REWARDS: Record<number, { coins?: number; gems?: number; item
 
 const TIER_XP_REQUIREMENTS: number[] = [0, 500, 1200, 2000, 3000, 4200, 5600, 7200, 9000, 11000];
 
-const rpcAddBattlePassXP: nkruntime.RpcFunction = function(
+export function rpcAddBattlePassXP(
     ctx: nkruntime.Context,
     logger: nkruntime.Logger,
     nk: nkruntime.Nakama,
@@ -69,7 +69,7 @@ const rpcAddBattlePassXP: nkruntime.RpcFunction = function(
     return JSON.stringify({ success: true, total_xp: bp.xp });
 };
 
-const rpcClaimBattlePassTier: nkruntime.RpcFunction = function(
+export function rpcClaimBattlePassTier(
     ctx: nkruntime.Context,
     logger: nkruntime.Logger,
     nk: nkruntime.Nakama,
@@ -127,7 +127,6 @@ export function register_battlepass_rpc(
     _nk: nkruntime.Nakama,
     initializer: nkruntime.Initializer
 ): void {
-    initializer.registerRpc("add_battlepass_xp", rpcAddBattlePassXP);
-    initializer.registerRpc("claim_battlepass_tier", rpcClaimBattlePassTier);
+
     logger.info("battlepass_rpc module initialized");
 }
