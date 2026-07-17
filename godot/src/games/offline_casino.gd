@@ -54,6 +54,8 @@ static func resolve(rpc_id: String, payload: Variant) -> Dictionary:
 		"get_story_tallies":
 			return {"success": true, "ok": true, "offline": true, "tallies": {}, "total": 0,
 				"ballots": {}}
+		"hideout_upsert_site", "hideout_get", "hideout_claim", "hideout_contest_win", "hideout_set_banner":
+			return _hideout_offline(rpc_id, data)
 		"find_match", "find_moba_match":
 			return {"success": true, "ok": true, "match_id": "", "created": false, "practice": true}
 		"get_active_tournaments", "get_tournaments":
@@ -148,13 +150,64 @@ static func supports(rpc_id: String) -> bool:
 		"spin_slots", "play_blackjack", "play_poker", "play_holdem",
 		"draw_fortune", "buy_scratch_card", "predict_match",
 		"submit_puzzle_score", "start_race", "combat_action",
-		"get_wallet", "get_leaderboard", "story_vote",
+		"get_wallet", "get_leaderboard", "story_vote", "get_story_tallies",
+		"hideout_upsert_site", "hideout_get", "hideout_claim",
+		"hideout_contest_win", "hideout_set_banner",
 		"find_match", "find_moba_match",
 		"get_active_tournaments", "get_tournaments", "join_tournament",
 		"submit_score", "quest_action", "get_quests",
 		"summon_companion", "feed_companion", "evolve_companion", "get_my_companions",
 		"daily_bonus", "claim_daily_bonus",
 	]
+
+## Soft offline mirrors for Gate 8 hideout RPCs — local HideoutRegistry
+## remains authoritative when Nakama isn't reachable.
+static func _hideout_offline(rpc_id: String, data: Dictionary) -> Dictionary:
+	var site_id := str(data.get("site_id", ""))
+	match rpc_id:
+		"hideout_upsert_site":
+			return {"success": true, "ok": true, "offline": true, "site_id": site_id,
+				"site": {
+					"site_id": site_id,
+					"realm": str(data.get("realm", "supraliminal")),
+					"hub": str(data.get("hub", "")),
+					"pos": data.get("pos", [0, 0]),
+					"owner": "",
+					"banner": true,
+					"defenders": [],
+				}}
+		"hideout_get":
+			var hr := _autoload("HideoutRegistry")
+			if site_id != "" and hr != null:
+				var s: Dictionary = hr.call("site", site_id)
+				var row := s.duplicate(true)
+				row["site_id"] = site_id
+				return {"success": true, "ok": true, "offline": true, "site": row}
+			var sites: Array = []
+			if hr != null:
+				var raw = hr.get("_sites")
+				if raw is Dictionary:
+					for sid in raw.keys():
+						var entry: Dictionary = raw[sid].duplicate(true)
+						entry["site_id"] = sid
+						sites.append(entry)
+			return {"success": true, "ok": true, "offline": true, "sites": sites, "count": sites.size()}
+		"hideout_claim":
+			return {"success": true, "ok": true, "offline": true, "claimed": false,
+				"message": "Hideout claims sync when online.",
+				"site": {"site_id": site_id, "owner": str(data.get("guild", "")),
+					"banner": true, "defenders": []}}
+		"hideout_contest_win":
+			return {"success": true, "ok": true, "offline": true, "contested": false,
+				"message": "Hideout contests sync when online.",
+				"site": {"site_id": site_id, "owner": str(data.get("attacker_guild", "")),
+					"banner": true, "defenders": []}}
+		"hideout_set_banner":
+			return {"success": true, "ok": true, "offline": true,
+				"site": {"site_id": site_id, "banner": bool(data.get("banner", true))}}
+		_:
+			return {"success": false, "ok": false, "error": "Offline hideout unknown"}
+
 
 static func _get_wallet() -> Dictionary:
 	var coins := 0

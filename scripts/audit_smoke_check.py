@@ -226,6 +226,29 @@ def main() -> int:
     else:
         fail("ArenaModeController missing online moba path")
 
+    print("== gate8 hideout online ==")
+    check_exists("src/networking/nakama_modules/hideout_rpc.ts", "hideout_rpc_ts")
+    ho = (GODOT / "src/networking/nakama_modules/hideout_rpc.ts").read_text()
+    if "register_hideout_rpc" in idx and "hideout_claim" in ho and "hideout_contest_win" in ho:
+        ok("Nakama index registers hideout_rpc")
+    else:
+        fail("Nakama index missing hideout_rpc")
+    hr = (GODOT / "src/social/hideout_registry.gd").read_text()
+    if "hideout_claim" in hr and "_rpc_await" in hr and "_sync_from_server" in hr:
+        ok("HideoutRegistry syncs claim/contest online")
+    else:
+        fail("HideoutRegistry missing online hideout path")
+    oc = (GODOT / "src/games/offline_casino.gd").read_text()
+    if "hideout_claim" in oc and "_hideout_offline" in oc:
+        ok("OfflineCasino soft-paths hideout RPCs")
+    else:
+        fail("OfflineCasino missing hideout soft-path")
+    g8 = (GODOT / "src/dev/gate8_smoke.gd").read_text()
+    if "hideout_claim" in g8 and "hideout_contest_win" in g8:
+        ok("gate8_smoke exercises hideout claim/contest")
+    else:
+        fail("gate8_smoke missing hideout coverage")
+
     print("== metahuman / PeriHuman slots ==")
     if (GODOT / "assets/models/player_human.glb").exists():
         ok("player_human.glb present (interim identity mesh)")

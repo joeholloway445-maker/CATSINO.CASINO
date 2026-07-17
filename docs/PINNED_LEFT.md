@@ -1,8 +1,8 @@
 # Pinned — circle back when asked “what’s left”
 
 **Agent-finishable Gates 5–8 thicken (latest):** arena HotbarUI + skill casts;
-hideout live sieges. Remaining agent juice: combat SFX slots, boss phase
-telegraphs, PeriliminalGenerator wiring, StoryVote Nakama module.
+hideout live sieges; StoryVote Nakama module; **hideout online claim/contest**
+(`hideout_rpc` + HideoutRegistry sync). Layer presence lives on PR #60.
 
 Do **not** start the pinned owner trials below until the owner asks
 what’s left.
@@ -36,3 +36,5 @@ Also owner-local (needs your machine / credentials — not cloud-agent work):
 - Free path: **MPFB2** (CC0) + **OSM2World** (OSM ODbL)
 - Arena HotbarUI + cast resolution (Gate 6)
 - Hideout live WorldEntity siege (Gate 5)
+- StoryVote Nakama (Gate 8)
+- Hideout online claim/contest RPCs + HideoutRegistry sync (Gate 8)
