@@ -195,7 +195,7 @@ func _on_siege_defender_died(_ent: WorldEntity, attacker_guild: String) -> void:
 	SkillVFX.hit_spark(self, global_position + Vector3(0, 2, 0))
 	if _siege_alive.is_empty() and _siege_active:
 		_siege_active = false
-		HideoutRegistry.resolve_contest_win(site_id, attacker_guild)
+		await HideoutRegistry.resolve_contest_win(site_id, attacker_guild)
 
 func _station_next_defender() -> void:
 	for cid in PlayerProfile.active_companion_ids.duplicate():
