@@ -1,10 +1,20 @@
 # Pinned — circle back when asked “what’s left”
 
+<<<<<<< HEAD
 **Agent-finishable Gates 5–8 thicken (latest):** hideout sieges register
 defenders into LayerWorld combat (hotbar + bites). Remaining agent juice:
 combat SFX slots + boss phase telegraphs (in flight on PR #56 — do not
 duplicate), Gate 8 RPC field-alias (`board_id` ↔ `leaderboard`) + smoke
 thicken, Periliminal floor hazard VFX.
+=======
+**Agent-finishable Gates 5–8 thicken (latest):** Gate 8 `board_id`↔`leaderboard`
+alias + thicker `gate8_smoke` (offline always; live find_match /
+get_leaderboard / submit_score when docker is up).
+
+Remaining agent juice: combat SFX slots + boss phase telegraphs (PR #56 —
+do not duplicate), Periliminal floor hazard VFX/HUD, hideout siege combat
+registration if PR #61 not yet merged.
+>>>>>>> origin/claude/intelligent-fermi-yyigzo
 
 Do **not** start the pinned owner trials below until the owner asks
 what’s left.
@@ -37,6 +47,13 @@ Also owner-local (needs your machine / credentials — not cloud-agent work):
 - MPFB2 PeriHuman studio bake
 - Free path: **MPFB2** (CC0) + **OSM2World** (OSM ODbL)
 - Arena HotbarUI + cast resolution (Gate 6)
+<<<<<<< HEAD
 - Hideout live WorldEntity siege + LayerWorld combat registration (Gate 5)
 - PeriliminalGenerator real floors (Gate 6)
 - StoryVote Nakama module + gate8 smoke thicken (Gate 8)
+=======
+- Hideout live WorldEntity siege (Gate 5)
+- PeriliminalGenerator real floors (Gate 6)
+- StoryVote Nakama module (Gate 8)
+- Gate 8 board_id↔leaderboard alias + smoke thicken
+>>>>>>> origin/claude/intelligent-fermi-yyigzo

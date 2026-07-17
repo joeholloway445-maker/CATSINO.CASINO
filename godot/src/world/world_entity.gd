@@ -81,6 +81,7 @@ func setup_boss(dex_line: Dictionary, stage: int, target: Node3D,
 		_label.text = "%s · %s" % [_boss_title, str(stage_info.get("name", "?"))]
 		_label.font_size = 52
 	SkillVFX.add_aura_shell(self, Color(1.0, 0.35, 0.15), 0.12)
+	CombatSfx.play(self, "boss_spawn", global_position, -3.0)
 
 func _rebuild_visual(stage: int) -> void:
 	if _visual and is_instance_valid(_visual):
@@ -156,6 +157,7 @@ func take_hit(amount: int) -> void:
 			damage += 4
 			speed += 0.35
 			SkillVFX.add_aura_shell(self, Color(1.0, 0.2, 0.05), 0.04 * _boss_phase)
+			CombatSfx.play(self, "boss_phase", global_position, -2.0)
 			# Announce via label — avoid Autoload refs inside class_name compile.
 			if _label:
 				_label.text = "%s · PHASE %d" % [_boss_title, _boss_phase]
@@ -168,6 +170,11 @@ func take_hit(amount: int) -> void:
 		var away := (global_position - _target.global_position).normalized()
 		global_position += away * 1.0
 	if hp <= 0:
+		if _boss_phases > 0:
+			# Prefer world parent; CombatSfx also anchors to SceneTree.root.
+			var host: Node = get_parent() if get_parent() != null else self
+			var death_at := global_position
+			CombatSfx.play(host, "boss_death", death_at, -1.0)
 		died.emit(self)
 		queue_free()
 

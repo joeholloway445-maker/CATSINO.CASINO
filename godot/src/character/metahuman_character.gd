@@ -85,11 +85,89 @@ static func _try_slots(slots: Array) -> Node3D:
 	return null
 
 static func _as_root(n: Node) -> Node3D:
+	var root: Node3D
 	if n is Node3D:
-		return n as Node3D
-	var root := Node3D.new()
-	root.add_child(n)
+		root = n as Node3D
+	else:
+		root = Node3D.new()
+		root.add_child(n)
+	# Guard against bad MPFB/glTF bakes (Z-up + cm-scale → giant, laying down).
+	_normalize_humanoid_pose(root)
 	return root
+
+
+## If a humanoid mesh is lying on its side/back or absurdly large, upright it
+## and scale to ~1.8 m. Correct Y-up variants (~1.6–1.9 m) are left alone.
+static func _normalize_humanoid_pose(root: Node3D) -> void:
+	var aabb := _mesh_aabb_local(root)
+	if aabb.size == Vector3.ZERO:
+		return
+	var sx := aabb.size.x
+	var sy := aabb.size.y
+	var sz := aabb.size.z
+	var tallest := maxf(sx, maxf(sy, sz))
+	if tallest < 0.4:
+		return
+	# Height should be on +Y. If Z or X dominates, the bake double-rotated.
+	var upright_needed := sy < tallest * 0.55
+	var oversized := tallest > 3.5
+	if not upright_needed and not oversized:
+		return
+	if upright_needed:
+		# Height along -Z (common MPFB+glTF double convert) → stand on +Y.
+		if sz >= sx and sz >= sy:
+			root.rotate_object_local(Vector3.RIGHT, -PI * 0.5)
+		elif sx >= sy and sx >= sz:
+			root.rotate_object_local(Vector3.FORWARD, PI * 0.5)
+		aabb = _mesh_aabb_local(root)
+		tallest = maxf(aabb.size.x, maxf(aabb.size.y, aabb.size.z))
+	if tallest > 2.4:
+		var target := 1.80
+		var s := target / maxf(aabb.size.y, 0.01)
+		root.scale *= s
+		aabb = _mesh_aabb_local(root)
+	# Plant feet on the ground plane of the CharacterBody.
+	if aabb.position.y < -0.01 or aabb.position.y > 0.05:
+		root.position.y -= aabb.position.y
+
+
+static func _mesh_aabb_local(root: Node3D) -> AABB:
+	var merged := AABB()
+	var any := false
+	var stack: Array[Node] = [root]
+	while not stack.is_empty():
+		var node: Node = stack.pop_back()
+		if node is MeshInstance3D:
+			var mi := node as MeshInstance3D
+			if mi.mesh != null:
+				var local := mi.get_aabb()
+				# Build transform from mi up to root (works before add_child).
+				var xf := Transform3D.IDENTITY
+				var cur: Node = mi
+				while cur != null and cur != root:
+					if cur is Node3D:
+						xf = (cur as Node3D).transform * xf
+					cur = cur.get_parent()
+				var corners: Array[Vector3] = [
+					local.position,
+					local.position + Vector3(local.size.x, 0, 0),
+					local.position + Vector3(0, local.size.y, 0),
+					local.position + Vector3(0, 0, local.size.z),
+					local.position + Vector3(local.size.x, local.size.y, 0),
+					local.position + Vector3(local.size.x, 0, local.size.z),
+					local.position + Vector3(0, local.size.y, local.size.z),
+					local.position + local.size,
+				]
+				for c in corners:
+					var p: Vector3 = xf * c
+					if not any:
+						merged = AABB(p, Vector3.ZERO)
+						any = true
+					else:
+						merged = merged.expand(p)
+		for child in node.get_children():
+			stack.append(child)
+	return merged if any else AABB()
 
 static func _rig_from_profile(perceived: bool) -> Node3D:
 	var rig := CharacterRig.new()
