@@ -10,7 +10,7 @@ of a six-layer cosmology. This doc is the canonical spec; the code under
 |---|---|---|---|---|---|
 | **Hyperliminal** | Catsino itself — the neon casino reality (districts, games, tournaments) | always | no | static | 🎰 Chips |
 | **Liminal** | The between-space. Multiplayer, procedural, **never static** — chunks dissolve behind you | always | yes | ephemeral | ⚔️ Tokens |
-| **Subliminal** | Invite-only start screen + one small apartment per player where ALL UGC building happens. 3 outstanding invites max; creator subscription raises the cap | invite | no | personal | ⚡ Charges |
+| **Subliminal** | Private safe zone per player: start screen, capped item locker, UGC studio. **Nothing auto-spawns** — ambient figures require Creator sub. Invites + storage expansions are pay-gated | invite | no | personal | ⚡ Charges |
 | **Supraliminal** | The main MMORPG — the DFW Metroplex | always | outside hubs | chunked, infinite | ⚔️ Tokens |
 | **Extraliminal** | Pokemon-GO-style real-world overlay — roaming faction-exclusive entities, guild halls at claimable landmarks | always | guild wars | landmark | ⚡ Charges |
 | **Periliminal** | The psychological layer. You can't enter it — it takes you after wandering the Liminal too long | pulled only | no | generated-then-static | 🧩 Fragments |
@@ -19,8 +19,9 @@ of a six-layer cosmology. This doc is the canonical spec; the code under
 
 1. **🪙 Coins** — the main currency. Purchasable with real-world money,
    usable on anything (internal id stays `cat_coins`).
-2. **🎰 Chips** — only purchasable with coins (`buy_chips`); the casino's
-   dedicated currency for all bets.
+2. **🎰 Chips** — only purchasable with coins (`buy_chips`) at a
+   **house-favorable** cage rate (buy costs more than face; sell-back
+   pays less). The casino's dedicated currency for all bets.
 3. **🧩 Fragments** — PvE: earned from and spent on PvE play. Also paid out
    by casino jackpots, matched 1:1 on your first three coin purchases
    (`purchase_coins`), and during match events.

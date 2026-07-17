@@ -208,6 +208,9 @@ func get_layer_entities(layer_name: String) -> Array[String]:
 
 func generate_npc_locations(layer_name: String) -> Array[Dictionary]:
 	"""Generate NPC locations"""
+	# Subliminal is a private safe zone — never seed ambient NPCs.
+	if layer_name == "subliminal":
+		return []
 	var npcs = []
 	var npc_count = randi_range(5, 10)
 

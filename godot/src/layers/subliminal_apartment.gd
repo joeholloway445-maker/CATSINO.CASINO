@@ -197,7 +197,38 @@ func _build_panel() -> void:
 			if await SubliminalManager.buy_creator_subscription():
 				_panel_status.text = "Creator active — invites left: %d / %d" % [
 					SubliminalManager.invites_left(), SubliminalManager.invite_cap()])
+				get_tree().reload_current_scene())
 		box.add_child(sub)
+
+	var storage := Label.new()
+	storage.text = "Locker: %d / %d" % [SubliminalManager.storage_used(), SubliminalManager.storage_capacity()]
+	storage.modulate = Color(0.75, 0.85, 0.95)
+	box.add_child(storage)
+	var expand := Button.new()
+	expand.text = "Expand locker (+%d for %d 🪙)" % [
+		SubliminalManager.STORAGE_EXPANSION_SLOTS, SubliminalManager.STORAGE_EXPANSION_COINS]
+	expand.pressed.connect(func():
+		if await SubliminalManager.buy_storage_expansion():
+			storage.text = "Locker: %d / %d" % [
+				SubliminalManager.storage_used(), SubliminalManager.storage_capacity()])
+	box.add_child(expand)
+
+	# Ambient figures are creator-paywalled — nothing auto-spawns here.
+	if SubliminalManager.is_creator():
+		var amb := Button.new()
+		amb.text = "Place ambient figure (%d / %d)" % [
+			SubliminalManager.ambient_npcs.size(), SubliminalManager.MAX_CREATOR_AMBIENT]
+		amb.pressed.connect(func():
+			var placed := SubliminalManager.place_ambient_npc("reflection")
+			if not placed.is_empty():
+				amb.text = "Place ambient figure (%d / %d)" % [
+					SubliminalManager.ambient_npcs.size(), SubliminalManager.MAX_CREATOR_AMBIENT])
+		box.add_child(amb)
+	else:
+		var locked := Label.new()
+		locked.text = "Ambient figures: locked (Creator sub)"
+		locked.modulate = Color(0.65, 0.55, 0.55)
+		box.add_child(locked)
 
 	var leave := Button.new()
 	leave.text = "⬅ Step out"

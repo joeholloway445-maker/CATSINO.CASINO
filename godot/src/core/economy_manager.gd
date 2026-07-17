@@ -140,6 +140,15 @@ func earn_currency_local(currency: String, amount: int, source: String = "unknow
 	_record_transaction(currency, amount, source, "earn")
 
 # ── Coin purchases, chips, and equivalent exchange ────────────────────────────
+## House-favorable cage spreads. Buying chips costs MORE coins than face
+## value; cashing chips out returns FEWER. The gap is the house edge —
+## never 1:1 either direction.
+## Rates are quoted per 100 units so integer math stays exact.
+const CHIP_BUY_COINS_PER_100 := 115   # pay 115 coins → receive 100 chips
+const CHIP_SELL_COINS_PER_100 := 85   # pay 100 chips → receive 85 coins
+const FX_BUY_COINS_PER_100 := 120     # cross-currency buy (fragments/tokens)
+const FX_SELL_COINS_PER_100 := 80     # cross-currency sell back to coins
+
 ## Real-money coin purchase entry point (store hooks call this after the
 ## platform transaction clears). First three purchases — and any purchase
 ## during a match event — are matched 1:1 in fragments AND tokens.
@@ -152,12 +161,107 @@ func purchase_coins(amount: int) -> void:
 		await earn_currency("tokens", amount, "purchase_match")
 		NotificationUI.notify_win("Purchase matched! +%d 🧩 and +%d ⚔️" % [amount, amount])
 
+## Coins required to buy `chip_amount` chips at the house buy rate.
+func chip_buy_coin_cost(chip_amount: int) -> int:
+	if chip_amount <= 0:
+		return 0
+	return int(ceil(chip_amount * CHIP_BUY_COINS_PER_100 / 100.0))
+
+## Coins received when cashing out `chip_amount` chips at the house sell rate.
+func chip_sell_coin_payout(chip_amount: int) -> int:
+	if chip_amount <= 0:
+		return 0
+	return int(floor(chip_amount * CHIP_SELL_COINS_PER_100 / 100.0))
+
 ## Chips can ONLY be bought with coins — the casino's dedicated currency.
+## House-favorable: more coins out than chips in.
 func buy_chips(chip_amount: int) -> bool:
-	if not await spend_coins(chip_amount, "chip_exchange"):
+	var cost := chip_buy_coin_cost(chip_amount)
+	if cost <= 0:
 		return false
-	await earn_currency("chips", chip_amount, "chip_exchange")
+	if not await spend_coins(cost, "chip_buy"):
+		return false
+	await earn_currency("chips", chip_amount, "chip_buy")
+	_record_fx_audit("buy_chips", "cat_coins", cost, "chips", chip_amount)
 	return true
+
+## Cash chips back to coins at the house sell rate (worse than buy).
+func sell_chips(chip_amount: int) -> bool:
+	var payout := chip_sell_coin_payout(chip_amount)
+	if chip_amount <= 0 or payout <= 0:
+		return false
+	if not await spend_currency("chips", chip_amount, "chip_sell"):
+		return false
+	await earn_coins(payout, "chip_sell")
+	_record_fx_audit("sell_chips", "chips", chip_amount, "cat_coins", payout)
+	return true
+
+## Local (offline) cage buy — same house spread, no Nakama round-trip.
+func buy_chips_local(chip_amount: int) -> bool:
+	var cost := chip_buy_coin_cost(chip_amount)
+	if cost <= 0:
+		return false
+	if not spend_coins_local(cost, "chip_buy"):
+		return false
+	earn_currency_local("chips", chip_amount, "chip_buy")
+	_record_fx_audit("buy_chips_local", "cat_coins", cost, "chips", chip_amount)
+	return true
+
+func sell_chips_local(chip_amount: int) -> bool:
+	var payout := chip_sell_coin_payout(chip_amount)
+	if chip_amount <= 0 or payout <= 0:
+		return false
+	if not spend_currency_local("chips", chip_amount, "chip_sell"):
+		return false
+	add_coins_local(payout, "chip_sell")
+	_record_fx_audit("sell_chips_local", "chips", chip_amount, "cat_coins", payout)
+	return true
+
+## Cross-currency exchange via coins (house-favorable both legs).
+## from_currency / to_currency are among the six; one side must be coins
+## OR both are non-coin (routed through an implicit coin mid-market).
+func exchange_currency(from_currency: String, to_currency: String, amount: int) -> bool:
+	if amount <= 0 or from_currency == to_currency:
+		return false
+	if from_currency == "cat_coins":
+		# Buy target currency: pay inflated coin cost.
+		var cost := int(ceil(amount * FX_BUY_COINS_PER_100 / 100.0))
+		if not CURRENCIES.has(to_currency):
+			return false
+		if not await spend_coins(cost, "fx_buy_%s" % to_currency):
+			return false
+		await earn_currency(to_currency, amount, "fx_buy_%s" % to_currency)
+		_record_fx_audit("fx_buy", "cat_coins", cost, to_currency, amount)
+		return true
+	if to_currency == "cat_coins":
+		var payout := int(floor(amount * FX_SELL_COINS_PER_100 / 100.0))
+		if payout <= 0:
+			return false
+		if not await spend_currency(from_currency, amount, "fx_sell_%s" % from_currency):
+			return false
+		await earn_coins(payout, "fx_sell_%s" % from_currency)
+		_record_fx_audit("fx_sell", from_currency, amount, "cat_coins", payout)
+		return true
+	# Non-coin ↔ non-coin: sell to coins at sell rate, buy target at buy rate.
+	var mid := int(floor(amount * FX_SELL_COINS_PER_100 / 100.0))
+	if mid <= 0:
+		return false
+	var target_amt := int(floor(mid * 100.0 / FX_BUY_COINS_PER_100))
+	if target_amt <= 0:
+		return false
+	if not await spend_currency(from_currency, amount, "fx_cross_out"):
+		return false
+	await earn_currency(to_currency, target_amt, "fx_cross_in")
+	_record_fx_audit("fx_cross", from_currency, amount, to_currency, target_amt)
+	return true
+
+func _record_fx_audit(kind: String, from_c: String, from_amt: int, to_c: String, to_amt: int) -> void:
+	Hope.record("currency_exchange", {
+		"kind": kind, "from": from_c, "from_amount": from_amt,
+		"to": to_c, "to_amount": to_amt,
+		"buy_rate_per_100": CHIP_BUY_COINS_PER_100 if to_c == "chips" else FX_BUY_COINS_PER_100,
+		"sell_rate_per_100": CHIP_SELL_COINS_PER_100 if from_c == "chips" else FX_SELL_COINS_PER_100,
+	})
 
 ## Casino jackpots pay their bonus out in fragments and tokens.
 func award_jackpot_bonus(amount: int) -> void:
