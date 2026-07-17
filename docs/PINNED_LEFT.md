@@ -4,10 +4,9 @@
 `docs/OWNER_TRIALS.md`. Cloud cannot finish CC4/UE/DAZ exports, GPU sculpt,
 or real prod secrets; those still need your machine.
 
-Remaining agent juice (gates): Periliminal floor hazard VFX/HUD. Hideout
-online + layer presence + siege combat + boss telegraphs already on base.
-
-
+Remaining agent juice (gates): Periliminal floor hazard VFX/HUD. Gate 8
+thickeners (layer presence, hideout online, world-boss cadence, live CI)
+already on base.
 ## Owner trials — in progress
 
 | Trial | Kickoff in repo | You still do |
@@ -45,4 +44,6 @@ Local proofs that already exist:
 - Boss phase telegraphs — AOE ring / phase-3 column + PHASE label + signal (Gate 5/6)
 - Gate 8 layer presence match + PresenceManager live join
 - Hideout online claim/contest RPCs + HideoutRegistry sync (Gate 8)
+- Gate 8 world-boss shared cadence (`get_world_boss_state` / claim / kill)
+- Gate 8 live CI job (docker compose + fail on SKIP)
 - Combat SFX slots into SkillVFX / boss phases (Gate 5/7)

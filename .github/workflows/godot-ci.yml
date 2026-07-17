@@ -6,7 +6,12 @@ name: godot
 on:
   push:
     branches: [main]
-    paths: ['godot/**', '.github/workflows/godot-ci.yml', 'scripts/install_addons.sh']
+    paths:
+      - 'godot/**'
+      - '.github/workflows/godot-ci.yml'
+      - 'scripts/install_addons.sh'
+      - 'scripts/build_nakama_modules.sh'
+      - 'docker-compose.dev.yml'
   pull_request:
     paths:
       - 'godot/**'
@@ -14,6 +19,8 @@ on:
       - 'scripts/install_addons.sh'
       - 'scripts/ci_rebuild_godot_class_cache.sh'
       - 'scripts/audit_smoke_check.py'
+      - 'scripts/build_nakama_modules.sh'
+      - 'docker-compose.dev.yml'
   workflow_dispatch: {}
 
 env:
@@ -94,25 +101,26 @@ jobs:
           if-no-files-found: error
 
   headless-smokes:
-    name: Headless gate smokes (boot/5/6/8)
+    name: Headless gate smokes (boot/spine/economy/5/6/8)
     runs-on: ubuntu-22.04
-    timeout-minutes: 20
+    timeout-minutes: 25
     container:
       image: barichello/godot-ci:4.3
     steps:
       - uses: actions/checkout@v4
         # No LFS — smokes exercise scripts/autoloads, not full GLB import.
-      - name: Run boot + gate5 + gate6 (+ gate8 SKIP without Nakama)
+      - name: Run boot + spine + economy + gates (+ gate8 SKIP without Nakama)
         run: |
           set -e
           # --quit-after 20 aborts the filesystem scan before class_name
           # cache is written; smokes then fail with AAATheme/etc undeclared.
           bash scripts/ci_rebuild_godot_class_cache.sh godot
           cd godot
-          for smoke in boot_smoke gate5_smoke gate6_smoke combat_sfx_smoke gate8_smoke dialogue_layer_smoke owner_trials_smoke; do
+          for smoke in boot_smoke layer_spine_smoke subliminal_economy_smoke gate5_smoke gate6_smoke combat_sfx_smoke gate8_smoke dialogue_layer_smoke owner_trials_smoke; do
             echo "=== $smoke ==="
             set +e
-            timeout 120 godot --headless --path . -s "res://src/dev/${smoke}.gd"
+            # Spine/economy may load scenes — allow a bit longer than boot.
+            timeout 180 godot --headless --path . -s "res://src/dev/${smoke}.gd"
             EXIT=$?
             set -e
             if [ "$EXIT" = "124" ]; then
@@ -125,6 +133,129 @@ jobs:
             fi
           done
           echo "All headless smokes OK (gate8 may SKIP without docker)"
+
+  gate8-nakama-live:
+    name: Gate 8 Nakama live (fail on SKIP)
+    runs-on: ubuntu-22.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: godot/src/networking/nakama_modules/package-lock.json
+
+      - name: Build Nakama modules
+        run: bash scripts/build_nakama_modules.sh
+
+      - name: Start local Nakama
+        run: |
+          set -e
+          # Postgres healthcheck gates Nakama start (avoids migrate crash loops).
+          docker compose -f docker-compose.dev.yml up -d
+          echo "Waiting for Nakama :7350..."
+          for i in $(seq 1 90); do
+            if (echo >/dev/tcp/127.0.0.1/7350) >/dev/null 2>&1; then
+              ok=1
+              for j in 1 2 3 4 5; do
+                sleep 1
+                if ! (echo >/dev/tcp/127.0.0.1/7350) >/dev/null 2>&1; then
+                  ok=0
+                  echo "Nakama port flapped (attempt $i, check $j)"
+                  break
+                fi
+              done
+              if [ "$ok" = "1" ]; then
+                echo "Nakama is up (attempt $i, stable)"
+                docker compose -f docker-compose.dev.yml ps
+                exit 0
+              fi
+            fi
+            if [ $((i % 10)) -eq 0 ]; then
+              docker compose -f docker-compose.dev.yml ps || true
+              docker compose -f docker-compose.dev.yml logs --no-color | tail -40 || true
+            fi
+            sleep 2
+          done
+          echo "::error::Nakama did not become ready on :7350"
+          docker compose -f docker-compose.dev.yml ps || true
+          docker compose -f docker-compose.dev.yml logs --no-color | tail -160
+          exit 1
+
+      - name: Install Godot 4.3
+        run: |
+          set -e
+          curl -fsSL -o /tmp/godot.zip \
+            "https://github.com/godotengine/godot-builds/releases/download/4.3-stable/Godot_v4.3-stable_linux.x86_64.zip"
+          unzip -o /tmp/godot.zip -d /tmp
+          sudo mv /tmp/Godot_v4.3-stable_linux.x86_64 /usr/local/bin/godot
+          godot --version
+
+      - name: Run gate8_smoke (REQUIRE LIVE)
+        env:
+          GATE8_REQUIRE_LIVE: "1"
+        run: |
+          set -e
+          # Re-confirm Nakama after Godot install gap (compose can restart).
+          echo "Re-checking Nakama :7350 before smoke..."
+          ready=0
+          for i in $(seq 1 45); do
+            if (echo >/dev/tcp/127.0.0.1/7350) >/dev/null 2>&1; then
+              echo "Nakama still up (attempt $i)"
+              ready=1
+              break
+            fi
+            sleep 2
+          done
+          if [ "$ready" != "1" ]; then
+            echo "::error::Nakama not reachable before gate8_smoke"
+            docker compose -f docker-compose.dev.yml ps || true
+            docker compose -f docker-compose.dev.yml logs --no-color | tail -120 || true
+            exit 1
+          fi
+          bash scripts/ci_rebuild_godot_class_cache.sh godot
+          # Class cache can take minutes — probe again immediately before smoke.
+          for i in $(seq 1 30); do
+            if (echo >/dev/tcp/127.0.0.1/7350) >/dev/null 2>&1; then
+              break
+            fi
+            sleep 2
+            if [ "$i" = "30" ]; then
+              echo "::error::Nakama died during class-cache rebuild"
+              docker compose -f docker-compose.dev.yml logs --no-color | tail -120 || true
+              exit 1
+            fi
+          done
+          cd godot
+          set +e
+          timeout 180 godot --headless --path . -s res://src/dev/gate8_smoke.gd | tee /tmp/gate8_live.txt
+          EXIT=${PIPESTATUS[0]}
+          set -e
+          if [ "$EXIT" = "124" ]; then
+            echo "::error::gate8_smoke hung"
+            exit 1
+          fi
+          if grep -q 'RESULT=SKIP' /tmp/gate8_live.txt; then
+            echo "::error::gate8_smoke SKIPPED — live Nakama job must PASS"
+            docker compose -f ../docker-compose.dev.yml logs --no-color | tail -80 || true
+            exit 1
+          fi
+          if ! grep -q 'RESULT=PASS' /tmp/gate8_live.txt; then
+            echo "::error::gate8_smoke did not PASS (exit=$EXIT)"
+            exit 1
+          fi
+          if [ "$EXIT" != "0" ]; then
+            echo "::error::gate8_smoke failed (exit $EXIT)"
+            exit 1
+          fi
+          echo "Gate 8 live PASS"
+
+      - name: Teardown Nakama
+        if: always()
+        run: docker compose -f docker-compose.dev.yml down -v || true
 
   test-gdunit4:
     name: gdUnit4 unit tests

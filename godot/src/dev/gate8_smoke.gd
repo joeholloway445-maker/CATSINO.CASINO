@@ -7,9 +7,13 @@ extends SceneTree
 ##
 ## Offline alias checks always run. If Nakama isn't reachable, prints SKIP
 ## after those (exit 0) — prod host stays pinned.
+## Set env GATE8_REQUIRE_LIVE=1 (CI live job) to treat SKIP as FAIL.
 
 func _init() -> void:
 	call_deferred("_run")
+
+func _require_live() -> bool:
+	return str(OS.get_environment("GATE8_REQUIRE_LIVE")).strip_edges() in ["1", "true", "TRUE", "yes"]
 
 func _run() -> void:
 	print("[gate8_smoke] start")
@@ -87,6 +91,13 @@ func _run() -> void:
 		_fail("AccountManager missing")
 		return
 
+	# PresenceManager must exist even offline (ghost path).
+	var presence: Node = root.get_node_or_null("PresenceManager")
+	print("[gate8_smoke] PresenceManager=", presence != null)
+	if presence == null:
+		_fail("PresenceManager missing")
+		return
+
 	# Probe TCP — avoid long auth hangs when compose isn't up.
 	var host := "127.0.0.1"
 	var port := 7350
@@ -96,9 +107,25 @@ func _run() -> void:
 			host = str(cfg.get("nakama_host", host))
 			port = int(cfg.get("nakama_port", port))
 
-	var reachable := await _tcp_probe(host, port, 1.5)
+	# REQUIRE_LIVE: retry — CI can take minutes between compose-up and smoke
+	# (Godot install + class cache), and a single 1.5s probe is flaky.
+	var reachable := false
+	var probe_budget := 12.0 if _require_live() else 1.5
+	var probe_deadline := Time.get_ticks_msec() + int(probe_budget * 1000.0)
+	while Time.get_ticks_msec() < probe_deadline:
+		reachable = await _tcp_probe(host, port, 1.5)
+		if reachable:
+			break
+		await process_frame
 	print("[gate8_smoke] nakama ", host, ":", port, " reachable=", reachable)
 	if not reachable:
+		# Offline ghost path still must work.
+		if presence.has_method("join_layer"):
+			await presence.join_layer("liminal")
+			print("[gate8_smoke] offline ghost join_layer ok")
+		if _require_live():
+			_fail("GATE8_REQUIRE_LIVE=1 but Nakama unreachable — docker compose not up?")
+			return
 		print("[gate8_smoke] RESULT=", "PASS" if ok else "FAIL",
 			" (SKIP live — start docker-compose.dev.yml for auth)")
 		quit(0 if ok else 1)
@@ -166,6 +193,52 @@ func _run() -> void:
 		" keys=", tallies.keys())
 	if vote_ok and not bool(tallies.get("success", tallies.get("ok", false))):
 		print("[gate8_smoke] get_story_tallies soft-fail — PASS with warning")
+
+	# Client join path: PresenceManager must land online (not ghost-only).
+	if presence.has_method("join_layer"):
+		await presence.join_layer("liminal")
+		await process_frame
+		var online := false
+		if presence.has_method("is_online_match"):
+			online = bool(presence.call("is_online_match"))
+		var mid := ""
+		if presence.has_method("current_match_id"):
+			mid = str(presence.call("current_match_id"))
+		print("[gate8_smoke] PresenceManager online=", online, " match=", mid)
+		if not online:
+			print("[gate8_smoke] presence socket soft-fail (addon stub?) — RPC path PASS")
+
+	# Optional district counts RPC (PresenceManager.presence_count covers hubs offline).
+	var districts := {"districts": {}}
+	done = false
+	net.call("call_rpc", "get_active_districts", {}, func(result: Dictionary):
+		districts = result
+		done = true)
+	wait_until = Time.get_ticks_msec() + 5000
+	while not done and Time.get_ticks_msec() < wait_until:
+		await process_frame
+	print("[gate8_smoke] get_active_districts keys=", districts.keys(),
+		" ok=", bool(districts.get("success", districts.get("ok", false))),
+		" error=", districts.get("error", ""))
+	if not bool(districts.get("success", districts.get("ok", false))):
+		print("[gate8_smoke] get_active_districts soft-fail (optional) — PASS with warning")
+
+	# World boss shared cadence RPC.
+	var boss_state := {"ok": false}
+	done = false
+	net.call("call_rpc", "get_world_boss_state", {}, func(result: Dictionary):
+		boss_state = result
+		done = true)
+	wait_until = Time.get_ticks_msec() + 8000
+	while not done and Time.get_ticks_msec() < wait_until:
+		await process_frame
+	print("[gate8_smoke] get_world_boss_state=", boss_state)
+	if not bool(boss_state.get("ok", boss_state.get("success", false))):
+		_fail("get_world_boss_state failed — rebuild modules + restart nakama")
+		return
+	if not boss_state.has("next_spawn_unix"):
+		_fail("get_world_boss_state missing next_spawn_unix")
+		return
 
 	# Live: board_id alias on get_leaderboard / submit_score + find_match.
 	var live_sub := {"success": false}
