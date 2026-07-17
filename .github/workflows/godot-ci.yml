@@ -158,13 +158,27 @@ jobs:
           echo "Waiting for Nakama :7350..."
           for i in $(seq 1 60); do
             if (echo >/dev/tcp/127.0.0.1/7350) >/dev/null 2>&1; then
-              echo "Nakama is up (attempt $i)"
-              exit 0
+              # Avoid false-ready during migrate/restart — require 3 consecutive opens.
+              ok=1
+              for j in 1 2 3; do
+                sleep 1
+                if ! (echo >/dev/tcp/127.0.0.1/7350) >/dev/null 2>&1; then
+                  ok=0
+                  echo "Nakama port flapped (attempt $i, check $j)"
+                  break
+                fi
+              done
+              if [ "$ok" = "1" ]; then
+                echo "Nakama is up (attempt $i, stable)"
+                docker compose -f docker-compose.dev.yml ps
+                exit 0
+              fi
             fi
             sleep 2
           done
           echo "::error::Nakama did not become ready on :7350"
-          docker compose -f docker-compose.dev.yml logs --no-color | tail -80
+          docker compose -f docker-compose.dev.yml ps || true
+          docker compose -f docker-compose.dev.yml logs --no-color | tail -120
           exit 1
 
       - name: Install Godot 4.3
@@ -181,7 +195,36 @@ jobs:
           GATE8_REQUIRE_LIVE: "1"
         run: |
           set -e
+          # Re-confirm Nakama after Godot install gap (compose can restart).
+          echo "Re-checking Nakama :7350 before smoke..."
+          ready=0
+          for i in $(seq 1 45); do
+            if (echo >/dev/tcp/127.0.0.1/7350) >/dev/null 2>&1; then
+              echo "Nakama still up (attempt $i)"
+              ready=1
+              break
+            fi
+            sleep 2
+          done
+          if [ "$ready" != "1" ]; then
+            echo "::error::Nakama not reachable before gate8_smoke"
+            docker compose -f docker-compose.dev.yml ps || true
+            docker compose -f docker-compose.dev.yml logs --no-color | tail -120 || true
+            exit 1
+          fi
           bash scripts/ci_rebuild_godot_class_cache.sh godot
+          # Class cache can take minutes — probe again immediately before smoke.
+          for i in $(seq 1 30); do
+            if (echo >/dev/tcp/127.0.0.1/7350) >/dev/null 2>&1; then
+              break
+            fi
+            sleep 2
+            if [ "$i" = "30" ]; then
+              echo "::error::Nakama died during class-cache rebuild"
+              docker compose -f docker-compose.dev.yml logs --no-color | tail -120 || true
+              exit 1
+            fi
+          done
           cd godot
           set +e
           timeout 180 godot --headless --path . -s res://src/dev/gate8_smoke.gd | tee /tmp/gate8_live.txt

@@ -104,7 +104,16 @@ func _run() -> void:
 			host = str(cfg.get("nakama_host", host))
 			port = int(cfg.get("nakama_port", port))
 
-	var reachable := await _tcp_probe(host, port, 1.5)
+	# REQUIRE_LIVE: retry — CI can take minutes between compose-up and smoke
+	# (Godot install + class cache), and a single 1.5s probe is flaky.
+	var reachable := false
+	var probe_budget := 12.0 if _require_live() else 1.5
+	var probe_deadline := Time.get_ticks_msec() + int(probe_budget * 1000.0)
+	while Time.get_ticks_msec() < probe_deadline:
+		reachable = await _tcp_probe(host, port, 1.5)
+		if reachable:
+			break
+		await process_frame
 	print("[gate8_smoke] nakama ", host, ":", port, " reachable=", reachable)
 	if not reachable:
 		# Offline ghost path still must work.
