@@ -5,7 +5,8 @@ extends SceneTree
 ##   docker compose -f docker-compose.dev.yml up -d
 ## Run: godot --headless --path godot -s res://src/dev/gate8_smoke.gd
 ##
-## If Nakama isn't reachable, prints SKIP (exit 0) — prod host stays pinned.
+## Offline alias checks always run. If Nakama isn't reachable, prints SKIP
+## after those (exit 0) — prod host stays pinned.
 
 func _init() -> void:
 	call_deferred("_run")
@@ -13,6 +14,71 @@ func _init() -> void:
 func _run() -> void:
 	print("[gate8_smoke] start")
 	await process_frame
+	var ok := true
+
+	# Always: OfflineCasino field-alias path (board_id ↔ leaderboard) + match.
+	if not OfflineCasino.supports("get_leaderboard") or not OfflineCasino.supports("submit_score"):
+		_fail("OfflineCasino missing leaderboard RPCs")
+		return
+	if not OfflineCasino.supports("find_match"):
+		_fail("OfflineCasino missing find_match")
+		return
+	if not OfflineCasino.supports("get_story_tallies"):
+		ok = false
+		print("[gate8_smoke] get_story_tallies support FAIL")
+
+	var offline_lb: Dictionary = await OfflineCasino.resolve(
+		"get_leaderboard", {"board_id": "global_wins", "limit": 5})
+	print("[gate8_smoke] offline get_leaderboard success=", offline_lb.get("success", false),
+		" board_id=", offline_lb.get("board_id", ""),
+		" leaderboard=", offline_lb.get("leaderboard", ""))
+	if not bool(offline_lb.get("success", offline_lb.get("ok", false))):
+		ok = false
+		print("[gate8_smoke] offline get_leaderboard FAIL")
+	elif str(offline_lb.get("board_id", "")) != "global_wins" \
+			or str(offline_lb.get("leaderboard", "")) != "global_wins":
+		ok = false
+		print("[gate8_smoke] offline board_id alias FAIL")
+	else:
+		print("[gate8_smoke] offline board_id alias ok")
+
+	var offline_sub: Dictionary = await OfflineCasino.resolve(
+		"submit_score", {"board_id": "global_wins", "score": 7})
+	print("[gate8_smoke] offline submit_score success=", offline_sub.get("success", false),
+		" leaderboard=", offline_sub.get("leaderboard", ""))
+	if not bool(offline_sub.get("success", offline_sub.get("ok", false))) \
+			or str(offline_sub.get("leaderboard", "")) != "global_wins":
+		ok = false
+		print("[gate8_smoke] offline submit_score FAIL")
+	else:
+		print("[gate8_smoke] offline submit_score ok")
+
+	var offline_match: Dictionary = await OfflineCasino.resolve(
+		"find_match", {"game_type": "duel_1v1"})
+	print("[gate8_smoke] offline find_match success=", offline_match.get("success", false),
+		" practice=", offline_match.get("practice", false))
+	if not bool(offline_match.get("success", offline_match.get("ok", false))):
+		ok = false
+		print("[gate8_smoke] offline find_match FAIL")
+	else:
+		print("[gate8_smoke] offline find_match ok")
+
+	# Client-side payload mirror (NetworkManager) — board_id → leaderboard.
+	var net_offline: Node = root.get_node_or_null("NetworkManager")
+	if net_offline != null and net_offline.has_method("_normalize_payload"):
+		var mirrored: Variant = net_offline.call(
+			"_normalize_payload", "get_leaderboard", {"board_id": "slot_wins", "limit": 3})
+		if mirrored is Dictionary \
+				and str(mirrored.get("leaderboard", "")) == "slot_wins" \
+				and str(mirrored.get("board_id", "")) == "slot_wins":
+			print("[gate8_smoke] NetworkManager board_id mirror ok")
+		else:
+			ok = false
+			print("[gate8_smoke] NetworkManager board_id mirror FAIL ", mirrored)
+	else:
+		ok = false
+		print("[gate8_smoke] NetworkManager normalize missing FAIL")
+
 	var acct: Node = root.get_node_or_null("AccountManager")
 	if acct == null:
 		_fail("AccountManager missing")
@@ -30,13 +96,14 @@ func _run() -> void:
 	var reachable := await _tcp_probe(host, port, 1.5)
 	print("[gate8_smoke] nakama ", host, ":", port, " reachable=", reachable)
 	if not reachable:
-		print("[gate8_smoke] RESULT=SKIP (start docker-compose.dev.yml for live auth)")
-		quit(0)
+		print("[gate8_smoke] RESULT=", "PASS" if ok else "FAIL",
+			" (SKIP live — start docker-compose.dev.yml for auth)")
+		quit(0 if ok else 1)
 		return
 
-	var ok: bool = await acct.auth_device("gate8_smoke_device")
-	print("[gate8_smoke] auth_device=", ok, " authenticated=", acct.get("is_authenticated"))
-	if not ok:
+	var auth_ok: bool = await acct.auth_device("gate8_smoke_device")
+	print("[gate8_smoke] auth_device=", auth_ok, " authenticated=", acct.get("is_authenticated"))
+	if not auth_ok:
 		_fail("auth_device failed against local Nakama")
 		return
 
@@ -56,10 +123,9 @@ func _run() -> void:
 	print("[gate8_smoke] get_wallet success=", wallet.get("success", false),
 		" keys=", wallet.keys())
 	if not bool(wallet.get("success", wallet.get("ok", false))):
-		# Modules may be empty on first boot — auth success is the Gate 8 bar.
 		print("[gate8_smoke] wallet soft-fail (modules may be empty) — PASS with warning")
 
-	# Thicken: StoryVote Nakama module (local multiplayer civic path).
+	# StoryVote
 	var vote_ballot := "gate8_smoke_ballot"
 	var vote := {"success": false}
 	done = false
@@ -78,8 +144,6 @@ func _run() -> void:
 	var vote_ok := bool(vote.get("success", vote.get("ok", false)))
 	var cooldown_ok := str(vote.get("reason", "")) == "cooldown"
 	if not vote_ok and not cooldown_ok:
-		# Module missing from an old build — soft-fail so SKIP-capable CI
-		# still greens when compose is up but modules weren't rebuilt.
 		print("[gate8_smoke] story_vote soft-fail (rebuild modules?) — PASS with warning")
 	else:
 		print("[gate8_smoke] story_vote ok")
@@ -99,6 +163,66 @@ func _run() -> void:
 		" keys=", tallies.keys())
 	if vote_ok and not bool(tallies.get("success", tallies.get("ok", false))):
 		print("[gate8_smoke] get_story_tallies soft-fail — PASS with warning")
+
+	# Live: board_id alias on get_leaderboard / submit_score + find_match.
+	var live_sub := {"success": false}
+	done = false
+	net.call("call_rpc", "submit_score",
+		{"board_id": "global_wins", "score": 3},
+		func(result: Dictionary):
+			live_sub = result
+			done = true)
+	wait_until = Time.get_ticks_msec() + 8000
+	while not done and Time.get_ticks_msec() < wait_until:
+		await process_frame
+	print("[gate8_smoke] live submit_score success=", live_sub.get("success", false),
+		" leaderboard=", live_sub.get("leaderboard", live_sub.get("board_id", "")),
+		" error=", live_sub.get("error", ""),
+		" keys=", live_sub.keys())
+	if not bool(live_sub.get("success", live_sub.get("ok", false))):
+		print("[gate8_smoke] live submit_score soft-fail — PASS with warning")
+	else:
+		print("[gate8_smoke] live submit_score ok")
+
+	var live_lb := {"success": false}
+	done = false
+	net.call("call_rpc", "get_leaderboard",
+		{"board_id": "global_wins", "limit": 10},
+		func(result: Dictionary):
+			live_lb = result
+			done = true)
+	wait_until = Time.get_ticks_msec() + 8000
+	while not done and Time.get_ticks_msec() < wait_until:
+		await process_frame
+	print("[gate8_smoke] live get_leaderboard success=", live_lb.get("success", false),
+		" board_id=", live_lb.get("board_id", ""),
+		" records=", (live_lb.get("records", []) as Array).size() if live_lb.get("records") is Array else -1,
+		" error=", live_lb.get("error", ""),
+		" keys=", live_lb.keys())
+	if not bool(live_lb.get("success", live_lb.get("ok", false))):
+		print("[gate8_smoke] live get_leaderboard soft-fail — PASS with warning")
+	else:
+		print("[gate8_smoke] live get_leaderboard ok")
+
+	var live_match := {"success": false}
+	done = false
+	net.call("call_rpc", "find_match",
+		{"game_type": "duel_1v1"},
+		func(result: Dictionary):
+			live_match = result
+			done = true)
+	wait_until = Time.get_ticks_msec() + 8000
+	while not done and Time.get_ticks_msec() < wait_until:
+		await process_frame
+	print("[gate8_smoke] live find_match success=", live_match.get("success", false),
+		" match_id=", live_match.get("match_id", ""),
+		" error=", live_match.get("error", ""),
+		" keys=", live_match.keys())
+	if not bool(live_match.get("success", live_match.get("ok", false))):
+		print("[gate8_smoke] live find_match soft-fail — PASS with warning")
+	else:
+		print("[gate8_smoke] live find_match ok")
+
 
 	# Gate 8 thicken: hideout claim / contest online parity.
 	var hideout_site := "gate8_smoke_hideout"
@@ -195,8 +319,8 @@ func _run() -> void:
 	print("[gate8_smoke] hideout_get success=", got.get("success", false),
 		" keys=", got.keys())
 
-	print("[gate8_smoke] RESULT=PASS")
-	quit(0)
+	print("[gate8_smoke] RESULT=", "PASS" if ok else "FAIL")
+	quit(0 if ok else 1)
 
 func _tcp_probe(host: String, port: int, timeout_s: float) -> bool:
 	var peer := StreamPeerTCP.new()

@@ -246,6 +246,7 @@ static func _get_leaderboard(data: Dictionary) -> Dictionary:
 		"success": true,
 		"ok": true,
 		"leaderboard": board_id,
+		"board_id": board_id,
 		"records": records,
 		"caller_rank": -1,
 		"caller_record": null,
@@ -258,7 +259,10 @@ static func _submit_score_offline(data: Dictionary) -> Dictionary:
 	var crown := _autoload("CrownManager")
 	if crown != null:
 		crown.call("add_score", board_id, "local_player", score)
-	return {"success": true, "ok": true, "score": score, "board_id": board_id, "offline": true}
+	return {
+		"success": true, "ok": true, "score": score,
+		"board_id": board_id, "leaderboard": board_id, "offline": true,
+	}
 
 static func _daily_bonus_offline() -> Dictionary:
 	var eco := _autoload("EconomyManager")
