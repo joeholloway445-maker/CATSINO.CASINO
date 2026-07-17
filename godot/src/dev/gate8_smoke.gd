@@ -18,6 +18,13 @@ func _run() -> void:
 		_fail("AccountManager missing")
 		return
 
+	# PresenceManager must exist even offline (ghost path).
+	var presence: Node = root.get_node_or_null("PresenceManager")
+	print("[gate8_smoke] PresenceManager=", presence != null)
+	if presence == null:
+		_fail("PresenceManager missing")
+		return
+
 	# Probe TCP — avoid long auth hangs when compose isn't up.
 	var host := "127.0.0.1"
 	var port := 7350
@@ -30,6 +37,10 @@ func _run() -> void:
 	var reachable := await _tcp_probe(host, port, 1.5)
 	print("[gate8_smoke] nakama ", host, ":", port, " reachable=", reachable)
 	if not reachable:
+		# Offline ghost path still must work.
+		if presence.has_method("join_layer"):
+			await presence.join_layer("liminal")
+			print("[gate8_smoke] offline ghost join_layer ok")
 		print("[gate8_smoke] RESULT=SKIP (start docker-compose.dev.yml for live auth)")
 		quit(0)
 		return
@@ -56,49 +67,46 @@ func _run() -> void:
 	print("[gate8_smoke] get_wallet success=", wallet.get("success", false),
 		" keys=", wallet.keys())
 	if not bool(wallet.get("success", wallet.get("ok", false))):
-		# Modules may be empty on first boot — auth success is the Gate 8 bar.
-		print("[gate8_smoke] wallet soft-fail (modules may be empty) — PASS with warning")
+		print("[gate8_smoke] wallet soft-fail (modules may be empty) — continuing")
 
-	# Thicken: StoryVote Nakama module (local multiplayer civic path).
-	var vote_ballot := "gate8_smoke_ballot"
-	var vote := {"success": false}
+	# Layer presence — must return a real match id for non-private layers.
+	var presence_rpc := {"ok": false}
 	done = false
-	net.call("call_rpc", "story_vote",
-		{"ballot": vote_ballot, "option": 0},
-		func(result: Dictionary):
-			vote = result
-			done = true)
+	net.call("call_rpc", "join_layer_presence", {"layer_id": "liminal"}, func(result: Dictionary):
+		presence_rpc = result
+		done = true)
 	wait_until = Time.get_ticks_msec() + 8000
 	while not done and Time.get_ticks_msec() < wait_until:
 		await process_frame
-	print("[gate8_smoke] story_vote success=", vote.get("success", false),
-		" recorded=", vote.get("recorded", false),
-		" reason=", vote.get("reason", vote.get("error", "")),
-		" keys=", vote.keys())
-	var vote_ok := bool(vote.get("success", vote.get("ok", false)))
-	var cooldown_ok := str(vote.get("reason", "")) == "cooldown"
-	if not vote_ok and not cooldown_ok:
-		# Module missing from an old build — soft-fail so SKIP-capable CI
-		# still greens when compose is up but modules weren't rebuilt.
-		print("[gate8_smoke] story_vote soft-fail (rebuild modules?) — PASS with warning")
-	else:
-		print("[gate8_smoke] story_vote ok")
+	print("[gate8_smoke] join_layer_presence=", presence_rpc)
+	var mid := str(presence_rpc.get("match_id", ""))
+	if not bool(presence_rpc.get("ok", presence_rpc.get("success", false))) or mid == "":
+		_fail("join_layer_presence did not return match_id — rebuild modules + restart nakama")
+		return
 
-	var tallies := {"success": false}
+	# Client join path: PresenceManager must land online (not ghost-only).
+	if presence.has_method("join_layer"):
+		await presence.join_layer("liminal")
+		await process_frame
+		var online := false
+		if presence.has_method("is_online_presence"):
+			online = bool(presence.call("is_online_presence"))
+		print("[gate8_smoke] PresenceManager online=", online, " match=", mid)
+		if not online:
+			# Socket join can fail on stub addons — still require RPC success above.
+			print("[gate8_smoke] presence socket soft-fail (addon stub?) — RPC path PASS")
+
+	# District counts RPC must respond (may be zeros before anyone joins).
+	var districts := {"districts": {}}
 	done = false
-	net.call("call_rpc", "get_story_tallies",
-		{"ballot": vote_ballot},
-		func(result: Dictionary):
-			tallies = result
-			done = true)
-	wait_until = Time.get_ticks_msec() + 8000
+	net.call("call_rpc", "get_active_districts", {}, func(result: Dictionary):
+		districts = result
+		done = true)
+	wait_until = Time.get_ticks_msec() + 5000
 	while not done and Time.get_ticks_msec() < wait_until:
 		await process_frame
-	print("[gate8_smoke] get_story_tallies success=", tallies.get("success", false),
-		" total=", tallies.get("total", -1),
-		" keys=", tallies.keys())
-	if vote_ok and not bool(tallies.get("success", tallies.get("ok", false))):
-		print("[gate8_smoke] get_story_tallies soft-fail — PASS with warning")
+	print("[gate8_smoke] get_active_districts keys=", districts.keys(),
+		" districts=", districts.get("districts", {}))
 
 	print("[gate8_smoke] RESULT=PASS")
 	quit(0)

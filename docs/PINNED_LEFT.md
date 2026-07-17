@@ -1,8 +1,8 @@
 # Pinned — circle back when asked “what’s left”
 
 **Agent-finishable Gates 5–8 thicken (latest):** arena HotbarUI + skill casts;
-hideout live sieges. Remaining agent juice: combat SFX slots, boss phase
-telegraphs, PeriliminalGenerator wiring, StoryVote Nakama module.
+hideout live sieges; combat SFX; Gate 8 `layer_presence` match + client join
+with ghost fallback. Prod Nakama host/secrets stay owner-only.
 
 Do **not** start the pinned owner trials below until the owner asks
 what’s left.
@@ -36,3 +36,4 @@ Also owner-local (needs your machine / credentials — not cloud-agent work):
 - Free path: **MPFB2** (CC0) + **OSM2World** (OSM ODbL)
 - Arena HotbarUI + cast resolution (Gate 6)
 - Hideout live WorldEntity siege (Gate 5)
+- Gate 8 layer presence (`join_layer_presence` + match relay; ghost fallback)

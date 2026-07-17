@@ -125,11 +125,34 @@ func _fire_visit_quest_triggers(district: District) -> void:
 
 # ── Private ────────────────────────────────────────────────────────────────────
 func _poll_player_counts() -> void:
-	# In a real implementation, query Nakama match presence
-	# For now, simulate with random counts
+	# Gate 8: when authenticated, ask Nakama for live district counts written
+	# by layer_presence. Offline keeps light simulated numbers so hub UI isn't empty.
+	if NetworkManager != null and NetworkManager.is_connected_to_server() \
+			and NetworkManager.has_method("call_rpc"):
+		NetworkManager.call("call_rpc", "get_active_districts", {}, func(result: Dictionary):
+			_apply_district_counts(result))
+		return
 	for district in _player_counts:
-		_player_counts[district] = randi() % 150
+		_player_counts[district] = randi() % 40 + 5
 		emit_signal("player_count_updated", district, _player_counts[district])
+
+func _apply_district_counts(result: Dictionary) -> void:
+	var raw: Variant = result.get("districts", {})
+	if not raw is Dictionary:
+		return
+	var districts: Dictionary = raw
+	var key_map := {
+		"paw_vegas": District.PAW_VEGAS,
+		"neon_alley": District.NEON_ALLEY,
+		"cat_coliseum": District.CAT_COLISEUM,
+		"arcade_galaxy": District.ARCADE_GALAXY,
+		"cat_forest": District.CAT_FOREST,
+	}
+	for key in key_map:
+		if districts.has(key):
+			var d: District = key_map[key]
+			_player_counts[d] = int(districts[key])
+			emit_signal("player_count_updated", d, _player_counts[d])
 
 func update_player_count(district: District, count: int) -> void:
 	_player_counts[district] = count
