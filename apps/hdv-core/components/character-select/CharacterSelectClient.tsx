@@ -2,6 +2,7 @@
 
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
+import { usePortraitUrl } from '@/lib/character/mediaStore'
 
 interface CharacterSummary {
   id: string
@@ -94,7 +95,10 @@ export default function CharacterSelectClient({ slots, characters, coin }: Props
               >
                 {character ? (
                   <>
-                    <div className="font-mono text-xs text-purple-600 mb-1">SLOT {slotNumber}</div>
+                    <div className="flex items-center gap-2 mb-1">
+                      <div className="font-mono text-xs text-purple-600">SLOT {slotNumber}</div>
+                      <SlotPortrait slot={slotNumber} />
+                    </div>
                     <div className="font-mono text-sm text-slate-200">{character.raceName}</div>
                     <div className="font-mono text-xs text-slate-500">{character.frameName}</div>
                     <div className="font-mono text-xs text-slate-500 mb-3">Prestige {character.prestigeLevel}</div>
@@ -141,4 +145,12 @@ export default function CharacterSelectClient({ slots, characters, coin }: Props
       </div>
     </div>
   )
+}
+
+/** Avatar captured in the CAPTURE step of character creation, if any (stored locally per slot). */
+function SlotPortrait({ slot }: { slot: number }) {
+  const url = usePortraitUrl(slot)
+  if (!url) return null
+  // eslint-disable-next-line @next/next/no-img-element
+  return <img src={url} alt="" className="w-5 h-5 rounded-full object-cover border border-purple-700" />
 }
