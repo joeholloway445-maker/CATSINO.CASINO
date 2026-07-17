@@ -6,9 +6,13 @@ extends SceneTree
 ## Run: godot --headless --path godot -s res://src/dev/gate8_smoke.gd
 ##
 ## If Nakama isn't reachable, prints SKIP (exit 0) — prod host stays pinned.
+## Set env GATE8_REQUIRE_LIVE=1 (CI live job) to treat SKIP as FAIL.
 
 func _init() -> void:
 	call_deferred("_run")
+
+func _require_live() -> bool:
+	return str(OS.get_environment("GATE8_REQUIRE_LIVE")).strip_edges() in ["1", "true", "TRUE", "yes"]
 
 func _run() -> void:
 	print("[gate8_smoke] start")
@@ -41,6 +45,9 @@ func _run() -> void:
 		if presence.has_method("join_layer"):
 			await presence.join_layer("liminal")
 			print("[gate8_smoke] offline ghost join_layer ok")
+		if _require_live():
+			_fail("GATE8_REQUIRE_LIVE=1 but Nakama unreachable — docker compose not up?")
+			return
 		print("[gate8_smoke] RESULT=SKIP (start docker-compose.dev.yml for live auth)")
 		quit(0)
 		return
@@ -107,6 +114,23 @@ func _run() -> void:
 		await process_frame
 	print("[gate8_smoke] get_active_districts keys=", districts.keys(),
 		" districts=", districts.get("districts", {}))
+
+	# World boss shared cadence RPC.
+	var boss_state := {"ok": false}
+	done = false
+	net.call("call_rpc", "get_world_boss_state", {}, func(result: Dictionary):
+		boss_state = result
+		done = true)
+	wait_until = Time.get_ticks_msec() + 8000
+	while not done and Time.get_ticks_msec() < wait_until:
+		await process_frame
+	print("[gate8_smoke] get_world_boss_state=", boss_state)
+	if not bool(boss_state.get("ok", boss_state.get("success", false))):
+		_fail("get_world_boss_state failed — rebuild modules + restart nakama")
+		return
+	if not boss_state.has("next_spawn_unix"):
+		_fail("get_world_boss_state missing next_spawn_unix")
+		return
 
 	print("[gate8_smoke] RESULT=PASS")
 	quit(0)
