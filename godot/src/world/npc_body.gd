@@ -42,7 +42,15 @@ func build(npc: Dictionary) -> void:
 	_clear()
 	var appearance: Dictionary = npc.get("appearance", {})
 
-	_mesh_root = MetahumanCharacter.build_npc("identity", str(npc.get("race_id", "")))
+	# Body pick order: per-NPC deterministic variant from the npc_human
+	# pool (six MakeHuman-generated builds — see assets/models/variants/
+	# npc_human/), then the single-slot MetahumanCharacter chain. Seeded by
+	# npc id so the same person always has the same body.
+	var vrng := RandomNumberGenerator.new()
+	vrng.seed = hash("npc_body_" + str(npc.get("id", "")))
+	var variant := AssetLibrary.instance_variant("npc_human", vrng)
+	_mesh_root = variant if variant != null \
+		else MetahumanCharacter.build_npc("identity", str(npc.get("race_id", "")))
 	add_child(_mesh_root)
 
 	_apply_stature(appearance)
@@ -120,6 +128,11 @@ func _apply_surface_tints(appearance: Dictionary, faction: String) -> void:
 				target = skin; blend = 0.65
 			elif "hair" in label or "brow" in label or "beard" in label:
 				target = hair; blend = 0.65
+			elif "outfit" in label or "cloth" in label:
+				# MakeHuman bodies: fitted outfit colored by archetype (the
+				# same palette the robot chassis used — brass barista,
+				# gunmetal authority, jewel-red lover, ...).
+				target = chassis; blend = 0.75
 			elif "emitter" in label or "glow" in label:
 				target = glow; blend = 0.85
 			elif "robot" in label or "body" in label or "arm" in label:

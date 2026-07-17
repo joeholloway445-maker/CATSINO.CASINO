@@ -1,5 +1,13 @@
 {
   "_comment": "AssetLibrary.instance_variant() manifest — maps a slot name to multiple real models under assets/models/variants/<slot>/. Additive to the single-file slot convention (see AssetLibrary docs). All CC0, Kenney — see godot/assets/models/ATTRIBUTION.md.",
+  "npc_human": [
+    "npc_f_slim.glb",
+    "npc_f_average.glb",
+    "npc_f_athletic.glb",
+    "npc_m_average.glb",
+    "npc_m_heavy.glb",
+    "npc_m_athletic.glb"
+  ],
   "city_tower": [
     "skyscraper-a.glb",
     "skyscraper-b.glb",

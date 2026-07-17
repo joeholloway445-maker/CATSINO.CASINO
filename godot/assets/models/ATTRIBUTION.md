@@ -28,17 +28,17 @@
 | `godot/src/vehicles/land_vehicle.gd` | Steering/throttle model adapted from the official [godotengine/godot-demo-projects](https://github.com/godotengine/godot-demo-projects) `3d/truck_town` sample's `vehicles/vehicle.gd` (whole-repo MIT, no split code/asset license unlike tps-demo) — rewritten for our input map, procedural placeholder body/wheels, and VehicleSeat enter/exit instead of their multi-vehicle trailer/tow-truck rig | MIT (code) |
 | `godot/src/vehicles/water_vehicle.gd`, `air_vehicle.gd`, `space_vehicle.gd` | Original — no equivalent official Godot demo exists for buoyancy or flight (unlike VehicleBody3D for land, Godot has no built-in boat/aircraft physics node), so these are from-scratch arcade models | MIT (code) |
 
-**Target:** replace humanoids with **your MetaHuman GLB exports** at:
-- `metahuman_player.glb` (local player identity)
-- `metahuman_npc.glb` (generic NPC — still missing; NPCs currently fall
-  through to `player_human.glb`, see below)
-- `metahuman_<race_id>.glb` optional per-race variants
+**STATUS UPDATE (2026-07-17): the human gap is CLOSED** — see the
+"MakeHuman-generated humans" section at the bottom. `metahuman_player.glb`
+and `npc_human.glb` now exist (MakeHuman/MPFB bodies, CC0), plus a
+six-body `variants/npc_human/` pool picked per NPC. Unreal MetaHuman
+exports remain a WELCOME upgrade path (higher fidelity faces/hair):
+dropping `metahuman_npc.glb` / replacing `metahuman_player.glb` /
+`metahuman_<race_id>.glb` still upgrades everything with zero code
+changes — the resolver order is unchanged.
 
-**No CC0/MIT source for a photoreal human was found that doesn't require a
-DCC-tool export step** (see `docs/ASSET_SHOPPING_LIST.md` "Humans" section
-for what was actually checked and why each was rejected/deferred). Until
-MetaHuman exports land, every human in the game — player AND all 1,000+
-generated NPCs — renders the same `player_human.glb` mesh.
+The paragraphs below are the history of how this gap was found and
+worked around before it was closed; kept for context:
 
 **Important correction:** that mesh is not actually a human — inspecting
 its glTF materials shows `playerobot` (chassis) and `robotemitter` (glow
@@ -118,3 +118,27 @@ wants to go further:
 | [Kenney Space Kit](https://kenney.nl/assets/space-kit) | 6 craft + full station/corridor kit | CC0 |
 
 See `docs/VISUAL_DIRECTION_ESO.md`.
+
+## MakeHuman-generated humans (2026-07-17 — the human gap is CLOSED)
+
+| File | Source | License |
+|---|---|---|
+| `npc_human.glb`, `metahuman_player.glb`, `variants/npc_human/*.glb` (6 bodies) | Generated headlessly in this repo's pipeline: **MPFB v2.0.16** (MakeHuman Plugin For Blender, from extensions.blender.org, sha256-verified) running inside **bpy 5.0.1** (Blender as a Python module, PyPI). Parametric macro targets (gender/age/muscle/weight/proportions/height) baked per variant; helper cage stripped (13,380 verts each); real-world heights 1.64–1.84 m verified in the exported glTF accessors. | **CC0** — the MakeHuman project licenses characters exported with its tools as CC0; MPFB is GPL but its *output meshes* carry no license restriction. |
+
+Details that matter to consumers:
+- Materials are named `Skin` and `Outfit` — `NpcBody._apply_surface_tints`
+  keys on those names: Skin gets the per-NPC natural skin-tone lerp,
+  Outfit gets the archetype palette (brass barista / gunmetal authority /
+  jewel-red lover / graphite archivist / violet reflection).
+- Six builds ship in `variants/npc_human/` (f_slim/f_average/f_athletic/
+  m_average/m_heavy/m_athletic); `NpcBody` picks one deterministically
+  per NPC id via `AssetLibrary.instance_variant`. `npc_human.glb`
+  (= m_average) remains the single-slot fallback; `metahuman_player.glb`
+  (= m_athletic) upgrades the player from the tps-demo robot.
+- Unrigged and unclothed-but-material-split (head/neck = Skin, below =
+  fitted Outfit — reads as a bodysuit consistent with the identity-lens
+  aesthetic). No skeletal animation exists in the game yet, so no rig is
+  currently a non-loss; when animation lands, regenerate with MPFB's rig
+  (`scripts/` pipeline can be re-run — see AGENTS.md).
+- The tps-demo robot (`player_human.glb`) stays on disk as the last-chance
+  fallback and for anything that intentionally wants the robot.
