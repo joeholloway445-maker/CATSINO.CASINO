@@ -96,6 +96,57 @@ func _run() -> void:
 	if we_script == null:
 		ok = false
 
+	# Live hideout siege must register defenders with LayerWorld combat so
+	# hotbar casts / bites land (Gate 5 hideout juice — not spectacle-only).
+	var gh_script: GDScript = load("res://src/world/city/guild_hideout.gd") as GDScript
+	var stub_script: GDScript = load("res://src/dev/siege_host_stub.gd") as GDScript
+	print("[gate5_smoke] GuildHideout=", gh_script != null, " SiegeHostStub=", stub_script != null)
+	if gh_script == null or stub_script == null:
+		ok = false
+	else:
+		var host := Node3D.new()
+		host.set_script(stub_script)
+		host.name = "SiegeHost"
+		host.add_to_group("layer_world")
+		root.add_child(host)
+		var player := Node3D.new()
+		player.name = "SmokePlayer"
+		host.add_child(player)
+		hr.register_site("smoke_siege", "supraliminal", "arlington", Vector3(20, 0, 20))
+		var sites: Dictionary = hr.get("_sites")
+		if sites.has("smoke_siege"):
+			sites["smoke_siege"]["owner"] = "RivalGuild"
+			sites["smoke_siege"]["defenders"] = ["siege_crew_a"]
+		var hideout: Node = gh_script.new()
+		host.add_child(hideout)
+		hideout.call("setup", "smoke_siege", "supraliminal", "arlington",
+			Color(0.6, 0.3, 0.3), player, Vector3(20, 0, 20))
+		hideout.call("_begin_siege", "SmokeAttackers")
+		await process_frame
+		var alive: Array = hideout.get("_siege_alive")
+		var registered: int = int(host.get("entities").size()) if host.get("entities") != null else 0
+		print("[gate5_smoke] siege defenders=", alive.size(), " registered=", registered,
+			" active=", hideout.get("_siege_active"))
+		if alive.is_empty() or registered < 1:
+			ok = false
+			print("[gate5_smoke] siege register FAIL")
+		else:
+			# Hotbar path: take_hit until dead → ownership flips.
+			var defender: WorldEntity = alive[0] as WorldEntity
+			var hp0: int = defender.hp
+			defender.take_hit(hp0 + 50)
+			await process_frame
+			var flipped_owner := str(hr.call("owner_of", "smoke_siege"))
+			print("[gate5_smoke] after kill owner=", flipped_owner,
+				" siege_active=", hideout.get("_siege_active"))
+			if flipped_owner != "SmokeAttackers":
+				ok = false
+				print("[gate5_smoke] siege resolve FAIL")
+			else:
+				print("[gate5_smoke] siege combat ok")
+		hideout.queue_free()
+		host.queue_free()
+
 	print("[gate5_smoke] RESULT=", "PASS" if ok else "FAIL")
 	quit(0 if ok else 1)
 

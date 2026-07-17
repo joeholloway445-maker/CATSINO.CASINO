@@ -190,7 +190,7 @@ func _run() -> void:
 	arena.queue_free()
 	player.queue_free()
 
-	# Hideout live-siege resolve (no dice)
+	# Hideout live-siege resolve (no dice) + combat registration path
 	var hr: Node = root.get_node_or_null("HideoutRegistry")
 	if hr:
 		hr.call("register_site", "smoke_hideout", "supraliminal", "arlington", Vector3(10, 0, 10))
@@ -202,6 +202,36 @@ func _run() -> void:
 		print("[gate6_smoke] hideout resolve_contest_win=", flipped)
 		if not flipped:
 			ok = false
+		# Live spawn path registers with a LayerWorld-shaped host.
+		var gh_script: GDScript = load("res://src/world/city/guild_hideout.gd") as GDScript
+		if gh_script != null:
+			var host := Node3D.new()
+			host.set_script(load("res://src/dev/siege_host_stub.gd"))
+			host.add_to_group("layer_world")
+			root.add_child(host)
+			var siege_player := Node3D.new()
+			host.add_child(siege_player)
+			hr.call("register_site", "smoke_hideout_live", "supraliminal", "arlington", Vector3(30, 0, 30))
+			var sites2: Dictionary = hr.get("_sites")
+			if sites2.has("smoke_hideout_live"):
+				sites2["smoke_hideout_live"]["owner"] = "RivalGuild"
+				sites2["smoke_hideout_live"]["defenders"] = []
+			var hideout: Node = gh_script.new()
+			host.add_child(hideout)
+			hideout.call("setup", "smoke_hideout_live", "supraliminal", "arlington",
+				Color(0.5, 0.4, 0.3), siege_player, Vector3(30, 0, 30))
+			hideout.call("_begin_siege", "SmokeGuild")
+			await process_frame
+			var reg_n: int = int(host.get("entities").size()) if host.get("entities") != null else 0
+			var alive_n: int = (hideout.get("_siege_alive") as Array).size()
+			print("[gate6_smoke] live siege defenders=", alive_n, " registered=", reg_n)
+			if alive_n < 1 or reg_n < 1:
+				ok = false
+				print("[gate6_smoke] live siege register FAIL")
+			else:
+				print("[gate6_smoke] live siege register ok")
+			hideout.queue_free()
+			host.queue_free()
 	else:
 		print("[gate6_smoke] HideoutRegistry missing — skip")
 
