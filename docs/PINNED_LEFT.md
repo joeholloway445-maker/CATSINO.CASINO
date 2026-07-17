@@ -1,11 +1,9 @@
 # Pinned — circle back when asked “what’s left”
 
 **Agent-finishable Gates 5–8 thicken (latest):** hideout sieges register
-defenders into LayerWorld combat (hotbar + bites), plus Gate 8
-`board_id`↔`leaderboard` alias + thicker `gate8_smoke`.
+defenders into LayerWorld combat (hotbar + bites).
 
-Remaining agent juice: combat SFX slots + boss phase telegraphs (PR #56 —
-do not duplicate), Periliminal floor hazard VFX/HUD.
+Remaining agent juice: Periliminal floor hazard VFX/HUD.
 
 Do **not** start the pinned owner trials below until the owner asks
 what’s left.
@@ -42,3 +40,4 @@ Also owner-local (needs your machine / credentials — not cloud-agent work):
 - PeriliminalGenerator real floors (Gate 6)
 - StoryVote Nakama module (Gate 8)
 - Gate 8 board_id↔leaderboard alias + smoke thicken
+- Boss phase telegraphs — AOE ring / phase-3 column + PHASE label + signal (Gate 5/6)
