@@ -50,7 +50,10 @@ static func resolve(rpc_id: String, payload: Variant) -> Dictionary:
 			return _get_leaderboard(data)
 		"story_vote":
 			return {"success": true, "ok": true, "offline": true, "recorded": false,
-				"message": "Story votes sync when online."}
+				"tallies": {}, "message": "Story votes sync when online."}
+		"get_story_tallies":
+			return {"success": true, "ok": true, "offline": true, "tallies": {}, "total": 0,
+				"ballots": {}}
 		"find_match", "find_moba_match":
 			return {"success": true, "ok": true, "match_id": "", "created": false, "practice": true}
 		"get_active_tournaments", "get_tournaments":
@@ -157,10 +160,11 @@ static func _get_wallet() -> Dictionary:
 	var coins := 0
 	var gems := 0
 	var chips := 0
-	if EconomyManager:
-		coins = EconomyManager.get_coins()
-		gems = EconomyManager.get_gems()
-		chips = EconomyManager.get_balance("chips")
+	var eco := _autoload("EconomyManager")
+	if eco:
+		coins = int(eco.call("get_coins"))
+		gems = int(eco.call("get_gems"))
+		chips = int(eco.call("get_balance", "chips"))
 	return {
 		"success": true,
 		"ok": true,
@@ -175,8 +179,9 @@ static func _get_leaderboard(data: Dictionary) -> Dictionary:
 	var board_id := str(data.get("board_id", data.get("leaderboard", "global_wins")))
 	var limit := clampi(int(data.get("limit", 20)), 1, 100)
 	var records: Array = []
-	if CrownManager != null:
-		for e in CrownManager.board_records(board_id, limit):
+	var crown := _autoload("CrownManager")
+	if crown != null:
+		for e in crown.call("board_records", board_id, limit):
 			records.append({
 				"rank": int(e.get("rank", 0)),
 				"userId": str(e.get("player_id", "")),
@@ -197,13 +202,15 @@ static func _get_leaderboard(data: Dictionary) -> Dictionary:
 static func _submit_score_offline(data: Dictionary) -> Dictionary:
 	var board_id := str(data.get("board_id", data.get("leaderboard", "global_wins")))
 	var score := int(data.get("score", 0))
-	if CrownManager != null:
-		CrownManager.add_score(board_id, "local_player", score)
+	var crown := _autoload("CrownManager")
+	if crown != null:
+		crown.call("add_score", board_id, "local_player", score)
 	return {"success": true, "ok": true, "score": score, "board_id": board_id, "offline": true}
 
 static func _daily_bonus_offline() -> Dictionary:
-	if EconomyManager and EconomyManager.has_method("claim_daily_bonus"):
-		var amount: int = await EconomyManager.claim_daily_bonus()
+	var eco := _autoload("EconomyManager")
+	if eco and eco.has_method("claim_daily_bonus"):
+		var amount: int = await eco.call("claim_daily_bonus")
 		return {"success": true, "ok": true, "reward": amount, "coins_granted": amount}
 	_pay(500, "daily_bonus_offline")
 	return {"success": true, "ok": true, "reward": 500, "coins_granted": 500}
@@ -221,13 +228,15 @@ static func _spend(bet: int, reason: String) -> Dictionary:
 		return {"success": false, "error": "Invalid bet"}
 	# Casino floor spends chips (buy at the cage with coins). Local debit
 	# so OfflineCasino never hangs on a missing Nakama push.
-	if not EconomyManager or not EconomyManager.spend_currency_local("chips", bet, reason):
+	var eco := _autoload("EconomyManager")
+	if eco == null or not eco.call("spend_currency_local", "chips", bet, reason):
 		return {"success": false, "error": "Insufficient chips"}
 	return {"success": true}
 
 static func _pay(amount: int, reason: String) -> void:
-	if amount > 0 and EconomyManager:
-		EconomyManager.earn_currency_local("chips", amount, reason)
+	var eco := _autoload("EconomyManager")
+	if amount > 0 and eco:
+		eco.call("earn_currency_local", "chips", amount, reason)
 
 # ── Slots ─────────────────────────────────────────────────────────────────────
 
@@ -354,7 +363,8 @@ static func _bj_finish(is_double: bool) -> Dictionary:
 	var idx: int = _bj.idx
 	var bet: int = _bj.bet
 	if is_double:
-		if not EconomyManager or not EconomyManager.spend_currency_local("chips", bet, "blackjack_double"):
+		var eco := _autoload("EconomyManager")
+		if eco == null or not eco.call("spend_currency_local", "chips", bet, "blackjack_double"):
 			return {"success": false, "error": "Insufficient chips"}
 		bet *= 2
 		player.append(deck[idx])

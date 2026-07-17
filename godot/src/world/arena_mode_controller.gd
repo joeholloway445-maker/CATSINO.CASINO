@@ -2,10 +2,12 @@ class_name ArenaModeController
 extends Node3D
 ## Mode-specific arena rules for playtest_arena.
 ## survival / zombies / ctf / duel / duel_2v2 / conflict / moba.
-## Shared hero HP + auto-attack so every mode is win/lose playable offline.
+## Shared hero HP + HotbarUI skill casts (+ light auto-attack fallback)
+## so every mode is win/lose playable offline with real juice.
 
 signal mode_won(mode_id: String, score: int)
 signal mode_lost(mode_id: String)
+signal cast_resolved(skill_id: String, hits: int)
 
 var mode_id: String = ""
 var player: Node3D
@@ -23,15 +25,19 @@ var _goal: Area3D
 var _running := true
 var _hero_hp := 120
 var _hero_max_hp := 120
+var _shield := 0
 var _zone_dmg_acc := 0.0
 var _attack_cd := 0.0
 var _enemy_score := 0
 var _moba: Node
+var _hotbar: CanvasLayer
+var _attack_damage := 16
 
 func setup(p_mode: String, p_player: Node3D) -> void:
 	mode_id = p_mode
 	player = p_player
 	_build_hud()
+	_attach_hotbar()
 	match mode_id:
 		"survival":
 			_setup_survival()
@@ -55,13 +61,23 @@ func _build_hud() -> void:
 	_hud.position = Vector2(24, 24)
 	_hud.add_theme_font_size_override("font_size", 18)
 	layer.add_child(_hud)
-	_refresh_hud("Ready")
+	_refresh_hud("Ready — keys 1-5 / R to cast")
+
+func _attach_hotbar() -> void:
+	# MOBA brings its own cast pipeline; every other arena mode uses skills.
+	if mode_id == "moba":
+		return
+	_hotbar = HotbarUI.new()
+	_hotbar.name = "ArenaHotbar"
+	_hotbar.cast_requested.connect(_on_cast)
+	add_child(_hotbar)
 
 func _refresh_hud(extra: String = "") -> void:
 	if _hud == null:
 		return
-	_hud.text = "%s | HP %d/%d | score %d | %s" % [
-		mode_id.to_upper(), _hero_hp, _hero_max_hp, _score, extra]
+	var sh := (" | sh %d" % _shield) if _shield > 0 else ""
+	_hud.text = "%s | HP %d/%d%s | score %d | %s" % [
+		mode_id.to_upper(), _hero_hp, _hero_max_hp, sh, _score, extra]
 
 func _process(delta: float) -> void:
 	if not _running or player == null:
@@ -85,12 +101,14 @@ func _process(delta: float) -> void:
 			_tick_moba(delta)
 
 func _tick_hero_combat(_delta: float) -> void:
-	# Auto-attack nearest feral in range; take bites via WorldEntity signal.
+	# Light auto-attack between skill casts — skills are the real damage.
 	if _attack_cd <= 0.0:
 		var target := _nearest_feral(3.4)
 		if target != null and target.has_method("take_hit"):
-			target.take_hit(14)
-			_attack_cd = 0.75
+			target.take_hit(8)
+			SkillVFX.hit_spark(self, (target as Node3D).global_position)
+			SkillManager.gain_ultimate(1.5)
+			_attack_cd = 0.85
 
 func _nearest_feral(within: float) -> Node:
 	var best: Node = null
@@ -104,10 +122,107 @@ func _nearest_feral(within: float) -> Node:
 			best = n
 	return best
 
+## Smoke / tests: register an already-spawned foe into the live pool.
+func register_foe(n: Node) -> void:
+	if n != null and is_instance_valid(n):
+		_alive.append(n)
+
+## Hotbar cast resolution — same shape/kind contract as layer_world / PVXC.
+func _on_cast(sk: Dictionary) -> void:
+	if not _running or player == null or not is_instance_valid(player):
+		return
+	var cast_bp := BlueprintManager.equipped_for("skill", str(sk.get("id", "")))
+	if not cast_bp.is_empty():
+		SkillVFX.blueprint_cast(self, player.global_position, cast_bp)
+	else:
+		SkillVFX.cast_flash(self, player.global_position)
+	var shape: String = str(sk.get("shape", "single"))
+	var radius: float = float(sk.get("radius", 3.0))
+	var power: float = float(sk.get("power", 1.0))
+	if int(sk.get("ult_cost", 0)) > 0:
+		SkillVFX.ultimate_burst(self, player.global_position, maxf(radius, 6.0))
+	elif shape == "aoe":
+		SkillVFX.aoe_ring(self, player.global_position, radius)
+	elif shape == "line":
+		SkillVFX.line_beam(self, player.global_position, -player.global_transform.basis.z, radius)
+	match str(sk.get("kind", "damage")):
+		"shield", "buff":
+			_shield = maxi(_shield, int(28 * power))
+			SkillVFX.shield_bubble(self, player, 5.0)
+			_refresh_hud("shield up")
+			cast_resolved.emit(str(sk.get("id", "")), 0)
+			return
+		"mobility":
+			player.global_position += -player.global_transform.basis.z * (5.0 + 5.0 * power)
+			cast_resolved.emit(str(sk.get("id", "")), 0)
+			return
+		_:
+			pass
+	var dmg := int(_attack_damage * power)
+	var elem := str(sk.get("element", ""))
+	if elem == "" and SkillManager.has_method("element_of_skill"):
+		elem = str(SkillManager.element_of_skill(str(sk.get("id", ""))))
+	if elem == "energy":
+		dmg = int(dmg * 1.15)
+	# Wagering Arts soft edge — tiny tip, still house-favored overall.
+	if SkillManager.has_method("wagering_edge_relief"):
+		dmg = int(dmg * (1.0 + SkillManager.wagering_edge_relief()))
+	var reach := maxf(radius, 4.0)
+	var hits := 0
+	for n in _alive.duplicate():
+		if not is_instance_valid(n) or not (n is Node3D):
+			continue
+		var ent := n as Node3D
+		if ent.global_position.distance_to(player.global_position) > reach:
+			continue
+		if not n.has_method("take_hit"):
+			continue
+		n.take_hit(dmg)
+		SkillVFX.hit_spark(self, ent.global_position)
+		_apply_element_rider(elem, n, dmg)
+		hits += 1
+		SkillManager.gain_ultimate(4.0)
+		SkillManager.add_skill_xp(str(sk.get("id", "")), 8)
+	if hits == 0 and str(sk.get("kind", "damage")) in ["damage", "chance", "control"]:
+		NotificationUI.notify_info("No foe in range — close distance or use an AoE.")
+	_refresh_hud("cast %s (%d hit)" % [str(sk.get("name", "?")), hits])
+	cast_resolved.emit(str(sk.get("id", "")), hits)
+
+func _apply_element_rider(elem: String, target: Node, dmg: int) -> void:
+	if elem == "" or not is_instance_valid(target):
+		return
+	match elem:
+		"entropy":
+			get_tree().create_timer(0.9).timeout.connect(func():
+				if is_instance_valid(target) and target.has_method("take_hit"):
+					target.take_hit(maxi(1, dmg / 3))
+					if target is Node3D:
+						SkillVFX.hit_spark(self, (target as Node3D).global_position))
+		"quantum":
+			if randf() < 0.2 and target.has_method("take_hit"):
+				target.take_hit(dmg)
+				if target is Node3D:
+					SkillVFX.hit_spark(self, (target as Node3D).global_position)
+		"gravity":
+			if target is Node3D and player != null:
+				var t := target as Node3D
+				var pull: Vector3 = player.global_position - t.global_position
+				pull.y = 0.0
+				if pull.length() > 0.2:
+					t.global_position += pull.normalized() * mini(2.5, pull.length() * 0.35)
+		_:
+			pass
+
 func _on_bit(amount: int) -> void:
 	if not _running:
 		return
-	_hero_hp = maxi(0, _hero_hp - amount)
+	var hit := amount
+	if _shield > 0:
+		var absorbed := mini(_shield, hit)
+		_shield -= absorbed
+		hit -= absorbed
+	_hero_hp = maxi(0, _hero_hp - hit)
+	_refresh_hud("bitten")
 	if _hero_hp <= 0:
 		_finish(false)
 

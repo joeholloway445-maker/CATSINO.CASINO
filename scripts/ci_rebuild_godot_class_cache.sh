@@ -17,17 +17,27 @@ cd "$ROOT/$GODOT_DIR"
 
 mkdir -p .godot/editor .godot/imported
 
+cache_ready() {
+  # File can exist mid-scan without core class_names; require AAATheme
+  # (first AutoloadInit dependency) so smokes don't cascade-fail.
+  [[ -f .godot/global_script_class_cache.cfg ]] \
+    && grep -q 'AAATheme' .godot/global_script_class_cache.cfg
+}
+
 rebuild() {
   local frames="$1"
   local budget="$2"
   echo "Rebuilding class cache (quit-after=${frames}, timeout=${budget}s)..."
   # --path . keeps the project root explicit inside the container.
   timeout "$budget" godot --headless --path . --editor --quit-after "$frames" || true
-  if [[ -f .godot/global_script_class_cache.cfg ]]; then
+  if cache_ready; then
     local n
     n="$(grep -c '"class":' .godot/global_script_class_cache.cfg || true)"
-    echo "Class cache ready (${n:-0} classes)."
+    echo "Class cache ready (${n:-0} classes, AAATheme present)."
     return 0
+  fi
+  if [[ -f .godot/global_script_class_cache.cfg ]]; then
+    echo "Cache file present but missing AAATheme — scan incomplete."
   fi
   return 1
 }

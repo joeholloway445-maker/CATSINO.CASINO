@@ -131,7 +131,106 @@ func _run() -> void:
 		print("[gate6_smoke] run_seed FAIL ", via_api, " vs ", seed_again)
 	else:
 		print("[gate6_smoke] run_seed ok=", via_api)
+
+	# Gate 6 real floors: PeriliminalGenerator produces seeded floors with
+	# entities/hazards/exits (not denser-spawn stand-ins).
+	var gen := PeriliminalGenerator.new()
+	var g1: Dictionary = gen.generate_gauntlet(via_api)
+	var g2: Dictionary = gen.generate_gauntlet(via_api)
+	var floors: Array = g1.get("floors", [])
+	print("[gate6_smoke] gauntlet floors=", floors.size(), " seed=", g1.get("seed", 0))
+	if floors.is_empty() or int(g1.get("seed", 0)) != via_api:
+		ok = false
+		print("[gate6_smoke] gauntlet FAIL")
+	else:
+		var f0: Dictionary = floors[0]
+		if not f0.has("trap_type") or not f0.has("hazards") or not f0.has("exits"):
+			ok = false
+			print("[gate6_smoke] floor fields FAIL keys=", f0.keys())
+		else:
+			print("[gate6_smoke] floor0 trap=", f0.get("trap_type"),
+				" hazards=", (f0.get("hazards", []) as Array).size(),
+				" entities=", (f0.get("entities", []) as Array).size())
+		# Same seed → same floor trap sequence.
+		var floors2: Array = g2.get("floors", [])
+		if floors2.is_empty() or str(floors2[0].get("trap_type", "")) != str(f0.get("trap_type", "")):
+			ok = false
+			print("[gate6_smoke] gauntlet determinism FAIL")
+		else:
+			print("[gate6_smoke] gauntlet determinism ok")
+		# Entity tokens resolve to real dex lines.
+		var ents: Array = f0.get("entities", [])
+		if not ents.is_empty():
+			var resolved: Dictionary = PeriliminalGenerator.resolve_entity_token(str(ents[0]))
+			if resolved.is_empty() or not (resolved.get("line", {}) is Dictionary):
+				ok = false
+				print("[gate6_smoke] resolve_entity FAIL token=", ents[0])
+			elif str((resolved.get("line", {}) as Dictionary).get("id", "")).is_empty():
+				ok = false
+				print("[gate6_smoke] resolve_entity empty id token=", ents[0])
+			else:
+				print("[gate6_smoke] resolve_entity ok=",
+					(resolved.get("line", {}) as Dictionary).get("id", ""),
+					"@", resolved.get("stage", 1))
 	dr.eject("smoke2")
+
+	# Arena hotbar cast path — free-roam mode (no wave loop) + skill hits.
+	var arena_script: GDScript = load("res://src/world/arena_mode_controller.gd") as GDScript
+	var player := Node3D.new()
+	player.name = "SmokePlayer"
+	root.add_child(player)
+	player.global_position = Vector3.ZERO
+	var arena: Node = arena_script.new()
+	root.add_child(arena)
+	arena.call("setup", "smoke_cast", player) # hits free-roam branch, still attaches hotbar
+	var hotbar_ok := arena.get_node_or_null("ArenaHotbar") != null
+	print("[gate6_smoke] arena hotbar=", hotbar_ok)
+	if not hotbar_ok:
+		ok = false
+	var foe := WorldEntity.new()
+	arena.add_child(foe)
+	foe.setup({
+		"id": "arena_foe",
+		"faction": "Factionless",
+		"category": "Energy",
+		"stages": [{"name": "Arena Smoke", "desc": ""}],
+	}, 1, player)
+	foe.global_position = Vector3(2, 0, 0)
+	arena.call("register_foe", foe)
+	var hp_before: int = foe.hp
+	var hits_seen := [0]
+	if arena.has_signal("cast_resolved"):
+		arena.connect("cast_resolved", func(_sid, hits): hits_seen[0] = hits)
+	var sk := {
+		"id": "smoke_a0", "name": "Smoke Strike", "kind": "damage",
+		"shape": "single", "radius": 4.0, "power": 1.2, "element": "energy",
+	}
+	arena.call("_on_cast", sk)
+	await process_frame
+	print("[gate6_smoke] arena cast hits=", hits_seen[0], " foe_hp=", foe.hp, "/", hp_before)
+	if hits_seen[0] < 1 or foe.hp >= hp_before:
+		ok = false
+		print("[gate6_smoke] arena cast FAIL")
+	else:
+		print("[gate6_smoke] arena cast ok")
+	arena.set("_running", false)
+	arena.queue_free()
+	player.queue_free()
+
+	# Hideout live-siege resolve (no dice)
+	var hr: Node = root.get_node_or_null("HideoutRegistry")
+	if hr:
+		hr.call("register_site", "smoke_hideout", "supraliminal", "arlington", Vector3(10, 0, 10))
+		var sites: Dictionary = hr.get("_sites")
+		if sites.has("smoke_hideout"):
+			sites["smoke_hideout"]["owner"] = "RivalGuild"
+			sites["smoke_hideout"]["defenders"] = ["crew_a"]
+		var flipped: bool = hr.call("resolve_contest_win", "smoke_hideout", "SmokeGuild")
+		print("[gate6_smoke] hideout resolve_contest_win=", flipped)
+		if not flipped:
+			ok = false
+	else:
+		print("[gate6_smoke] HideoutRegistry missing — skip")
 
 	print("[gate6_smoke] RESULT=", "PASS" if ok else "FAIL")
 	quit(0 if ok else 1)

@@ -122,7 +122,9 @@ def main() -> int:
             check_exists(f"src/dialogue/{arch}_{layer}.json", "dialogue_layer")
     lib = (GODOT / "src/world/npc_dialogue_library.gd").read_text()
     social = (GODOT / "src/social/npc_dialogue_system.gd").read_text()
-    if "_resolve_npc_key" in social and "LayerManager.current_layer_id" in social:
+    if "_resolve_npc_key" in social and (
+        "LayerManager.current_layer_id" in social or 'get("current_layer_id")' in social
+    ):
         ok("NPCDialogueSystem resolves by current layer")
     else:
         fail("NPCDialogueSystem missing layer-aware resolve")
@@ -134,6 +136,32 @@ def main() -> int:
         ok("export_layer_dialogue.py present")
     else:
         fail("export_layer_dialogue.py missing")
+    check_exists("src/core/autoload_gate.gd", "autoload_gate")
+    check_exists("src/dev/dialogue_layer_smoke.gd", "dialogue_smoke")
+    oc = (GODOT / "src/games/offline_casino.gd").read_text()
+    if re.search(r"\bEconomyManager\.(get_|spend_|earn_|claim_)", oc) or re.search(
+        r"\bif\s+not\s+EconomyManager\b|\bif\s+EconomyManager\b", oc
+    ):
+        fail("OfflineCasino still bare-refs EconomyManager autoload")
+    else:
+        ok("OfflineCasino uses _autoload for EconomyManager")
+    mm = (GODOT / "src/audio/music_manager.gd").read_text()
+    if "_import_binary_ready" in mm or "import_binary_ready" in mm:
+        ok("MusicManager guards unimported audio")
+    else:
+        fail("MusicManager missing import-ready guard")
+    for rel, needle, label in (
+        ("src/data/entity_dex_data.gd", "AutoloadGate.get_node(\"CompanionSystem\")", "EntityDexData"),
+        ("src/skills/skill_vfx.gd", "AutoloadGate.get_node(\"IdentityLens\")", "SkillVFX"),
+        ("src/blueprints/blueprint_data.gd", "AutoloadGate.get_node(\"PlayerProfile\")", "BlueprintData"),
+        ("src/layers/perception_system.gd", "AutoloadGate.get_node(\"PlayerProfile\")", "PerceptionSystem"),
+        ("src/world/zone_boss_spawner.gd", "AutoloadGate.get_node(\"PlayerProfile\")", "ZoneBossSpawner"),
+    ):
+        txt = (GODOT / rel).read_text()
+        if needle in txt:
+            ok(f"{label} uses AutoloadGate")
+        else:
+            fail(f"{label} still bare-refs autoload")
 
     print("== arena mode controller ==")
     check_exists("src/world/arena_mode_controller.gd", "arena_ctrl")

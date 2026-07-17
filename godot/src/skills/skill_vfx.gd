@@ -6,16 +6,13 @@ class_name SkillVFX
 ## slots with procedural fallback) so every cast host inherits audio juice.
 
 static func _tint() -> Color:
-	# Resolve IdentityLens at call time — class_name statics can't rely on
-	# autoload identifiers during early GDScript reload (headless -s smokes).
-	var tree := Engine.get_main_loop() as SceneTree
-	if tree != null and tree.root != null:
-		var lens: Node = tree.root.get_node_or_null("IdentityLens")
-		if lens != null and lens.has_method("sensorium"):
-			var s: Variant = lens.call("sensorium")
-			if s is Dictionary and (s as Dictionary).has("light"):
-				return (s as Dictionary)["light"]
-	return Color(0.85, 0.9, 1.0)
+	var lens := AutoloadGate.get_node("IdentityLens")
+	if lens == null or not lens.has_method("sensorium"):
+		return Color.WHITE
+	var senso: Variant = lens.call("sensorium")
+	if senso is Dictionary:
+		return senso.get("light", Color.WHITE)
+	return Color.WHITE
 
 ## Quick burst at the caster on any cast.
 static func cast_flash(parent: Node3D, at: Vector3) -> void:

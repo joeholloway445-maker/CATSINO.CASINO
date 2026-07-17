@@ -1,13 +1,16 @@
-# Pinned — only owner-required leftovers
+# Pinned — circle back when asked “what’s left”
 
-Agent-finishable Gates 5–8 + in-repo polish are **done**. Do not reopen
-them for “more juice” unless something is broken. Circle back here only
-when the owner asks “what’s left.”
+**Agent-finishable Gates 5–8 thicken (latest):** arena HotbarUI + skill casts;
+hideout live sieges. Remaining agent juice: combat SFX slots, boss phase
+telegraphs, PeriliminalGenerator wiring, StoryVote Nakama module.
 
-## Owner-only (AI cannot finish these)
+Do **not** start the pinned owner trials below until the owner asks
+what’s left.
+
+## Pinned — owner trials only
 
 Cinema-face upgrades beyond shipped MPFB2. Owner signs up / exports; drop
-GLBs onto the same PeriHuman slots.
+GLBs onto the same PeriHuman slots. Agents do not start these.
 
 | Tool | Why | Action |
 |---|---|---|
@@ -15,7 +18,7 @@ GLBs onto the same PeriHuman slots.
 | **Unreal MetaHuman Creator** (free w/ Epic) | Cinema faces for same slots | UE → Blender → GLB into ship slots |
 | **DAZ Studio + Genesis** (free + Interactive License) | Hyper-real humans | Private drop if redistribute forbidden |
 
-Also owner-local (needs your machine / credentials):
+Also owner-local (needs your machine / credentials — not cloud-agent work):
 
 - **Terrain3D hand-sculpt** of hero regions (local GPU; plugin stays off in CI)
 - **Production Nakama host** + real `server_config.json` secrets  
@@ -28,8 +31,8 @@ Also owner-local (needs your machine / credentials):
 
 ## Already finished (do not re-open)
 
-- OSM2World DFW shells (Draco-free) + MegaCityBuilder fallback
+- OSM2World DFW shells + MegaCityBuilder wiring
 - MPFB2 PeriHuman studio bake
-- Gates 5–7 play-pass (chips casino, bosses, dungeons, dialogue, HUD)
-- Gate 8 local docker path + headless smokes in CI
 - Free path: **MPFB2** (CC0) + **OSM2World** (OSM ODbL)
+- Arena HotbarUI + cast resolution (Gate 6)
+- Hideout live WorldEntity siege (Gate 5)

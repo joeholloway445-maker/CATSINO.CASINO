@@ -201,7 +201,7 @@ static func sound(slot: String, looped: bool = false) -> AudioStream:
 		# Fresh clones / pre-import often have .import sidecars without the
 		# remapped .sample yet — skip those so load() doesn't ERROR-spam and
 		# callers (CombatSfx, CityAmbience) can fall back to synth cleanly.
-		if not _audio_import_ready(path):
+		if not AutoloadGate.import_binary_ready(path):
 			pending_import = true
 			continue
 		var res := load(path)
@@ -223,26 +223,6 @@ static func sound(slot: String, looped: bool = false) -> AudioStream:
 
 static func has_sound(slot: String) -> bool:
 	return sound(slot) != null
-
-## True when `path` has no sidecar yet, or its .import remap target exists.
-static func _audio_import_ready(path: String) -> bool:
-	var import_path := "%s.import" % path
-	if not FileAccess.file_exists(import_path):
-		return true
-	var f := FileAccess.open(import_path, FileAccess.READ)
-	if f == null:
-		return false
-	var text := f.get_as_text()
-	var marker := 'path="res://.godot/imported/'
-	var idx := text.find(marker)
-	if idx < 0:
-		return true
-	var start := idx + 6  # after path="
-	var end := text.find('"', start)
-	if end < 0:
-		return true
-	var dest := text.substr(start, end - start)
-	return FileAccess.file_exists(dest)
 
 # ---------------------------------------------------------------- textures
 

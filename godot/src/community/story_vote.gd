@@ -63,7 +63,16 @@ func vote(ballot_id: String, option_index: int) -> bool:
 	t[option_index] = t.get(option_index, 0) + 1
 	_save()
 	if NetworkManager.is_connected_to_server():
-		NetworkManager.call_rpc("story_vote", {"ballot": ballot_id, "option": option_index}, func(_r): pass)
+		NetworkManager.call_rpc("story_vote", {"ballot": ballot_id, "option": option_index},
+			func(r: Dictionary):
+				# Merge authoritative server tallies when the module is up.
+				if bool(r.get("success", r.get("ok", false))) and r.has("tallies"):
+					var remote: Dictionary = r.get("tallies", {})
+					var local: Dictionary = _tallies.get_or_add(ballot_id, {})
+					for k in remote.keys():
+						local[int(k) if str(k).is_valid_int() else k] = int(remote[k])
+					_tallies[ballot_id] = local
+					_save())
 	EconomyManager.earn_prestige(5, "civic_duty")
 	voted.emit(ballot_id, str(option_index))
 	NotificationUI.notify_win("🗳️ Vote cast. This world is partly yours now.")

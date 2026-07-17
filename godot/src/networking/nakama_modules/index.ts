@@ -33,6 +33,7 @@ import { register_scratch_rpc } from "./scratch_rpc";
 import { register_shop_rpc } from "./shop_rpc";
 import { register_slots_rpc } from "./slots_rpc";
 import { register_sports_rpc } from "./sports_rpc";
+import { register_story_vote_rpc } from "./story_vote_rpc";
 import { register_tournament_rpc } from "./tournament_rpc";
 import { register_wallet_rpc } from "./wallet_rpc";
 
@@ -75,8 +76,9 @@ function InitModule(
     register_matchmaking(ctx, logger, nk, initializer);
     register_moba_match(ctx, logger, nk, initializer);
     register_inventory_rpc(ctx, logger, nk, initializer);
+    register_story_vote_rpc(ctx, logger, nk, initializer);
 
-    logger.info("All 30 RPC modules registered. Server ready.");
+    logger.info("All 31 RPC modules registered. Server ready.");
 }
 
 // Nakama's JS runtime looks up this exact global name at module load time.
