@@ -82,13 +82,30 @@ func _run() -> void:
 	# Phase + death SFX path — drop through 66%/33% without crashing headless.
 	var phase_before: int = ent._boss_phase
 	ent.take_hit(int(ent.max_hp * 0.40))  # into phase 2
+	if ent._boss_phase < 2:
+		ok = false
+		print("[gate6_smoke] boss phase2 FAIL phase=", ent._boss_phase)
 	ent.take_hit(int(ent.max_hp * 0.35))  # into phase 3
 	print("[gate6_smoke] boss phase ", phase_before, "→", ent._boss_phase)
 	if ent._boss_phase < 3:
 		ok = false
 		print("[gate6_smoke] boss phase FAIL")
-	ent.take_hit(ent.hp + 1)  # death + boss_death SFX
-	print("[gate6_smoke] boss death SFX path ok")
+	# One-shot wipe must still fire boss_death (phase already at 3).
+	var hp_left: int = ent.hp
+	ent.take_hit(hp_left + 1)
+	print("[gate6_smoke] boss death SFX path ok (was_hp=", hp_left, ")")
+	# Off-tree setup_boss must defer spawn SFX without error.
+	var deferred := WorldEntity.new()
+	deferred.setup_boss({
+		"id": "d",
+		"faction": "Factionless",
+		"category": "Entropy",
+		"stages": [{"name": "Deferred Titan", "desc": ""}],
+	}, 3, null, "ZONE WARDEN")
+	root.add_child(deferred)
+	await process_frame
+	print("[gate6_smoke] deferred boss_spawn ok")
+	deferred.queue_free()
 	# Regular wildlife must also build a mesh (setup() visual regression guard).
 	var wild := WorldEntity.new()
 	root.add_child(wild)

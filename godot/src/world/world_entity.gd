@@ -171,9 +171,10 @@ func take_hit(amount: int) -> void:
 		global_position += away * 1.0
 	if hp <= 0:
 		if _boss_phases > 0:
-			# Anchor on parent/world so the stinger outlives queue_free.
+			# Prefer world parent; CombatSfx also anchors to SceneTree.root.
 			var host: Node = get_parent() if get_parent() != null else self
-			CombatSfx.play(host, "boss_death", global_position, -1.0)
+			var death_at := global_position
+			CombatSfx.play(host, "boss_death", death_at, -1.0)
 		died.emit(self)
 		queue_free()
 

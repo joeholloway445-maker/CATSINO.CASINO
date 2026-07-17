@@ -110,11 +110,24 @@ func _run() -> void:
 		SkillVFX.hit_spark(host, Vector3(1, 0, 0))
 		SkillVFX.ultimate_burst(host, Vector3.ZERO, 4.0)
 		SkillVFX.shield_bubble(host, host, 0.1)
-		print("[gate5_smoke] SkillVFX cast/hit/ult/shield ok")
-		for slot in ["skill_cast", "skill_hit", "skill_ult", "skill_shield",
-				"boss_spawn", "boss_phase", "boss_death"]:
+		SkillVFX.aoe_ring(host, Vector3.ZERO, 2.0)
+		SkillVFX.line_beam(host, Vector3.ZERO, Vector3.FORWARD, 3.0)
+		# Empty-audio blueprint must fall back to skill_cast (never silent).
+		SkillVFX.blueprint_cast(host, Vector3.ZERO, {"params": {"shape_style": "burst"}, "audio": {}})
+		print("[gate5_smoke] SkillVFX cast/hit/ult/shield/aoe/line/blueprint ok")
+		for slot in CombatSfx.SLOTS:
 			CombatSfx.play(host, slot, Vector3.ZERO)
+			# Slot file may be pre-import; synth must still resolve.
+			var resolved: AudioStream = CombatSfx.resolve(slot)
+			if resolved == null:
+				ok = false
+				print("[gate5_smoke] slot resolve FAIL ", slot)
 		print("[gate5_smoke] CombatSfx slots ok")
+		# Null-parent guards must no-op, not throw.
+		SkillVFX.cast_flash(null, Vector3.ZERO)
+		SkillVFX.hit_spark(null, Vector3.ZERO)
+		CombatSfx.play(null, "skill_cast")
+		print("[gate5_smoke] null guards ok")
 		# Leave host for SceneTree quit — early queue_free trips SkillVFX
 		# particle/shield timer lambdas under headless.
 

@@ -6,16 +6,29 @@ class_name SkillVFX
 ## slots with procedural fallback) so every cast host inherits audio juice.
 
 static func _tint() -> Color:
-	return IdentityLens.sensorium().light
+	# Resolve IdentityLens at call time — class_name statics can't rely on
+	# autoload identifiers during early GDScript reload (headless -s smokes).
+	var tree := Engine.get_main_loop() as SceneTree
+	if tree != null and tree.root != null:
+		var lens: Node = tree.root.get_node_or_null("IdentityLens")
+		if lens != null and lens.has_method("sensorium"):
+			var s: Variant = lens.call("sensorium")
+			if s is Dictionary and (s as Dictionary).has("light"):
+				return (s as Dictionary)["light"]
+	return Color(0.85, 0.9, 1.0)
 
 ## Quick burst at the caster on any cast.
 static func cast_flash(parent: Node3D, at: Vector3) -> void:
+	if parent == null or not is_instance_valid(parent):
+		return
 	var p := _particles(parent, at + Vector3(0, 1.2, 0), 24, 0.5, _tint(), 2.0)
 	p.one_shot = true
 	CombatSfx.play(parent, "skill_cast", at)
 
 ## Expanding ground ring for AoE skills.
 static func aoe_ring(parent: Node3D, at: Vector3, radius: float, color: Color = Color.TRANSPARENT) -> void:
+	if parent == null or not is_instance_valid(parent):
+		return
 	var c := color if color.a > 0.0 else _tint()
 	var ring := MeshInstance3D.new()
 	var torus := TorusMesh.new()
@@ -39,6 +52,8 @@ static func aoe_ring(parent: Node3D, at: Vector3, radius: float, color: Color = 
 
 ## Beam for line skills.
 static func line_beam(parent: Node3D, from: Vector3, dir: Vector3, length: float) -> void:
+	if parent == null or not is_instance_valid(parent):
+		return
 	var c := _tint()
 	var beam := MeshInstance3D.new()
 	var cyl := CylinderMesh.new()
@@ -63,6 +78,10 @@ static func line_beam(parent: Node3D, from: Vector3, dir: Vector3, length: float
 ## Bubble for shields; lingers while the shield holds (caller frees early
 ## if broken — it self-frees after `duration`).
 static func shield_bubble(parent: Node3D, follow: Node3D, duration: float = 6.0) -> void:
+	if parent == null or not is_instance_valid(parent):
+		return
+	if follow == null or not is_instance_valid(follow) or follow.get_tree() == null:
+		return
 	var c := _tint()
 	var bub := MeshInstance3D.new()
 	var sph := SphereMesh.new()
@@ -79,15 +98,19 @@ static func shield_bubble(parent: Node3D, follow: Node3D, duration: float = 6.0)
 	bub.material_override = mat
 	bub.position.y = 1.1
 	follow.add_child(bub)
+	var bub_id := bub.get_instance_id()
 	follow.get_tree().create_timer(duration).timeout.connect(func():
-		if is_instance_valid(bub): bub.queue_free())
-	var at := follow.global_position if is_instance_valid(follow) else parent.global_position
-	CombatSfx.play(parent, "skill_shield", at)
+		var n := instance_from_id(bub_id)
+		if n != null:
+			n.queue_free())
+	CombatSfx.play(parent, "skill_shield", follow.global_position)
 
 ## Big vertical column + shockwave for ultimates.
 ## A reality-tear pillar, not a particle puff — the holographic shader
 ## gives it scanlines + rim + flicker instead of a flat emissive cylinder.
 static func ultimate_burst(parent: Node3D, at: Vector3, radius: float) -> void:
+	if parent == null or not is_instance_valid(parent):
+		return
 	var c := _tint()
 	aoe_ring(parent, at, radius, c)
 	var p := _particles(parent, at, 160, 1.2, c, 6.0)
@@ -118,6 +141,8 @@ static func ultimate_burst(parent: Node3D, at: Vector3, radius: float) -> void:
 ## its synthesized sound signature plays alongside. Falls back to nothing
 ## exotic if params are missing (clamp_params guarantees defaults anyway).
 static func blueprint_cast(parent: Node3D, at: Vector3, bp: Dictionary) -> void:
+	if parent == null or not is_instance_valid(parent):
+		return
 	var p: Dictionary = bp.get("params", {})
 	var c1: Color = p.get("primary_color", _tint())
 	var c2: Color = p.get("secondary_color", Color.WHITE)
@@ -149,7 +174,10 @@ static func blueprint_cast(parent: Node3D, at: Vector3, bp: Dictionary) -> void:
 			var g := _particles(parent, at + Vector3(0, 0.2, 0), int(30 * density), 0.9 + afterglow, c2, 0.8)
 			g.one_shot = true
 			(g.process_material as ParticleProcessMaterial).gravity = Vector3(0, 1.5, 0)
-	BlueprintAudio.play(parent, bp)
+	# Forge voice when present; stock cast juice otherwise so equipped blueprints
+	# with empty audio blocks are never silent.
+	if BlueprintAudio.play(parent, bp) == null:
+		CombatSfx.play(parent, "skill_cast", at)
 
 ## Wraps a shimmering aura shell around a Node3D's visible mesh — the
 ## cat_aura shader inflates a duplicate of every MeshInstance3D found
@@ -157,7 +185,11 @@ static func blueprint_cast(parent: Node3D, at: Vector3, bp: Dictionary) -> void:
 ## Used for Hope's manifestations and apex-stage (Stage 3) world entities
 ## — a genuine visual "this one is different," not just a bigger number.
 static func add_aura_shell(root: Node3D, color: Color, size: float = 0.06) -> void:
+	if root == null or not is_instance_valid(root):
+		return
 	var shader := load("res://assets/shaders/cat_aura.gdshader")
+	if shader == null:
+		return
 	for child in root.get_children():
 		if child is MeshInstance3D and child.mesh != null:
 			var shell := MeshInstance3D.new()
@@ -172,6 +204,8 @@ static func add_aura_shell(root: Node3D, color: Color, size: float = 0.06) -> vo
 
 ## Impact puff on a target.
 static func hit_spark(parent: Node3D, at: Vector3) -> void:
+	if parent == null or not is_instance_valid(parent):
+		return
 	var p := _particles(parent, at + Vector3(0, 1.0, 0), 16, 0.35, Color(1.0, 0.8, 0.4), 3.0)
 	p.one_shot = true
 	CombatSfx.play(parent, "skill_hit", at, -8.0)
@@ -203,6 +237,11 @@ static func _particles(parent: Node3D, at: Vector3, amount: int, life: float, co
 	p.draw_pass_1 = mesh
 	parent.add_child(p)
 	p.emitting = true
-	parent.get_tree().create_timer(life + 0.5).timeout.connect(func():
-		if is_instance_valid(p): p.queue_free())
+	var pid := p.get_instance_id()
+	var tree := parent.get_tree()
+	if tree != null:
+		tree.create_timer(life + 0.5).timeout.connect(func():
+			var n := instance_from_id(pid)
+			if n != null:
+				n.queue_free())
 	return p

@@ -5,6 +5,17 @@ class_name CombatSfx
 ## Called from SkillVFX and WorldEntity so every cast host inherits audio.
 
 const MIX_RATE := 22050
+const SLOTS := [
+	"skill_cast", "skill_hit", "skill_ult", "skill_shield",
+	"boss_spawn", "boss_phase", "boss_death",
+]
+
+## Resolve a slot to a playable stream (pack preferred, synth fallback).
+static func resolve(slot: String) -> AudioStream:
+	var stream := AssetLibrary.sound(slot)
+	if stream == null:
+		stream = _synth(slot)
+	return stream
 
 ## Play `slot` attached to a scene-stable anchor under `host`'s tree.
 ## Pass a world-space `at` for positional 3D; omit (INF) for non-positional.
@@ -12,18 +23,28 @@ static func play(host: Node, slot: String, at: Vector3 = Vector3.INF,
 		volume_db: float = -6.0) -> void:
 	if host == null or not is_instance_valid(host):
 		return
-	var stream := AssetLibrary.sound(slot)
-	if stream == null:
-		stream = _synth(slot)
+	# setup_boss / early callers may fire before the node is in the tree —
+	# defer so AudioStreamPlayer actually mixes.
+	if not host.is_inside_tree():
+		host.tree_entered.connect(
+			func(): play(host, slot, at, volume_db), CONNECT_ONE_SHOT)
+		return
+	var stream := resolve(slot)
 	if stream == null:
 		return
+	# Fresh duplicate per play so concurrent casts don't share cursor state.
+	var playable: AudioStream = stream.duplicate() if stream.has_method("duplicate") else stream
+	if playable is AudioStreamOggVorbis:
+		(playable as AudioStreamOggVorbis).loop = false
+	elif playable is AudioStreamWAV:
+		(playable as AudioStreamWAV).loop_mode = AudioStreamWAV.LOOP_DISABLED
 	var anchor := _anchor(host)
-	if anchor == null:
+	if anchor == null or not is_instance_valid(anchor):
 		return
 	var bus := "SFX" if AudioServer.get_bus_index("SFX") != -1 else "Master"
 	if at != Vector3.INF:
 		var p3 := AudioStreamPlayer3D.new()
-		p3.stream = stream
+		p3.stream = playable
 		p3.volume_db = volume_db
 		p3.bus = bus
 		p3.max_distance = 48.0
@@ -34,7 +55,7 @@ static func play(host: Node, slot: String, at: Vector3 = Vector3.INF,
 		_safety_free(anchor, p3.get_instance_id(), 3.0)
 	else:
 		var p := AudioStreamPlayer.new()
-		p.stream = stream
+		p.stream = playable
 		p.volume_db = volume_db
 		p.bus = bus
 		anchor.add_child(p)
@@ -46,7 +67,10 @@ static func play(host: Node, slot: String, at: Vector3 = Vector3.INF,
 static func _safety_free(anchor: Node, id: int, seconds: float) -> void:
 	if anchor == null or not is_instance_valid(anchor):
 		return
-	anchor.get_tree().create_timer(seconds).timeout.connect(func():
+	var tree := anchor.get_tree()
+	if tree == null:
+		return
+	tree.create_timer(seconds).timeout.connect(func():
 		var n := instance_from_id(id)
 		if n != null:
 			n.queue_free())

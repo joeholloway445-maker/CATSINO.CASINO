@@ -193,26 +193,56 @@ static func sound(slot: String, looped: bool = false) -> AudioStream:
 	var cache_key := "%s|%s" % [slot, "loop" if looped else "once"]
 	if _audio_cache.has(cache_key):
 		return _audio_cache[cache_key]
+	var pending_import := false
 	for ext in AUDIO_EXTENSIONS:
 		var path := "res://assets/audio/%s.%s" % [slot, ext]
-		if ResourceLoader.exists(path):
-			var res := load(path)
-			if res is AudioStream:
-				# Duplicate before mutating import defaults so one-shot and
-				# looped callers can share the same source file.
-				var stream: AudioStream = res.duplicate() if res.has_method("duplicate") else res
-				if stream is AudioStreamOggVorbis:
-					(stream as AudioStreamOggVorbis).loop = looped
-				elif stream is AudioStreamWAV:
-					(stream as AudioStreamWAV).loop_mode = (
-						AudioStreamWAV.LOOP_FORWARD if looped else AudioStreamWAV.LOOP_DISABLED)
-				_audio_cache[cache_key] = stream
-				return stream
-	_audio_cache[cache_key] = null
+		if not ResourceLoader.exists(path):
+			continue
+		# Fresh clones / pre-import often have .import sidecars without the
+		# remapped .sample yet — skip those so load() doesn't ERROR-spam and
+		# callers (CombatSfx, CityAmbience) can fall back to synth cleanly.
+		if not _audio_import_ready(path):
+			pending_import = true
+			continue
+		var res := load(path)
+		if res is AudioStream:
+			# Duplicate before mutating import defaults so one-shot and
+			# looped callers can share the same source file.
+			var stream: AudioStream = res.duplicate() if res.has_method("duplicate") else res
+			if stream is AudioStreamOggVorbis:
+				(stream as AudioStreamOggVorbis).loop = looped
+			elif stream is AudioStreamWAV:
+				(stream as AudioStreamWAV).loop_mode = (
+					AudioStreamWAV.LOOP_FORWARD if looped else AudioStreamWAV.LOOP_DISABLED)
+			_audio_cache[cache_key] = stream
+			return stream
+	# Don't cache a miss while imports are still baking — next call may succeed.
+	if not pending_import:
+		_audio_cache[cache_key] = null
 	return null
 
 static func has_sound(slot: String) -> bool:
 	return sound(slot) != null
+
+## True when `path` has no sidecar yet, or its .import remap target exists.
+static func _audio_import_ready(path: String) -> bool:
+	var import_path := "%s.import" % path
+	if not FileAccess.file_exists(import_path):
+		return true
+	var f := FileAccess.open(import_path, FileAccess.READ)
+	if f == null:
+		return false
+	var text := f.get_as_text()
+	var marker := 'path="res://.godot/imported/'
+	var idx := text.find(marker)
+	if idx < 0:
+		return true
+	var start := idx + 6  # after path="
+	var end := text.find('"', start)
+	if end < 0:
+		return true
+	var dest := text.substr(start, end - start)
+	return FileAccess.file_exists(dest)
 
 # ---------------------------------------------------------------- textures
 
