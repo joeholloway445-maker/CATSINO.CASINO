@@ -24,16 +24,10 @@ const TRACKS: Dictionary = {
 	# The PVXC gets NO track by design — nothing comforting down there.
 	# An empty list fades the music out; SensoriumAmbience carries the room.
 	"pvxc":      [],
-	# Next tracks wanted (empty = silence fallback until dropped in):
-	#   ascension -> the trial arena, all 3 rounds — wants tension that
-	#                doesn't resolve until win/lose calls victory/theme.
-	#   sanctuary -> hub interiors (Arlington/Dallas/Fort Worth/Denton) —
-	#                distinct from the open-wilds "overworld" track so a
-	#                hub audibly feels safe the moment you cross into it.
-	# Interim beds until dedicated Suno cuts land — same files, distinct
-	# contexts so hub entry / trial arenas already crossfade correctly.
-	"ascension": ["res://assets/music/noclip.mp3"],
-	"sanctuary": ["res://assets/music/taillights_fade.mp3"],
+	# Dedicated beds (owner-trial kickoff) — not aliases of liminal/overworld.
+	# Replace with fresh Suno masters anytime; keep these filenames.
+	"ascension": ["res://assets/music/ascension.mp3"],
+	"sanctuary": ["res://assets/music/sanctuary.mp3"],
 }
 
 ## Which context each reality layer wants when you arrive in it.

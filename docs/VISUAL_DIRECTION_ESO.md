@@ -33,10 +33,11 @@ extension + CC0 packs; see script header). Fallback mesh bake remains in
 Runtime look-dev tunes Skin/Eye/Hair/Cloth (soft SSS/rim on Forward+;
 MetaHumanGodot skin shader when surface names match).
 
-### Optional cinema upgrade (owner trials)
+### Optional cinema upgrade (owner trials — STARTED)
 
 Overwrite the same slot filenames with CC4 / MetaHuman / DAZ exports.
-Players still only download the game. See `docs/PINNED_LEFT.md`.
+Installer: `bash scripts/install_cinema_face_drop.sh player.glb npc.glb`
+Full runbook: `docs/OWNER_TRIALS.md`. Players still only download the game.
 
 ## Cities = OSM2World futuristic DFW shells
 
@@ -49,8 +50,9 @@ Attribution: © OpenStreetMap contributors (ODbL) — see
 
 ## Terrain = Terrain3D (desktop) / ProceduralTerrain (web)
 
-Multi-layer height (continental + ridge + detail) with a soft spawn plaza.
-PBR grass/dirt/sand maps on both backends. Terrain3D editor sculpt remains
+Multi-layer height (continental + ridge + detail) with a soft spawn plaza,
+plus authored hero heightfields under `assets/terrain/hero/` (rebake:
+`python3 scripts/bake_hero_heightfields.py`). Terrain3D editor sculpt remains
 a local-GPU authoring step (plugin stays disabled in CI).
 
 ## Lighting / sky

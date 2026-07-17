@@ -73,8 +73,50 @@ func _build_terrain3d(seed_key: String, height_scale: float) -> Node3D:
 	if dirt_ta:
 		assets.set_texture(1, dirt_ta)
 
-	# Multi-layer height: continental broad + ridged hills + fine detail,
-	# then flatten a spawn plaza so cities don't sit on a peak.
+	# Multi-layer height: prefer authored hero heightfield (owner-trial sculpt
+	# stand-in under assets/terrain/hero/), else continental + ridge + detail
+	# noise with a soft spawn plaza so cities don't sit on a peak.
+	var img: Image = _load_hero_heightfield(seed_key)
+	if img == null:
+		img = _noise_heightfield(seed_key)
+	terrain.region_size = 256
+	if terrain.get("data") != null and terrain.data.has_method("import_images"):
+		terrain.data.import_images([img, null, null], Vector3(-128, 0, -128), 0.0, height_scale)
+
+	return terrain
+
+## Owner-trial / bake_hero_heightfields.py maps — 16-bit gray PNG → FORMAT_RF.
+func _load_hero_heightfield(seed_key: String) -> Image:
+	var path := "res://assets/terrain/hero/%s.png" % seed_key
+	if not ResourceLoader.exists(path):
+		# Fall back to generic periliminal sculpt if layer-specific missing.
+		path = "res://assets/terrain/hero/periliminal.png"
+		if not ResourceLoader.exists(path):
+			return null
+	var tex = load(path)
+	var src: Image = null
+	if tex is Image:
+		src = tex
+	elif tex is Texture2D:
+		src = (tex as Texture2D).get_image()
+	if src == null:
+		return null
+	if src.is_compressed():
+		src.decompress()
+	var w := mini(src.get_width(), 256)
+	var h := mini(src.get_height(), 256)
+	var img := Image.create(256, 256, false, Image.FORMAT_RF)
+	for y in 256:
+		for x in 256:
+			var sx := mini(x, w - 1)
+			var sy := mini(y, h - 1)
+			var c: Color = src.get_pixel(sx, sy)
+			# 16-bit gray importers often land in r; remap [0,1] → [-1,1].
+			var height := c.r * 2.0 - 1.0
+			img.set_pixel(x, y, Color(height, 0.0, 0.0, 1.0))
+	return img
+
+func _noise_heightfield(seed_key: String) -> Image:
 	var base := FastNoiseLite.new()
 	base.seed = hash(seed_key)
 	base.frequency = 0.0016
@@ -110,12 +152,7 @@ func _build_terrain3d(seed_key: String, height_scale: float) -> Node3D:
 			plaza = plaza * plaza * (3.0 - 2.0 * plaza) # smoothstep
 			h = lerpf(h, 0.0, plaza)
 			img.set_pixel(x, y, Color(h, 0.0, 0.0, 1.0))
-
-	terrain.region_size = 256
-	if terrain.get("data") != null and terrain.data.has_method("import_images"):
-		terrain.data.import_images([img, null, null], Vector3(-128, 0, -128), 0.0, height_scale)
-
-	return terrain
+	return img
 
 ## Prefer real PBR maps on disk; fall back to the old NoiseTexture2D bake.
 func _texture_asset_from_disk(asset_name: String, albedo_paths: Array,
