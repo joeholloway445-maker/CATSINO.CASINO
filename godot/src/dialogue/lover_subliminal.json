@@ -1,0 +1,35 @@
+{
+  "greeting": {
+    "line": "Hey, you. You seem far away today. Or maybe that's me.",
+    "line_friendly": "Hey. Stay close a minute. You seem far away.",
+    "line_hostile": "Not tonight. Don't make me say it twice.",
+    "allow_social_options": true,
+    "options": [
+      {
+        "text": "Tell me more.",
+        "next_key": "lore",
+        "effect": {
+          "disposition": 3
+        }
+      },
+      {
+        "text": "Just passing through.",
+        "next_key": null,
+        "effect": {}
+      }
+    ]
+  },
+  "lore": {
+    "line": "Last night I dreamed we'd met before all this — different city, different you. You laughed more. Sorry. Weird thing to say out loud.",
+    "allow_social_options": false,
+    "options": [
+      {
+        "text": "I'll remember that.",
+        "next_key": null,
+        "effect": {
+          "disposition": 5
+        }
+      }
+    ]
+  }
+}

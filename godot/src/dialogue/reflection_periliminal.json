@@ -1,0 +1,35 @@
+{
+  "greeting": {
+    "line": "Here I am. The worst of it. Fight me, run from me, or take my hand.",
+    "line_friendly": "Take my hand. Integration hurts less than pretending.",
+    "line_hostile": "Fight me or run. Don't stand there pretending I'm not yours.",
+    "allow_social_options": true,
+    "options": [
+      {
+        "text": "Tell me more.",
+        "next_key": "lore",
+        "effect": {
+          "disposition": 3
+        }
+      },
+      {
+        "text": "Just passing through.",
+        "next_key": null,
+        "effect": {}
+      }
+    ]
+  },
+  "lore": {
+    "line": "I'm every night you didn't cope and every word you regret. You built me out of what you buried. Integration hurts less than another decade of pretending I'm not yours.",
+    "allow_social_options": false,
+    "options": [
+      {
+        "text": "I'll remember that.",
+        "next_key": null,
+        "effect": {
+          "disposition": 5
+        }
+      }
+    ]
+  }
+}

@@ -21,6 +21,8 @@ Also owner-local (needs your machine / credentials):
 - **Production Nakama host** + real `server_config.json` secrets  
   Local path already exists: `scripts/build_nakama_modules.sh` +
   `docker compose -f docker-compose.dev.yml up -d` + `gate8_smoke`
+- **gdUnit4 editor plugin** — enable locally only after a clean project
+  open; keep `project.godot` `[editor_plugins] enabled=` empty for CI
 - Optional: generate dedicated Suno beds for `ascension` / `sanctuary`
   (currently aliased to `noclip` / `taillights_fade`)
 

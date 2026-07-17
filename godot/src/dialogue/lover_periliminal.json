@@ -1,0 +1,35 @@
+{
+  "greeting": {
+    "line": "I know you. That's the problem, isn't it? I actually know you.",
+    "line_friendly": "I see all of it. I'm still here. Say that's enough.",
+    "line_hostile": "Don't ask me to stay if you won't believe me.",
+    "allow_social_options": true,
+    "options": [
+      {
+        "text": "Tell me more.",
+        "next_key": "lore",
+        "effect": {
+          "disposition": 3
+        }
+      },
+      {
+        "text": "Just passing through.",
+        "next_key": null,
+        "effect": {}
+      }
+    ]
+  },
+  "lore": {
+    "line": "Here's what you're afraid of: not that I'll leave. That I'll stay, and see all of it, and stay anyway — and you won't believe me. Say it. Say that's not it.",
+    "allow_social_options": false,
+    "options": [
+      {
+        "text": "I'll remember that.",
+        "next_key": null,
+        "effect": {
+          "disposition": 5
+        }
+      }
+    ]
+  }
+}

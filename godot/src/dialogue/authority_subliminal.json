@@ -1,0 +1,35 @@
+{
+  "greeting": {
+    "line": "Nothing to see out here. Go home. Forget about it. That's friendly advice.",
+    "line_friendly": "Friendly advice, then: stick to the lit streets.",
+    "line_hostile": "I said go home. That was the soft version.",
+    "allow_social_options": true,
+    "options": [
+      {
+        "text": "Tell me more.",
+        "next_key": "lore",
+        "effect": {
+          "disposition": 3
+        }
+      },
+      {
+        "text": "Just passing through.",
+        "next_key": null,
+        "effect": {}
+      }
+    ]
+  },
+  "lore": {
+    "line": "Some blocks I'd stay away from after dark. Not because of crime. Just — routine maintenance. The kind you don't want to watch. Go on home now.",
+    "allow_social_options": false,
+    "options": [
+      {
+        "text": "I'll remember that.",
+        "next_key": null,
+        "effect": {
+          "disposition": 5
+        }
+      }
+    ]
+  }
+}

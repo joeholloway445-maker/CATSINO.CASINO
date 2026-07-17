@@ -1,0 +1,35 @@
+{
+  "greeting": {
+    "line": "Rules of the hallway: don't run, don't look back, don't ask questions.",
+    "line_friendly": "You followed the rules. The hallway noticed.",
+    "line_hostile": "You asked a question. That was the mistake.",
+    "allow_social_options": true,
+    "options": [
+      {
+        "text": "Tell me more.",
+        "next_key": "lore",
+        "effect": {
+          "disposition": 3
+        }
+      },
+      {
+        "text": "Just passing through.",
+        "next_key": null,
+        "effect": {}
+      }
+    ]
+  },
+  "lore": {
+    "line": "I don't enforce the rules. The hallway does. I just sit at the desk so that someone can tell you the rules before it has to.",
+    "allow_social_options": false,
+    "options": [
+      {
+        "text": "I'll remember that.",
+        "next_key": null,
+        "effect": {
+          "disposition": 5
+        }
+      }
+    ]
+  }
+}

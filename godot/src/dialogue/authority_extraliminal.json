@@ -1,0 +1,35 @@
+{
+  "greeting": {
+    "line": "This ground is claimed. State your allegiance or keep walking.",
+    "line_friendly": "State accepted. Walk with the banner.",
+    "line_hostile": "No allegiance, no passage. Move.",
+    "allow_social_options": true,
+    "options": [
+      {
+        "text": "Tell me more.",
+        "next_key": "lore",
+        "effect": {
+          "disposition": 3
+        }
+      },
+      {
+        "text": "Just passing through.",
+        "next_key": null,
+        "effect": {}
+      }
+    ]
+  },
+  "lore": {
+    "line": "Entities on the perimeter, banners on the towers. This is what order looks like out here — you hold it, or someone holds it over you.",
+    "allow_social_options": false,
+    "options": [
+      {
+        "text": "I'll remember that.",
+        "next_key": null,
+        "effect": {
+          "disposition": 5
+        }
+      }
+    ]
+  }
+}
