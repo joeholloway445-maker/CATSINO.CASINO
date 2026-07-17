@@ -166,14 +166,7 @@ func resolve_contest_win(site_id: String, attacker_guild: String) -> bool:
 	var pos_arr: Array = s.get("pos", [0.0, 0.0])
 	var pos := Vector3(float(pos_arr[0]) if pos_arr.size() > 0 else 0.0, 1.5,
 		float(pos_arr[1]) if pos_arr.size() > 1 else 0.0)
-	var tree := get_tree()
-	if tree:
-		var world := tree.get_first_node_in_group("layer_world") as Node3D
-		if world == null:
-			world = tree.current_scene as Node3D
-		if world:
-			SkillVFX.ultimate_burst(world, pos, 5.0)
-			SkillVFX.aoe_ring(world, pos, 4.5, Color(1.0, 0.85, 0.25))
+	_play_contest_vfx(pos, true)
 	site_changed.emit(site_id)
 	return true
 
@@ -190,17 +183,32 @@ func contest(site_id: String, attacker_guild: String) -> bool:
 	var pos_arr: Array = s.get("pos", [0.0, 0.0])
 	var pos := Vector3(float(pos_arr[0]) if pos_arr.size() > 0 else 0.0, 1.5,
 		float(pos_arr[1]) if pos_arr.size() > 1 else 0.0)
-	var tree := get_tree()
-	var world: Node3D = null
-	if tree:
-		world = tree.get_first_node_in_group("layer_world") as Node3D
 	if attack <= defense:
 		NotificationUI.notify_error("⚔️ %s's defenders hold the line (%d vs %d). The banner stays." % [holder, attack, defense])
 		EconomyManager.earn_currency_local("tokens", 5, "hideout_defense_bonus")
-		if world:
-			SkillVFX.aoe_ring(world, pos, 3.0, Color(0.6, 0.2, 0.2))
+		_play_contest_vfx(pos, false)
 		return false
 	return resolve_contest_win(site_id, attacker_guild)
+
+## Load SkillVFX by path — never reference the class_name at parse time.
+## Autoloads that name class_name types fail hard on cold CI class caches.
+func _play_contest_vfx(pos: Vector3, won: bool) -> void:
+	var tree := get_tree()
+	if tree == null:
+		return
+	var world: Node3D = tree.get_first_node_in_group("layer_world") as Node3D
+	if world == null:
+		world = tree.current_scene as Node3D
+	if world == null:
+		return
+	var vfx: GDScript = load("res://src/skills/skill_vfx.gd") as GDScript
+	if vfx == null:
+		return
+	if won:
+		vfx.call("ultimate_burst", world, pos, 5.0)
+		vfx.call("aoe_ring", world, pos, 4.5, Color(1.0, 0.85, 0.25))
+	else:
+		vfx.call("aoe_ring", world, pos, 3.0, Color(0.6, 0.2, 0.2))
 
 func _save() -> void:
 	var f := FileAccess.open(SAVE_PATH, FileAccess.WRITE)
