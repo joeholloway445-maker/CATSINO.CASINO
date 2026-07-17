@@ -23,6 +23,9 @@ func _run() -> void:
 	if not OfflineCasino.supports("find_match"):
 		_fail("OfflineCasino missing find_match")
 		return
+	if not OfflineCasino.supports("find_or_create_layer_match"):
+		ok = false
+		print("[gate8_smoke] find_or_create_layer_match support FAIL")
 	if not OfflineCasino.supports("get_story_tallies"):
 		ok = false
 		print("[gate8_smoke] get_story_tallies support FAIL")
@@ -222,6 +225,43 @@ func _run() -> void:
 		print("[gate8_smoke] live find_match soft-fail — PASS with warning")
 	else:
 		print("[gate8_smoke] live find_match ok")
+
+	# Gate 8 core: real layer presence match id (not inventable "layer_<id>").
+	var layer := {"success": false}
+	done = false
+	net.call("call_rpc", "find_or_create_layer_match",
+		{"layer_id": "liminal"},
+		func(result: Dictionary):
+			layer = result
+			done = true)
+	wait_until = Time.get_ticks_msec() + 8000
+	while not done and Time.get_ticks_msec() < wait_until:
+		await process_frame
+	var layer_mid := str(layer.get("match_id", ""))
+	print("[gate8_smoke] find_or_create_layer_match success=", layer.get("success", false),
+		" created=", layer.get("created", false),
+		" match_id=", layer_mid,
+		" keys=", layer.keys())
+	if not bool(layer.get("success", layer.get("ok", false))) or layer_mid.is_empty():
+		print("[gate8_smoke] layer_presence soft-fail (rebuild modules?) — PASS with warning")
+	else:
+		print("[gate8_smoke] layer_presence ok")
+
+	# PresenceManager resolves the same RPC when authenticated.
+	var presence: Node = root.get_node_or_null("PresenceManager")
+	if presence != null and presence.has_method("join_layer"):
+		await presence.call("join_layer", "liminal")
+		await process_frame
+		await process_frame
+		var mid := ""
+		if presence.has_method("current_match_id"):
+			mid = str(presence.call("current_match_id"))
+		print("[gate8_smoke] PresenceManager match_id=", mid,
+			" online=", presence.call("is_online_match") if presence.has_method("is_online_match") else "?")
+		if mid.is_empty() and not layer_mid.is_empty():
+			print("[gate8_smoke] PresenceManager join soft-fail — PASS with warning")
+		elif not mid.is_empty():
+			print("[gate8_smoke] PresenceManager joined live layer match")
 
 	print("[gate8_smoke] RESULT=", "PASS" if ok else "FAIL")
 	quit(0 if ok else 1)

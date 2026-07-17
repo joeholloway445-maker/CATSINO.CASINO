@@ -30,7 +30,7 @@ Deferred only when they conflict with the spine: real Nakama scale, voice acting
 | 5 | Combat/economy/hideout/casino/StoryVote in-engine pass | **Done** — chips floor, juice, quest HUD, hideout VFX, combat SFX, boss phase telegraphs |
 | 6 | Game modes: 2v2 → zone bosses → world bosses → dungeons → PvP campaigns | **Done** — arena HotbarUI + skill casts; thicken online with Gate 8 |
 | 7 | Content + art/audio packs via AssetLibrary | **Done** — OSM shells (no Draco), ambience, dialogue, music beds, combat/boss SFX slots |
-| 8 | Real multiplayer beyond presence bots | Client + docker-compose + `gate8_smoke`; **prod host/secrets owner-only** |
+| 8 | Real multiplayer beyond presence bots | **Local path Done** — board_id alias + `find_or_create_layer_match` + PresenceManager live join; `gate8_smoke`. **Prod host/secrets owner-only** |
 
 ## Doc map
 

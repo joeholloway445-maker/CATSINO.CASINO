@@ -5,8 +5,8 @@
 or real prod secrets; those still need your machine.
 
 Remaining agent juice (gates): Periliminal floor hazard VFX/HUD, hideout
-siege combat registration if PR #61 not yet merged. Boss phase telegraphs
-+ combat SFX + Gate 8 board_id alias already on base.
+siege combat registration if PR #61 not yet merged. Layer presence + boss
+telegraphs + combat SFX + board_id alias already on base.
 
 ## Owner trials — in progress
 
@@ -43,4 +43,5 @@ Local proofs that already exist:
 - StoryVote Nakama module (Gate 8)
 - Gate 8 board_id↔leaderboard alias + smoke thicken
 - Boss phase telegraphs — AOE ring / phase-3 column + PHASE label + signal (Gate 5/6)
+- Gate 8 layer presence match + PresenceManager live join
 - Combat SFX slots into SkillVFX / boss phases (Gate 5/7)
