@@ -17,6 +17,7 @@ import { register_fortune_rpc } from "./fortune_rpc";
 import { register_friend_rpc } from "./friend_rpc";
 import { register_gacha_rpc } from "./gacha_rpc";
 import { register_guild_rpc } from "./guild_rpc";
+import { register_hideout_rpc } from "./hideout_rpc";
 import { register_holdem_rpc } from "./holdem_rpc";
 import { register_init_rpc } from "./init_rpc";
 import { register_inventory_rpc } from "./inventory_rpc";
@@ -82,6 +83,7 @@ function InitModule(
     register_world_boss_rpc(ctx, logger, nk, initializer);
     register_inventory_rpc(ctx, logger, nk, initializer);
     register_story_vote_rpc(ctx, logger, nk, initializer);
+
 
     logger.info("All 35 RPC modules registered. Server ready.");
 }

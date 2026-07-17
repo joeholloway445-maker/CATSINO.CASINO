@@ -251,7 +251,7 @@ func _run() -> void:
 		if sites.has("smoke_hideout"):
 			sites["smoke_hideout"]["owner"] = "RivalGuild"
 			sites["smoke_hideout"]["defenders"] = ["crew_a"]
-		var flipped: bool = hr.call("resolve_contest_win", "smoke_hideout", "SmokeGuild")
+		var flipped: bool = await hr.call("resolve_contest_win", "smoke_hideout", "SmokeGuild")
 		print("[gate6_smoke] hideout resolve_contest_win=", flipped)
 		if not flipped:
 			ok = false
