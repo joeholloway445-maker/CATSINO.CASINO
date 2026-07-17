@@ -1,4 +1,3 @@
-Periliminal.Space — updated prototype web build (2026-07-17)
+Periliminal.Space — show-off web build (2026-07-17)
+Includes upright ~1.8m PeriHumans + latest base.
 Play Offline → Play Prototype Spine
-Built from branch tip with slim Web excludes (no OSM shells / music / HDRI)
-for GitHub Pages size limits. Full desktop Godot client has the complete art set.
