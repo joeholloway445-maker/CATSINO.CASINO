@@ -195,7 +195,7 @@ static func sound(slot: String, looped: bool = false) -> AudioStream:
 		return _audio_cache[cache_key]
 	for ext in AUDIO_EXTENSIONS:
 		var path := "res://assets/audio/%s.%s" % [slot, ext]
-		if ResourceLoader.exists(path):
+		if ResourceLoader.exists(path) and AutoloadGate.import_binary_ready(path):
 			var res := load(path)
 			if res is AudioStream:
 				# Duplicate before mutating import defaults so one-shot and

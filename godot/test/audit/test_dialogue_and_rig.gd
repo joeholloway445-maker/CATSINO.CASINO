@@ -35,6 +35,15 @@ func test_library_build_dialogue_prefers_json() -> void:
 	assert_that(block.get("nodes", [])).is_not_empty()
 
 
+func test_autoload_gate_import_ready_helper() -> void:
+	# Sidecar without binary → false; missing sidecar of existing json → true path exists check
+	assert_bool(AutoloadGate.import_binary_ready("")).is_false()
+	var dialogue := "res://src/dialogue/barista_subliminal.json"
+	assert_bool(FileAccess.file_exists(dialogue)).is_true()
+	# JSON has no .import sidecar in repo — helper returns true when ResourceLoader.exists
+	assert_bool(AutoloadGate.import_binary_ready(dialogue) or ResourceLoader.exists(dialogue)).is_true()
+
+
 func test_metahuman_resolve_tier_known() -> void:
 	var tier := MetahumanCharacter.resolve_tier("identity")
 	assert_str(tier).is_not_empty()

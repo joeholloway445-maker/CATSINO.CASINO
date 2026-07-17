@@ -87,7 +87,15 @@ func play_context(context: String, loop: bool = true) -> void:
 	if not ResourceLoader.exists(path):
 		push_warning("MusicManager: missing track %s" % path)
 		return
-	var stream: AudioStream = load(path)
+	# CI / fresh checkouts often have .import sidecars but no .godot/imported
+	# binaries (no --import). Skip before load() to avoid engine ERROR spam.
+	if not _import_binary_ready(path):
+		push_warning("MusicManager: track not imported yet %s" % path)
+		return
+	var stream: AudioStream = load(path) as AudioStream
+	if stream == null:
+		push_warning("MusicManager: failed to load %s" % path)
+		return
 	if stream is AudioStreamMP3:
 		stream.loop = loop
 
@@ -116,6 +124,9 @@ func play_context(context: String, loop: bool = true) -> void:
 
 func current_context() -> String:
 	return _current_context
+
+func _import_binary_ready(path: String) -> bool:
+	return AutoloadGate.import_binary_ready(path)
 
 ## Racing scenes call this on entry/exit.
 func enter_racing() -> void: play_context("racing")
