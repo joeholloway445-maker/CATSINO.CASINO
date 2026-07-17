@@ -4,10 +4,9 @@
 `docs/OWNER_TRIALS.md`. Cloud cannot finish CC4/UE/DAZ exports, GPU sculpt,
 or real prod secrets; those still need your machine.
 
-Remaining agent juice (gates): combat SFX slots + boss phase telegraphs
-(PR #56 — do not duplicate), Periliminal floor hazard VFX/HUD, hideout
-siege combat registration if PR #61 not yet merged. Gate 8
-`board_id`↔`leaderboard` alias + thicker `gate8_smoke` already on base.
+Remaining agent juice (gates): Periliminal floor hazard VFX/HUD, hideout
+siege combat registration if PR #61 not yet merged. Boss phase telegraphs
++ combat SFX + Gate 8 board_id alias already on base.
 
 ## Owner trials — in progress
 

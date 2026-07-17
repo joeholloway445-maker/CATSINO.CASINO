@@ -207,6 +207,41 @@ static func hit_spark(parent: Node3D, at: Vector3) -> void:
 	p.one_shot = true
 	CombatSfx.play(parent, "skill_hit", at, -8.0)
 
+## Gate 5/6 — readable enrage telegraph when a world/zone boss advances phase.
+## Phase 2: warm ground ring. Phase 3: hotter ring + holographic slam column.
+## Uses hostile reds (not IdentityLens tint) so the tell stays readable.
+static func boss_phase_telegraph(parent: Node3D, at: Vector3, phase: int) -> void:
+	if parent == null or not is_instance_valid(parent):
+		return
+	var p := maxi(phase, 1)
+	var hot := Color(1.0, 0.22 + 0.08 * float(p), 0.06, 1.0)
+	var radius := 2.4 + float(p) * 1.1
+	aoe_ring(parent, at, radius, hot)
+	var burst := _particles(parent, at + Vector3(0, 1.0, 0), 40 + p * 36, 0.7, hot, 3.5 + float(p))
+	burst.one_shot = true
+	if p < 3:
+		return
+	# Phase 3 slam column — same holographic pillar as ultimates, fixed enrage tint.
+	var col := MeshInstance3D.new()
+	var cyl := CylinderMesh.new()
+	cyl.top_radius = 0.9
+	cyl.bottom_radius = 1.8
+	cyl.height = 12.0
+	cyl.radial_segments = 20
+	col.mesh = cyl
+	var mat := ShaderMaterial.new()
+	mat.shader = load("res://assets/shaders/holographic.gdshader")
+	mat.set_shader_parameter("base_color", Color(hot.r, hot.g, hot.b, 0.7))
+	mat.set_shader_parameter("scan_speed", 4.0)
+	mat.set_shader_parameter("rim_power", 2.2)
+	col.material_override = mat
+	col.position = at + Vector3(0, 6, 0)
+	parent.add_child(col)
+	var tw := parent.create_tween()
+	tw.tween_method(func(a: float): mat.set_shader_parameter("base_color", Color(hot.r, hot.g, hot.b, a)),
+		0.7, 0.0, 0.85)
+	tw.tween_callback(col.queue_free)
+
 static func _particles(parent: Node3D, at: Vector3, amount: int, life: float, color: Color, speed: float) -> GPUParticles3D:
 	var p := GPUParticles3D.new()
 	p.amount = amount
