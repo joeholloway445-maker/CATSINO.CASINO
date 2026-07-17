@@ -4,9 +4,10 @@
 `docs/OWNER_TRIALS.md`. Cloud cannot finish CC4/UE/DAZ exports, GPU sculpt,
 or real prod secrets; those still need your machine.
 
-Remaining agent juice (gates): Periliminal floor hazard VFX/HUD, hideout
-siege combat registration if PR #61 not yet merged. Layer presence + boss
-telegraphs + combat SFX + board_id alias already on base.
+Remaining agent juice (gates): Periliminal floor hazard VFX/HUD. Layer
+presence + hideout siege combat + boss telegraphs + combat SFX + board_id
+alias already on base.
+
 
 ## Owner trials — in progress
 
@@ -38,7 +39,7 @@ Local proofs that already exist:
 - MPFB2 PeriHuman studio bake
 - Free path: **MPFB2** (CC0) + **OSM2World** (OSM ODbL)
 - Arena HotbarUI + cast resolution (Gate 6)
-- Hideout live WorldEntity siege (Gate 5)
+- Hideout live WorldEntity siege + LayerWorld combat registration (Gate 5)
 - PeriliminalGenerator real floors (Gate 6)
 - StoryVote Nakama module (Gate 8)
 - Gate 8 board_id↔leaderboard alias + smoke thicken

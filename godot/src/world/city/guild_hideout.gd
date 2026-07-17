@@ -130,7 +130,8 @@ func _on_e() -> void:
 		_begin_siege(guild)
 
 ## Live siege: spawn stationed companions (or a skeleton crew) as WorldEntity
-## defenders. Clear them all → ownership transfers. No dice roll.
+## defenders registered with LayerWorld so hotbar casts and bites land.
+## Clear them all → ownership transfers. No dice roll.
 func _begin_siege(attacker_guild: String) -> void:
 	if _siege_active:
 		NotificationUI.notify_info("Siege already underway — drop the garrison.")
@@ -146,6 +147,7 @@ func _begin_siege(attacker_guild: String) -> void:
 		roster = ["siege_crew_a", "siege_crew_b"]
 	NotificationUI.notify_info("⚔️ Siege on %s — defeat %d defender(s)!" % [holder, roster.size()])
 	SkillVFX.aoe_ring(self, global_position + Vector3(0, 1.5, 0), 4.0, Color(1.0, 0.35, 0.2))
+	var layer := _find_layer_world()
 	var i := 0
 	for cid in roster:
 		var ent := WorldEntity.new()
@@ -164,7 +166,25 @@ func _begin_siege(attacker_guild: String) -> void:
 		add_child(ent)
 		_siege_alive.append(ent)
 		ent.died.connect(_on_siege_defender_died.bind(attacker_guild))
+		# Wire into LayerWorld combat — same path as wildlife / encounters.
+		if layer != null and layer.has_method("_register_world_entity"):
+			layer.call("_register_world_entity", ent)
 		i += 1
+
+## Walk up (then group-search) for the open-world host that owns hotbar hits.
+func _find_layer_world() -> Node:
+	var n: Node = get_parent()
+	while n != null:
+		if n.is_in_group("layer_world") and n.has_method("_register_world_entity"):
+			return n
+		n = n.get_parent()
+	var tree := get_tree()
+	if tree == null:
+		return null
+	for c in tree.get_nodes_in_group("layer_world"):
+		if c.has_method("_register_world_entity"):
+			return c
+	return null
 
 func _on_siege_defender_died(_ent: WorldEntity, attacker_guild: String) -> void:
 	var keep: Array[Node] = []
