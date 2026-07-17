@@ -70,6 +70,8 @@ export interface CharacterDraft {
   frame: string | null
   physicalMod: string | null
   username: string
+  /** Data URL of the stylized avatar saved in the Capture step (client-only; not persisted to the characters table). */
+  portraitDataUrl?: string | null
 }
 
 export interface Character {

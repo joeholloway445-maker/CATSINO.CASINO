@@ -96,6 +96,41 @@ func _run() -> void:
 	if we_script == null:
 		ok = false
 
+	# Combat juice wiring — SkillVFX + CombatSfx (Gate 5/7 cast/hit audio).
+	var vfx_scr: GDScript = load("res://src/skills/skill_vfx.gd") as GDScript
+	var sfx_scr: GDScript = load("res://src/audio/combat_sfx.gd") as GDScript
+	print("[gate5_smoke] SkillVFX=", vfx_scr != null, " CombatSfx=", sfx_scr != null)
+	if vfx_scr == null or sfx_scr == null:
+		ok = false
+	else:
+		var host := Node3D.new()
+		r.add_child(host)
+		# Fire-and-forget paths must not throw headless (synth/AssetLibrary).
+		SkillVFX.cast_flash(host, Vector3.ZERO)
+		SkillVFX.hit_spark(host, Vector3(1, 0, 0))
+		SkillVFX.ultimate_burst(host, Vector3.ZERO, 4.0)
+		SkillVFX.shield_bubble(host, host, 0.1)
+		SkillVFX.aoe_ring(host, Vector3.ZERO, 2.0)
+		SkillVFX.line_beam(host, Vector3.ZERO, Vector3.FORWARD, 3.0)
+		# Empty-audio blueprint must fall back to skill_cast (never silent).
+		SkillVFX.blueprint_cast(host, Vector3.ZERO, {"params": {"shape_style": "burst"}, "audio": {}})
+		print("[gate5_smoke] SkillVFX cast/hit/ult/shield/aoe/line/blueprint ok")
+		for slot in CombatSfx.SLOTS:
+			CombatSfx.play(host, slot, Vector3.ZERO)
+			# Slot file may be pre-import; synth must still resolve.
+			var resolved: AudioStream = CombatSfx.resolve(slot)
+			if resolved == null:
+				ok = false
+				print("[gate5_smoke] slot resolve FAIL ", slot)
+		print("[gate5_smoke] CombatSfx slots ok")
+		# Null-parent guards must no-op, not throw.
+		SkillVFX.cast_flash(null, Vector3.ZERO)
+		SkillVFX.hit_spark(null, Vector3.ZERO)
+		CombatSfx.play(null, "skill_cast")
+		print("[gate5_smoke] null guards ok")
+		# Leave host for SceneTree quit — early queue_free trips SkillVFX
+		# particle/shield timer lambdas under headless.
+
 	print("[gate5_smoke] RESULT=", "PASS" if ok else "FAIL")
 	quit(0 if ok else 1)
 
