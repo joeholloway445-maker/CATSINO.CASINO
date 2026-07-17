@@ -7,6 +7,9 @@ Pipeline:
   3. Blender: Z-up→Y-up, uniform scale to match godot/world_data/osm/<hub>.json,
      SW corner at origin, cool emissive material pass
   4. Install as godot/assets/models/osm2world_<hub>.glb
+  5. IMPORTANT: do NOT Draco-compress for Godot 4.3 stock import — Godot
+     cannot load KHR_draco_mesh_compression. If you compress for transfer,
+     decode with `gltf-transform copy` before committing.
 
 Requires:
   - Java 17+ and OSM2World (default /tmp/studio_quality/osm2world)

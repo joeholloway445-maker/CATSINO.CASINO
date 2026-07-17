@@ -56,8 +56,8 @@ func start(p_player: Node3D, p_match_id: String) -> void:
 	NotificationUI.notify_info("Online lobby joined. Waiting for teams…")
 
 func hud_line() -> String:
-	var phase_name := ["LOBBY", "COUNTDOWN", "FIGHT", "END"]
-	var pn := phase_name[_phase] if _phase >= 0 and _phase < phase_name.size() else "?"
+	var phase_name: Array[String] = ["LOBBY", "COUNTDOWN", "FIGHT", "END"]
+	var pn: String = phase_name[_phase] if _phase >= 0 and _phase < phase_name.size() else "?"
 	return "ONLINE %s · %s · gold %d · %s" % [pn, my_team.to_upper(), _shop.gold, "LIVE" if _running else "DONE"]
 
 func _fallback_offline() -> void:

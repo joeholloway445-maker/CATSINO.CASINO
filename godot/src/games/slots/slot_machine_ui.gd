@@ -65,7 +65,7 @@ func _on_spin_result(result: Dictionary) -> void:
 	if _reel3: _reel3.set_symbol(symbols[2])
 
 	if payout > 0:
-		_result_label.text = "🎉 WIN: +%d 🪙" % payout
+		_result_label.text = "🎉 WIN: +%d chips" % payout
 		spin_won.emit(payout)
 	else:
 		_result_label.text = "Try again!"
@@ -81,4 +81,4 @@ func _increase_bet() -> void:
 
 func _update_bet_label() -> void:
 	if _bet_label:
-		_bet_label.text = "Bet: %d 🪙" % _bet
+		_bet_label.text = "Bet: %d chips" % _bet

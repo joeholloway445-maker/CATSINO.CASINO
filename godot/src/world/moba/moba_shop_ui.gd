@@ -86,7 +86,7 @@ func _build() -> void:
 	for c in ["", "offense", "defense", "utility", "consumable"]:
 		var b := Button.new()
 		b.text = "All" if c.is_empty() else c.capitalize()
-		var cat := c
+		var cat: String = c
 		b.pressed.connect(func():
 			_category = cat
 			_rebuild_list())

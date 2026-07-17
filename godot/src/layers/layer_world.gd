@@ -240,7 +240,23 @@ func _on_chunk_changed(coord: Vector2i) -> void:
 			else:
 				PeriliminalRuns.advance_depth()
 				_maybe_bless(coord)
+				_maybe_announce_periliminal_floor(coord)
 	_prev_chunk = coord
+
+var _periliminal_gauntlet: Dictionary = {}
+
+func _maybe_announce_periliminal_floor(coord: Vector2i) -> void:
+	# Wire Hope-driven trap floors into the live run (was unwired).
+	if _periliminal_gauntlet.is_empty():
+		var gen := PeriliminalGenerator.new()
+		_periliminal_gauntlet = gen.generate_gauntlet()
+	var floors: Array = _periliminal_gauntlet.get("floors", [])
+	var depth: int = int(PeriliminalRuns.depth)
+	if depth <= 0 or depth > floors.size():
+		return
+	var floor: Dictionary = floors[depth - 1]
+	var trap := str(floor.get("trap_type", "unknown")).replace("_", " ")
+	NotificationUI.notify_info("Floor %d — %s (Hope dens denser here)." % [depth, trap])
 
 ## The Periliminal's one exit: no door exists until the run has gone deep
 ## enough (personal — PeriliminalRuns.blessing_ready reads your Hope
@@ -344,6 +360,14 @@ var _entities: Dictionary = {} # instance_id -> WorldEntity
 const ENTITY_SPAWN_CHANCE := 0.35
 const MAX_CONCURRENT_ENTITIES := 3
 
+## Used by EntityCombatSpawner so encounter entities take hotbar hits.
+func _register_world_entity(ent: WorldEntity) -> void:
+	if ent == null:
+		return
+	_entities[ent.get_instance_id()] = ent
+	ent.bit_player.connect(func(dmg): _on_entity_bite(ent, dmg))
+	ent.died.connect(_on_entity_died)
+
 func _maybe_spawn_entity(coord: Vector2i) -> void:
 	# The Periliminal spawns to YOUR measure: PeriliminalRuns.difficulty()
 	# folds Hope's playstyle read and your word-of-mouth reputation into
@@ -392,12 +416,13 @@ func _on_entity_bite(ent: WorldEntity, dmg: int) -> void:
 		hit -= ab
 	_player_hp -= hit
 	SkillVFX.hit_spark(self, _player.global_position)
+	_refresh_hud_vitals()
 	if _player_hp <= 0:
 		_on_player_died(str(ent.stage_info.get("name", "the wilds")))
 
 func _on_entity_died(ent: WorldEntity) -> void:
 	_entities.erase(ent.get_instance_id())
-	EconomyManager.earn_currency("fragments", ent.bounty(), "world_entity_kill")
+	EconomyManager.earn_currency_local("fragments", ent.bounty(), "world_entity_kill")
 	QuestManager.update_progress("defeat_entity")
 	# The only way to bond with an entity is to defeat it — solo, or with
 	# Hope's help. CaptureSystem rolls the moment: your remaining HP is
@@ -405,8 +430,13 @@ func _on_entity_died(ent: WorldEntity) -> void:
 	var hp_ratio := clampf(float(_player_hp) / 100.0, 0.0, 1.0)
 	CaptureSystem.on_defeated(ent, hp_ratio)
 
+var _hud_hp_bar: ProgressBar
+var _hud_shield_bar: ProgressBar
+var _hud_hp_label: Label
+
 func _build_hud() -> void:
 	var layer := CanvasLayer.new()
+	layer.name = "LayerHud"
 	add_child(layer)
 	var back := Button.new()
 	back.text = "⬅ Catsino"
@@ -416,11 +446,56 @@ func _build_hud() -> void:
 		LayerManager.transition_to("hyperliminal"))
 	layer.add_child(back)
 
+	var quest_btn := Button.new()
+	quest_btn.text = "Quests (J)"
+	quest_btn.position = Vector2(120, 10)
+	quest_btn.pressed.connect(_open_quest_log)
+	layer.add_child(quest_btn)
+
 	var name_lbl := Label.new()
 	name_lbl.text = RealityLayers.by_id(layer_id).get("name", layer_id)
 	name_lbl.position = Vector2(10, 44)
 	name_lbl.modulate = Color(1, 1, 1, 0.7)
 	layer.add_child(name_lbl)
+
+	_hud_hp_label = Label.new()
+	_hud_hp_label.position = Vector2(10, 72)
+	layer.add_child(_hud_hp_label)
+	_hud_hp_bar = ProgressBar.new()
+	_hud_hp_bar.position = Vector2(10, 96)
+	_hud_hp_bar.custom_minimum_size = Vector2(220, 16)
+	_hud_hp_bar.max_value = 100
+	_hud_hp_bar.show_percentage = false
+	_hud_hp_bar.modulate = Color(0.85, 0.25, 0.3)
+	layer.add_child(_hud_hp_bar)
+	_hud_shield_bar = ProgressBar.new()
+	_hud_shield_bar.position = Vector2(10, 116)
+	_hud_shield_bar.custom_minimum_size = Vector2(220, 10)
+	_hud_shield_bar.max_value = 100
+	_hud_shield_bar.show_percentage = false
+	_hud_shield_bar.modulate = Color(0.35, 0.75, 1.0)
+	layer.add_child(_hud_shield_bar)
+	_refresh_hud_vitals()
+
+func _refresh_hud_vitals() -> void:
+	if _hud_hp_bar == null:
+		return
+	_hud_hp_bar.value = _player_hp
+	_hud_shield_bar.value = _shield
+	_hud_hp_label.text = "HP %d/100   Shield %d" % [_player_hp, _shield]
+
+func _open_quest_log() -> void:
+	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+	if ResourceLoader.exists("res://scenes/ui/quest.tscn"):
+		get_tree().change_scene_to_file("res://scenes/ui/quest.tscn")
+	else:
+		NotificationUI.notify_info("Quest log unavailable.")
+
+func _unhandled_input(event: InputEvent) -> void:
+	if event is InputEventKey and event.pressed and not event.echo:
+		if event.keycode == KEY_J:
+			_open_quest_log()
+			get_viewport().set_input_as_handled()
 
 func _in_pvp_zone() -> bool:
 	match layer_id:
@@ -462,6 +537,7 @@ func _on_cast(sk: Dictionary) -> void:
 		"shield":
 			_shield = maxi(_shield, int(30 * power))
 			SkillVFX.shield_bubble(self, _player, 6.0)
+			_refresh_hud_vitals()
 			return
 		"mobility":
 			_player.global_position += -_player.global_transform.basis.z * (6.0 + 6.0 * power)

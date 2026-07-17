@@ -28,7 +28,7 @@ const CAT_NPC := "npc_cat"
 ## Build the local player's body for the given visual mode.
 static func build_player(visual_mode: String = "identity") -> Node3D:
 	if visual_mode == "cat":
-		var cat := AssetLibrary.instance(CAT_PLAYER)
+		var cat: Node3D = AssetLibrary.instance(CAT_PLAYER)
 		if cat != null:
 			return _as_root(cat)
 		# No cat mesh — fall through to PeriHuman (ESO bar wins).
@@ -51,7 +51,7 @@ static func build_player(visual_mode: String = "identity") -> Node3D:
 static func build_npc(visual_mode: String = "identity", race_id: String = "",
 		rng: RandomNumberGenerator = null) -> Node3D:
 	if visual_mode == "cat":
-		var cat := AssetLibrary.instance(CAT_NPC)
+		var cat: Node3D = AssetLibrary.instance(CAT_NPC)
 		if cat != null:
 			return _as_root(cat)
 	# Prefer variant pools so NPCs don't all clone the same outfit.

@@ -127,14 +127,19 @@ static func _build_osm_city(root: Node3D, hub_id: String, accent: Color,
 	root.add_child(holder)
 
 	var shell_slot := "osm2world_%s" % hub_id
-	var has_shell := AssetLibrary.has(shell_slot)
-	if has_shell:
+	# File presence ≠ loadable (e.g. Draco-only GLBs fail Godot import).
+	# Only skip extruded buildings when a real shell node instantiates.
+	var has_shell := false
+	if AssetLibrary.has(shell_slot):
 		var shell := AssetLibrary.instance(shell_slot)
 		if shell != null:
 			shell.name = "Osm2WorldShell"
 			shell.position = Vector3(0.0, base_y, 0.0)
 			holder.add_child(shell)
 			_tint_osm2world_shell(shell, accent)
+			has_shell = true
+		else:
+			push_warning("MegaCityBuilder: %s present but failed to instance — using extruded downtown." % shell_slot)
 
 	# Flat plaza plate under the whole imported downtown (kept even with a
 	# shell so gaps / courtyards don't show terrain holes).

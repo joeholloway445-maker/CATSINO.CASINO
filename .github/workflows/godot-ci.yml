@@ -88,6 +88,37 @@ jobs:
           path: builds/html5
           if-no-files-found: error
 
+  headless-smokes:
+    name: Headless gate smokes (boot/5/6/8)
+    runs-on: ubuntu-22.04
+    timeout-minutes: 20
+    container:
+      image: barichello/godot-ci:4.3
+    steps:
+      - uses: actions/checkout@v4
+        # No LFS — smokes exercise scripts/autoloads, not full GLB import.
+      - name: Run boot + gate5 + gate6 (+ gate8 SKIP without Nakama)
+        run: |
+          set -e
+          cd godot
+          timeout 90 godot --headless --editor --quit-after 20 || true
+          for smoke in boot_smoke gate5_smoke gate6_smoke gate8_smoke; do
+            echo "=== $smoke ==="
+            set +e
+            timeout 120 godot --headless --path . -s "res://src/dev/${smoke}.gd"
+            EXIT=$?
+            set -e
+            if [ "$EXIT" = "124" ]; then
+              echo "::error::$smoke hung"
+              exit 1
+            fi
+            if [ "$EXIT" != "0" ]; then
+              echo "::error::$smoke failed (exit $EXIT)"
+              exit 1
+            fi
+          done
+          echo "All headless smokes OK (gate8 may SKIP without docker)"
+
   test-gdunit4:
     name: gdUnit4 unit tests
     runs-on: ubuntu-22.04

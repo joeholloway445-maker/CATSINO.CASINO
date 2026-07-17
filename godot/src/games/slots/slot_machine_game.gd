@@ -68,8 +68,8 @@ func _on_spin_button_pressed() -> void:
 func spin() -> void:
 	_current_bet = int(bet_input.value)
 
-	if not EconomyManager.can_spend_coins(_current_bet):
-		result_label.text = "Not enough coins!"
+	if EconomyManager == null or EconomyManager.get_balance("chips") < _current_bet:
+		result_label.text = "Not enough chips!"
 		result_label.modulate = Color.RED
 		return
 
@@ -80,8 +80,8 @@ func spin() -> void:
 	result_label.text = "Spinning..."
 	result_label.modulate = Color.WHITE
 
-	# Deduct bet immediately (server-authoritative flow follows)
-	EconomyManager.spend_coins_local(_current_bet)
+	# Deduct bet in chips (cage currency) — OfflineCasino path preferred.
+	EconomyManager.spend_currency_local("chips", _current_bet, "slot_spin")
 	_refresh_balance_label()
 
 	# Start all three reels
@@ -145,22 +145,22 @@ func _evaluate_result() -> void:
 	if s0 == s1 and s1 == s2:
 		var mult: int = PAYOUT_MULTIPLIERS.get(s0, 1)
 		win_amount = _current_bet * mult
-		result_label.text = "🎉 JACKPOT! %s %s %s  +%d Coins!" % [s0, s1, s2, win_amount]
+		result_label.text = "🎉 JACKPOT! %s %s %s  +%d chips!" % [s0, s1, s2, win_amount]
 		result_label.modulate = Color(1.0, 0.85, 0.1)
 	elif s0 == s1 or s1 == s2 or s0 == s2:
 		win_amount = int(_current_bet * 1.5)
-		result_label.text = "Near miss pair!  +%d Coins" % win_amount
+		result_label.text = "Near miss pair!  +%d chips" % win_amount
 		result_label.modulate = Color(0.8, 1.0, 0.6)
 	else:
 		result_label.text = "%s  %s  %s  — No win" % [s0, s1, s2]
 		result_label.modulate = Color(0.7, 0.7, 0.7)
 
 	if win_amount > 0:
-		EconomyManager.add_coins_local(win_amount)
+		EconomyManager.earn_currency_local("chips", win_amount, "slot_win")
 		_refresh_balance_label()
 
 	spin_complete.emit(win_amount)
 
 func _refresh_balance_label() -> void:
 	if is_instance_valid(balance_label):
-		balance_label.text = "Balance: %d Coins" % EconomyManager.get_coins()
+		balance_label.text = "Balance: %d chips" % EconomyManager.get_balance("chips")

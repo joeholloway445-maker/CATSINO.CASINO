@@ -154,10 +154,20 @@ func add_title(title: String) -> void:
 	if title not in titles:
 		titles.append(title)
 		_save()
+		# Apply TitleEffects immediately so identity/faction/ability shifts land.
+		TitleEffects.apply_title_effects({
+			"titles": titles,
+			"active_title": active_title,
+		})
+		profile_updated.emit()
 
 func set_active_title(title: String) -> void:
 	active_title = title
 	_save()
+	TitleEffects.apply_title_effects({
+		"titles": titles,
+		"active_title": active_title,
+	})
 	profile_updated.emit()
 
 func set_active_companions(ids: Array[String]) -> void:

@@ -62,7 +62,7 @@ static var _variants_loaded := false
 static var _variant_scene_cache: Dictionary = {}  # "slot/file" -> PackedScene or null
 
 ## Returns an instantiated Node3D for the slot, or null if no real asset
-## is installed (caller then builds its procedural fallback).
+## is installed / import failed (caller then builds its procedural fallback).
 static func instance(slot: String) -> Node3D:
 	if _cache.has(slot):
 		var packed: PackedScene = _cache[slot]
@@ -70,10 +70,13 @@ static func instance(slot: String) -> Node3D:
 	for ext in SEARCH_EXTENSIONS:
 		var path := "res://assets/models/%s.%s" % [slot, ext]
 		if ResourceLoader.exists(path):
-			var res := load(path)
+			var res = load(path)
+			# Failed imports (e.g. Draco-required GLBs) yield null / non-scenes.
 			if res is PackedScene:
 				_cache[slot] = res
 				return res.instantiate()
+			_cache[slot] = null
+			return null
 	_cache[slot] = null
 	return null
 
@@ -84,9 +87,20 @@ static func has_asset(slot: String) -> bool:
 			return true
 	return false
 
-## True if a real (non-procedural) asset is installed for the slot.
+## True if the slot loads as a PackedScene (file presence ≠ valid import).
 static func has(slot: String) -> bool:
-	return has_asset(slot)
+	if _cache.has(slot):
+		return _cache[slot] != null
+	for ext in SEARCH_EXTENSIONS:
+		var path := "res://assets/models/%s.%s" % [slot, ext]
+		if ResourceLoader.exists(path):
+			var res = load(path)
+			if res is PackedScene:
+				_cache[slot] = res
+				return true
+			_cache[slot] = null
+			return false
+	return false
 
 ## Convenience: try the slot; if absent, call `fallback` (a Callable that
 ## returns Node3D). Applies the identity lens material to real assets'
