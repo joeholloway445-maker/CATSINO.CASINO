@@ -50,7 +50,10 @@ static func resolve(rpc_id: String, payload: Variant) -> Dictionary:
 			return _get_leaderboard(data)
 		"story_vote":
 			return {"success": true, "ok": true, "offline": true, "recorded": false,
-				"message": "Story votes sync when online."}
+				"tallies": {}, "message": "Story votes sync when online."}
+		"get_story_tallies":
+			return {"success": true, "ok": true, "offline": true, "tallies": {}, "total": 0,
+				"ballots": {}}
 		"find_match", "find_moba_match":
 			return {"success": true, "ok": true, "match_id": "", "created": false, "practice": true}
 		"get_active_tournaments", "get_tournaments":
