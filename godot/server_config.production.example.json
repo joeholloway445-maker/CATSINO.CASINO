@@ -1,0 +1,7 @@
+{
+  "nakama_host": "nakama.example.com",
+  "nakama_port": 7350,
+  "nakama_server_key": "REPLACE_WITH_PRODUCTION_SERVER_KEY",
+  "discord_webhook_url": "https://discord.com/api/webhooks/REPLACE_WITH_YOUR_WEBHOOK_URL",
+  "_comment": "PRODUCTION TEMPLATE — copy to server_config.json locally (gitignored). Never commit real keys. Local docker defaults stay in server_config.example.json + docker-compose.dev.yml. Full stack: docker-compose.yml with NAKAMA_SERVER_KEY in .env."
+}

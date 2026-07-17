@@ -5,7 +5,8 @@
 #   # optional: copy godot/server_config.example.json → godot/server_config.json
 #   # and set nakama_host/port/key to match (defaults already match this file).
 #
-# Production secrets stay pinned for the owner — see docs/PINNED_LEFT.md.
+# Production secrets: copy godot/server_config.production.example.json →
+# godot/server_config.json (gitignored) and fill real host/key — docs/OWNER_TRIALS.md.
 services:
   nakama-db:
     image: postgres:15-alpine
