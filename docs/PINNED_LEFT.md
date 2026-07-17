@@ -4,6 +4,11 @@
 `docs/OWNER_TRIALS.md`. Cloud cannot finish CC4/UE/DAZ exports, GPU sculpt,
 or real prod secrets; those still need your machine.
 
+Remaining agent juice (gates): combat SFX slots + boss phase telegraphs
+(PR #56 — do not duplicate), Periliminal floor hazard VFX/HUD, hideout
+siege combat registration if PR #61 not yet merged. Gate 8
+`board_id`↔`leaderboard` alias + thicker `gate8_smoke` already on base.
+
 ## Owner trials — in progress
 
 | Trial | Kickoff in repo | You still do |
@@ -35,6 +40,8 @@ Local proofs that already exist:
 - Free path: **MPFB2** (CC0) + **OSM2World** (OSM ODbL)
 - Arena HotbarUI + cast resolution (Gate 6)
 - Hideout live WorldEntity siege (Gate 5)
-- PeriliminalGenerator floors + StoryVote Nakama module (Gates 6/8)
+- PeriliminalGenerator real floors (Gate 6)
+- StoryVote Nakama module (Gate 8)
+- Gate 8 board_id↔leaderboard alias + smoke thicken
 - Boss phase telegraphs — AOE ring / phase-3 column + PHASE label + signal (Gate 5/6)
 - Combat SFX slots into SkillVFX / boss phases (Gate 5/7)
