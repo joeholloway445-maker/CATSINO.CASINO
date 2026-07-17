@@ -9,6 +9,8 @@ extends Node3D
 
 signal died(entity: WorldEntity)
 signal bit_player(damage: int)
+## Fired when a boss advances enrage phase (2 at 66% HP, 3 at 33%).
+signal phase_changed(entity: WorldEntity, phase: int)
 
 const AGGRO_RANGE := 20.0
 const ATTACK_RANGE := 2.4
@@ -81,6 +83,13 @@ func setup_boss(dex_line: Dictionary, stage: int, target: Node3D,
 		_label.text = "%s · %s" % [_boss_title, str(stage_info.get("name", "?"))]
 		_label.font_size = 52
 	SkillVFX.add_aura_shell(self, Color(1.0, 0.35, 0.15), 0.12)
+	_refresh_boss_label()
+
+func is_boss() -> bool:
+	return _boss_phases > 0
+
+func boss_phase() -> int:
+	return _boss_phase
 
 func _rebuild_visual(stage: int) -> void:
 	if _visual and is_instance_valid(_visual):
@@ -152,24 +161,39 @@ func take_hit(amount: int) -> void:
 		elif ratio <= 0.66:
 			want_phase = 2
 		if want_phase > _boss_phase:
-			_boss_phase = want_phase
-			damage += 4
-			speed += 0.35
-			SkillVFX.add_aura_shell(self, Color(1.0, 0.2, 0.05), 0.04 * _boss_phase)
-			# Announce via label — avoid Autoload refs inside class_name compile.
-			if _label:
-				_label.text = "%s · PHASE %d" % [_boss_title, _boss_phase]
-	if _label:
-		var shown := str(stage_info.get("name", "?")) if _loadout_visible else "???"
-		if _boss_phases > 0:
-			shown = "%s · %s" % [_boss_title, shown]
-		_label.text = "%s  %d/%d" % [shown, maxi(hp, 0), max_hp]
+			_enter_boss_phase(want_phase)
+	_refresh_boss_label()
 	if _target and is_instance_valid(_target):
 		var away := (global_position - _target.global_position).normalized()
 		global_position += away * 1.0
 	if hp <= 0:
 		died.emit(self)
 		queue_free()
+
+## Enrage step — aura, ground telegraph, toast, signal. Label keeps PHASE
+## in the HP line (older code overwrote the announce on the next line).
+func _enter_boss_phase(phase: int) -> void:
+	_boss_phase = phase
+	damage += 4
+	speed += 0.35
+	SkillVFX.add_aura_shell(self, Color(1.0, 0.2, 0.05), 0.04 * _boss_phase)
+	SkillVFX.boss_phase_telegraph(self, Vector3.ZERO, _boss_phase)
+	phase_changed.emit(self, _boss_phase)
+	# Toast via AutoloadGate — bare NotificationUI races class_name compile.
+	var toast := AutoloadGate.get_node("NotificationUI")
+	if toast != null and toast.has_method("notify_info"):
+		var who := str(stage_info.get("name", "Boss"))
+		toast.call("notify_info", "⚠ %s · %s — PHASE %d" % [_boss_title, who, _boss_phase])
+
+func _refresh_boss_label() -> void:
+	if _label == null or not is_instance_valid(_label):
+		return
+	var shown := str(stage_info.get("name", "?")) if _loadout_visible else "???"
+	if _boss_phases > 0:
+		shown = "%s · %s · PHASE %d" % [_boss_title, shown, maxi(_boss_phase, 1)]
+		_label.text = "%s  %d/%d" % [shown, maxi(hp, 0), max_hp]
+	else:
+		_label.text = "%s  %d/%d" % [shown, maxi(hp, 0), max_hp]
 
 ## Brief albedo flash + floating damage number for combat readability.
 func _hit_juice(amount: int) -> void:

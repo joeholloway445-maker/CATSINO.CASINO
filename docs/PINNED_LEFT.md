@@ -1,8 +1,8 @@
 # Pinned — circle back when asked “what’s left”
 
-**Agent-finishable Gates 5–8 thicken (latest):** arena HotbarUI + skill casts;
-hideout live sieges. Remaining agent juice: combat SFX slots, boss phase
-telegraphs, PeriliminalGenerator wiring, StoryVote Nakama module.
+**Agent-finishable Gates 5–8 thicken (latest):** boss phase telegraphs
+(ground AOE + phase-3 slam column + sticky PHASE label + toast/signal).
+Combat SFX still open on PR #56 when present.
 
 Do **not** start the pinned owner trials below until the owner asks
 what’s left.
@@ -36,3 +36,5 @@ Also owner-local (needs your machine / credentials — not cloud-agent work):
 - Free path: **MPFB2** (CC0) + **OSM2World** (OSM ODbL)
 - Arena HotbarUI + cast resolution (Gate 6)
 - Hideout live WorldEntity siege (Gate 5)
+- PeriliminalGenerator floors + StoryVote Nakama module (Gates 6/8)
+- Boss phase telegraphs — AOE ring / phase-3 column + PHASE label + signal (Gate 5/6)

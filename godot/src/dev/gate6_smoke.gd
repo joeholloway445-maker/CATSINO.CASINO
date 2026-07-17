@@ -79,6 +79,43 @@ func _run() -> void:
 		print("[gate6_smoke] boss visual FAIL")
 	else:
 		print("[gate6_smoke] boss visual ok")
+	# Boss phase telegraphs: 66% → phase 2, 33% → phase 3 + VFX/signal.
+	if not ent.is_boss() or ent.boss_phase() != 1:
+		ok = false
+		print("[gate6_smoke] boss phase start FAIL phase=", ent.boss_phase())
+	var saw_phase := [0]
+	ent.phase_changed.connect(func(_e, p): saw_phase[0] = int(p))
+	var dmg_p2: int = int(ceil(float(ent.max_hp) * 0.40))
+	ent.take_hit(dmg_p2)
+	await process_frame
+	print("[gate6_smoke] boss after 40% dmg phase=", ent.boss_phase(), " saw=", saw_phase[0])
+	if ent.boss_phase() != 2 or saw_phase[0] != 2:
+		ok = false
+		print("[gate6_smoke] boss phase2 FAIL")
+	elif ent._label == null or not ("PHASE 2" in ent._label.text):
+		ok = false
+		print("[gate6_smoke] boss phase2 label FAIL text=", ent._label.text if ent._label else "")
+	else:
+		print("[gate6_smoke] boss phase2 ok label=", ent._label.text)
+	var dmg_p3: int = int(ceil(float(ent.max_hp) * 0.35))
+	ent.take_hit(dmg_p3)
+	await process_frame
+	print("[gate6_smoke] boss after more dmg phase=", ent.boss_phase(), " saw=", saw_phase[0])
+	if ent.boss_phase() != 3 or saw_phase[0] != 3:
+		ok = false
+		print("[gate6_smoke] boss phase3 FAIL")
+	else:
+		# Phase-3 telegraph leaves a short-lived MeshInstance3D child (ring/column).
+		var mesh_kids := 0
+		for c in ent.get_children():
+			if c is MeshInstance3D:
+				mesh_kids += 1
+		print("[gate6_smoke] boss phase3 telegraph meshes=", mesh_kids)
+		if mesh_kids < 1:
+			ok = false
+			print("[gate6_smoke] boss phase3 telegraph FAIL")
+		else:
+			print("[gate6_smoke] boss phase3 ok")
 	# Regular wildlife must also build a mesh (setup() visual regression guard).
 	var wild := WorldEntity.new()
 	root.add_child(wild)
