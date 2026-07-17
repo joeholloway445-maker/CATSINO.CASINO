@@ -13,9 +13,12 @@ extends Node
 ##    the ITEM, never the blueprint.
 ##  - Selling the BLUEPRINT itself (transfer_blueprint) hands over
 ##    authorship: name, crafting rights, future listing rights — all of it.
+##
+## Every list / sale / transfer appends to an auditable ledger (local + Hope).
 
 signal listing_added(listing: Dictionary)
 signal copy_sold(listing_id: String, buyer: String)
+signal audit_appended(row: Dictionary)
 
 ## Arlington marketplace vendor roster. Each stall anchors a shop UI and
 ## an NPC; wares list which item types / blueprint kinds it trades.
@@ -46,8 +49,10 @@ const VENDORS: Array[Dictionary] = [
 
 ## listing_id -> {bp_id, seller, price, kind, name, author, sold}
 var _listings: Dictionary = {}
+var _audit: Array = []
 
 const SAVE_PATH := "user://marketplace.json"
+const MAX_AUDIT := 2000
 
 func _ready() -> void:
 	_load()
@@ -56,6 +61,19 @@ static func vendor_by_id(vid: String) -> Dictionary:
 	for v in VENDORS:
 		if v.id == vid: return v
 	return {}
+
+func all_listings() -> Array[Dictionary]:
+	var out: Array[Dictionary] = []
+	for l in _listings.values():
+		out.append(l)
+	return out
+
+func audit_log(limit: int = 100) -> Array[Dictionary]:
+	var out: Array[Dictionary] = []
+	var start := maxi(0, _audit.size() - limit)
+	for i in range(start, _audit.size()):
+		out.append(_audit[i])
+	return out
 
 ## List a canon design for sale. Price in coins; the cut comes out on sale.
 func list_copy(bp_id: String, price: int) -> Dictionary:
@@ -77,10 +95,13 @@ func list_copy(bp_id: String, price: int) -> Dictionary:
 		"name": bp.name,
 		"author": bp.author,
 		"sold": 0,
+		"listed_at": Time.get_datetime_string_from_system(),
 	}
 	_listings[listing.id] = listing
+	_append_audit("list", listing, {})
 	_save()
 	listing_added.emit(listing)
+	Hope.record("marketplace_list", {"id": listing.id, "bp": bp_id, "price": listing.price})
 	NotificationUI.notify_info("'%s' listed for %d coins (Holdings' cut %d%% per copy)." % [bp.name, listing.price, int(BlueprintManager.HOLDINGS_CUT * 100)])
 	return listing
 
@@ -105,15 +126,23 @@ func buy_copy(listing_id: String) -> bool:
 	# backend settles creator payouts. The Holdings' cut is always logged.
 	if l.seller == PlayerProfile.username:
 		EconomyManager.earn_coins(creator_share, "ugc_royalty_%s" % l.name)
-	Hope.record("ugc_sale", {"name": l.name, "price": l.price, "holdings_cut": cut})
 	l["sold"] = int(l.sold) + 1
 	_listings[listing_id] = l
 	var bp := BlueprintManager.get_blueprint(str(l.bp_id))
 	if not bp.is_empty():
 		bp["copies_sold"] = int(bp.get("copies_sold", 0)) + 1
 		BlueprintManager.update(bp)
+	_append_audit("sale", l, {
+		"buyer": PlayerProfile.username,
+		"holdings_cut": cut,
+		"creator_share": creator_share,
+	})
 	_save()
 	copy_sold.emit(listing_id, PlayerProfile.username)
+	Hope.record("ugc_sale", {
+		"id": listing_id, "name": l.name, "price": l.price,
+		"holdings_cut": cut, "buyer": PlayerProfile.username, "seller": l.seller,
+	})
 	NotificationUI.notify_win("Bought '%s' by %s — %d coins (%d to the Holdings)." % [l.name, l.author, l.price, cut])
 	return true
 
@@ -123,15 +152,38 @@ func transfer_blueprint(bp_id: String, new_owner: String) -> bool:
 	var bp := BlueprintManager.get_blueprint(bp_id)
 	if bp.is_empty() or str(bp.get("author", "")) != PlayerProfile.username:
 		return false
+	var prev_author: String = str(bp.author)
 	bp["author"] = new_owner
 	BlueprintManager.update(bp)
+	var row := {
+		"bp_id": bp_id, "name": bp.name, "from": prev_author, "to": new_owner,
+	}
+	_append_audit("blueprint_transfer", row, {})
+	_save()
+	Hope.record("blueprint_transfer", row)
 	NotificationUI.notify_info("Blueprint '%s' sold outright — %s now holds the name and the crafting rights." % [bp.name, new_owner])
 	return true
+
+func _append_audit(action: String, listing: Dictionary, extra: Dictionary) -> void:
+	var row := {
+		"action": action,
+		"listing_id": listing.get("id", ""),
+		"bp_id": listing.get("bp_id", ""),
+		"name": listing.get("name", ""),
+		"seller": listing.get("seller", listing.get("from", "")),
+		"price": listing.get("price", 0),
+		"timestamp": Time.get_datetime_string_from_system(),
+	}
+	row.merge(extra, true)
+	_audit.append(row)
+	while _audit.size() > MAX_AUDIT:
+		_audit.pop_front()
+	audit_appended.emit(row)
 
 func _save() -> void:
 	var f := FileAccess.open(SAVE_PATH, FileAccess.WRITE)
 	if f:
-		f.store_string(JSON.stringify({"listings": _listings}))
+		f.store_string(JSON.stringify({"listings": _listings, "audit": _audit}))
 
 func _load() -> void:
 	if not FileAccess.file_exists(SAVE_PATH):
@@ -140,5 +192,8 @@ func _load() -> void:
 	if f == null:
 		return
 	var d = JSON.parse_string(f.get_as_text())
-	if d is Dictionary and d.get("listings") is Dictionary:
-		_listings = d.listings
+	if d is Dictionary:
+		if d.get("listings") is Dictionary:
+			_listings = d.listings
+		if d.get("audit") is Array:
+			_audit = d.audit

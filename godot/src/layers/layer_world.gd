@@ -174,14 +174,16 @@ func _ensure_city(hub_id: String) -> void:
 	spawner.position = origin
 	add_child(spawner)
 
-## Ambient human population for non-city layers. Density is part of each
-## layer's psychology: the Subliminal is a sparse, almost-normal
-## neighborhood; the Liminal holds a handful of looping figures; the
-## Periliminal's few faces are personal apparitions, never a crowd.
-## Supraliminal cities populate per-hub in _ensure_city instead.
+## Ambient human population for non-city layers. The Subliminal is each
+## player's private safe zone — NOTHING auto-spawns there. Ambient figures
+## in a Subliminal require an active creator subscription (pay gate).
+## The Liminal holds a handful of looping figures; the Periliminal's few
+## faces are personal apparitions, never a crowd. Supraliminal cities
+## populate per-hub in _ensure_city instead.
 func _populate_layer_npcs(near: Vector3) -> void:
+	if layer_id == "subliminal":
+		return # hard lock — no automatic ambient NPCs in private zones
 	var district_and_cap := {
-		"subliminal": ["player_apartment", 12],
 		"liminal": ["liminal_hub", 8],
 		"extraliminal": ["territories", 24],
 		"periliminal": ["abstract_realm", 6],

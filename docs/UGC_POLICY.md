@@ -14,6 +14,11 @@ because it never leaves your space. Unapproved UGC does not render in
 any other layer, cannot be equipped in the open world, and cannot be
 sold.
 
+**Nothing auto-spawns in the Subliminal.** It is each player's private
+safe zone. Ambient figures require an active Creator subscription.
+Item storage is capped for free players; raise the ceiling with a
+Creator subscription and/or one-time locker expansions.
+
 ## The canonization pipeline
 
 ```
@@ -46,12 +51,21 @@ Selling the blueprint itself transfers *all* of the above to the buyer:
 name, crafting rights, listing rights. It is the one way a creator's
 name comes off a design, and it is irreversible.
 
-## The marketplace
+## The marketplace & player trade
 
 Canon UGC sells in Arlington's marketplace through its vendor stalls:
 guild traders, armorers, blacksmiths, merchants, black-market merchants,
 stables, jewelers, alchemists, outfitters, curio dealers, and the bank
 branch — with more stalls to come.
+
+Every listing, sale, and blueprint transfer appends to an auditable
+ledger (`Marketplace.audit_log`). Direct player-to-player swaps go
+through `TradeManager` with escrow, a house tax on coin legs, and the
+same append-only audit trail.
+
+Currency cage rates are house-favorable: buying chips costs more coins
+than face value; cashing chips out returns fewer (`EconomyManager`
+chip buy/sell spreads).
 
 ## Subliminal tiers
 

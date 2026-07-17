@@ -130,15 +130,15 @@ func _refresh_chips() -> void:
 	chips_label.text = "Chips: %d  ·  Coins: %d" % [chips, coins]
 
 func _on_buy_chips() -> void:
-	# Local cage exchange — avoid await hang when Nakama isn't up.
+	# Local cage exchange — house-favorable rate (never 1:1).
 	if EconomyManager == null:
 		return
 	const AMOUNT := 500
-	if not EconomyManager.spend_coins_local(AMOUNT, "chip_exchange"):
-		NotificationUI.notify_error("Need %d coins at the cage." % AMOUNT)
+	var cost: int = EconomyManager.chip_buy_coin_cost(AMOUNT)
+	if not EconomyManager.buy_chips_local(AMOUNT):
+		NotificationUI.notify_error("Need %d coins at the cage for %d chips." % [cost, AMOUNT])
 		return
-	EconomyManager.earn_currency_local("chips", AMOUNT, "chip_exchange")
-	NotificationUI.notify_win("Cage exchange — +%d chips." % AMOUNT)
+	NotificationUI.notify_win("Cage exchange — +%d chips for %d coins (house rate)." % [AMOUNT, cost])
 	_refresh_chips()
 
 func _populate_games() -> void:
