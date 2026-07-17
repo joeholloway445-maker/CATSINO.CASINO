@@ -41,3 +41,4 @@ Also owner-local (needs your machine / credentials — not cloud-agent work):
 - StoryVote Nakama module (Gate 8)
 - Gate 8 board_id↔leaderboard alias + smoke thicken
 - Boss phase telegraphs — AOE ring / phase-3 column + PHASE label + signal (Gate 5/6)
+- Gate 8 layer presence match + PresenceManager live join
