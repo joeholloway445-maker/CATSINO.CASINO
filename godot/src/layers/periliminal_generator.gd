@@ -37,19 +37,33 @@ class TrapFloor:
 
 var _rng := RandomNumberGenerator.new()
 
+## class_name scripts must not bare-ref Autoloads (parse-order races).
+static func _autoload(name: String) -> Node:
+	var tree := Engine.get_main_loop() as SceneTree
+	if tree == null or tree.root == null:
+		return null
+	return tree.root.get_node_or_null(name)
+
+static func _player_faction() -> String:
+	var pp := _autoload("PlayerProfile")
+	if pp == null:
+		return "Factionless"
+	return CompanionRegistry.normalize_faction(str(pp.get("faction")))
+
 ## `p_seed` makes dungeon / wipe-run gauntlets deterministic per ledger seed.
 func generate_gauntlet(p_seed: int = 0) -> Dictionary:
-	var hope_profile: Dictionary = {}
-	if Hope != null and Hope.has_method("combat_profile"):
-		hope_profile = Hope.combat_profile()
-	else:
-		hope_profile = {
-			"aggression": 0.5, "caution": 0.5, "curiosity": 0.5, "greed": 0.5,
-			"fear": 0.0, "lust": 0.0, "boredom": 0.0, "anxiety": 0.0,
-		}
+	var hope_profile: Dictionary = {
+		"aggression": 0.5, "caution": 0.5, "curiosity": 0.5, "greed": 0.5,
+		"fear": 0.0, "lust": 0.0, "boredom": 0.0, "anxiety": 0.0,
+	}
+	var hope := _autoload("Hope")
+	if hope != null and hope.has_method("combat_profile"):
+		hope_profile = hope.call("combat_profile")
+
 	var difficulty_curve := 1.0
-	if PeriliminalRuns != null and PeriliminalRuns.has_method("difficulty"):
-		difficulty_curve = float(PeriliminalRuns.difficulty())
+	var runs := _autoload("PeriliminalRuns")
+	if runs != null and runs.has_method("difficulty"):
+		difficulty_curve = float(runs.call("difficulty"))
 
 	var used_seed := p_seed if p_seed != 0 else randi()
 	_rng.seed = used_seed
@@ -64,8 +78,8 @@ func generate_gauntlet(p_seed: int = 0) -> Dictionary:
 		floors.append(_generate_floor(floor_num, hope_profile, difficulty_curve))
 
 	var blessing := 3
-	if PeriliminalRuns != null and PeriliminalRuns.has_method("blessing_depth"):
-		blessing = int(PeriliminalRuns.blessing_depth())
+	if runs != null and runs.has_method("blessing_depth"):
+		blessing = int(runs.call("blessing_depth"))
 
 	return {
 		"min_depth": min_depth,
@@ -94,18 +108,12 @@ static func resolve_entity_token(token: String) -> Dictionary:
 		if parts.size() >= 3:
 			var cat := parts[1].capitalize()
 			stage = clampi(int(parts[2]), 1, 3)
-			var faction := "Factionless"
-			if PlayerProfile != null:
-				faction = CompanionRegistry.normalize_faction(PlayerProfile.faction)
-			var line := EntityDexData.random_line_in_category(faction, cat)
+			var line := EntityDexData.random_line_in_category(_player_faction(), cat)
 			if line.is_empty():
 				return {}
 			return {"line": line, "stage": stage}
 	elif raw.begins_with("psyche_illusion") or raw.begins_with("terror_manifestation"):
-		var faction2 := "Factionless"
-		if PlayerProfile != null:
-			faction2 = CompanionRegistry.normalize_faction(PlayerProfile.faction)
-		var psyche := EntityDexData.random_line_in_category(faction2, "Psyche")
+		var psyche := EntityDexData.random_line_in_category(_player_faction(), "Psyche")
 		if psyche.is_empty():
 			return {}
 		return {"line": psyche, "stage": 2 if raw.begins_with("terror") else 1}
@@ -358,10 +366,7 @@ func _describe_floor(trap_type: String, floor_num: int) -> String:
 func _pick_random_entity(category: String, stage: int) -> String:
 	# Real EntityDexData line id + stage — LayerWorld spawns these as WorldEntity.
 	var stage_clamped := clampi(stage, 1, 3)
-	var faction := "Factionless"
-	if PlayerProfile != null:
-		faction = CompanionRegistry.normalize_faction(PlayerProfile.faction)
-	var line := EntityDexData.random_line_in_category(faction, category, _rng)
+	var line := EntityDexData.random_line_in_category(_player_faction(), category, _rng)
 	if line.is_empty():
 		return "entity_%s_%d" % [category.to_lower(), stage_clamped]
 	return "%s@%d" % [str(line.get("id", "")), stage_clamped]
