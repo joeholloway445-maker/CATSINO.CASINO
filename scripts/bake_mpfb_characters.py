@@ -187,18 +187,28 @@ def write_blender_script() -> Path:
 				add_asset(basemesh, cfg.get('pants'), 'Clothes')
 				add_asset(basemesh, cfg.get('shoes'), 'Clothes')
 
-				# Orient: MPFB is Z-up; Godot Y-up. Rotate -90 X.
-				import math
+				# Do NOT manually -90°X here. Blender's glTF exporter already
+				# converts Blender Z-up → glTF/Godot Y-up. Applying -90°X AND
+				# exporting produced ~17m giants lying on their backs in-engine
+				# (ship slots peri_human_*/metahuman_*/player_human).
 				meshes = [o for o in bpy.context.scene.objects if o.type == 'MESH']
-				bpy.ops.object.select_all(action='DESELECT')
-				for o in meshes:
-					o.select_set(True)
-				bpy.context.view_layer.objects.active = basemesh
-				# Parent clothes already under basemesh; rotate root
-				basemesh.rotation_euler = (math.radians(-90), 0, 0)
-				bpy.ops.object.transform_apply(location=False, rotation=True, scale=False)
 
-				# Ground feet
+				# Normalize height to meters and plant feet on Y=0 (Blender Z-up
+				# before export). Target ~1.80 m adult standing height.
+				mn = Vector((1e9, 1e9, 1e9)); mx = Vector((-1e9, -1e9, -1e9))
+				for o in meshes:
+					for c in o.bound_box:
+						w = o.matrix_world @ Vector(c)
+						mn.x, mn.y, mn.z = min(mn.x, w.x), min(mn.y, w.y), min(mn.z, w.z)
+						mx.x, mx.y, mx.z = max(mx.x, w.x), max(mx.y, w.y), max(mx.z, w.z)
+				height = max(mx.z - mn.z, 1e-4)  # Blender Z is up pre-export
+				target = 1.80
+				s = target / height
+				for o in meshes:
+					o.scale = (o.scale.x * s, o.scale.y * s, o.scale.z * s)
+				bpy.ops.object.select_all(action='SELECT')
+				bpy.ops.object.transform_apply(location=False, rotation=False, scale=True)
+				# Recompute after scale; plant feet on Z=0.
 				mn = Vector((1e9, 1e9, 1e9)); mx = Vector((-1e9, -1e9, -1e9))
 				for o in meshes:
 					for c in o.bound_box:
@@ -206,7 +216,7 @@ def write_blender_script() -> Path:
 						mn.x, mn.y, mn.z = min(mn.x, w.x), min(mn.y, w.y), min(mn.z, w.z)
 						mx.x, mx.y, mx.z = max(mx.x, w.x), max(mx.y, w.y), max(mx.z, w.z)
 				for o in meshes:
-					o.location.y -= mn.y
+					o.location.z -= mn.z
 				bpy.ops.object.select_all(action='SELECT')
 				bpy.ops.object.transform_apply(location=True, rotation=True, scale=True)
 
