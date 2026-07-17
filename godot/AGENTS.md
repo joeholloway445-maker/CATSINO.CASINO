@@ -255,7 +255,8 @@ Built (Gates 5–7 thickened — Gate 8 local docker path; prod secrets pinned):
 
 1. **2v2** — `duel_2v2` + ally bots that follow, focus weakest, show HP.
 2. **Zone bosses** — `ZoneBossSpawner` → `setup_boss(..., "ZONE WARDEN")`.
-3. **World bosses** — `WorldBossScheduler` + multiphase `setup_boss`.
+3. **World bosses** — `WorldBossScheduler` + multiphase `setup_boss` with
+   phase telegraphs (`SkillVFX.boss_phase_telegraph` + sticky PHASE label).
 4. **Dungeons** — seeded dens via `DungeonRuns.run_seed()`, no wipe, no blessing exit.
 5. **PvP campaigns** — `pvp_campaign_01..03` + warden-scout dialogue hooks.
 6. **Casino** — OfflineCasino spends/pays **chips**; `get_leaderboard` soft-path.

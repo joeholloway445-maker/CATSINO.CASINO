@@ -1,12 +1,10 @@
 # Pinned — circle back when asked “what’s left”
 
 **Agent-finishable Gates 5–8 thicken (latest):** Gate 8 layer presence
-(`find_or_create_layer_match` + PresenceManager live join) on top of
-`board_id`↔`leaderboard` alias + thicker `gate8_smoke`.
+(`find_or_create_layer_match` + PresenceManager live join).
 
-Remaining agent juice: combat SFX slots + boss phase telegraphs (PR #56 —
-do not duplicate), Periliminal floor hazard VFX/HUD, hideout siege combat
-registration if PR #61 not yet merged.
+Remaining agent juice: Periliminal floor hazard VFX/HUD, hideout siege
+combat registration if PR #61 not yet merged.
 
 Do **not** start the pinned owner trials below until the owner asks
 what’s left.
@@ -43,4 +41,5 @@ Also owner-local (needs your machine / credentials — not cloud-agent work):
 - PeriliminalGenerator real floors (Gate 6)
 - StoryVote Nakama module (Gate 8)
 - Gate 8 board_id↔leaderboard alias + smoke thicken
+- Boss phase telegraphs — AOE ring / phase-3 column + PHASE label + signal (Gate 5/6)
 - Gate 8 layer presence match + PresenceManager live join
