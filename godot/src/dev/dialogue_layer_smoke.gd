@@ -18,8 +18,9 @@ func _run() -> void:
 		_fail("LayerManager missing")
 		return
 
-	# Library registration path (WorldLoader blocks).
-	NpcDialogueLibrary.register_all()
+	# Library registration path (WorldLoader blocks) — call only after boot.
+	if NpcDialogueLibrary:
+		NpcDialogueLibrary.register_all()
 	for arch: String in NpcDialogueLibrary.ARCHETYPES:
 		for layer: String in NpcDialogueLibrary.LAYERS:
 			var id := "%s_%s" % [arch, layer]

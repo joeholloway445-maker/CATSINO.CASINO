@@ -96,7 +96,7 @@ func _get_disposition_variant(dialogue_tree: Dictionary, disposition: int) -> St
 		return str(dialogue_tree.get("line", ""))
 
 func _present_dialogue(npc_id: String, dialogue_key: String, line: String, tree: Dictionary) -> void:
-	var options = []
+	var options: Array[Dictionary] = []
 
 	# Social options (nice/mean/flirt)
 	if tree.get("allow_social_options", true):
