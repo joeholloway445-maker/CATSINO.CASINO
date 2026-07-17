@@ -12,6 +12,7 @@ var close_button: Button
 var title_label: Label
 var chips_label: Label
 var buy_chips_button: Button
+var cashout_chips_button: Button
 
 func _ready() -> void:
 	_ensure_ui()
@@ -20,6 +21,8 @@ func _ready() -> void:
 		close_button.pressed.connect(_on_close_pressed)
 	if buy_chips_button and not buy_chips_button.pressed.is_connected(_on_buy_chips):
 		buy_chips_button.pressed.connect(_on_buy_chips)
+	if cashout_chips_button and not cashout_chips_button.pressed.is_connected(_on_cashout_chips):
+		cashout_chips_button.pressed.connect(_on_cashout_chips)
 
 	if LiveOpsManager and LiveOpsManager.has_signal("event_started"):
 		LiveOpsManager.event_started.connect(_on_event_updated)
@@ -82,6 +85,10 @@ func _ensure_ui() -> void:
 	buy_chips_button.name = "BuyChipsButton"
 	buy_chips_button.text = "Buy 500 chips"
 	top.add_child(buy_chips_button)
+	cashout_chips_button = Button.new()
+	cashout_chips_button.name = "CashoutChipsButton"
+	cashout_chips_button.text = "Cash out → Ex-Coins"
+	top.add_child(cashout_chips_button)
 	close_button = Button.new()
 	close_button.name = "CloseButton"
 	close_button.text = "Close"
@@ -124,10 +131,12 @@ func _refresh_chips() -> void:
 		return
 	var chips := 0
 	var coins := 0
+	var ex := 0
 	if EconomyManager:
 		chips = EconomyManager.get_balance("chips")
 		coins = EconomyManager.get_coins()
-	chips_label.text = "Chips: %d  ·  Coins: %d" % [chips, coins]
+		ex = EconomyManager.get_ex_coins()
+	chips_label.text = "Chips: %d  ·  Coins: %d  ·  Ex-Coins: %d" % [chips, coins, ex]
 
 func _on_buy_chips() -> void:
 	# Local cage exchange — house-favorable rate (never 1:1).
@@ -136,9 +145,21 @@ func _on_buy_chips() -> void:
 	const AMOUNT := 500
 	var cost: int = EconomyManager.chip_buy_coin_cost(AMOUNT)
 	if not EconomyManager.buy_chips_local(AMOUNT):
-		NotificationUI.notify_error("Need %d coins at the cage for %d chips." % [cost, AMOUNT])
+		NotificationUI.notify_error("Need %d Coins/Ex-Coins at the cage for %d chips." % [cost, AMOUNT])
 		return
-	NotificationUI.notify_win("Cage exchange — +%d chips for %d coins (house rate)." % [AMOUNT, cost])
+	NotificationUI.notify_win("Cage exchange — +%d chips for %d spendable (house rate)." % [AMOUNT, cost])
+	_refresh_chips()
+
+func _on_cashout_chips() -> void:
+	# Compliance: chips → Ex-Coins only (never back into purchasable Coins).
+	if EconomyManager == null:
+		return
+	const AMOUNT := 500
+	var payout: int = EconomyManager.chip_cashout_ex_payout(AMOUNT)
+	if not EconomyManager.cashout_chips_to_ex_local(AMOUNT):
+		NotificationUI.notify_error("Need %d chips to cash out for %d Ex-Coins." % [AMOUNT, payout])
+		return
+	NotificationUI.notify_win("Cashed out %d chips → %d Ex-Coins (not Coins)." % [AMOUNT, payout])
 	_refresh_chips()
 
 func _populate_games() -> void:
