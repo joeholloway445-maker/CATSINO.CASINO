@@ -19,7 +19,7 @@ interface AchievementPayload {
     evidence?: Record<string, unknown>;
 }
 
-function rpcClaimAchievement(
+export function rpcClaimAchievement(
     ctx: nkruntime.Context,
     logger: nkruntime.Logger,
     nk: nkruntime.Nakama,
@@ -83,7 +83,7 @@ function rpcClaimAchievement(
     return JSON.stringify({ success: true, achievement_id, xp_granted: xpGrant });
 };
 
-function rpcGetAchievements(
+export function rpcGetAchievements(
     ctx: nkruntime.Context,
     logger: nkruntime.Logger,
     nk: nkruntime.Nakama,
@@ -115,7 +115,6 @@ export function register_achievement_rpc(
     nk: nkruntime.Nakama,
     initializer: nkruntime.Initializer
 ): void {
-    initializer.registerRpc("claim_achievement", rpcClaimAchievement);
-    initializer.registerRpc("get_achievements", rpcGetAchievements);
+
     logger.info("achievement_rpc module initialized");
 }

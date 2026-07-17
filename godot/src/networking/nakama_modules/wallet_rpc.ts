@@ -1,4 +1,4 @@
-function claimDailyBonus(ctx: nkruntime.Context, logger: nkruntime.Logger, nk: nkruntime.Nakama, _payload: string): string {
+export function claimDailyBonus(ctx: nkruntime.Context, logger: nkruntime.Logger, nk: nkruntime.Nakama, _payload: string): string {
     const userId = ctx.userId;
     if (!userId) throw new Error("Not authenticated");
 
@@ -43,6 +43,5 @@ function getWallet(ctx: nkruntime.Context, logger: nkruntime.Logger, nk: nkrunti
 export function register_wallet_rpc(ctx: nkruntime.Context, logger: nkruntime.Logger, nk: nkruntime.Nakama, initializer: nkruntime.Initializer): void {
   // get_wallet is owned by economy_rpc (last-register wins). Only register
   // the legacy claim_daily_bonus alias here; daily_bonus lives on economy_rpc.
-  initializer.registerRpc("claim_daily_bonus", claimDailyBonus);
   logger.info("Wallet RPC module loaded (claim_daily_bonus)");
 }

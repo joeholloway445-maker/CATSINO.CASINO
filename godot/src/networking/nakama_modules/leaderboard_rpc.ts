@@ -13,7 +13,7 @@ function resolveBoardId(data: {[key: string]: unknown}): string {
 }
 
 // Submit a score to the appropriate leaderboard
-function rpcSubmitScore(
+export function rpcSubmitScore(
     ctx: nkruntime.Context,
     logger: nkruntime.Logger,
     nk: nkruntime.Nakama,
@@ -65,7 +65,7 @@ function rpcSubmitScore(
 };
 
 // Get top 100 records + caller's own rank
-function rpcGetLeaderboard(
+export function rpcGetLeaderboard(
     ctx: nkruntime.Context,
     logger: nkruntime.Logger,
     nk: nkruntime.Nakama,
@@ -163,7 +163,7 @@ function rpcGetLeaderboard(
 };
 
 // Admin-only: reset weekly leaderboard and grant prizes to top 3
-function rpcResetWeeklyLeaderboard(
+export function rpcResetWeeklyLeaderboard(
     ctx: nkruntime.Context,
     logger: nkruntime.Logger,
     nk: nkruntime.Nakama,
@@ -253,8 +253,7 @@ export function register_leaderboard_rpc(
     nk: nkruntime.Nakama,
     initializer: nkruntime.Initializer
 ): void {
-    initializer.registerRpc("submit_score", rpcSubmitScore);
-    initializer.registerRpc("get_leaderboard", rpcGetLeaderboard);
-    initializer.registerRpc("reset_weekly_leaderboard", rpcResetWeeklyLeaderboard);
+
+
     logger.info("leaderboard_rpc module initialized");
 }

@@ -1,6 +1,6 @@
 const nkruntime: nkruntime.Nakama = {} as any;
 
-function getProfile(ctx: nkruntime.Context, logger: nkruntime.Logger, nk: nkruntime.Nakama, payload: string): string {
+export function getProfile(ctx: nkruntime.Context, logger: nkruntime.Logger, nk: nkruntime.Nakama, payload: string): string {
     const userId = ctx.userId;
     if (!userId) throw new Error("Not authenticated");
 
@@ -29,7 +29,7 @@ function getProfile(ctx: nkruntime.Context, logger: nkruntime.Logger, nk: nkrunt
     return JSON.stringify(profile);
   }
 
-function updateProfile(ctx: nkruntime.Context, logger: nkruntime.Logger, nk: nkruntime.Nakama, payload: string): string {
+export function updateProfile(ctx: nkruntime.Context, logger: nkruntime.Logger, nk: nkruntime.Nakama, payload: string): string {
     const userId = ctx.userId;
     if (!userId) throw new Error("Not authenticated");
 
@@ -70,8 +70,7 @@ function getLeaderboard(ctx: nkruntime.Context, logger: nkruntime.Logger, nk: nk
 
 
 export function register_profile_rpc(ctx: nkruntime.Context, logger: nkruntime.Logger, nk: nkruntime.Nakama, initializer: nkruntime.Initializer): void {
-  initializer.registerRpc("get_profile", getProfile);
-  initializer.registerRpc("update_profile", updateProfile);
+
   // get_leaderboard is owned by leaderboard_rpc.
   logger.info("Profile RPC module loaded");
 }

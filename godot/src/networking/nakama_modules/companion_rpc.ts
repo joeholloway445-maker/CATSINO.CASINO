@@ -11,7 +11,7 @@ interface EquipRosterPayload {
     companion_ids: string[];
 }
 
-function rpcUnlockCompanion(
+export function rpcUnlockCompanion(
     ctx: nkruntime.Context,
     logger: nkruntime.Logger,
     nk: nkruntime.Nakama,
@@ -138,7 +138,7 @@ function rpcEvolveCompanion(
     });
 };
 
-function rpcEquipRoster(
+export function rpcEquipRoster(
     ctx: nkruntime.Context,
     logger: nkruntime.Logger,
     nk: nkruntime.Nakama,
@@ -190,7 +190,7 @@ function rpcEquipRoster(
     return JSON.stringify({ success: true, active_roster: companion_ids });
 };
 
-function rpcGetMyCompanions(
+export function rpcGetMyCompanions(
     ctx: nkruntime.Context,
     logger: nkruntime.Logger,
     nk: nkruntime.Nakama,
@@ -231,9 +231,7 @@ export function register_companion_rpc(
     nk: nkruntime.Nakama,
     initializer: nkruntime.Initializer
 ): void {
-    initializer.registerRpc("unlock_companion", rpcUnlockCompanion);
     // evolve_companion is owned by companion_evolve_rpc (feed + evolve).
-    initializer.registerRpc("equip_roster", rpcEquipRoster);
-    initializer.registerRpc("get_my_companions", rpcGetMyCompanions);
+
     logger.info("companion_rpc module initialized");
 }

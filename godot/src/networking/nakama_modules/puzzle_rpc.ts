@@ -11,7 +11,7 @@ function payoutFor(score: number, bet: number): { payout: number; multiplier: nu
   return { payout: Math.floor(bet * mult), multiplier: mult, tier };
 }
 
-function submitPuzzleScore(ctx: nkruntime.Context, logger: nkruntime.Logger, nk: nkruntime.Nakama, payload: string): string {
+export function submitPuzzleScore(ctx: nkruntime.Context, logger: nkruntime.Logger, nk: nkruntime.Nakama, payload: string): string {
     const userId = ctx.userId;
     if (!userId) throw new Error("Not authenticated");
 
@@ -34,6 +34,5 @@ function submitPuzzleScore(ctx: nkruntime.Context, logger: nkruntime.Logger, nk:
 
 
 export function register_puzzle_rpc(ctx: nkruntime.Context, logger: nkruntime.Logger, nk: nkruntime.Nakama, initializer: nkruntime.Initializer): void {
-  initializer.registerRpc("submit_puzzle_score", submitPuzzleScore);
   logger.info("Puzzle RPC module loaded");
 }

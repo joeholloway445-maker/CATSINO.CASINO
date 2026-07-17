@@ -54,7 +54,7 @@ function pickFaction(input: string): string {
   return valid.includes(input) ? input : valid[Math.floor(Math.random() * valid.length)];
 }
 
-function summonCompanion(ctx: nkruntime.Context, logger: nkruntime.Logger, nk: nkruntime.Nakama, payload: string): string {
+export function summonCompanion(ctx: nkruntime.Context, logger: nkruntime.Logger, nk: nkruntime.Nakama, payload: string): string {
     const userId = ctx.userId;
     if (!userId) throw new Error("Not authenticated");
 
@@ -87,6 +87,5 @@ function summonCompanion(ctx: nkruntime.Context, logger: nkruntime.Logger, nk: n
 
 
 export function register_gacha_rpc(ctx: nkruntime.Context, logger: nkruntime.Logger, nk: nkruntime.Nakama, initializer: nkruntime.Initializer): void {
-  initializer.registerRpc("summon_companion", summonCompanion);
   logger.info("Gacha RPC module loaded");
 }

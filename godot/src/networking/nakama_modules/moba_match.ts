@@ -552,7 +552,7 @@ function handleMessage(state: MobaState, msg: nkruntime.MatchMessage, dispatcher
 }
 
 // ── RPC find_moba_match ──────────────────────────────────────────────────────
-function rpcFindMobaMatch(ctx, logger, nk, payload) {
+export function rpcFindMobaMatch(ctx, logger, nk, payload) {
   if (!ctx.userId) throw new Error("Not authenticated");
   const matches = nk.matchList(10, true, "moba", undefined, MAX_PLAYERS - 1, "*");
   if (matches.length > 0) {
@@ -564,7 +564,7 @@ function rpcFindMobaMatch(ctx, logger, nk, payload) {
   return JSON.stringify({ ok: true, match_id, created: true });
 };
 
-function mobaMatchInit(_ctx, logger, _nk, _params) {
+export function mobaMatchInit(_ctx, logger, _nk, _params) {
   const state: MobaState = {
     phase: Phase.LOBBY,
     tick: 0,
@@ -583,12 +583,12 @@ function mobaMatchInit(_ctx, logger, _nk, _params) {
   return { state, tickRate: TICK_RATE, label: "moba" };
 };
 
-function mobaMatchJoinAttempt(_ctx, _logger, _nk, _d, _t, state, _p, _m) {
+export function mobaMatchJoinAttempt(_ctx, _logger, _nk, _d, _t, state, _p, _m) {
   const humans = Object.values(state.players).filter(p => !p.bot).length;
   return { state, accept: state.phase === Phase.LOBBY && humans < MAX_PLAYERS };
 };
 
-function mobaMatchJoin(_ctx, logger, _nk, dispatcher, _tick, state, presences) {
+export function mobaMatchJoin(_ctx, logger, _nk, dispatcher, _tick, state, presences) {
   for (const presence of presences) {
     const team = assignTeam(state);
     const lane = Object.values(state.players).filter(p => p.team === team).length % 3;
@@ -605,7 +605,7 @@ function mobaMatchJoin(_ctx, logger, _nk, dispatcher, _tick, state, presences) {
   return { state };
 };
 
-function mobaMatchLeave(_ctx, logger, _nk, dispatcher, _tick, state, presences) {
+export function mobaMatchLeave(_ctx, logger, _nk, dispatcher, _tick, state, presences) {
   for (const presence of presences) {
     const p = state.players[presence.userId];
     if (p && !p.bot) {
@@ -620,7 +620,7 @@ function mobaMatchLeave(_ctx, logger, _nk, dispatcher, _tick, state, presences) 
   return { state };
 };
 
-function mobaMatchLoop(_ctx, logger, _nk, dispatcher, tick, state, messages) {
+export function mobaMatchLoop(_ctx, logger, _nk, dispatcher, tick, state, messages) {
   state.tick = tick;
   for (const msg of messages) handleMessage(state, msg, dispatcher);
 
@@ -666,7 +666,7 @@ function mobaMatchLoop(_ctx, logger, _nk, dispatcher, tick, state, messages) {
   return { state };
 };
 
-function mobaMatchTerminate(_ctx, logger, _nk, _d, _t, state, _grace) {
+export function mobaMatchTerminate(_ctx, logger, _nk, _d, _t, state, _grace) {
   logger.info("moba terminate winner=%s", state.winner);
   return { state };
 };
@@ -677,14 +677,5 @@ export function register_moba_match(
   _nk: nkruntime.Nakama,
   initializer: nkruntime.Initializer
 ): void {
-  initializer.registerRpc("find_moba_match", rpcFindMobaMatch);
-  initializer.registerMatch("moba_match", {
-    matchInit: mobaMatchInit,
-    matchJoinAttempt: mobaMatchJoinAttempt,
-    matchJoin: mobaMatchJoin,
-    matchLeave: mobaMatchLeave,
-    matchLoop: mobaMatchLoop,
-    matchTerminate: mobaMatchTerminate,
-  });
   logger.info("moba_match module loaded — rpc: find_moba_match, match: moba_match");
 }

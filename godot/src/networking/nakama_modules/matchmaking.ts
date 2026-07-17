@@ -53,7 +53,7 @@ interface PlayerResult {
 }
 
 // ─── RPC: Find or create match ───────────────────────────────────────────────
-function rpcFindMatch(
+export function rpcFindMatch(
   ctx: nkruntime.Context,
   logger: nkruntime.Logger,
   nk: nkruntime.Nakama,
@@ -83,7 +83,7 @@ function rpcFindMatch(
 };
 
 // ─── Match handlers ───────────────────────────────────────────────────────────
-function catsinoMatchInit(
+export function catsinoMatchInit(
   ctx: nkruntime.Context,
   logger: nkruntime.Logger,
   nk: nkruntime.Nakama,
@@ -109,7 +109,7 @@ function catsinoMatchInit(
   };
 };
 
-function catsinoMatchJoinAttempt(
+export function catsinoMatchJoinAttempt(
   ctx: nkruntime.Context,
   logger: nkruntime.Logger,
   nk: nkruntime.Nakama,
@@ -133,7 +133,7 @@ function catsinoMatchJoinAttempt(
   return { state, accept: true };
 };
 
-function catsinoMatchJoin(
+export function catsinoMatchJoin(
   ctx: nkruntime.Context,
   logger: nkruntime.Logger,
   nk: nkruntime.Nakama,
@@ -186,7 +186,7 @@ function catsinoMatchJoin(
   return { state };
 };
 
-function catsinoMatchLeave(
+export function catsinoMatchLeave(
   ctx: nkruntime.Context,
   logger: nkruntime.Logger,
   nk: nkruntime.Nakama,
@@ -216,7 +216,7 @@ function catsinoMatchLeave(
   return { state };
 };
 
-function catsinoMatchLoop(
+export function catsinoMatchLoop(
   ctx: nkruntime.Context,
   logger: nkruntime.Logger,
   nk: nkruntime.Nakama,
@@ -264,7 +264,7 @@ function catsinoMatchLoop(
   return { state };
 };
 
-function catsinoMatchTerminate(
+export function catsinoMatchTerminate(
   ctx: nkruntime.Context,
   logger: nkruntime.Logger,
   nk: nkruntime.Nakama,
@@ -385,15 +385,6 @@ export function register_matchmaking(
   nk: nkruntime.Nakama,
   initializer: nkruntime.Initializer
 ): void {
-  initializer.registerRpc("find_match", rpcFindMatch);
-  initializer.registerMatch("catsino_match", {
-    matchInit: catsinoMatchInit,
-    matchJoinAttempt: catsinoMatchJoinAttempt,
-    matchJoin: catsinoMatchJoin,
-    matchLeave: catsinoMatchLeave,
-    matchLoop: catsinoMatchLoop,
-    matchTerminate: catsinoMatchTerminate,
-  });
 
   logger.info("matchmaking module loaded — match: catsino_match, rpc: find_match");
 }

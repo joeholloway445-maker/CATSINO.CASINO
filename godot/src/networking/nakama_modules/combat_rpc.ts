@@ -49,7 +49,7 @@ function calcDamage(atk_pow: number, def_res: number, mult: number): number {
     return Math.max(1, Math.floor(atk_pow * mult - def_res * 0.5));
 }
 
-function rpcCombatAction(
+export function rpcCombatAction(
     ctx: nkruntime.Context,
     logger: nkruntime.Logger,
     nk: nkruntime.Nakama,
@@ -140,6 +140,5 @@ export function register_combat_rpc(
     _nk: nkruntime.Nakama,
     initializer: nkruntime.Initializer
 ): void {
-    initializer.registerRpc("combat_action", rpcCombatAction);
     logger.info("combat_rpc module initialized");
 }

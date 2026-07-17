@@ -11,7 +11,7 @@ interface LayerState {
   joins: number;
 }
 
-function rpcFindOrCreateLayerMatch(
+export function rpcFindOrCreateLayerMatch(
   ctx: nkruntime.Context,
   logger: nkruntime.Logger,
   nk: nkruntime.Nakama,
@@ -73,7 +73,7 @@ function rpcFindOrCreateLayerMatch(
   });
 };
 
-function layerMatchInit(
+export function layerMatchInit(
   _ctx,
   logger,
   _nk,
@@ -88,7 +88,7 @@ function layerMatchInit(
   };
 };
 
-function layerMatchJoinAttempt(
+export function layerMatchJoinAttempt(
   _ctx,
   _logger,
   _nk,
@@ -101,7 +101,7 @@ function layerMatchJoinAttempt(
   return { state, accept: true };
 };
 
-function layerMatchJoin(
+export function layerMatchJoin(
   _ctx,
   logger,
   _nk,
@@ -117,7 +117,7 @@ function layerMatchJoin(
   return { state };
 };
 
-function layerMatchLeave(
+export function layerMatchLeave(
   _ctx,
   logger,
   _nk,
@@ -132,7 +132,7 @@ function layerMatchLeave(
   return { state };
 };
 
-function layerMatchLoop(
+export function layerMatchLoop(
   _ctx,
   _logger,
   _nk,
@@ -149,7 +149,7 @@ function layerMatchLoop(
   return { state };
 };
 
-function layerMatchTerminate(
+export function layerMatchTerminate(
   _ctx,
   _logger,
   _nk,
@@ -161,7 +161,7 @@ function layerMatchTerminate(
   return { state };
 };
 
-function layerMatchSignal(
+export function layerMatchSignal(
   _ctx,
   _logger,
   _nk,
@@ -179,15 +179,5 @@ export function register_layer_presence(
   _nk: nkruntime.Nakama,
   initializer: nkruntime.Initializer
 ): void {
-  initializer.registerRpc("find_or_create_layer_match", rpcFindOrCreateLayerMatch);
-  initializer.registerMatch("layer_presence", {
-    matchInit: layerMatchInit,
-    matchJoinAttempt: layerMatchJoinAttempt,
-    matchJoin: layerMatchJoin,
-    matchLeave: layerMatchLeave,
-    matchLoop: layerMatchLoop,
-    matchTerminate: layerMatchTerminate,
-    matchSignal: layerMatchSignal,
-  });
   logger.info("layer_presence module initialized");
 }

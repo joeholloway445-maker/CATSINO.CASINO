@@ -1,7 +1,7 @@
 const EVOLVE_XP_REQUIRED = [0, 1000, 3000, 7000, 15000];
 const EVOLVE_STAT_BONUS = { pow: 5, res: 5, spd: 3, lck: 3, sty: 4 };
 
-function feedCompanion(ctx: nkruntime.Context, logger: nkruntime.Logger, nk: nkruntime.Nakama, payload: string): string {
+export function feedCompanion(ctx: nkruntime.Context, logger: nkruntime.Logger, nk: nkruntime.Nakama, payload: string): string {
     const userId = ctx.userId;
     if (!userId) throw new Error("Not authenticated");
 
@@ -39,7 +39,7 @@ function feedCompanion(ctx: nkruntime.Context, logger: nkruntime.Logger, nk: nkr
     return JSON.stringify({ success: true, companion, leveled_up: leveledUp, cost });
   }
 
-function evolveCompanion(ctx: nkruntime.Context, logger: nkruntime.Logger, nk: nkruntime.Nakama, payload: string): string {
+export function evolveCompanion(ctx: nkruntime.Context, logger: nkruntime.Logger, nk: nkruntime.Nakama, payload: string): string {
     const userId = ctx.userId;
     if (!userId) throw new Error("Not authenticated");
 
@@ -74,7 +74,6 @@ function evolveCompanion(ctx: nkruntime.Context, logger: nkruntime.Logger, nk: n
 
 
 export function register_companion_evolve_rpc(ctx: nkruntime.Context, logger: nkruntime.Logger, nk: nkruntime.Nakama, initializer: nkruntime.Initializer): void {
-  initializer.registerRpc("feed_companion", feedCompanion);
-  initializer.registerRpc("evolve_companion", evolveCompanion);
+
   logger.info("Companion evolve RPC module loaded");
 }
