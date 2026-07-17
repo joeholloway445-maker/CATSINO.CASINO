@@ -1,7 +1,7 @@
 # Pinned — circle back when asked “what’s left”
 
-**Agent-finishable Gates 5–8 thicken (latest):** hideout online claim/contest
-(`hideout_rpc` + HideoutRegistry sync).
+**Agent-finishable Gates 5–8 thicken (latest):** Gate 8 world-boss shared
+cadence + live CI job (fails if `gate8_smoke` SKIPs).
 
 Remaining agent juice: Periliminal floor hazard VFX/HUD.
 
@@ -43,3 +43,5 @@ Also owner-local (needs your machine / credentials — not cloud-agent work):
 - Boss phase telegraphs — AOE ring / phase-3 column + PHASE label + signal (Gate 5/6)
 - Gate 8 layer presence match + PresenceManager live join
 - Hideout online claim/contest RPCs + HideoutRegistry sync (Gate 8)
+- Gate 8 world-boss shared cadence (`get_world_boss_state` / claim / kill)
+- Gate 8 live CI job (docker compose + fail on SKIP)

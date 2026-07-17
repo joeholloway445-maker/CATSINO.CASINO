@@ -38,6 +38,7 @@ import { register_sports_rpc } from "./sports_rpc";
 import { register_story_vote_rpc } from "./story_vote_rpc";
 import { register_tournament_rpc } from "./tournament_rpc";
 import { register_wallet_rpc } from "./wallet_rpc";
+import { register_world_boss_rpc } from "./world_boss_rpc";
 
 function InitModule(
     ctx: nkruntime.Context,
@@ -77,12 +78,14 @@ function InitModule(
     register_economy_rpc(ctx, logger, nk, initializer);
     register_matchmaking(ctx, logger, nk, initializer);
     register_moba_match(ctx, logger, nk, initializer);
-    register_inventory_rpc(ctx, logger, nk, initializer);
-    register_story_vote_rpc(ctx, logger, nk, initializer);
     register_layer_presence(ctx, logger, nk, initializer);
     register_hideout_rpc(ctx, logger, nk, initializer);
+    register_world_boss_rpc(ctx, logger, nk, initializer);
+    register_inventory_rpc(ctx, logger, nk, initializer);
+    register_story_vote_rpc(ctx, logger, nk, initializer);
 
-    logger.info("All 33 RPC modules registered. Server ready.");
+
+    logger.info("All 35 RPC modules registered. Server ready.");
 }
 
 // Nakama's JS runtime looks up this exact global name at module load time.
