@@ -46,3 +46,5 @@ Tracked from the 2026-07-15 code audit. Check items off as they land.
 - `python3 scripts/audit_smoke_check.py` guards wiring without Godot.
 - Offline casino mirrors Nakama payout tables in `godot/src/games/offline_casino.gd`.
 - Owner-only leftovers live in `docs/PINNED_LEFT.md`.
+- Headless CI: `scripts/ci_rebuild_godot_class_cache.sh` + `dialogue_layer_smoke`;
+  `class_name` scripts must use `AutoloadGate` (not bare Autoload ids).

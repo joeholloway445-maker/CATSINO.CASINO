@@ -13,7 +13,11 @@ static func place_for_hub(city_root: Node3D, hub_id: String, base_y: float,
 	var holder := Node3D.new()
 	holder.name = "ZoneBosses_%s" % hub_id
 	city_root.add_child(holder)
-	var faction := CompanionRegistry.normalize_faction(PlayerProfile.faction)
+	var profile := AutoloadGate.get_node("PlayerProfile")
+	var faction_raw := "Factionless"
+	if profile != null:
+		faction_raw = str(profile.get("faction"))
+	var faction := CompanionRegistry.normalize_faction(faction_raw)
 	var placed := 0
 	for lm in landmarks:
 		# One boss per landmark, seeded so the same site always hosts the same line.

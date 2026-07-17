@@ -248,8 +248,15 @@ static func greeting(archetype: String, layer: String) -> String:
 ## Register every block into WorldLoader.dialogues (existing hand-written
 ## dialogue always wins on id collision).
 static func register_all() -> void:
+	var loader := AutoloadGate.get_node("WorldLoader")
+	if loader == null:
+		return
+	var dialogues: Dictionary = loader.get("dialogues")
+	if dialogues == null:
+		dialogues = {}
 	for arch in ARCHETYPES:
 		for layer in LAYERS:
 			var id := "%s_%s" % [arch, layer]
-			if not WorldLoader.dialogues.has(id):
-				WorldLoader.dialogues[id] = build_dialogue(arch, layer)
+			if not dialogues.has(id):
+				dialogues[id] = build_dialogue(arch, layer)
+	loader.set("dialogues", dialogues)

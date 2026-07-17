@@ -109,7 +109,7 @@ jobs:
           # cache is written; smokes then fail with AAATheme/etc undeclared.
           bash scripts/ci_rebuild_godot_class_cache.sh godot
           cd godot
-          for smoke in boot_smoke gate5_smoke gate6_smoke gate8_smoke; do
+          for smoke in boot_smoke gate5_smoke gate6_smoke gate8_smoke dialogue_layer_smoke; do
             echo "=== $smoke ==="
             set +e
             timeout 120 godot --headless --path . -s "res://src/dev/${smoke}.gd"

@@ -345,4 +345,6 @@ static func stage_for(line: Dictionary, max_stage: int) -> Dictionary:
 static func unlock_entity(entity_id) -> void:
 	if entity_id == null or str(entity_id).is_empty():
 		return
-	CompanionSystem.unlock_companion(entity_id)
+	var comps := AutoloadGate.get_node("CompanionSystem")
+	if comps and comps.has_method("unlock_companion"):
+		comps.call("unlock_companion", entity_id)

@@ -58,16 +58,17 @@ func start_dialogue(npc_id: String, dialogue_key: String = "greeting") -> bool:
 
 ## Prefer `<npc>_<current_layer>` when present; else hub `<npc>`; else exact key.
 func _resolve_npc_key(npc_id: String) -> String:
-	if npc_id in _dialogue_db and "_" in npc_id:
-		# Explicit layered id (e.g. from generated NPCs).
+	var base_id := _base_npc_id(npc_id)
+	# Explicit layered id (suffix was a known layer) — keep as-is.
+	if base_id != npc_id and npc_id in _dialogue_db:
 		return npc_id
 	var layer := "hyperliminal"
-	if LayerManager != null:
-		layer = str(LayerManager.current_layer_id)
-	var layered := "%s_%s" % [_base_npc_id(npc_id), layer]
+	var lm := AutoloadGate.get_node("LayerManager")
+	if lm != null:
+		layer = str(lm.get("current_layer_id"))
+	var layered := "%s_%s" % [base_id, layer]
 	if layered in _dialogue_db:
 		return layered
-	var base_id := _base_npc_id(npc_id)
 	if base_id in _dialogue_db:
 		return base_id
 	if npc_id in _dialogue_db:
@@ -88,14 +89,14 @@ func _base_npc_id(npc_id: String) -> String:
 func _get_disposition_variant(dialogue_tree: Dictionary, disposition: int) -> String:
 	# Disposition-based dialogue variants
 	if disposition > 50:
-		return dialogue_tree.get("line_friendly", dialogue_tree.get("line", ""))
+		return str(dialogue_tree.get("line_friendly", dialogue_tree.get("line", "")))
 	elif disposition < -50:
-		return dialogue_tree.get("line_hostile", dialogue_tree.get("line", ""))
+		return str(dialogue_tree.get("line_hostile", dialogue_tree.get("line", "")))
 	else:
-		return dialogue_tree.get("line", "")
+		return str(dialogue_tree.get("line", ""))
 
 func _present_dialogue(npc_id: String, dialogue_key: String, line: String, tree: Dictionary) -> void:
-	var options = []
+	var options: Array[Dictionary] = []
 
 	# Social options (nice/mean/flirt)
 	if tree.get("allow_social_options", true):
@@ -220,7 +221,7 @@ func set_disposition(npc_id: String, value: int) -> void:
 
 # ── Option Filtering ───────────────────────────────────────────────────────
 func _filter_options_by_requirements(options: Array[Dictionary]) -> Array[Dictionary]:
-	var filtered = []
+	var filtered: Array[Dictionary] = []
 
 	for opt in options:
 		var req = opt.get("requirements", {})
@@ -231,19 +232,22 @@ func _filter_options_by_requirements(options: Array[Dictionary]) -> Array[Dictio
 				continue
 
 		# Faction requirement
+		var profile := AutoloadGate.get_node("PlayerProfile")
 		if "faction" in req:
-			if PlayerProfile.faction != req["faction"] and PlayerProfile.faction != "Factionless":
+			var faction := str(profile.get("faction")) if profile else "Factionless"
+			if faction != req["faction"] and faction != "Factionless":
 				continue
 
 		# Companion requirement — uses PlayerProfile compat getters
 		if "companion_race" in req:
-			if PlayerProfile.selected_companion.is_empty() \
-					or PlayerProfile.selected_companion_race != req["companion_race"]:
+			if profile == null \
+					or str(profile.get("selected_companion")).is_empty() \
+					or str(profile.get("selected_companion_race")) != req["companion_race"]:
 				continue
 
 		# Frame requirement
 		if "frame" in req:
-			if PlayerProfile.selected_frame != req["frame"]:
+			if profile == null or str(profile.get("selected_frame")) != req["frame"]:
 				continue
 
 		filtered.append(opt)
