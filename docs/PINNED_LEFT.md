@@ -1,33 +1,36 @@
 # Pinned — circle back when asked “what’s left”
 
-**Agent-finishable Gates 5–8 thicken (latest):** arena HotbarUI + skill casts;
-hideout live sieges. Remaining agent juice: combat SFX slots, boss phase
-telegraphs, PeriliminalGenerator wiring, StoryVote Nakama module.
+**Owner trials: STARTED** (you asked). Agent kickoff shipped — see
+`docs/OWNER_TRIALS.md`. Cloud cannot finish CC4/UE/DAZ exports, GPU sculpt,
+or real prod secrets; those still need your machine.
 
-Do **not** start the pinned owner trials below until the owner asks
-what’s left.
+Remaining agent juice (gates): Periliminal floor hazard VFX/HUD. Gate 8
+thickeners (layer presence, hideout online, world-boss cadence, live CI)
+already on base.
 
-## Pinned — owner trials only
+## Owner trials — in progress
 
-Cinema-face upgrades beyond shipped MPFB2. Owner signs up / exports; drop
-GLBs onto the same PeriHuman slots. Agents do not start these.
-
-| Tool | Why | Action |
+| Trial | Kickoff in repo | You still do |
 |---|---|---|
-| **Reallusion Character Creator 4** (30-day trial) | Photoreal clothes/hair/skin beyond MPFB2 | Export GLB → overwrite `peri_human_*.glb` |
-| **Unreal MetaHuman Creator** (free w/ Epic) | Cinema faces for same slots | UE → Blender → GLB into ship slots |
-| **DAZ Studio + Genesis** (free + Interactive License) | Hyper-real humans | Private drop if redistribute forbidden |
+| **CC4 / MetaHuman / DAZ** cinema faces | `scripts/install_cinema_face_drop.sh` + `verify_cinema_slots.sh` | Export GLBs → install |
+| **Terrain3D** hero sculpt | `assets/terrain/hero/*.png` + TerrainWorld loader | Optional hand-sculpt overwrite |
+| **Production Nakama** | `server_config.production.example.json` | Real host/key in gitignored `server_config.json` |
+| **gdUnit4** local plugin | `enable_gdunit4_local.sh` / `disable_…` | Enable locally; never commit on |
+| **Suno beds** ascension/sanctuary | Dedicated MP3s (not aliases) | Optional replace with new Suno cuts |
 
-Also owner-local (needs your machine / credentials — not cloud-agent work):
+Cinema-face overwrite targets (same slots players already download):
 
-- **Terrain3D hand-sculpt** of hero regions (local GPU; plugin stays off in CI)
-- **Production Nakama host** + real `server_config.json` secrets  
-  Local path already exists: `scripts/build_nakama_modules.sh` +
+| Tool | Action |
+|---|---|
+| **Reallusion Character Creator 4** | Export GLB → `install_cinema_face_drop.sh` |
+| **Unreal MetaHuman Creator** | UE → Blender → GLB → same installer |
+| **DAZ Studio + Genesis** | Private drop if redistribute forbidden |
+
+Local proofs that already exist:
+
+- Nakama: `scripts/build_nakama_modules.sh` +
   `docker compose -f docker-compose.dev.yml up -d` + `gate8_smoke`
-- **gdUnit4 editor plugin** — enable locally only after a clean project
-  open; keep `project.godot` `[editor_plugins] enabled=` empty for CI
-- Optional: generate dedicated Suno beds for `ascension` / `sanctuary`
-  (currently aliased to `noclip` / `taillights_fade`)
+- Terrain3D: plugin stays **off** in CI `project.godot`; enable in editor only
 
 ## Already finished (do not re-open)
 
@@ -35,4 +38,13 @@ Also owner-local (needs your machine / credentials — not cloud-agent work):
 - MPFB2 PeriHuman studio bake
 - Free path: **MPFB2** (CC0) + **OSM2World** (OSM ODbL)
 - Arena HotbarUI + cast resolution (Gate 6)
-- Hideout live WorldEntity siege (Gate 5)
+- Hideout live WorldEntity siege + LayerWorld combat registration (Gate 5)
+- PeriliminalGenerator real floors (Gate 6)
+- StoryVote Nakama module (Gate 8)
+- Gate 8 board_id↔leaderboard alias + smoke thicken
+- Boss phase telegraphs — AOE ring / phase-3 column + PHASE label + signal (Gate 5/6)
+- Gate 8 layer presence match + PresenceManager live join
+- Hideout online claim/contest RPCs + HideoutRegistry sync (Gate 8)
+- Gate 8 world-boss shared cadence (`get_world_boss_state` / claim / kill)
+- Gate 8 live CI job (docker compose + fail on SKIP)
+- Combat SFX slots into SkillVFX / boss phases (Gate 5/7)

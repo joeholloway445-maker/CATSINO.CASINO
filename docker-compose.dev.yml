@@ -5,7 +5,8 @@
 #   # optional: copy godot/server_config.example.json → godot/server_config.json
 #   # and set nakama_host/port/key to match (defaults already match this file).
 #
-# Production secrets stay pinned for the owner — see docs/PINNED_LEFT.md.
+# Production secrets: copy godot/server_config.production.example.json →
+# godot/server_config.json (gitignored) and fill real host/key — docs/OWNER_TRIALS.md.
 services:
   nakama-db:
     image: postgres:15-alpine
@@ -13,10 +14,17 @@ services:
       POSTGRES_PASSWORD: nakama
       POSTGRES_DB: nakama
     volumes: [nakama_db_dev:/var/lib/postgresql/data]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d nakama"]
+      interval: 2s
+      timeout: 3s
+      retries: 30
 
   nakama:
     image: registry.heroiclabs.com/heroiclabs/nakama:3.21.1
-    depends_on: [nakama-db]
+    depends_on:
+      nakama-db:
+        condition: service_healthy
     entrypoint:
       - "/bin/sh"
       - "-ecx"

@@ -18,7 +18,7 @@ function weightedPick(nk: nkruntime.Nakama): string {
   return SYMBOLS[0];
 }
 
-const rpcBuyScratchCard: nkruntime.RpcFunction = function(
+export function rpcBuyScratchCard(
   ctx: nkruntime.Context,
   logger: nkruntime.Logger,
   nk: nkruntime.Nakama,
@@ -77,6 +77,5 @@ export function register_scratch_rpc(
   _nk: nkruntime.Nakama,
   initializer: nkruntime.Initializer
 ): void {
-  initializer.registerRpc("buy_scratch_card", rpcBuyScratchCard);
   logger.info("scratch_rpc module initialized");
 }

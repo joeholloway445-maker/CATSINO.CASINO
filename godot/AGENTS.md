@@ -255,7 +255,8 @@ Built (Gates 5–7 thickened — Gate 8 local docker path; prod secrets pinned):
 
 1. **2v2** — `duel_2v2` + ally bots that follow, focus weakest, show HP.
 2. **Zone bosses** — `ZoneBossSpawner` → `setup_boss(..., "ZONE WARDEN")`.
-3. **World bosses** — `WorldBossScheduler` + multiphase `setup_boss`.
+3. **World bosses** — `WorldBossScheduler` + multiphase `setup_boss` with
+   phase telegraphs (`SkillVFX.boss_phase_telegraph` + sticky PHASE label).
 4. **Dungeons** — seeded dens via `DungeonRuns.run_seed()`, no wipe, no blessing exit.
 5. **PvP campaigns** — `pvp_campaign_01..03` + warden-scout dialogue hooks.
 6. **Casino** — OfflineCasino spends/pays **chips**; `get_leaderboard` soft-path.
@@ -438,7 +439,9 @@ go stale the way the other two did.
 - **Audio:** Kenney Casino / Interface / UI SFX are in `assets/audio/`
   (see `assets/audio/ATTRIBUTION.md`). City ambience WAVs ship for
   `city_traffic`, `city_crowd`, `neon_hum`,
-  `machine_hum`. Music lives under `assets/music/`.
+  `machine_hum`. Combat one-shots ship for `skill_*` + `boss_*`
+  (SkillVFX / WorldEntity → `CombatSfx`; synth fallback if a slot is
+  empty). Music lives under `assets/music/`.
 - **Model slots:** core shopping-list slots are filled (cats, creatures,
   crystals, aircraft, ruins, furniture, city/vehicles, trees/rocks).
   See `assets/models/ATTRIBUTION.md`. Rebake humans/cats/crystals with
@@ -521,6 +524,8 @@ Name maps: `<slot>_albedo.png` (or `.jpg`) plus optional `_normal`,
 | `card_shuffle` / `card_place` / `chip_place` / `chips_collide` / `dice_throw` | Casino |
 | `door_slide` | City doors |
 | `city_traffic` / `city_crowd` / `neon_hum` / `machine_hum` | City ambience loops |
+| `skill_cast` / `skill_hit` / `skill_ult` / `skill_shield` | Combat cast / impact / ult / shield (SkillVFX → CombatSfx) |
+| `boss_spawn` / `boss_phase` / `boss_death` | World/zone boss phase juice (WorldEntity) |
 
 ### Brand / splash → `godot/assets/ui/`
 

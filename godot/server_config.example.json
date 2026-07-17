@@ -3,5 +3,5 @@
   "nakama_port": 7350,
   "nakama_server_key": "defaultkey",
   "discord_webhook_url": "https://discord.com/api/webhooks/REPLACE_WITH_YOUR_WEBHOOK_URL",
-  "_comment": "Local defaults match docker-compose.dev.yml. For production, set host/port/key to your deployed Nakama (see docs/PINNED_LEFT.md)."
+  "_comment": "Local defaults match docker-compose.dev.yml. Production: copy server_config.production.example.json → server_config.json (gitignored) and fill real host/key — see docs/OWNER_TRIALS.md."
 }

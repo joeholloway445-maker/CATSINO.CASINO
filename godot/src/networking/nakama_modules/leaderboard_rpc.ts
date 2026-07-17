@@ -5,29 +5,41 @@ const LEADERBOARDS = [
 const TOP_RECORD_LIMIT = 100;
 const ADMIN_ROLE = "admin";
 
+/** Clients send `board_id` (LeaderboardPanel / Leaderboard.gd) or `leaderboard`
+ *  (arena submit). Accept either — Gate 8 field-alias. */
+function resolveBoardId(data: {[key: string]: unknown}): string {
+    const raw = data["leaderboard"] ?? data["board_id"] ?? "";
+    return String(raw || "").trim();
+}
+
 // Submit a score to the appropriate leaderboard
-const rpcSubmitScore: nkruntime.RpcFunction = function(
+export function rpcSubmitScore(
     ctx: nkruntime.Context,
     logger: nkruntime.Logger,
     nk: nkruntime.Nakama,
     payload: string
 ): string {
-    let data: { leaderboard: string; score: number; subscore?: number };
+    let data: {[key: string]: unknown};
     try {
-        data = JSON.parse(payload);
+        data = JSON.parse(payload || "{}");
     } catch (e) {
         logger.error("rpcSubmitScore: invalid JSON payload: %s", payload);
-        throw new Error("Invalid JSON payload");
+        return JSON.stringify({ success: false, ok: false, error: "Invalid JSON payload" });
     }
 
-    const { leaderboard, score, subscore = 0 } = data;
+    const leaderboard = resolveBoardId(data);
+    const score = Number(data["score"]);
+    const subscore = Number(data["subscore"] ?? 0);
 
-    if (!LEADERBOARDS.includes(leaderboard)) {
-        throw new Error(`Unknown leaderboard: ${leaderboard}. Valid: ${LEADERBOARDS.join(", ")}`);
+    if (!leaderboard || !LEADERBOARDS.includes(leaderboard)) {
+        return JSON.stringify({
+            success: false, ok: false,
+            error: `Unknown leaderboard: ${leaderboard || "(empty)"}. Valid: ${LEADERBOARDS.join(", ")}`
+        });
     }
 
-    if (typeof score !== "number" || score < 0) {
-        throw new Error("Score must be a non-negative number");
+    if (!Number.isFinite(score) || score < 0) {
+        return JSON.stringify({ success: false, ok: false, error: "Score must be a non-negative number" });
     }
 
     try {
@@ -36,37 +48,44 @@ const rpcSubmitScore: nkruntime.RpcFunction = function(
             ctx.userId,
             ctx.username,
             score,
-            subscore,
+            Number.isFinite(subscore) ? subscore : 0,
             {}
         );
     } catch (e) {
         logger.error("rpcSubmitScore: failed to write record for user %s: %v", ctx.userId, e);
-        throw new Error("Failed to submit score");
+        return JSON.stringify({ success: false, ok: false, error: "Failed to submit score" });
     }
 
     logger.info("rpcSubmitScore: user %s submitted score %d to %s", ctx.userId, score, leaderboard);
 
-    return JSON.stringify({ success: true, leaderboard, score });
+    return JSON.stringify({
+        success: true, ok: true,
+        leaderboard, board_id: leaderboard, score
+    });
 };
 
 // Get top 100 records + caller's own rank
-const rpcGetLeaderboard: nkruntime.RpcFunction = function(
+export function rpcGetLeaderboard(
     ctx: nkruntime.Context,
     logger: nkruntime.Logger,
     nk: nkruntime.Nakama,
     payload: string
 ): string {
-    let data: { leaderboard: string };
+    let data: {[key: string]: unknown};
     try {
-        data = JSON.parse(payload);
+        data = JSON.parse(payload || "{}");
     } catch (e) {
-        throw new Error("Invalid JSON payload");
+        return JSON.stringify({ success: false, ok: false, error: "Invalid JSON payload" });
     }
 
-    const { leaderboard } = data;
+    const leaderboard = resolveBoardId(data);
+    const limit = Math.min(TOP_RECORD_LIMIT, Math.max(1, Number(data["limit"] ?? TOP_RECORD_LIMIT) || TOP_RECORD_LIMIT));
 
-    if (!LEADERBOARDS.includes(leaderboard)) {
-        throw new Error(`Unknown leaderboard: ${leaderboard}`);
+    if (!leaderboard || !LEADERBOARDS.includes(leaderboard)) {
+        return JSON.stringify({
+            success: false, ok: false,
+            error: `Unknown leaderboard: ${leaderboard || "(empty)"}`
+        });
     }
 
     let topRecords: nkruntime.LeaderboardRecord[] = [];
@@ -77,17 +96,17 @@ const rpcGetLeaderboard: nkruntime.RpcFunction = function(
         const result = nk.leaderboardRecordsList(
             leaderboard,
             [],
-            TOP_RECORD_LIMIT,
+            limit,
             undefined,
             0
         );
         topRecords = result.records ?? [];
     } catch (e) {
         logger.error("rpcGetLeaderboard: failed to list records for %s: %v", leaderboard, e);
-        throw new Error("Failed to retrieve leaderboard");
+        return JSON.stringify({ success: false, ok: false, error: "Failed to retrieve leaderboard" });
     }
 
-    // Find caller rank in top 100
+    // Find caller rank in top list
     for (let i = 0; i < topRecords.length; i++) {
         if (topRecords[i].ownerId === ctx.userId) {
             callerRank = i + 1;
@@ -96,7 +115,7 @@ const rpcGetLeaderboard: nkruntime.RpcFunction = function(
         }
     }
 
-    // If not in top 100, try to get their own record
+    // If not in top list, try to get their own record
     if (callerRank === -1) {
         try {
             const ownerResult = nk.leaderboardRecordsList(
@@ -125,7 +144,10 @@ const rpcGetLeaderboard: nkruntime.RpcFunction = function(
     }));
 
     return JSON.stringify({
+        success: true,
+        ok: true,
         leaderboard,
+        board_id: leaderboard,
         records: serializedRecords,
         caller_rank: callerRank,
         caller_record: callerRecord
@@ -141,7 +163,7 @@ const rpcGetLeaderboard: nkruntime.RpcFunction = function(
 };
 
 // Admin-only: reset weekly leaderboard and grant prizes to top 3
-const rpcResetWeeklyLeaderboard: nkruntime.RpcFunction = function(
+export function rpcResetWeeklyLeaderboard(
     ctx: nkruntime.Context,
     logger: nkruntime.Logger,
     nk: nkruntime.Nakama,
@@ -231,8 +253,7 @@ export function register_leaderboard_rpc(
     nk: nkruntime.Nakama,
     initializer: nkruntime.Initializer
 ): void {
-    initializer.registerRpc("submit_score", rpcSubmitScore);
-    initializer.registerRpc("get_leaderboard", rpcGetLeaderboard);
-    initializer.registerRpc("reset_weekly_leaderboard", rpcResetWeeklyLeaderboard);
+
+
     logger.info("leaderboard_rpc module initialized");
 }

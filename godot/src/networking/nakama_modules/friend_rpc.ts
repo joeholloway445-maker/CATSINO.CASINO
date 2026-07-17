@@ -3,7 +3,7 @@ interface FriendActionPayload {
     username?: string;
 }
 
-const rpcAddFriend: nkruntime.RpcFunction = function(
+export function rpcAddFriend(
     ctx: nkruntime.Context,
     logger: nkruntime.Logger,
     nk: nkruntime.Nakama,
@@ -42,7 +42,7 @@ const rpcAddFriend: nkruntime.RpcFunction = function(
     return JSON.stringify({ success: true, target_user_id: resolvedId });
 };
 
-const rpcRemoveFriend: nkruntime.RpcFunction = function(
+export function rpcRemoveFriend(
     ctx: nkruntime.Context,
     logger: nkruntime.Logger,
     nk: nkruntime.Nakama,
@@ -68,7 +68,7 @@ const rpcRemoveFriend: nkruntime.RpcFunction = function(
     return JSON.stringify({ success: true, removed_user_id: target_user_id });
 };
 
-const rpcGetFriends: nkruntime.RpcFunction = function(
+export function rpcGetFriends(
     ctx: nkruntime.Context,
     logger: nkruntime.Logger,
     nk: nkruntime.Nakama,
@@ -102,8 +102,7 @@ export function register_friend_rpc(
     nk: nkruntime.Nakama,
     initializer: nkruntime.Initializer
 ): void {
-    initializer.registerRpc("add_friend", rpcAddFriend);
-    initializer.registerRpc("remove_friend", rpcRemoveFriend);
-    initializer.registerRpc("get_friends", rpcGetFriends);
+
+
     logger.info("friend_rpc module initialized");
 }

@@ -79,6 +79,59 @@ func _run() -> void:
 		print("[gate6_smoke] boss visual FAIL")
 	else:
 		print("[gate6_smoke] boss visual ok")
+	# Boss phase telegraphs: 66% → phase 2, 33% → phase 3 + VFX/signal.
+	if not ent.is_boss() or ent.boss_phase() != 1:
+		ok = false
+		print("[gate6_smoke] boss phase start FAIL phase=", ent.boss_phase())
+	var saw_phase := [0]
+	ent.phase_changed.connect(func(_e, p): saw_phase[0] = int(p))
+	var dmg_p2: int = int(ceil(float(ent.max_hp) * 0.40))
+	ent.take_hit(dmg_p2)
+	await process_frame
+	print("[gate6_smoke] boss after 40% dmg phase=", ent.boss_phase(), " saw=", saw_phase[0])
+	if ent.boss_phase() != 2 or saw_phase[0] != 2:
+		ok = false
+		print("[gate6_smoke] boss phase2 FAIL")
+	elif ent._label == null or not ("PHASE 2" in ent._label.text):
+		ok = false
+		print("[gate6_smoke] boss phase2 label FAIL text=", ent._label.text if ent._label else "")
+	else:
+		print("[gate6_smoke] boss phase2 ok label=", ent._label.text)
+	var dmg_p3: int = int(ceil(float(ent.max_hp) * 0.35))
+	ent.take_hit(dmg_p3)
+	await process_frame
+	print("[gate6_smoke] boss after more dmg phase=", ent.boss_phase(), " saw=", saw_phase[0])
+	if ent.boss_phase() != 3 or saw_phase[0] != 3:
+		ok = false
+		print("[gate6_smoke] boss phase3 FAIL")
+	else:
+		# Phase-3 telegraph leaves a short-lived MeshInstance3D child (ring/column).
+		var mesh_kids := 0
+		for c in ent.get_children():
+			if c is MeshInstance3D:
+				mesh_kids += 1
+		print("[gate6_smoke] boss phase3 telegraph meshes=", mesh_kids)
+		if mesh_kids < 1:
+			ok = false
+			print("[gate6_smoke] boss phase3 telegraph FAIL")
+		else:
+			print("[gate6_smoke] boss phase3 ok")
+	# One-shot wipe must still fire boss_death (phase already at 3).
+	var hp_left: int = ent.hp
+	ent.take_hit(hp_left + 1)
+	print("[gate6_smoke] boss death SFX path ok (was_hp=", hp_left, ")")
+	# Off-tree setup_boss must defer spawn SFX without error.
+	var deferred := WorldEntity.new()
+	deferred.setup_boss({
+		"id": "d",
+		"faction": "Factionless",
+		"category": "Entropy",
+		"stages": [{"name": "Deferred Titan", "desc": ""}],
+	}, 3, null, "ZONE WARDEN")
+	root.add_child(deferred)
+	await process_frame
+	print("[gate6_smoke] deferred boss_spawn ok")
+	deferred.queue_free()
 	# Regular wildlife must also build a mesh (setup() visual regression guard).
 	var wild := WorldEntity.new()
 	root.add_child(wild)
@@ -94,7 +147,7 @@ func _run() -> void:
 	else:
 		print("[gate6_smoke] wild visual ok")
 	wild.queue_free()
-	ent.queue_free()
+	# ent already queue_free'd on death — don't double-free.
 
 	# begin again briefly to exercise run_seed() API
 	var seed_again: int = int(dr.begin("dungeon_smoke"))
@@ -190,7 +243,7 @@ func _run() -> void:
 	arena.queue_free()
 	player.queue_free()
 
-	# Hideout live-siege resolve (no dice)
+	# Hideout live-siege resolve (no dice) + combat registration path
 	var hr: Node = root.get_node_or_null("HideoutRegistry")
 	if hr:
 		hr.call("register_site", "smoke_hideout", "supraliminal", "arlington", Vector3(10, 0, 10))
@@ -198,10 +251,40 @@ func _run() -> void:
 		if sites.has("smoke_hideout"):
 			sites["smoke_hideout"]["owner"] = "RivalGuild"
 			sites["smoke_hideout"]["defenders"] = ["crew_a"]
-		var flipped: bool = hr.call("resolve_contest_win", "smoke_hideout", "SmokeGuild")
+		var flipped: bool = await hr.call("resolve_contest_win", "smoke_hideout", "SmokeGuild")
 		print("[gate6_smoke] hideout resolve_contest_win=", flipped)
 		if not flipped:
 			ok = false
+		# Live spawn path registers with a LayerWorld-shaped host.
+		var gh_script: GDScript = load("res://src/world/city/guild_hideout.gd") as GDScript
+		if gh_script != null:
+			var host := Node3D.new()
+			host.set_script(load("res://src/dev/siege_host_stub.gd"))
+			host.add_to_group("layer_world")
+			root.add_child(host)
+			var siege_player := Node3D.new()
+			host.add_child(siege_player)
+			hr.call("register_site", "smoke_hideout_live", "supraliminal", "arlington", Vector3(30, 0, 30))
+			var sites2: Dictionary = hr.get("_sites")
+			if sites2.has("smoke_hideout_live"):
+				sites2["smoke_hideout_live"]["owner"] = "RivalGuild"
+				sites2["smoke_hideout_live"]["defenders"] = []
+			var hideout: Node = gh_script.new()
+			host.add_child(hideout)
+			hideout.call("setup", "smoke_hideout_live", "supraliminal", "arlington",
+				Color(0.5, 0.4, 0.3), siege_player, Vector3(30, 0, 30))
+			hideout.call("_begin_siege", "SmokeGuild")
+			await process_frame
+			var reg_n: int = int(host.get("entities").size()) if host.get("entities") != null else 0
+			var alive_n: int = (hideout.get("_siege_alive") as Array).size()
+			print("[gate6_smoke] live siege defenders=", alive_n, " registered=", reg_n)
+			if alive_n < 1 or reg_n < 1:
+				ok = false
+				print("[gate6_smoke] live siege register FAIL")
+			else:
+				print("[gate6_smoke] live siege register ok")
+			hideout.queue_free()
+			host.queue_free()
 	else:
 		print("[gate6_smoke] HideoutRegistry missing — skip")
 

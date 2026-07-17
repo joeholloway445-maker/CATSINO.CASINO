@@ -86,7 +86,7 @@ function purchaseWorldItem(
     return JSON.stringify({ success: true, item_id: item.item_id, type: item.type, shop_id: shop.shop_id });
 }
 
-const rpcShopPurchase: nkruntime.RpcFunction = function(
+export function rpcShopPurchase(
     ctx: nkruntime.Context,
     logger: nkruntime.Logger,
     nk: nkruntime.Nakama,
@@ -148,7 +148,7 @@ const rpcShopPurchase: nkruntime.RpcFunction = function(
     return JSON.stringify({ success: true, item_id, type: item.type });
 };
 
-const rpcGetShopInventory: nkruntime.RpcFunction = function(
+export function rpcGetShopInventory(
     ctx: nkruntime.Context,
     _logger: nkruntime.Logger,
     _nk: nkruntime.Nakama,
@@ -168,7 +168,7 @@ interface WorldShopQuery {
     district?: string;
 }
 
-const rpcGetWorldShop: nkruntime.RpcFunction = function(
+export function rpcGetWorldShop(
     _ctx: nkruntime.Context,
     _logger: nkruntime.Logger,
     _nk: nkruntime.Nakama,
@@ -190,8 +190,7 @@ export function register_shop_rpc(
     _nk: nkruntime.Nakama,
     initializer: nkruntime.Initializer
 ): void {
-    initializer.registerRpc("shop_purchase", rpcShopPurchase);
-    initializer.registerRpc("get_shop_inventory", rpcGetShopInventory);
-    initializer.registerRpc("get_world_shop", rpcGetWorldShop);
+
+
     logger.info("shop_rpc module initialized");
 }

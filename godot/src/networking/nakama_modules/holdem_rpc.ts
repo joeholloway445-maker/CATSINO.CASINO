@@ -43,8 +43,7 @@ const HAND_PAYOUTS: Record<string, number> = {
   "Straight Flush": 50, "Royal Flush": 250
 };
 
-const HoldemRpc = {
-  playHoldem: function(ctx: nkruntime.Context, logger: nkruntime.Logger, nk: nkruntime.Nakama, payload: string): string {
+export function playHoldem(ctx: nkruntime.Context, logger: nkruntime.Logger, nk: nkruntime.Nakama, payload: string): string {
     const userId = ctx.userId;
     if (!userId) throw new Error("Not authenticated");
 
@@ -93,9 +92,8 @@ const HoldemRpc = {
 
     throw new Error("Unknown action");
   }
-};
+
 
 export function register_holdem_rpc(ctx: nkruntime.Context, logger: nkruntime.Logger, nk: nkruntime.Nakama, initializer: nkruntime.Initializer): void {
-  initializer.registerRpc("play_holdem", HoldemRpc.playHoldem);
   logger.info("Holdem RPC module loaded");
 }

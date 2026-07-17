@@ -65,7 +65,7 @@ function getWalletBalances(
 // ─── RPC: Earn Coins ──────────────────────────────────────────────────────────
 // Called when the server wants to credit coins (e.g., match reward, event payout).
 // Clients SHOULD NOT call this directly — use server-to-server or Nakama hooks.
-const rpcEarnCoins: nkruntime.RpcFunction = function (
+export function rpcEarnCoins(
   ctx: nkruntime.Context,
   logger: nkruntime.Logger,
   nk: nkruntime.Nakama,
@@ -101,7 +101,7 @@ const rpcEarnCoins: nkruntime.RpcFunction = function (
 
 // ─── RPC: Spend Coins ─────────────────────────────────────────────────────────
 // Validates balance before deducting. Returns error if insufficient funds.
-const rpcSpendCoins: nkruntime.RpcFunction = function (
+export function rpcSpendCoins(
   ctx: nkruntime.Context,
   logger: nkruntime.Logger,
   nk: nkruntime.Nakama,
@@ -143,7 +143,7 @@ const rpcSpendCoins: nkruntime.RpcFunction = function (
 };
 
 // ─── RPC: Get Wallet ──────────────────────────────────────────────────────────
-const rpcGetWallet: nkruntime.RpcFunction = function (
+export function rpcGetWallet(
   ctx: nkruntime.Context,
   logger: nkruntime.Logger,
   nk: nkruntime.Nakama,
@@ -183,7 +183,7 @@ const rpcGetWallet: nkruntime.RpcFunction = function (
 // ─── RPC: Daily Bonus ────────────────────────────────────────────────────────
 // 20-hour cooldown with streak tracking.
 // Grants DAILY_BONUS_BASE + streak * DAILY_BONUS_PER_STREAK coins.
-const rpcDailyBonus: nkruntime.RpcFunction = function (
+export function rpcDailyBonus(
   ctx: nkruntime.Context,
   logger: nkruntime.Logger,
   nk: nkruntime.Nakama,
@@ -278,10 +278,9 @@ export function register_economy_rpc(
   nk: nkruntime.Nakama,
   initializer: nkruntime.Initializer
 ): void {
-  initializer.registerRpc("earn_coins", rpcEarnCoins);
-  initializer.registerRpc("spend_coins", rpcSpendCoins);
-  initializer.registerRpc("get_wallet", rpcGetWallet);
-  initializer.registerRpc("daily_bonus", rpcDailyBonus);
+
+
+
 
   logger.info("economy_rpc module loaded — RPCs: earn_coins, spend_coins, get_wallet, daily_bonus");
 }

@@ -16,8 +16,7 @@ const SEGMENTS = [
   { name: "Royal", mult: 10.0 },
 ];
 
-const FortuneRpc = {
-  drawFortune: function(ctx: nkruntime.Context, logger: nkruntime.Logger, nk: nkruntime.Nakama, payload: string): string {
+export function drawFortune(ctx: nkruntime.Context, logger: nkruntime.Logger, nk: nkruntime.Nakama, payload: string): string {
     const userId = ctx.userId;
     if (!userId) throw new Error("Not authenticated");
 
@@ -39,9 +38,8 @@ const FortuneRpc = {
       bet,
     });
   }
-};
+
 
 export function register_fortune_rpc(ctx: nkruntime.Context, logger: nkruntime.Logger, nk: nkruntime.Nakama, initializer: nkruntime.Initializer): void {
-  initializer.registerRpc("draw_fortune", FortuneRpc.drawFortune);
   logger.info("Fortune wheel RPC module loaded");
 }

@@ -10,7 +10,7 @@ interface TournamentPayload {
     entry_fee?: number;
 }
 
-const rpcCreateTournament: nkruntime.RpcFunction = function(
+export function rpcCreateTournament(
     ctx: nkruntime.Context,
     logger: nkruntime.Logger,
     nk: nkruntime.Nakama,
@@ -57,7 +57,7 @@ const rpcCreateTournament: nkruntime.RpcFunction = function(
     return JSON.stringify({ success: true, tournament: tournamentData });
 };
 
-const rpcJoinTournament: nkruntime.RpcFunction = function(
+export function rpcJoinTournament(
     ctx: nkruntime.Context,
     logger: nkruntime.Logger,
     nk: nkruntime.Nakama,
@@ -121,7 +121,7 @@ const rpcJoinTournament: nkruntime.RpcFunction = function(
     });
 };
 
-const rpcGetActiveTournaments: nkruntime.RpcFunction = function(
+export function rpcGetActiveTournaments(
     ctx: nkruntime.Context,
     logger: nkruntime.Logger,
     nk: nkruntime.Nakama,
@@ -159,10 +159,8 @@ export function register_tournament_rpc(
     nk: nkruntime.Nakama,
     initializer: nkruntime.Initializer
 ): void {
-    initializer.registerRpc("create_tournament", rpcCreateTournament);
-    initializer.registerRpc("join_tournament", rpcJoinTournament);
-    initializer.registerRpc("get_active_tournaments", rpcGetActiveTournaments);
+
+
     // Client alias used by tournament_ui.gd
-    initializer.registerRpc("get_tournaments", rpcGetActiveTournaments);
     logger.info("tournament_rpc module initialized");
 }

@@ -55,7 +55,7 @@ function _readTally(nk: nkruntime.Nakama, ballot: string): TallyRecord {
     return { counts: {}, total: 0, updated_at: 0 };
 }
 
-const rpcStoryVote: nkruntime.RpcFunction = function (
+export function rpcStoryVote(
     ctx: nkruntime.Context,
     logger: nkruntime.Logger,
     nk: nkruntime.Nakama,
@@ -140,7 +140,7 @@ const rpcStoryVote: nkruntime.RpcFunction = function (
     });
 };
 
-const rpcGetStoryTallies: nkruntime.RpcFunction = function (
+export function rpcGetStoryTallies(
     _ctx: nkruntime.Context,
     logger: nkruntime.Logger,
     nk: nkruntime.Nakama,
@@ -186,7 +186,6 @@ export function register_story_vote_rpc(
     _nk: nkruntime.Nakama,
     initializer: nkruntime.Initializer
 ): void {
-    initializer.registerRpc("story_vote", rpcStoryVote);
-    initializer.registerRpc("get_story_tallies", rpcGetStoryTallies);
+
     logger.info("story_vote_rpc module initialized");
 }

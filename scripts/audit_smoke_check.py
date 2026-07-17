@@ -215,6 +215,23 @@ def main() -> int:
         ok("Nakama index registers moba_match")
     else:
         fail("Nakama index missing register_moba_match")
+    print("== gate8 layer presence ==")
+    check_exists("src/networking/nakama_modules/layer_presence.ts", "layer_presence_ts")
+    lp = (GODOT / "src/networking/nakama_modules/layer_presence.ts").read_text()
+    if "register_layer_presence" in idx and "find_or_create_layer_match" in lp:
+        ok("Nakama index registers layer_presence")
+    else:
+        fail("Nakama index missing layer_presence")
+    pm = (GODOT / "src/multiplayer/presence_manager.gd").read_text()
+    if "find_or_create_layer_match" in pm and "_resolve_layer_match" in pm:
+        ok("PresenceManager resolves real layer matches")
+    else:
+        fail("PresenceManager missing layer match resolve")
+    oc = (GODOT / "src/games/offline_casino.gd").read_text()
+    if "find_or_create_layer_match" in oc:
+        ok("OfflineCasino soft-paths find_or_create_layer_match")
+    else:
+        fail("OfflineCasino missing layer match soft-path")
     hub = (GODOT / "src/ui/arena_hub_ui.gd").read_text()
     if "find_moba_match" in hub and "_launch_moba" in hub:
         ok("Arena hub queues find_moba_match")
@@ -225,6 +242,29 @@ def main() -> int:
         ok("ArenaModeController starts MobaOnlineClient")
     else:
         fail("ArenaModeController missing online moba path")
+
+    print("== gate8 hideout online ==")
+    check_exists("src/networking/nakama_modules/hideout_rpc.ts", "hideout_rpc_ts")
+    ho = (GODOT / "src/networking/nakama_modules/hideout_rpc.ts").read_text()
+    if "register_hideout_rpc" in idx and "hideout_claim" in ho and "hideout_contest_win" in ho:
+        ok("Nakama index registers hideout_rpc")
+    else:
+        fail("Nakama index missing hideout_rpc")
+    hr = (GODOT / "src/social/hideout_registry.gd").read_text()
+    if "hideout_claim" in hr and "_rpc_await" in hr and "_sync_from_server" in hr:
+        ok("HideoutRegistry syncs claim/contest online")
+    else:
+        fail("HideoutRegistry missing online hideout path")
+    oc = (GODOT / "src/games/offline_casino.gd").read_text()
+    if "hideout_claim" in oc and "_hideout_offline" in oc:
+        ok("OfflineCasino soft-paths hideout RPCs")
+    else:
+        fail("OfflineCasino missing hideout soft-path")
+    g8 = (GODOT / "src/dev/gate8_smoke.gd").read_text()
+    if "hideout_claim" in g8 and "hideout_contest_win" in g8:
+        ok("gate8_smoke exercises hideout claim/contest")
+    else:
+        fail("gate8_smoke missing hideout coverage")
 
     print("== metahuman / PeriHuman slots ==")
     if (GODOT / "assets/models/player_human.glb").exists():

@@ -18,7 +18,7 @@ interface GuildInvitePayload {
     target_user_id: string;
 }
 
-const rpcCreateGuild: nkruntime.RpcFunction = function(
+export function rpcCreateGuild(
     ctx: nkruntime.Context,
     logger: nkruntime.Logger,
     nk: nkruntime.Nakama,
@@ -70,7 +70,7 @@ const rpcCreateGuild: nkruntime.RpcFunction = function(
     });
 };
 
-const rpcJoinGuild: nkruntime.RpcFunction = function(
+export function rpcJoinGuild(
     ctx: nkruntime.Context,
     logger: nkruntime.Logger,
     nk: nkruntime.Nakama,
@@ -97,7 +97,7 @@ const rpcJoinGuild: nkruntime.RpcFunction = function(
     return JSON.stringify({ success: true, guild_id });
 };
 
-const rpcLeaveGuild: nkruntime.RpcFunction = function(
+export function rpcLeaveGuild(
     ctx: nkruntime.Context,
     logger: nkruntime.Logger,
     nk: nkruntime.Nakama,
@@ -123,7 +123,7 @@ const rpcLeaveGuild: nkruntime.RpcFunction = function(
     return JSON.stringify({ success: true, guild_id });
 };
 
-const rpcGetGuild: nkruntime.RpcFunction = function(
+export function rpcGetGuild(
     ctx: nkruntime.Context,
     logger: nkruntime.Logger,
     nk: nkruntime.Nakama,
@@ -175,7 +175,7 @@ const rpcGetGuild: nkruntime.RpcFunction = function(
     });
 };
 
-const rpcInviteToGuild: nkruntime.RpcFunction = function(
+export function rpcInviteToGuild(
     ctx: nkruntime.Context,
     logger: nkruntime.Logger,
     nk: nkruntime.Nakama,
@@ -208,10 +208,9 @@ export function register_guild_rpc(
     nk: nkruntime.Nakama,
     initializer: nkruntime.Initializer
 ): void {
-    initializer.registerRpc("create_guild", rpcCreateGuild);
-    initializer.registerRpc("join_guild", rpcJoinGuild);
-    initializer.registerRpc("leave_guild", rpcLeaveGuild);
-    initializer.registerRpc("get_guild", rpcGetGuild);
-    initializer.registerRpc("invite_to_guild", rpcInviteToGuild);
+
+
+
+
     logger.info("guild_rpc module initialized");
 }

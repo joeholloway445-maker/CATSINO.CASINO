@@ -25,12 +25,12 @@ Deferred only when they conflict with the spine: real Nakama scale, voice acting
 | 1 | Zero SCRIPT ERROR / failed autoload | Done (PR #22) |
 | 2 | Boot path: splash → login/guest → title → New Venture → Liminal; Continue → Subliminal | Done (Play Offline + boot_smoke PASS) |
 | 3 | Layer round-trip (spine) | Prototype path + `layer_spine_smoke` PASS (Play Prototype Spine) |
-| 3b | **ESO visual bar** — PeriHumans + Terrain3D desktop + Forward+ + HDRI | MPFB2 PeriHumans, OSM2World DFW shells, cats, crystals, creatures, aircraft, sculpted heightfields |
+| 3b | **ESO visual bar** — PeriHumans + Terrain3D desktop + Forward+ + HDRI | MPFB2 PeriHumans + hero heightfields; cinema CC4/MetaHuman/DAZ = owner drop (`OWNER_TRIALS.md`) |
 | 4 | Web export preset + CI green | Preset + `scripts/export_web.sh` verified locally; CI artifact on PR |
-| 5 | Combat/economy/hideout/casino/StoryVote in-engine pass | **Done** — live hideout siege (WorldEntity defenders), chips/juice/HUD |
+| 5 | Combat/economy/hideout/casino/StoryVote in-engine pass | **Done** — chips floor, juice, quest HUD, hideout VFX, combat SFX, boss phase telegraphs |
 | 6 | Game modes: 2v2 → zone bosses → world bosses → dungeons → PvP campaigns | **Done** — arena HotbarUI + skill casts; thicken online with Gate 8 |
-| 7 | Content + art/audio packs via AssetLibrary | **Done** — OSM shells (no Draco), ambience, dialogue, music beds |
-| 8 | Real multiplayer beyond presence bots | Client + docker-compose + `gate8_smoke`; **prod host/secrets owner-only** |
+| 7 | Content + art/audio packs via AssetLibrary | **Done** — OSM shells (no Draco), ambience, dialogue, music beds, combat/boss SFX slots |
+| 8 | Real multiplayer beyond presence bots | Client + docker-compose + layer presence + hideout online + world-boss cadence + live CI `gate8_smoke`; **prod host/secrets owner-only** |
 
 ## Doc map
 

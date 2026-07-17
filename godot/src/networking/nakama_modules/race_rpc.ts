@@ -36,7 +36,7 @@ const FRAME_STATS: Record<string, RacerStats> = {
 
 const RACE_PAYOUT: Record<number, number> = { 1: 3, 2: 1.5, 3: 1.0 };
 
-const rpcStartRace: nkruntime.RpcFunction = function(
+export function rpcStartRace(
     ctx: nkruntime.Context,
     logger: nkruntime.Logger,
     nk: nkruntime.Nakama,
@@ -101,6 +101,5 @@ export function register_race_rpc(
     _nk: nkruntime.Nakama,
     initializer: nkruntime.Initializer
 ): void {
-    initializer.registerRpc("start_race", rpcStartRace);
     logger.info("race_rpc module initialized");
 }

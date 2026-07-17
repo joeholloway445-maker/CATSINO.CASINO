@@ -13,7 +13,7 @@ const PAYOUT_TABLE: Record<string, number> = {
     "away": 2,
 };
 
-const rpcPredictMatch: nkruntime.RpcFunction = function(
+export function rpcPredictMatch(
     ctx: nkruntime.Context,
     logger: nkruntime.Logger,
     nk: nkruntime.Nakama,
@@ -69,6 +69,5 @@ export function register_sports_rpc(
     _nk: nkruntime.Nakama,
     initializer: nkruntime.Initializer
 ): void {
-    initializer.registerRpc("predict_match", rpcPredictMatch);
     logger.info("sports_rpc module initialized");
 }
