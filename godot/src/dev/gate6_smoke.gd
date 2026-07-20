@@ -198,6 +198,59 @@ func _run() -> void:
 				print("[gate6_smoke] resolve_entity ok=",
 					(resolved.get("line", {}) as Dictionary).get("id", ""),
 					"@", resolved.get("stage", 1))
+		# Hazard VFX/HUD profiles — every generator hazard type must resolve.
+		var hz_kinds: Array = []
+		for f in floors:
+			if not f is Dictionary:
+				continue
+			for hz in (f as Dictionary).get("hazards", []):
+				if hz is Dictionary:
+					var k := str(hz.get("type", ""))
+					if not k.is_empty() and not hz_kinds.has(k):
+						hz_kinds.append(k)
+		print("[gate6_smoke] hazard kinds=", hz_kinds)
+		if hz_kinds.is_empty():
+			ok = false
+			print("[gate6_smoke] hazard kinds FAIL empty")
+		else:
+			for k in hz_kinds:
+				var prof: Dictionary = PeriliminalHazardFX.profile(str(k))
+				if str(prof.get("label", "")).is_empty() or not (prof.get("color") is Color):
+					ok = false
+					print("[gate6_smoke] hazard profile FAIL kind=", k)
+					break
+			if ok:
+				print("[gate6_smoke] hazard profiles ok count=", hz_kinds.size())
+			var summary := PeriliminalHazardFX.summarize_hazards(f0.get("hazards", []))
+			if summary.is_empty() or summary == "No active hazards":
+				# Floor0 always has hazards from generator — empty summary is FAIL.
+				if (f0.get("hazards", []) as Array).is_empty():
+					pass
+				else:
+					ok = false
+					print("[gate6_smoke] hazard summarize FAIL")
+			else:
+				print("[gate6_smoke] hazard summarize ok=", summary)
+			# HUD factory builds a panel with Title/Hazards/Exit/Tick.
+			var hud_layer := CanvasLayer.new()
+			root.add_child(hud_layer)
+			var panel := PeriliminalHazardFX.ensure_hud(hud_layer)
+			PeriliminalHazardFX.refresh_hud(panel, f0, 1, 3)
+			var body_ok := panel != null and panel.visible
+			var found_title := false
+			if panel:
+				for ch in panel.get_children():
+					if ch is MarginContainer:
+						var body = ch.get_node_or_null("Body")
+						if body and body.get_node_or_null("Title") != null:
+							found_title = true
+			print("[gate6_smoke] hazard hud visible=", body_ok, " title=", found_title)
+			if not body_ok or not found_title:
+				ok = false
+				print("[gate6_smoke] hazard hud FAIL")
+			else:
+				print("[gate6_smoke] hazard hud ok")
+			hud_layer.queue_free()
 	dr.eject("smoke2")
 
 	# Arena hotbar cast path — free-roam mode (no wave loop) + skill hits.

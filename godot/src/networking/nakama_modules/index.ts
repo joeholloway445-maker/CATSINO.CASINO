@@ -14,13 +14,13 @@ import { drawFortune } from "./fortune_rpc";
 import { rpcAddFriend, rpcGetFriends, rpcRemoveFriend } from "./friend_rpc";
 import { summonCompanion } from "./gacha_rpc";
 import { rpcCreateGuild, rpcGetGuild, rpcInviteToGuild, rpcJoinGuild, rpcLeaveGuild } from "./guild_rpc";
-import { rpcHideoutClaim, rpcHideoutContestWin, rpcHideoutGet, rpcHideoutSetBanner, rpcHideoutUpsertSite } from "./hideout_rpc";
+import { rpcHideoutClaim, rpcHideoutContestWin, rpcHideoutGet, rpcHideoutSetBanner, rpcHideoutUpsertSite, register_hideout_rpc } from "./hideout_rpc";
 import { playHoldem } from "./holdem_rpc";
 import { getInventory, grantItem, useItem } from "./inventory_rpc";
-import { layerMatchInit, layerMatchJoin, layerMatchJoinAttempt, layerMatchLeave, layerMatchLoop, layerMatchSignal, layerMatchTerminate, rpcFindOrCreateLayerMatch } from "./layer_presence";
+import { layerMatchInit, layerMatchJoin, layerMatchJoinAttempt, layerMatchLeave, layerMatchLoop, layerMatchSignal, layerMatchTerminate, rpcFindOrCreateLayerMatch, register_layer_presence } from "./layer_presence";
 import { rpcGetLeaderboard, rpcResetWeeklyLeaderboard, rpcSubmitScore } from "./leaderboard_rpc";
 import { catsinoMatchInit, catsinoMatchJoin, catsinoMatchJoinAttempt, catsinoMatchLeave, catsinoMatchLoop, catsinoMatchTerminate, rpcFindMatch } from "./matchmaking";
-import { mobaMatchInit, mobaMatchJoin, mobaMatchJoinAttempt, mobaMatchLeave, mobaMatchLoop, mobaMatchTerminate, rpcFindMobaMatch } from "./moba_match";
+import { mobaMatchInit, mobaMatchJoin, mobaMatchJoinAttempt, mobaMatchLeave, mobaMatchLoop, mobaMatchTerminate, rpcFindMobaMatch, register_moba_match } from "./moba_match";
 import { playPoker } from "./poker_rpc";
 import { getProfile, updateProfile } from "./profile_rpc";
 import { submitPuzzleScore } from "./puzzle_rpc";
@@ -47,6 +47,9 @@ function InitModule(
 
     register_init_rpc(ctx, logger, nk, initializer);
     register_score_rpc(ctx, logger, nk, initializer);
+    register_moba_match(ctx, logger, nk, initializer);
+    register_layer_presence(ctx, logger, nk, initializer);
+    register_hideout_rpc(ctx, logger, nk, initializer);
 
     // RPCs — string literal id + top-level named function (Nakama AST requirement)
     initializer.registerRpc("claim_achievement", rpcClaimAchievement);

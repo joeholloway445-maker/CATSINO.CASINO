@@ -251,6 +251,9 @@ var _active_floor: Dictionary = {}
 var _active_floor_hazards: Array = []
 var _floor_hazard_tick := 0.0
 var _floor_applied_depth := -1
+var _floor_hud: PanelContainer
+var _hud_layer: CanvasLayer
+var _last_hazard_tick_dmg := 0
 
 func _ensure_periliminal_gauntlet() -> void:
 	if not _periliminal_gauntlet.is_empty():
@@ -283,6 +286,7 @@ func _apply_periliminal_floor(coord: Vector2i) -> void:
 	_clear_floor_entities()
 	_active_floor_hazards.clear()
 	_floor_hazard_tick = 0.0
+	_last_hazard_tick_dmg = 0
 	var floor: Dictionary = floors[(depth - 1) % floors.size()]
 	_active_floor = floor
 	var trap := str(floor.get("trap_type", "unknown")).replace("_", " ")
@@ -298,6 +302,10 @@ func _apply_periliminal_floor(coord: Vector2i) -> void:
 	for hz in floor.get("hazards", []):
 		if hz is Dictionary:
 			_active_floor_hazards.append(hz)
+	PeriliminalHazardFX.apply_floor(self, _player, _active_floor_hazards)
+	if _floor_hud == null and _hud_layer != null:
+		_floor_hud = PeriliminalHazardFX.ensure_hud(_hud_layer)
+	PeriliminalHazardFX.refresh_hud(_floor_hud, _active_floor, depth, 0)
 	var exits: Array = floor.get("exits", [])
 	if not exits.is_empty():
 		NotificationUI.notify_info("Exit: %s" % str(exits[0]).replace("_", " "))
@@ -308,6 +316,9 @@ func _clear_floor_entities() -> void:
 		if is_instance_valid(ent):
 			ent.queue_free()
 	_entities.clear()
+	PeriliminalHazardFX.clear(self)
+	if is_instance_valid(_player):
+		PeriliminalHazardFX.clear(_player)
 
 func _spawn_floor_entity(token: String, coord: Vector2i) -> void:
 	var resolved: Dictionary = PeriliminalGenerator.resolve_entity_token(token)
@@ -336,6 +347,7 @@ func _spawn_floor_entity(token: String, coord: Vector2i) -> void:
 func _tick_floor_hazards() -> void:
 	if _active_floor_hazards.is_empty() or not is_instance_valid(_player):
 		return
+	var tick_total := 0
 	for hz in _active_floor_hazards:
 		if not hz is Dictionary:
 			continue
@@ -360,6 +372,8 @@ func _tick_floor_hazards() -> void:
 				continue
 		if dmg <= 0:
 			continue
+		tick_total += dmg
+		PeriliminalHazardFX.pulse_tick(self, _player, hz, dmg)
 		var hit := dmg
 		if _shield > 0:
 			var ab := mini(_shield, hit)
@@ -368,8 +382,13 @@ func _tick_floor_hazards() -> void:
 		_player_hp -= hit
 		_refresh_hud_vitals()
 		if _player_hp <= 0:
+			_last_hazard_tick_dmg = tick_total
+			PeriliminalHazardFX.refresh_hud(_floor_hud, _active_floor, _floor_applied_depth, tick_total)
 			_on_player_died(str(_active_floor.get("trap_type", "the floor")))
 			return
+	_last_hazard_tick_dmg = tick_total
+	if tick_total > 0:
+		PeriliminalHazardFX.refresh_hud(_floor_hud, _active_floor, _floor_applied_depth, tick_total)
 
 ## The Periliminal's one exit: no door exists until the run has gone deep
 ## enough (personal — PeriliminalRuns.blessing_ready reads your Hope
@@ -542,6 +561,7 @@ func _build_hud() -> void:
 	var layer := CanvasLayer.new()
 	layer.name = "LayerHud"
 	add_child(layer)
+	_hud_layer = layer
 	var back := Button.new()
 	back.text = "⬅ Catsino"
 	back.position = Vector2(10, 10)
@@ -579,6 +599,9 @@ func _build_hud() -> void:
 	_hud_shield_bar.show_percentage = false
 	_hud_shield_bar.modulate = Color(0.35, 0.75, 1.0)
 	layer.add_child(_hud_shield_bar)
+	_floor_hud = PeriliminalHazardFX.ensure_hud(layer)
+	if layer_id != "periliminal" and _floor_hud != null:
+		_floor_hud.visible = false
 	_refresh_hud_vitals()
 
 func _refresh_hud_vitals() -> void:
