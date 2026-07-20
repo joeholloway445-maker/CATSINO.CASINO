@@ -218,20 +218,16 @@ def main() -> int:
     # Nakama 3.21 fatal: registerMatch without matchSignal → "matchSignal not found"
     mm = (GODOT / "src/networking/nakama_modules/matchmaking.ts").read_text()
     moba_ts = (GODOT / "src/networking/nakama_modules/moba_match.ts").read_text()
+    lp_ts = (GODOT / "src/networking/nakama_modules/layer_presence.ts").read_text()
     for name, src in (
         ("catsinoMatchSignal", mm),
         ("mobaMatchSignal", moba_ts),
-        ("layerMatchSignal", lp if False else (GODOT / "src/networking/nakama_modules/layer_presence.ts").read_text()),
+        ("layerMatchSignal", lp_ts),
     ):
         if f"export function {name}" in src or f"function {name}" in src:
             ok(f"Nakama matchSignal handler: {name}")
         else:
             fail(f"Nakama missing matchSignal handler: {name}")
-    for match_id in ("catsino_match", "moba_match", "layer_presence"):
-        # Each registerMatch(...) block must include matchSignal:
-        if f'registerMatch("{match_id}"' in idx and "matchSignal:" in idx:
-            # Stronger: the catsino/moba lines specifically wire their signals
-            pass
     if "matchSignal: catsinoMatchSignal" in idx and "matchSignal: mobaMatchSignal" in idx:
         ok("Nakama index wires matchSignal for catsino + moba")
     else:
