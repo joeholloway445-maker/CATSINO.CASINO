@@ -17,6 +17,7 @@ func _ready() -> void:
 	_register_btn = $CenterContainer/VBox/RegisterButton
 	_status_label = $CenterContainer/VBox/StatusLabel
 	_ensure_guest_button()
+	_apply_phone_scale()
 	_login_btn.pressed.connect(_on_login_pressed)
 	_register_btn.pressed.connect(_on_register_pressed)
 	_guest_btn.pressed.connect(_on_guest_pressed)
@@ -25,6 +26,36 @@ func _ready() -> void:
 	# Ensure GameManager is in LOGIN so auth handoff reaches the title screen.
 	if GameManager.game_state == GameManager.GameState.LOADING:
 		await GameManager.initialize()
+
+## 1920×1080 canvas_items stretch crushes 48px buttons on phones — inflate.
+func _apply_phone_scale() -> void:
+	var b := PhoneUI.boost()
+	if b <= 1.05:
+		return
+	var vbox: VBoxContainer = $CenterContainer/VBox
+	vbox.custom_minimum_size = Vector2(320.0 * b, 0)
+	vbox.add_theme_constant_override("separation", int(10.0 * b))
+	var title: Label = vbox.get_node_or_null("Title")
+	if title:
+		title.add_theme_font_size_override("font_size", PhoneUI.font(36))
+	var subtitle: Label = vbox.get_node_or_null("Subtitle")
+	if subtitle:
+		subtitle.add_theme_font_size_override("font_size", PhoneUI.font(16))
+		subtitle.modulate = Color(0.7, 0.6, 0.9)
+	for child in vbox.get_children():
+		if child is LineEdit or child is Button:
+			child.custom_minimum_size = Vector2(0, 48.0 * b)
+			if child is Button:
+				child.add_theme_font_size_override("font_size", PhoneUI.font(18))
+			elif child is LineEdit:
+				child.add_theme_font_size_override("font_size", PhoneUI.font(16))
+	if _status_label:
+		_status_label.add_theme_font_size_override("font_size", PhoneUI.font(14))
+	# Make PLAY OFFLINE the obvious thumb target.
+	if _guest_btn:
+		_guest_btn.custom_minimum_size = Vector2(0, 56.0 * b)
+		_guest_btn.add_theme_font_size_override("font_size", PhoneUI.font(22))
+
 
 func _ensure_guest_button() -> void:
 	var vbox := $CenterContainer/VBox
