@@ -4,9 +4,9 @@
 `docs/OWNER_TRIALS.md`. Cloud cannot finish CC4/UE/DAZ exports, GPU sculpt,
 or real prod secrets; those still need your machine.
 
-Remaining agent juice (gates): Periliminal floor hazard VFX/HUD. Gate 8
-thickeners (layer presence, hideout online, world-boss cadence, live CI)
-already on base.
+Remaining agent juice (gates): Gate 8 thickeners beyond local docker path
+(non-MOBA arena shared score, live CI must-PASS against compose). Owner
+trials + prod Nakama secrets remain owner-only.
 
 ## Owner trials — in progress
 
@@ -40,6 +40,7 @@ Local proofs that already exist:
 - Arena HotbarUI + cast resolution (Gate 6)
 - Hideout live WorldEntity siege + LayerWorld combat registration (Gate 5)
 - PeriliminalGenerator real floors (Gate 6)
+- **Periliminal floor hazard VFX/HUD** (`PeriliminalHazardFX` + LayerWorld tick pulses + floor panel)
 - StoryVote Nakama module (Gate 8)
 - Gate 8 board_id↔leaderboard alias + smoke thicken
 - Boss phase telegraphs — AOE ring / phase-3 column + PHASE label + signal (Gate 5/6)

@@ -465,6 +465,37 @@ def main() -> int:
     ):
         check_exists(rel, "playable_scene")
 
+    print("== periliminal hazard VFX/HUD ==")
+    check_exists("src/layers/periliminal_hazard_fx.gd", "hazard_fx")
+    hfx = (GODOT / "src/layers/periliminal_hazard_fx.gd").read_text()
+    for needle, label in (
+        ("class_name PeriliminalHazardFX", "class_name"),
+        ("func apply_floor", "apply_floor"),
+        ("func pulse_tick", "pulse_tick"),
+        ("func ensure_hud", "ensure_hud"),
+        ("func refresh_hud", "refresh_hud"),
+        ("damage_floor", "damage_floor profile"),
+        ("moral_dilemma", "moral_dilemma profile"),
+    ):
+        if needle in hfx:
+            ok(f"hazard fx: {label}")
+        else:
+            fail(f"hazard fx missing: {label}")
+    lw = (GODOT / "src/layers/layer_world.gd").read_text()
+    if "PeriliminalHazardFX.apply_floor" in lw and "PeriliminalHazardFX.pulse_tick" in lw:
+        ok("LayerWorld wires hazard VFX on apply/tick")
+    else:
+        fail("LayerWorld missing hazard VFX wiring")
+    if "PeriliminalHazardFX.ensure_hud" in lw and "PeriliminalHazardFX.refresh_hud" in lw:
+        ok("LayerWorld wires hazard HUD")
+    else:
+        fail("LayerWorld missing hazard HUD wiring")
+    g6 = (GODOT / "src/dev/gate6_smoke.gd").read_text()
+    if "PeriliminalHazardFX.profile" in g6 and "hazard hud" in g6:
+        ok("gate6_smoke covers hazard VFX/HUD")
+    else:
+        fail("gate6_smoke missing hazard VFX/HUD checks")
+
     print()
     if failures:
         print(f"{len(failures)} failure(s)")

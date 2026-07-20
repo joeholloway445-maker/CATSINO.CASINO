@@ -179,5 +179,5 @@ export function register_layer_presence(
   _nk: nkruntime.Nakama,
   initializer: nkruntime.Initializer
 ): void {
-  logger.info("layer_presence module initialized");
+  logger.info("layer_presence module loaded — rpc: find_or_create_layer_match, match: layer_presence");
 }

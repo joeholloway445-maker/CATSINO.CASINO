@@ -37,6 +37,7 @@ Tracked from the 2026-07-15 code audit. Check items off as they land.
 - [~] MetaHuman/PeriHuman ship slots filled (MPFB2); cinema Epic/CC4/DAZ = owner drop via `docs/OWNER_TRIALS.md` + `install_cinema_face_drop.sh` (kickoff started)
 - [x] Per-layer dialogue JSON variants (5×6 under `godot/src/dialogue/<arch>_<layer>.json`; `NPCDialogueSystem` resolves by `LayerManager.current_layer_id`; regenerate via `scripts/export_layer_dialogue.py`)
 - [x] Broader art/audio pack drop-ins (city meshes + ambience; dedicated `ascension`/`sanctuary` beds shipped — optional fresh Suno replace)
+- [x] Periliminal floor hazard VFX/HUD (`PeriliminalHazardFX` ground ambience + tick pulses + floor panel on LayerWorld)
 - [ ] Nakama realtime live-tested against a **production** host (local path ready: `scripts/build_nakama_modules.sh` + `docker-compose.dev.yml` + `gate8_smoke`)
 - [ ] Enable gdUnit4 plugin in **local** editor after zero-error smoke open (`project.godot` keeps `[editor_plugins] enabled=` empty on purpose — CI hang risk)
 
