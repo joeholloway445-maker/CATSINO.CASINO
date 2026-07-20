@@ -2,7 +2,7 @@
 
 You do **not** need the App Store.
 
-## Option A — One click (GitHub Pages) ← updated 2026-07-17
+## Option A — One click (GitHub Pages) ← updated 2026-07-20
 
 1. On your phone open:  
    **https://joeholloway445-maker.github.io/CATSINO.CASINO/**

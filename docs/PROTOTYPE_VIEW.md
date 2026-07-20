@@ -7,11 +7,13 @@
 1. Hard-refresh / clear site data (Safari: Aa → Website Settings → clear)
 2. **Play Offline** → **Play Prototype Spine**
 
-Mobile patch: **PR #71** — bigger title UI, talk-on-E (no walk-by spam), labeled
-touch buttons, plane no longer death-spirals.
+**Pages republished 2026-07-20** with the #71 mobile Web export.
 
-Beyond prototype: shared skill cast windup/telegraph/element riders + online
-cast VFX on layer presence. **Pages republish** ships the phone build.
+Mobile: bigger title UI, talk-on-E (no walk-by spam), labeled JUMP/TALK/ATK,
+plane no longer death-spirals, canvas fills the screen.
+
+Beyond prototype (desktop / next Pages export after PR #72 merges): shared
+skill cast windup/telegraph/element riders + online cast VFX on layer presence.
 
 ## Desktop (full art)
 
@@ -21,4 +23,5 @@ Open `godot/project.godot` in Godot 4.3+ → F5 → same buttons.
 
 - Gate-3 spine demo (short Liminal pull)
 - Arena / MOBA practice / Paws Vegas casino offline
-- Deeper attacks (`SkillCastResolver`) + mobile feel fixes (after Pages republish)
+- Deeper attacks (`SkillCastResolver`) on the feature branch / after merge
+- Mobile feel fixes (live on Pages now)
