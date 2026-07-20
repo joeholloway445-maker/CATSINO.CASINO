@@ -121,8 +121,13 @@ func update_account_async(session: NakamaSession, username = null, display_name 
 # ---------------------------------------------------------------- rpc
 
 func rpc_async(session: NakamaSession, rpc_id: String, payload: String) -> Variant:
+	# Nakama /v2/rpc expects the HTTP body to be a JSON-encoded *string*
+	# (the payload double-wrapped). Sending a raw object `{}` makes the
+	# Go decoder reject / stall the request — Gate 8 live was timing out
+	# every RPC callback at the smoke's 8s wait.
+	var body := JSON.stringify(payload if payload != "" else "{}")
 	var resp := await _request(HTTPClient.METHOD_POST, "/v2/rpc/%s" % rpc_id.uri_encode(),
-		[_bearer_auth(session), "Content-Type: application/json"], payload)
+		[_bearer_auth(session), "Content-Type: application/json"], body)
 	if resp.get("_error", false):
 		return NakamaException.new(resp.status, resp.message)
 	return NakamaModels.Rpc.new(resp, rpc_id)

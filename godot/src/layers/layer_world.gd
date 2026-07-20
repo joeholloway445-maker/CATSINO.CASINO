@@ -126,7 +126,20 @@ func _wire_presence() -> void:
 			_peers[pid].queue_free()
 			_peers.erase(pid))
 	PresenceManager.bot_wants_cast.connect(_on_bot_cast)
+	if PresenceManager.has_signal("peer_cast"):
+		PresenceManager.peer_cast.connect(_on_peer_cast)
 	PresenceManager.join_layer(layer_id)
+
+## Remote player cast — play telegraph/VFX only (damage is local-authority).
+func _on_peer_cast(_pid: String, sk: Dictionary, pos: Vector3) -> void:
+	if sk.is_empty():
+		return
+	var ghost := Node3D.new()
+	add_child(ghost)
+	ghost.global_position = pos
+	SkillCastResolver.play_telegraph(self, ghost, sk)
+	SkillCastResolver.play_cast_vfx(self, ghost, sk)
+	get_tree().create_timer(0.6).timeout.connect(ghost.queue_free)
 
 ## Tiered bots (see PresenceManager) "attacking" — gives them a visible
 ## skill flash instead of only the silent hostile-tick damage, and feeds
@@ -638,19 +651,17 @@ func _in_pvp_zone() -> bool:
 		"supraliminal": return TerritoryControl.is_pvp_at(_player.global_position)
 		_: return false
 
-## Cast resolution in the open world — targets are other players (or their
-## offline ghost stand-ins). Hub interiors are sanctuaries: nothing lands.
+## Cast resolution in the open world — targets are entities, breakables,
+## and (in PvP zones) other players. Shared SkillCastResolver owns windup,
+## telegraph, element riders, and VFX; we supply targets + shield hooks.
 func _on_cast(sk: Dictionary) -> void:
-	# Forge override: an equipped skill blueprint replaces the stock flash
-	# with the player's own shape/color/sound design.
-	var cast_bp := BlueprintManager.equipped_for("skill", str(sk.get("id", "")))
-	if not cast_bp.is_empty():
-		SkillVFX.blueprint_cast(self, _player.global_position, cast_bp)
-	else:
-		SkillVFX.cast_flash(self, _player.global_position)
+	if _player == null or not is_instance_valid(_player):
+		return
+	# Online: broadcast cast so remotes can flash the same telegraph/VFX.
+	if PresenceManager != null and PresenceManager.has_method("report_cast"):
+		PresenceManager.report_cast(sk, _player.global_position)
 	if Hope.maybe_manifest(str(sk.get("id", ""))):
 		SkillVFX.aoe_ring(self, _player.global_position, 2.0, Color(1.0, 0.95, 0.6))
-		# If the player forged a companion form, Hope wears it when she shows.
 		var hope_bp := BlueprintManager.equipped_for("entity", "companion")
 		if not hope_bp.is_empty():
 			var form := BlueprintMesh.build(hope_bp)
@@ -659,75 +670,54 @@ func _on_cast(sk: Dictionary) -> void:
 			SkillVFX.add_aura_shell(form, Color(1.0, 0.9, 0.65))
 			BlueprintAudio.play(self, hope_bp)
 			get_tree().create_timer(4.0).timeout.connect(form.queue_free)
-	var shape: String = sk.get("shape", "single")
-	var radius: float = float(sk.get("radius", 3.0))
-	var power: float = float(sk.get("power", 1.0))
-	if sk.get("ult_cost", 0) > 0:
-		SkillVFX.ultimate_burst(self, _player.global_position, maxf(radius, 6.0))
-	elif shape == "aoe":
-		SkillVFX.aoe_ring(self, _player.global_position, radius)
-	elif shape == "line":
-		SkillVFX.line_beam(self, _player.global_position, -_player.global_transform.basis.z, radius)
-	match sk.get("kind", "damage"):
-		"shield":
-			_shield = maxi(_shield, int(30 * power))
-			SkillVFX.shield_bubble(self, _player, 6.0)
-			_refresh_hud_vitals()
-			return
-		"mobility":
-			_player.global_position += -_player.global_transform.basis.z * (6.0 + 6.0 * power)
-			return
-		_:
-			pass
-	var dmg := int(_attack_damage * power)
-	var reach := maxf(radius, 4.0)
-	# Element rider — the entity force this line channels (SkillData.ELEMENTS).
-	var elem := str(sk.get("element", ""))
-	if elem == "energy":
-		dmg = int(dmg * 1.15)
-	# Demolishable city props are fair game for any cast.
+	var targets: Array = []
 	for node in get_tree().get_nodes_in_group("breakable"):
 		if node is BreakableProp and is_instance_valid(node):
-			if node.global_position.distance_to(_player.global_position) <= reach:
-				node.take_hit(dmg)
-	# World-threat wildlife lands regardless of PvP zone — entities aren't
-	# players, hitting them was never a PvP question.
+			targets.append(node)
 	for iid in _entities.keys().duplicate():
 		var ent: WorldEntity = _entities[iid]
-		if not is_instance_valid(ent): continue
-		if ent.global_position.distance_to(_player.global_position) > reach: continue
-		ent.take_hit(dmg)
-		SkillVFX.hit_spark(self, ent.global_position)
-		_apply_element_rider(elem, ent, dmg)
-		SkillManager.gain_ultimate(4.0)
-	if not _in_pvp_zone():
-		if _entities.is_empty():
+		if is_instance_valid(ent):
+			targets.append(ent)
+	var in_pvp := _in_pvp_zone()
+	if in_pvp:
+		for pid in _peers.keys():
+			var rp: RemotePlayer = _peers[pid]
+			if is_instance_valid(rp):
+				targets.append(rp)
+	var opts := {
+		"base_attack": _attack_damage,
+		"targets": targets,
+		"on_self_shield": func(amount: int):
+			_shield = maxi(_shield, amount)
+			SkillVFX.shield_bubble(self, _player, 6.0)
+			_refresh_hud_vitals(),
+		"on_self_mobility": func(dist: float):
+			_player.global_position += -_player.global_transform.basis.z * dist,
+		"on_hit": func(node: Node3D, dmg: int, elem: String):
+			if node is RemotePlayer:
+				var hit_pid := ""
+				for pid in _peers.keys():
+					if _peers[pid] == node:
+						hit_pid = pid
+						break
+				if hit_pid != "":
+					_peer_hp[hit_pid] = _peer_hp.get(hit_pid, 80 + randi() % 60) - dmg
+					SkillManager.gain_ultimate(2.0) # resolver already granted 4
+					if _peer_hp[hit_pid] <= 0:
+						_on_peer_killed(hit_pid, node)
+			if elem == "matter":
+				_shield += 8
+				_refresh_hud_vitals(),
+	}
+	var result: Dictionary = await SkillCastResolver.resolve_async(self, _player, sk, opts)
+	if int(result.get("hits", 0)) == 0 and str(sk.get("kind", "damage")) in ["damage", "chance", "control"]:
+		if not in_pvp and _entities.is_empty():
 			NotificationUI.notify_info("PvE sanctuary — your skills won't land on anyone here.")
-		return
-	for pid in _peers.keys():
-		var rp: RemotePlayer = _peers[pid]
-		if not is_instance_valid(rp): continue
-		if rp.global_position.distance_to(_player.global_position) > reach: continue
-		_peer_hp[pid] = _peer_hp.get(pid, 80 + randi() % 60) - dmg
-		SkillVFX.hit_spark(self, rp.global_position)
-		_apply_element_rider(elem, rp, dmg)
-		if elem == "quantum" and randf() < 0.2:
-			# The timeline disagrees: the hit lands twice.
-			_peer_hp[pid] -= dmg
-			SkillVFX.hit_spark(self, rp.global_position)
-		elif elem == "entropy":
-			# Decay echo: a second tick a beat later.
-			get_tree().create_timer(1.0).timeout.connect(func():
-				if _peer_hp.has(pid):
-					_peer_hp[pid] -= int(dmg * 0.4))
-		SkillManager.gain_ultimate(6.0)
-		if _peer_hp[pid] <= 0:
-			_on_peer_killed(pid, rp)
-	if elem == "matter":
-		# Substance answers you: landing casts skins you in shield.
-		_shield += 8
+		elif in_pvp or not _entities.is_empty():
+			NotificationUI.notify_info("Nothing in reach — close distance or use an AoE.")
 
 ## Physical element effects that act on a target's transform.
+## Kept for bot casts / legacy callers; SkillCastResolver applies the same riders.
 func _apply_element_rider(elem: String, target: Node3D, _dmg: int) -> void:
 	match elem:
 		"gravity":

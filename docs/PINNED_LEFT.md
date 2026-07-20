@@ -4,9 +4,10 @@
 `docs/OWNER_TRIALS.md`. Cloud cannot finish CC4/UE/DAZ exports, GPU sculpt,
 or real prod secrets; those still need your machine.
 
-Remaining agent juice (gates): Gate 8 thickeners beyond local docker path
-(non-MOBA arena shared score, live CI must-PASS against compose). Owner
-trials + prod Nakama secrets remain owner-only.
+Remaining agent juice (gates): Gate 8 live CI now probes RPC via curl +
+`call_rpc_await` (double-wrapped Nakama payload). Combat beyond prototype:
+shared `SkillCastResolver` (windup/telegraph/element riders) + presence
+`OP_CAST`. Owner trials + prod Nakama secrets remain owner-only.
 
 ## Owner trials — in progress
 
@@ -49,3 +50,7 @@ Local proofs that already exist:
 - Gate 8 world-boss shared cadence (`get_world_boss_state` / claim / kill)
 - Gate 8 live CI job (docker compose + fail on SKIP)
 - Combat SFX slots into SkillVFX / boss phases (Gate 5/7)
+- **Shared SkillCastResolver** — windup, telegraph, element riders, hotbar tint
+- **Presence OP_CAST** — online skill VFX broadcast on layer matches
+- **Nakama RPC double-wrap fix** — live Gate 8 callbacks no longer time out
+- OfflineCasino world-boss cadence mirror when live RPC soft-fails

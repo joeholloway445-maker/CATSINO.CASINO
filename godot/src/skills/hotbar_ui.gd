@@ -1,8 +1,9 @@
 class_name HotbarUI
 extends CanvasLayer
 ## The combat hotbar: 5 actives (keys 1-5) + ultimate (R), bar swap (Tab).
-## Shows cooldown sweeps, flux bar, ultimate charge. Emits cast_requested —
-## the hosting scene resolves the effect (it knows its targets).
+## Shows cooldown sweeps, flux bar, ultimate charge, element tint, and a
+## brief cast windup flash. Emits cast_requested — the hosting scene resolves
+## the effect (it knows its targets).
 
 signal cast_requested(skill: Dictionary)
 
@@ -12,6 +13,8 @@ var _ult_btn: Button
 var _flux_bar: ProgressBar
 var _ult_bar: ProgressBar
 var _bar_label: Label
+var _cast_label: Label
+var _casting := false
 
 func _ready() -> void:
 	var root := HBoxContainer.new()
@@ -52,6 +55,11 @@ func _ready() -> void:
 	_ult_bar.custom_minimum_size = Vector2(420, 6)
 	_ult_bar.modulate = Color(1.0, 0.8, 0.2)
 	bars.add_child(_ult_bar)
+	_cast_label = Label.new()
+	_cast_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_cast_label.add_theme_font_size_override("font_size", 14)
+	_cast_label.modulate = Color(1.0, 0.92, 0.55)
+	bars.add_child(_cast_label)
 
 	SkillManager.bar_swapped.connect(func(_b): _refresh())
 	SkillManager.ultimate_ready.connect(func(): NotificationUI.notify_info("⚡ ULTIMATE READY"))
@@ -69,6 +77,8 @@ func _unhandled_input(event: InputEvent) -> void:
 			KEY_TAB: SkillManager.swap_bar()
 
 func _cast_slot(i: int) -> void:
+	if _casting:
+		return
 	var sid: String = SkillManager.current_bar().actives[i]
 	if sid == "":
 		return
@@ -82,9 +92,12 @@ func _cast_slot(i: int) -> void:
 		return
 	_cooldowns[sid] = float(sk.get("cooldown", 5.0))
 	SkillManager.add_skill_xp(sid)
+	_flash_cast(sk)
 	cast_requested.emit(sk)
 
 func _cast_ultimate() -> void:
+	if _casting:
+		return
 	var sid: String = SkillManager.current_bar().ultimate
 	if sid == "":
 		return
@@ -93,7 +106,21 @@ func _cast_ultimate() -> void:
 		NotificationUI.notify_info("Ultimate still charging.")
 		return
 	SkillManager.add_skill_xp(sid, 20)
+	_flash_cast(sk)
 	cast_requested.emit(sk)
+
+func _flash_cast(sk: Dictionary) -> void:
+	_casting = true
+	var elem := str(sk.get("element", ""))
+	var tint := SkillCastResolver.element_color(elem)
+	var sname := str(sk.get("name", "?"))
+	_cast_label.text = "▸ %s%s" % [sname, (" · " + elem.capitalize()) if elem != "" else ""]
+	if tint.a > 0.0:
+		_cast_label.modulate = tint
+	var wind := SkillCastResolver.windup_for(sk)
+	get_tree().create_timer(maxf(wind, 0.18)).timeout.connect(func():
+		_casting = false
+		_cast_label.text = "")
 
 func _process(delta: float) -> void:
 	for sid in _cooldowns.keys():
@@ -117,11 +144,19 @@ func _refresh_labels() -> void:
 		if sid == "":
 			b.text = str(i + 1)
 			b.disabled = true
+			b.modulate = Color.WHITE
 			continue
 		b.disabled = false
 		var sk := SkillManager.resolved(sid)
 		var cd: float = _cooldowns.get(sid, 0.0)
-		b.text = "%d\n%s%s" % [i + 1, str(sk.get("name", "?")).left(10), ("\n%.0fs" % cd) if cd > 0.0 else ""]
+		var elem := str(sk.get("element", ""))
+		var tip := (" ·" + elem.left(3).to_upper()) if elem != "" else ""
+		b.text = "%d\n%s%s%s" % [i + 1, str(sk.get("name", "?")).left(9), tip,
+			("\n%.0fs" % cd) if cd > 0.0 else ""]
+		var tint := SkillCastResolver.element_color(elem)
+		b.modulate = Color(1, 1, 1).lerp(tint, 0.35) if tint.a > 0.0 else Color.WHITE
+		if cd > 0.0:
+			b.modulate = b.modulate.darkened(0.35)
 	var usid: String = bar.ultimate
 	if usid == "":
 		_ult_btn.text = "R"

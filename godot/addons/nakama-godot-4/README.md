@@ -18,7 +18,8 @@ each path against a real `nakama` container:
 - `/v2/account/authenticate/{device,email,custom}`
 - `/v2/account/session/refresh`
 - `/v2/account` (GET/PUT)
-- `/v2/rpc/{id}`
+- `/v2/rpc/{id}` — body is a **JSON-encoded string** (payload double-wrapped;
+  see `rpc_async`)
 - `/v2/storage` (PUT write)
 - Realtime WS handshake (`/ws?token=...`) and the `match_join` /
   `match_data_send` / `match_data` / `status_update` /

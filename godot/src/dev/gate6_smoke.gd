@@ -285,7 +285,9 @@ func _run() -> void:
 		"shape": "single", "radius": 4.0, "power": 1.2, "element": "energy",
 	}
 	arena.call("_on_cast", sk)
-	await process_frame
+	# Async cast (windup skipped headless) — wait a few frames for resolve.
+	for _i in range(8):
+		await process_frame
 	print("[gate6_smoke] arena cast hits=", hits_seen[0], " foe_hp=", foe.hp, "/", hp_before)
 	if hits_seen[0] < 1 or foe.hp >= hp_before:
 		ok = false

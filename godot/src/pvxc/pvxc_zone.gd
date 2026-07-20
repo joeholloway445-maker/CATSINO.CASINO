@@ -341,80 +341,72 @@ func _spawn_gate(pos: Vector3) -> void:
 			get_tree().change_scene_to_file("res://scenes/ui/main_menu.tscn"))
 	add_child(gate)
 
-## Skill effect resolution — the hotbar emits, the zone applies.
+## Skill effect resolution — shared cast resolver + PVXC-specific builds/summons.
 func _on_cast(sk: Dictionary) -> void:
-	if not PvxcManager.in_run:
+	if not PvxcManager.in_run or _player == null or not is_instance_valid(_player):
 		return
+	if PresenceManager != null and PresenceManager.has_method("report_cast"):
+		PresenceManager.report_cast(sk, _player.global_position)
 	var kind: String = sk.get("kind", "damage")
 	var shape: String = sk.get("shape", "single")
 	var radius: float = float(sk.get("radius", 3.0))
 	var power: float = float(sk.get("power", 1.0))
-	var dmg := int(_attack_damage * power)
-	# VFX: every cast flashes in your sensorium's light — unless the player
-	# forged a blueprint for this skill, in which case THEIR design plays.
-	var cast_bp := BlueprintManager.equipped_for("skill", str(sk.get("id", "")))
-	if not cast_bp.is_empty():
-		SkillVFX.blueprint_cast(self, _player.global_position, cast_bp)
-	else:
-		SkillVFX.cast_flash(self, _player.global_position)
-	if sk.get("ult_cost", 0) > 0:
-		SkillVFX.ultimate_burst(self, _player.global_position, maxf(radius, 6.0))
-	elif shape == "aoe":
-		SkillVFX.aoe_ring(self, _player.global_position, radius)
-	elif shape == "line":
-		SkillVFX.line_beam(self, _player.global_position, -_player.global_transform.basis.z, radius)
-	match kind:
-		"damage", "chance":
-			if kind == "chance":
-				dmg = int(dmg * (2.0 if randf() < 0.35 else 0.6)) # gambler's spread
-			var hit := 0
-			if PvxcManager.is_pvp_phase():
-				hit = _hit_peers(shape, radius, dmg)
-			else:
-				for c in _targets_for(shape, radius):
-					c.take_hit(dmg)
-					SkillVFX.hit_spark(self, c.global_position)
-					hit += 1
-			if hit > 0:
-				SkillManager.gain_ultimate(6.0 * hit)
-			else:
-				NotificationUI.notify_info("%s — nothing in reach." % sk.get("name", "?"))
-		"shield":
-			_shield = maxi(_shield, int(30 * power))
+	var targets: Array = []
+	if kind in ["damage", "chance", "control"]:
+		if PvxcManager.is_pvp_phase():
+			for pid in _peers.keys():
+				var rp = _peers[pid]
+				if is_instance_valid(rp):
+					targets.append(rp)
+		else:
+			for c in _targets_for(shape, radius):
+				targets.append(c)
+	var opts := {
+		"base_attack": _attack_damage,
+		"targets": targets,
+		"telegraph": kind in ["damage", "chance", "control"],
+		"on_self_shield": func(amount: int):
+			_shield = maxi(_shield, amount)
 			SkillVFX.shield_bubble(self, _player, 6.0)
-			SkillManager.gain_ultimate(4.0)
-		"mobility":
-			var fwd := -_player.global_transform.basis.z
-			_player.global_position += fwd * (6.0 + 6.0 * power)
-			SkillManager.gain_ultimate(3.0)
-		"control":
+			SkillManager.gain_ultimate(4.0),
+		"on_self_mobility": func(dist: float):
+			_player.global_position += -_player.global_transform.basis.z * dist
+			SkillManager.gain_ultimate(3.0),
+		"on_self_buff": func(p: float):
+			_attack_damage = int(_attack_damage * (1.0 + 0.25 * p))
+			get_tree().create_timer(8.0).timeout.connect(func():
+				_attack_damage = _attack_damage_base)
+			SkillManager.gain_ultimate(4.0),
+		"on_build": func(p: float):
+			_spawn_wall(_player.global_position - _player.global_transform.basis.z * 3.0, p)
+			SkillManager.gain_ultimate(4.0),
+		"on_sentry": func(p: float):
+			_spawn_sentry(_player.global_position - _player.global_transform.basis.z * 2.0, p)
+			SkillManager.gain_ultimate(4.0),
+		"on_summon": func(p: float):
+			_spawn_summon(_player.global_position + Vector3(1.5, 0, 1.5), p)
+			SkillManager.gain_ultimate(4.0),
+		"on_transform": func(p: float, is_ult: bool):
+			_apply_transform(p, is_ult)
+			SkillManager.gain_ultimate(3.0),
+		"on_bastion": func(p: float):
+			for i in range(4):
+				var a := TAU * i / 4.0
+				_spawn_wall(_player.global_position + Vector3(cos(a), 0, sin(a)) * 6.0, p)
+				_spawn_sentry(_player.global_position + Vector3(cos(a + 0.4), 0, sin(a + 0.4)) * 5.0, p),
+		"on_control": func(_sk: Dictionary, _p: float):
 			for c in _targets_for("aoe", maxf(radius, 6.0)):
 				c.speed *= 0.5
 				get_tree().create_timer(4.0).timeout.connect(func():
 					if is_instance_valid(c): c.speed *= 2.0)
-			SkillManager.gain_ultimate(5.0)
-		"buff":
-			_attack_damage = int(_attack_damage * (1.0 + 0.25 * power))
-			get_tree().create_timer(8.0).timeout.connect(func():
-				_attack_damage = _attack_damage_base) # settles back
-			SkillManager.gain_ultimate(4.0)
-		"build": # Sovereign Crown / Wildlands creations — walls and thickets
-			_spawn_wall(_player.global_position - _player.global_transform.basis.z * 3.0, power)
-			SkillManager.gain_ultimate(4.0)
-		"sentry": # Crown Sentry — autonomous turret
-			_spawn_sentry(_player.global_position - _player.global_transform.basis.z * 2.0, power)
-			SkillManager.gain_ultimate(4.0)
-		"summon": # Wildlands Packmate — a made creature that fights for you
-			_spawn_summon(_player.global_position + Vector3(1.5, 0, 1.5), power)
-			SkillManager.gain_ultimate(4.0)
-		"transform": # Feral Shift / Apex Bloom — become the bigger thing
-			_apply_transform(power, sk.get("ult_cost", 0) > 0)
-			SkillManager.gain_ultimate(3.0)
-		"bastion": # Coronation Bastion — walls + sentries in a ring
-			for i in range(4):
-				var a := TAU * i / 4.0
-				_spawn_wall(_player.global_position + Vector3(cos(a), 0, sin(a)) * 6.0, power)
-				_spawn_sentry(_player.global_position + Vector3(cos(a + 0.4), 0, sin(a + 0.4)) * 5.0, power)
+			SkillManager.gain_ultimate(5.0),
+		"skip_windup": OS.has_feature("headless"),
+	}
+	var result: Dictionary = await SkillCastResolver.resolve_async(self, _player, sk, opts)
+	if int(result.get("hits", 0)) == 0 and kind in ["damage", "chance"]:
+		NotificationUI.notify_info("%s — nothing in reach." % sk.get("name", "?"))
+	elif int(result.get("hits", 0)) > 0:
+		SkillManager.gain_ultimate(2.0 * float(result.hits)) # bonus on top of resolver
 
 func _targets_for(shape: String, radius: float) -> Array[PvxcCreature]:
 	var out: Array[PvxcCreature] = []

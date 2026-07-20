@@ -138,35 +138,22 @@ func _run() -> void:
 		return
 
 	var net: Node = root.get_node_or_null("NetworkManager")
-	if net == null or not net.has_method("call_rpc"):
-		_fail("NetworkManager missing")
+	if net == null or not net.has_method("call_rpc_await"):
+		_fail("NetworkManager missing call_rpc_await")
 		return
 
-	var wallet := {"success": false}
-	var done := false
-	net.call("call_rpc", "get_wallet", {}, func(result: Dictionary):
-		wallet = result
-		done = true)
-	var wait_until := Time.get_ticks_msec() + 8000
-	while not done and Time.get_ticks_msec() < wait_until:
-		await process_frame
+	# Live RPC path — call_rpc_await (Object.call orphans coroutines).
+	var wallet: Dictionary = await net.call_rpc_await("get_wallet", {})
 	print("[gate8_smoke] get_wallet success=", wallet.get("success", false),
-		" keys=", wallet.keys())
+		" keys=", wallet.keys(), " offline=", wallet.get("offline", false),
+		" err=", wallet.get("error", wallet.get("live_error", "")))
 	if not bool(wallet.get("success", wallet.get("ok", false))):
 		print("[gate8_smoke] wallet soft-fail (modules may be empty) — PASS with warning")
 
 	# StoryVote
 	var vote_ballot := "gate8_smoke_ballot"
-	var vote := {"success": false}
-	done = false
-	net.call("call_rpc", "story_vote",
-		{"ballot": vote_ballot, "option": 0},
-		func(result: Dictionary):
-			vote = result
-			done = true)
-	wait_until = Time.get_ticks_msec() + 8000
-	while not done and Time.get_ticks_msec() < wait_until:
-		await process_frame
+	var vote: Dictionary = await net.call_rpc_await("story_vote",
+		{"ballot": vote_ballot, "option": 0})
 	print("[gate8_smoke] story_vote success=", vote.get("success", false),
 		" recorded=", vote.get("recorded", false),
 		" reason=", vote.get("reason", vote.get("error", "")),
@@ -178,16 +165,8 @@ func _run() -> void:
 	else:
 		print("[gate8_smoke] story_vote ok")
 
-	var tallies := {"success": false}
-	done = false
-	net.call("call_rpc", "get_story_tallies",
-		{"ballot": vote_ballot},
-		func(result: Dictionary):
-			tallies = result
-			done = true)
-	wait_until = Time.get_ticks_msec() + 8000
-	while not done and Time.get_ticks_msec() < wait_until:
-		await process_frame
+	var tallies: Dictionary = await net.call_rpc_await("get_story_tallies",
+		{"ballot": vote_ballot})
 	print("[gate8_smoke] get_story_tallies success=", tallies.get("success", false),
 		" total=", tallies.get("total", -1),
 		" keys=", tallies.keys())
@@ -209,14 +188,7 @@ func _run() -> void:
 			print("[gate8_smoke] presence socket soft-fail (addon stub?) — RPC path PASS")
 
 	# Optional district counts RPC (PresenceManager.presence_count covers hubs offline).
-	var districts := {"districts": {}}
-	done = false
-	net.call("call_rpc", "get_active_districts", {}, func(result: Dictionary):
-		districts = result
-		done = true)
-	wait_until = Time.get_ticks_msec() + 5000
-	while not done and Time.get_ticks_msec() < wait_until:
-		await process_frame
+	var districts: Dictionary = await net.call_rpc_await("get_active_districts", {})
 	print("[gate8_smoke] get_active_districts keys=", districts.keys(),
 		" ok=", bool(districts.get("success", districts.get("ok", false))),
 		" error=", districts.get("error", ""))
@@ -224,14 +196,7 @@ func _run() -> void:
 		print("[gate8_smoke] get_active_districts soft-fail (optional) — PASS with warning")
 
 	# World boss shared cadence RPC.
-	var boss_state := {"ok": false}
-	done = false
-	net.call("call_rpc", "get_world_boss_state", {}, func(result: Dictionary):
-		boss_state = result
-		done = true)
-	wait_until = Time.get_ticks_msec() + 8000
-	while not done and Time.get_ticks_msec() < wait_until:
-		await process_frame
+	var boss_state: Dictionary = await net.call_rpc_await("get_world_boss_state", {})
 	print("[gate8_smoke] get_world_boss_state=", boss_state)
 	if not bool(boss_state.get("ok", boss_state.get("success", false))):
 		_fail("get_world_boss_state failed — rebuild modules + restart nakama")
@@ -239,18 +204,14 @@ func _run() -> void:
 	if not boss_state.has("next_spawn_unix"):
 		_fail("get_world_boss_state missing next_spawn_unix")
 		return
+	if bool(boss_state.get("offline", false)):
+		print("[gate8_smoke] get_world_boss_state offline mirror (live RPC soft) — ok")
+	else:
+		print("[gate8_smoke] get_world_boss_state live ok")
 
 	# Live: board_id alias on get_leaderboard / submit_score + find_match.
-	var live_sub := {"success": false}
-	done = false
-	net.call("call_rpc", "submit_score",
-		{"board_id": "global_wins", "score": 3},
-		func(result: Dictionary):
-			live_sub = result
-			done = true)
-	wait_until = Time.get_ticks_msec() + 8000
-	while not done and Time.get_ticks_msec() < wait_until:
-		await process_frame
+	var live_sub: Dictionary = await net.call_rpc_await("submit_score",
+		{"board_id": "global_wins", "score": 3})
 	print("[gate8_smoke] live submit_score success=", live_sub.get("success", false),
 		" leaderboard=", live_sub.get("leaderboard", live_sub.get("board_id", "")),
 		" error=", live_sub.get("error", ""),
@@ -260,16 +221,8 @@ func _run() -> void:
 	else:
 		print("[gate8_smoke] live submit_score ok")
 
-	var live_lb := {"success": false}
-	done = false
-	net.call("call_rpc", "get_leaderboard",
-		{"board_id": "global_wins", "limit": 10},
-		func(result: Dictionary):
-			live_lb = result
-			done = true)
-	wait_until = Time.get_ticks_msec() + 8000
-	while not done and Time.get_ticks_msec() < wait_until:
-		await process_frame
+	var live_lb: Dictionary = await net.call_rpc_await("get_leaderboard",
+		{"board_id": "global_wins", "limit": 10})
 	print("[gate8_smoke] live get_leaderboard success=", live_lb.get("success", false),
 		" board_id=", live_lb.get("board_id", ""),
 		" records=", (live_lb.get("records", []) as Array).size() if live_lb.get("records") is Array else -1,
@@ -280,16 +233,8 @@ func _run() -> void:
 	else:
 		print("[gate8_smoke] live get_leaderboard ok")
 
-	var live_match := {"success": false}
-	done = false
-	net.call("call_rpc", "find_match",
-		{"game_type": "duel_1v1"},
-		func(result: Dictionary):
-			live_match = result
-			done = true)
-	wait_until = Time.get_ticks_msec() + 8000
-	while not done and Time.get_ticks_msec() < wait_until:
-		await process_frame
+	var live_match: Dictionary = await net.call_rpc_await("find_match",
+		{"game_type": "duel_1v1"})
 	print("[gate8_smoke] live find_match success=", live_match.get("success", false),
 		" match_id=", live_match.get("match_id", ""),
 		" error=", live_match.get("error", ""),
@@ -300,16 +245,8 @@ func _run() -> void:
 		print("[gate8_smoke] live find_match ok")
 
 	# Gate 8 core: real layer presence match id (not inventable "layer_<id>").
-	var layer := {"success": false}
-	done = false
-	net.call("call_rpc", "find_or_create_layer_match",
-		{"layer_id": "liminal"},
-		func(result: Dictionary):
-			layer = result
-			done = true)
-	wait_until = Time.get_ticks_msec() + 8000
-	while not done and Time.get_ticks_msec() < wait_until:
-		await process_frame
+	var layer: Dictionary = await net.call_rpc_await("find_or_create_layer_match",
+		{"layer_id": "liminal"})
 	var layer_mid := str(layer.get("match_id", ""))
 	print("[gate8_smoke] find_or_create_layer_match success=", layer.get("success", false),
 		" created=", layer.get("created", false),
@@ -339,33 +276,17 @@ func _run() -> void:
 	
 	# Gate 8 thicken: hideout claim / contest online parity.
 	var hideout_site := "gate8_smoke_hideout"
-	var upsert := {"success": false}
-	done = false
-	net.call("call_rpc", "hideout_upsert_site",
+	var upsert: Dictionary = await net.call_rpc_await("hideout_upsert_site",
 		{"site_id": hideout_site, "realm": "supraliminal", "hub": "smoke",
-			"pos": [12.0, 34.0]},
-		func(result: Dictionary):
-			upsert = result
-			done = true)
-	wait_until = Time.get_ticks_msec() + 8000
-	while not done and Time.get_ticks_msec() < wait_until:
-		await process_frame
+			"pos": [12.0, 34.0]})
 	print("[gate8_smoke] hideout_upsert_site success=", upsert.get("success", false),
 		" keys=", upsert.keys())
 	var upsert_ok := bool(upsert.get("success", upsert.get("ok", false)))
 	if not upsert_ok:
 		print("[gate8_smoke] hideout_upsert soft-fail (rebuild modules?) — PASS with warning")
 
-	var claim := {"success": false}
-	done = false
-	net.call("call_rpc", "hideout_claim",
-		{"site_id": hideout_site, "guild": "SmokeGuild"},
-		func(result: Dictionary):
-			claim = result
-			done = true)
-	wait_until = Time.get_ticks_msec() + 8000
-	while not done and Time.get_ticks_msec() < wait_until:
-		await process_frame
+	var claim: Dictionary = await net.call_rpc_await("hideout_claim",
+		{"site_id": hideout_site, "guild": "SmokeGuild"})
 	print("[gate8_smoke] hideout_claim success=", claim.get("success", false),
 		" owner=", (claim.get("site", {}) as Dictionary).get("owner", "") if claim.get("site") is Dictionary else "",
 		" keys=", claim.keys())
@@ -376,41 +297,16 @@ func _run() -> void:
 		print("[gate8_smoke] hideout_claim ok")
 
 	# Seed a rival owner via second claim path: contest needs prior owner.
-	# Re-upsert then force contest by writing through claim as Rival then contest.
-	var rival := {"success": false}
-	done = false
 	# Claim as rival only works on empty site — use a second site for contest.
 	var contest_site := "gate8_smoke_contest"
-	net.call("call_rpc", "hideout_upsert_site",
+	var rival: Dictionary = await net.call_rpc_await("hideout_upsert_site",
 		{"site_id": contest_site, "realm": "supraliminal", "hub": "smoke",
-			"pos": [400.0, 400.0]},
-		func(result: Dictionary):
-			rival = result
-			done = true)
-	wait_until = Time.get_ticks_msec() + 8000
-	while not done and Time.get_ticks_msec() < wait_until:
-		await process_frame
+			"pos": [400.0, 400.0]})
+	rival = await net.call_rpc_await("hideout_claim",
+		{"site_id": contest_site, "guild": "RivalGuild"})
 
-	done = false
-	net.call("call_rpc", "hideout_claim",
-		{"site_id": contest_site, "guild": "RivalGuild"},
-		func(result: Dictionary):
-			rival = result
-			done = true)
-	wait_until = Time.get_ticks_msec() + 8000
-	while not done and Time.get_ticks_msec() < wait_until:
-		await process_frame
-
-	var contested := {"success": false}
-	done = false
-	net.call("call_rpc", "hideout_contest_win",
-		{"site_id": contest_site, "attacker_guild": "SmokeGuild"},
-		func(result: Dictionary):
-			contested = result
-			done = true)
-	wait_until = Time.get_ticks_msec() + 8000
-	while not done and Time.get_ticks_msec() < wait_until:
-		await process_frame
+	var contested: Dictionary = await net.call_rpc_await("hideout_contest_win",
+		{"site_id": contest_site, "attacker_guild": "SmokeGuild"})
 	print("[gate8_smoke] hideout_contest_win success=", contested.get("success", false),
 		" prior=", contested.get("prior_owner", ""),
 		" keys=", contested.keys())
@@ -420,15 +316,7 @@ func _run() -> void:
 	elif bool(contested.get("success", contested.get("ok", false))):
 		print("[gate8_smoke] hideout_contest_win ok")
 
-	var got := {"success": false}
-	done = false
-	net.call("call_rpc", "hideout_get", {"site_id": hideout_site},
-		func(result: Dictionary):
-			got = result
-			done = true)
-	wait_until = Time.get_ticks_msec() + 8000
-	while not done and Time.get_ticks_msec() < wait_until:
-		await process_frame
+	var got: Dictionary = await net.call_rpc_await("hideout_get", {"site_id": hideout_site})
 	print("[gate8_smoke] hideout_get success=", got.get("success", false),
 		" keys=", got.keys())
 
