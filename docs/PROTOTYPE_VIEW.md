@@ -7,13 +7,15 @@
 1. Hard-refresh / clear site data (Safari: Aa → Website Settings → clear)
 2. **Play Offline** → **Play Prototype Spine**
 
-**Pages republished 2026-07-20** with the #71 mobile Web export.
+**Pages republished 2026-07-20** with the #73 phone UI scale export
+(login/title/touch controls no longer crushed by 1080p `canvas_items` stretch).
+Black/purple title screens are intentional brand.
 
-Mobile: bigger title UI, talk-on-E (no walk-by spam), labeled JUMP/TALK/ATK,
-plane no longer death-spirals, canvas fills the screen.
+Mobile: thumb-sized PLAY OFFLINE + title buttons, talk-on-E (no walk-by spam),
+labeled JUMP/TALK/ATK, plane no longer death-spirals, canvas fills the screen.
 
-Beyond prototype (desktop / next Pages export after PR #72 merges): shared
-skill cast windup/telegraph/element riders + online cast VFX on layer presence.
+Also on Pages from earlier: skill cast windup/telegraph (#72) + mobile play
+fixes (#71).
 
 ## Desktop (full art)
 
