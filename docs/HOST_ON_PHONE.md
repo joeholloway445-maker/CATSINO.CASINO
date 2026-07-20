@@ -9,8 +9,9 @@ You do **not** need the App Store.
 2. Tap **Play Offline** → **Play Prototype Spine**.
 
 The first screens are **intentionally black / deep purple** (brand, not a broken
-render). If buttons look tiny, hard-refresh or clear site data — older Pages
-builds scaled the 1080p UI down onto the phone canvas.
+render). Pages was republished **2026-07-20** with phone UI scale (PR #73) so
+login/title/touch buttons stay thumb-sized. Hard-refresh or clear site data if
+you still see the old crushed UI.
 
 If GitHub Pages is unset on the repo:  
 Settings → Pages → Branch **`gh-pages`** → folder **`/`** → Save → wait 1–2 min.
