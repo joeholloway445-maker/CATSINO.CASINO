@@ -19,10 +19,17 @@ func _ready() -> void:
 	_sky = DayNightSky.new()
 	match layer_id:
 		"liminal":
-			_sky.day_length_seconds = 90.0 # time slides wrong here
+			# Was 90s — phone prototype nightfall felt broken. Slow cycle +
+			# freeze in prototype mode so show-off stays readable.
+			_sky.day_length_seconds = 2400.0
+			_sky.start_hour = 11.0
 		"periliminal":
 			_sky.day_length_seconds = 999999.0
-			_sky.start_hour = 3.0 # permanent dead-of-night
+			_sky.start_hour = 4.5 # permanent night, but not pitch-black
+	if LayerManager != null and LayerManager.has_method("is_prototype_mode") \
+			and LayerManager.is_prototype_mode():
+		_sky.freeze_cycle = true
+		_sky.start_hour = 11.0
 	IdentityLens.tune_sky(_sky)
 	add_child(_sky)
 
@@ -168,7 +175,8 @@ func _ensure_city(hub_id: String) -> void:
 	# ids, so each city pulls its own residents (LOD/impostors inside).
 	var spawner := NPCSpawner.new()
 	spawner.district_id = hub_id
-	spawner.max_npcs_in_district = 50
+	# Phone/web: fewer nameplates + less dialogue-pressure density.
+	spawner.max_npcs_in_district = 16 if OS.get_name() == "Web" else 50
 	spawner.player = _player
 	spawner.height_provider = func(x, z): return _terrain.height_at(x, z)
 	spawner.position = origin
@@ -184,9 +192,9 @@ func _populate_layer_npcs(near: Vector3) -> void:
 	if layer_id == "subliminal":
 		return # hard lock — no automatic ambient NPCs in private zones
 	var district_and_cap := {
-		"liminal": ["liminal_hub", 8],
-		"extraliminal": ["territories", 24],
-		"periliminal": ["abstract_realm", 6],
+		"liminal": ["liminal_hub", 4 if OS.get_name() == "Web" else 8],
+		"extraliminal": ["territories", 12 if OS.get_name() == "Web" else 24],
+		"periliminal": ["abstract_realm", 4 if OS.get_name() == "Web" else 6],
 	}
 	if not district_and_cap.has(layer_id):
 		return

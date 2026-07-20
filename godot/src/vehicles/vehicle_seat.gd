@@ -64,7 +64,19 @@ func _enter() -> bool:
 	driver.set_process_unhandled_input(false)
 	driver.visible = false
 	_camera.current = true
+	# Clear residual touch so boarding doesn't inherit a death-spiral stick.
+	TouchControls.move_vector = Vector2.ZERO
+	TouchControls.jump_held = false
+	TouchControls.sprint_held = false
+	TouchControls.roll_left_held = false
+	TouchControls.roll_right_held = false
+	TouchControls.look_delta = Vector2.ZERO
+	if owner_node is RigidBody3D:
+		var rb := owner_node as RigidBody3D
+		rb.linear_velocity = Vector3.ZERO
+		rb.angular_velocity = Vector3.ZERO
 	entered.emit()
+	NotificationUI.notify_info("Boarded — stick = fly, JUMP↑ SPRINT↓, E to exit.")
 	return true
 
 func _exit() -> void:
