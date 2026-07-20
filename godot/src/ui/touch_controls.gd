@@ -46,8 +46,12 @@ var _stick_touch_id := -1
 var _look_touch_id := -1
 var _look_last_pos := Vector2.ZERO
 
-const STICK_RADIUS := 96.0
-const BUTTON_SIZE := 132.0
+const STICK_RADIUS_BASE := 96.0
+const BUTTON_SIZE_BASE := 132.0
+
+var _stick_radius := STICK_RADIUS_BASE
+var _button_size := BUTTON_SIZE_BASE
+var _boost := 1.0
 
 static func active() -> bool:
 	return DisplayServer.is_touchscreen_available()
@@ -74,13 +78,17 @@ func _ready() -> void:
 		queue_free()
 		return
 	layer = 60
+	_boost = PhoneUI.boost()
+	var scale_mul := maxf(_boost * 0.55, 1.0)
+	_stick_radius = STICK_RADIUS_BASE * scale_mul
+	_button_size = BUTTON_SIZE_BASE * scale_mul
 	var safe := _safe_area()
 
 	# ---- left: floating virtual joystick (home rest pose) ----
 	_stick_base = Control.new()
-	_stick_base.custom_minimum_size = Vector2(STICK_RADIUS * 2, STICK_RADIUS * 2)
+	_stick_base.custom_minimum_size = Vector2(_stick_radius * 2, _stick_radius * 2)
 	_stick_base.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_LEFT)
-	_stick_base.position += Vector2(safe.position.x + 32, -(safe.size.y + STICK_RADIUS * 2 + 60))
+	_stick_base.position += Vector2(safe.position.x + 32, -(safe.size.y + _stick_radius * 2 + 60))
 	_stick_home_position = _stick_base.position
 	_stick_base.modulate = Color(1, 1, 1, 0.75)
 	add_child(_stick_base)
@@ -91,8 +99,9 @@ func _ready() -> void:
 	_stick_base.add_child(base_ring)
 	_stick_knob = ColorRect.new()
 	(_stick_knob as ColorRect).color = Color(1, 1, 1, 0.62)
-	_stick_knob.custom_minimum_size = Vector2(76, 76)
-	_stick_knob.size = Vector2(76, 76)
+	var knob := 76.0 * scale_mul
+	_stick_knob.custom_minimum_size = Vector2(knob, knob)
+	_stick_knob.size = Vector2(knob, knob)
 	_stick_knob.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_stick_base.add_child(_stick_knob)
 	_center_knob()
@@ -100,11 +109,8 @@ func _ready() -> void:
 	# ---- right: action buttons ----
 	var col := VBoxContainer.new()
 	col.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_RIGHT)
-	# 6 rows now stack here (jump/crouch/E/attack/sprint/roll-row) — the
-	# offset below is an approximate anchor placement, not a hard bound;
-	# VBoxContainer auto-lays-out its children regardless.
-	col.position += Vector2(-(safe.position.y + BUTTON_SIZE + 28), -(safe.size.y + BUTTON_SIZE * 6 + 72))
-	col.add_theme_constant_override("separation", 16)
+	col.position += Vector2(-(safe.position.y + _button_size + 28), -(safe.size.y + _button_size * 6 + 72))
+	col.add_theme_constant_override("separation", int(16.0 * maxf(_boost * 0.4, 1.0)))
 	add_child(col)
 	col.add_child(_dual_button("JUMP", func(): TouchControls._jump_queued = true,
 		func(held: bool): TouchControls.jump_held = held))
@@ -148,8 +154,8 @@ func _exit_tree() -> void:
 func _action_button(label: String, on_press: Callable) -> Button:
 	var b := Button.new()
 	b.text = label
-	b.custom_minimum_size = Vector2(BUTTON_SIZE, BUTTON_SIZE * 0.85)
-	b.add_theme_font_size_override("font_size", 26)
+	b.custom_minimum_size = Vector2(_button_size, _button_size * 0.85)
+	b.add_theme_font_size_override("font_size", int(round(26.0 * _boost)))
 	b.pressed.connect(on_press)
 	return b
 
@@ -158,8 +164,8 @@ func _action_button(label: String, on_press: Callable) -> Button:
 func _hold_button(label: String, on_state: Callable) -> Button:
 	var b := Button.new()
 	b.text = label
-	b.custom_minimum_size = Vector2(BUTTON_SIZE, BUTTON_SIZE * 0.85)
-	b.add_theme_font_size_override("font_size", 24)
+	b.custom_minimum_size = Vector2(_button_size, _button_size * 0.85)
+	b.add_theme_font_size_override("font_size", int(round(24.0 * _boost)))
 	b.button_down.connect(func(): on_state.call(true))
 	b.button_up.connect(func(): on_state.call(false))
 	return b
@@ -169,8 +175,8 @@ func _hold_button(label: String, on_state: Callable) -> Button:
 func _small_hold_button(label: String, on_state: Callable) -> Button:
 	var b := Button.new()
 	b.text = label
-	b.custom_minimum_size = Vector2(BUTTON_SIZE * 0.55, BUTTON_SIZE * 0.5)
-	b.add_theme_font_size_override("font_size", 18)
+	b.custom_minimum_size = Vector2(_button_size * 0.55, _button_size * 0.5)
+	b.add_theme_font_size_override("font_size", int(round(18.0 * _boost)))
 	b.button_down.connect(func(): on_state.call(true))
 	b.button_up.connect(func(): on_state.call(false))
 	return b
@@ -187,15 +193,15 @@ func _dual_button(label: String, on_press: Callable, on_held: Callable) -> Butto
 	return b
 
 func _center_knob() -> void:
-	_stick_knob.position = Vector2(STICK_RADIUS, STICK_RADIUS) - _stick_knob.size / 2.0
-	_stick_center = _stick_base.global_position + Vector2(STICK_RADIUS, STICK_RADIUS)
+	_stick_knob.position = Vector2(_stick_radius, _stick_radius) - _stick_knob.size / 2.0
+	_stick_center = _stick_base.global_position + Vector2(_stick_radius, _stick_radius)
 
 ## Floating stick: place the base so its center sits under the finger,
 ## matching how look-drag works on the right half (touch anywhere left).
 func _place_stick_at(screen_pos: Vector2) -> void:
 	_stick_center = screen_pos
-	_stick_base.global_position = screen_pos - Vector2(STICK_RADIUS, STICK_RADIUS)
-	_stick_knob.position = Vector2(STICK_RADIUS, STICK_RADIUS) - _stick_knob.size / 2.0
+	_stick_base.global_position = screen_pos - Vector2(_stick_radius, _stick_radius)
+	_stick_knob.position = Vector2(_stick_radius, _stick_radius) - _stick_knob.size / 2.0
 	_stick_base.modulate = Color(1, 1, 1, 1)
 
 func _reset_stick_home() -> void:
@@ -230,9 +236,9 @@ func _unhandled_input(event: InputEvent) -> void:
 			_look_last_pos = event.position
 
 func _update_stick(touch_pos: Vector2) -> void:
-	var offset := (touch_pos - _stick_center).limit_length(STICK_RADIUS)
-	TouchControls.move_vector = offset / STICK_RADIUS
-	_stick_knob.position = Vector2(STICK_RADIUS, STICK_RADIUS) + offset - _stick_knob.size / 2.0
+	var offset := (touch_pos - _stick_center).limit_length(_stick_radius)
+	TouchControls.move_vector = offset / _stick_radius
+	_stick_knob.position = Vector2(_stick_radius, _stick_radius) + offset - _stick_knob.size / 2.0
 
 func _viewport_width() -> float:
 	return float(get_viewport().get_visible_rect().size.x)
@@ -244,9 +250,10 @@ func _safe_area() -> Rect2:
 	var r := DisplayServer.get_display_safe_area() if DisplayServer.has_method("get_display_safe_area") else Rect2i()
 	var screen := DisplayServer.screen_get_size()
 	if r.size.x <= 0 or r.size.y <= 0:
-		return Rect2(24, 24, 24, 24)
+		return Rect2(24.0 * _boost, 24.0 * _boost, 24.0 * _boost, 24.0 * _boost)
 	var left := float(r.position.x)
 	var top := float(r.position.y)
 	var right := float(screen.x - (r.position.x + r.size.x))
 	var bottom := float(screen.y - (r.position.y + r.size.y))
-	return Rect2(maxf(left, 16), maxf(right, 16), maxf(top, 16), maxf(bottom, 16))
+	var pad := 16.0 * _boost
+	return Rect2(maxf(left, pad), maxf(right, pad), maxf(top, pad), maxf(bottom, pad))
