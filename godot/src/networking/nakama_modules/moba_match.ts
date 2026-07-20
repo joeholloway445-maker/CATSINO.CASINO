@@ -671,6 +671,11 @@ export function mobaMatchTerminate(_ctx, logger, _nk, _d, _t, state, _grace) {
   return { state };
 };
 
+/** Required by Nakama 3.21+ registerMatch — no-op passthrough for external signals. */
+export function mobaMatchSignal(_ctx, _logger, _nk, _d, _t, state, _data) {
+  return { state };
+};
+
 export function register_moba_match(
   _ctx: nkruntime.Context,
   logger: nkruntime.Logger,

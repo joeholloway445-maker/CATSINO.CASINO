@@ -19,8 +19,8 @@ import { playHoldem } from "./holdem_rpc";
 import { getInventory, grantItem, useItem } from "./inventory_rpc";
 import { layerMatchInit, layerMatchJoin, layerMatchJoinAttempt, layerMatchLeave, layerMatchLoop, layerMatchSignal, layerMatchTerminate, rpcFindOrCreateLayerMatch, register_layer_presence } from "./layer_presence";
 import { rpcGetLeaderboard, rpcResetWeeklyLeaderboard, rpcSubmitScore } from "./leaderboard_rpc";
-import { catsinoMatchInit, catsinoMatchJoin, catsinoMatchJoinAttempt, catsinoMatchLeave, catsinoMatchLoop, catsinoMatchTerminate, rpcFindMatch } from "./matchmaking";
-import { mobaMatchInit, mobaMatchJoin, mobaMatchJoinAttempt, mobaMatchLeave, mobaMatchLoop, mobaMatchTerminate, rpcFindMobaMatch, register_moba_match } from "./moba_match";
+import { catsinoMatchInit, catsinoMatchJoin, catsinoMatchJoinAttempt, catsinoMatchLeave, catsinoMatchLoop, catsinoMatchSignal, catsinoMatchTerminate, rpcFindMatch } from "./matchmaking";
+import { mobaMatchInit, mobaMatchJoin, mobaMatchJoinAttempt, mobaMatchLeave, mobaMatchLoop, mobaMatchSignal, mobaMatchTerminate, rpcFindMobaMatch, register_moba_match } from "./moba_match";
 import { playPoker } from "./poker_rpc";
 import { getProfile, updateProfile } from "./profile_rpc";
 import { submitPuzzleScore } from "./puzzle_rpc";
@@ -123,10 +123,10 @@ function InitModule(
     initializer.registerRpc("report_world_boss_kill", rpcReportWorldBossKill);
     initializer.registerRpc("note_zone_boss_kill", rpcNoteZoneBossKill);
 
-    // Match handlers
+    // Match handlers — Nakama 3.21 requires matchSignal on every registerMatch.
     initializer.registerMatch("layer_presence", { matchInit: layerMatchInit, matchJoinAttempt: layerMatchJoinAttempt, matchJoin: layerMatchJoin, matchLeave: layerMatchLeave, matchLoop: layerMatchLoop, matchTerminate: layerMatchTerminate, matchSignal: layerMatchSignal, });
-    initializer.registerMatch("catsino_match", { matchInit: catsinoMatchInit, matchJoinAttempt: catsinoMatchJoinAttempt, matchJoin: catsinoMatchJoin, matchLeave: catsinoMatchLeave, matchLoop: catsinoMatchLoop, matchTerminate: catsinoMatchTerminate, });
-    initializer.registerMatch("moba_match", { matchInit: mobaMatchInit, matchJoinAttempt: mobaMatchJoinAttempt, matchJoin: mobaMatchJoin, matchLeave: mobaMatchLeave, matchLoop: mobaMatchLoop, matchTerminate: mobaMatchTerminate, });
+    initializer.registerMatch("catsino_match", { matchInit: catsinoMatchInit, matchJoinAttempt: catsinoMatchJoinAttempt, matchJoin: catsinoMatchJoin, matchLeave: catsinoMatchLeave, matchLoop: catsinoMatchLoop, matchTerminate: catsinoMatchTerminate, matchSignal: catsinoMatchSignal, });
+    initializer.registerMatch("moba_match", { matchInit: mobaMatchInit, matchJoinAttempt: mobaMatchJoinAttempt, matchJoin: mobaMatchJoin, matchLeave: mobaMatchLeave, matchLoop: mobaMatchLoop, matchTerminate: mobaMatchTerminate, matchSignal: mobaMatchSignal, });
 
     logger.info("All 70 RPCs + 3 matches registered. Server ready.");
 }
