@@ -513,6 +513,58 @@ def main() -> int:
     else:
         fail("gate6_smoke missing hazard VFX/HUD checks")
 
+    print("== skill cast resolver ==")
+    resolver = GODOT / "src/skills/skill_cast_resolver.gd"
+    if resolver.is_file():
+        ok("SkillCastResolver present")
+    else:
+        fail("SkillCastResolver missing")
+    rtxt = resolver.read_text() if resolver.is_file() else ""
+    if "resolve_async" in rtxt and "play_telegraph" in rtxt and "compute_damage" in rtxt:
+        ok("SkillCastResolver has windup/telegraph/damage")
+    else:
+        fail("SkillCastResolver incomplete")
+    vfx = (GODOT / "src/skills/skill_vfx.gd").read_text()
+    if "cast_telegraph" in vfx and "element_hit" in vfx:
+        ok("SkillVFX has telegraph + element_hit")
+    else:
+        fail("SkillVFX missing telegraph/element_hit")
+    for host, label in [
+        (GODOT / "src/layers/layer_world.gd", "LayerWorld"),
+        (GODOT / "src/world/arena_mode_controller.gd", "Arena"),
+        (GODOT / "src/pvxc/pvxc_zone.gd", "PVXC"),
+    ]:
+        ht = host.read_text()
+        if "SkillCastResolver" in ht:
+            ok(f"{label} uses SkillCastResolver")
+        else:
+            fail(f"{label} missing SkillCastResolver")
+    nakama = (GODOT / "addons/nakama-godot-4/Nakama.gd").read_text()
+    if "JSON.stringify(payload" in nakama or 'JSON.stringify(payload if' in nakama:
+        ok("Nakama rpc_async double-wraps payload")
+    else:
+        fail("Nakama rpc_async missing JSON.stringify payload wrap")
+    nm = (GODOT / "src/networking/network_manager.gd").read_text()
+    if "func call_rpc_await" in nm:
+        ok("NetworkManager.call_rpc_await present")
+    else:
+        fail("NetworkManager.call_rpc_await missing")
+    g8 = (GODOT / "src/dev/gate8_smoke.gd").read_text()
+    if "call_rpc_await" in g8 and 'net.call("call_rpc"' not in g8:
+        ok("gate8_smoke uses call_rpc_await (no Object.call)")
+    else:
+        fail("gate8_smoke still uses Object.call for RPCs")
+    pm = (GODOT / "src/multiplayer/presence_manager.gd").read_text()
+    if "OP_CAST" in pm and "report_cast" in pm and "peer_cast" in pm:
+        ok("PresenceManager broadcasts skill casts")
+    else:
+        fail("PresenceManager missing cast opcode")
+    oc = (GODOT / "src/games/offline_casino.gd").read_text()
+    if "get_world_boss_state" in oc and "_world_boss_state_offline" in oc:
+        ok("OfflineCasino mirrors world boss cadence")
+    else:
+        fail("OfflineCasino missing world boss offline path")
+
     print()
     if failures:
         print(f"{len(failures)} failure(s)")

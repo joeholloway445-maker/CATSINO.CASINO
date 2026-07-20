@@ -66,18 +66,50 @@ func call_rpc(rpc_id: String, payload: Variant, callback: Callable) -> void:
 		return
 
 	var result = await client.rpc_async(session, resolved_id, payload_str)
-	if result.is_exception():
-		var ex = result.get_exception()
-		rpc_error.emit(ex.status_code, ex.message)
-		callback.call({"success": false, "error": ex.message, "ok": false})
+	if result == null:
+		# Live RPC hard-failed — soft OfflineCasino mirror when available so
+		# open-world / boss cadence still advances offline-shaped.
+		if OfflineCasino.supports(resolved_id):
+			var local_null: Dictionary = await OfflineCasino.resolve(resolved_id, normalized if normalized is Dictionary else {})
+			callback.call(_normalize_response(resolved_id, local_null))
+			return
+		callback.call({"success": false, "error": "null rpc result", "ok": false})
+		return
+	if result.has_method("is_exception") and result.is_exception():
+		var ex = result.get_exception() if result.has_method("get_exception") else result
+		var msg := str(ex.message) if ex != null else "rpc exception"
+		var code := int(ex.status_code) if ex != null else 0
+		rpc_error.emit(code, msg)
+		if OfflineCasino.supports(resolved_id):
+			var local_ex: Dictionary = await OfflineCasino.resolve(resolved_id, normalized if normalized is Dictionary else {})
+			local_ex["live_error"] = msg
+			callback.call(_normalize_response(resolved_id, local_ex))
+			return
+		callback.call({"success": false, "error": msg, "ok": false})
 		return
 
-	var parsed = JSON.parse_string(result.payload)
+	var raw_payload: String = str(result.payload) if "payload" in result else ""
+	var parsed = JSON.parse_string(raw_payload)
 	if parsed == null:
-		callback.call({"success": false, "error": "Invalid JSON response", "ok": false})
+		callback.call({"success": false, "error": "Invalid JSON response", "ok": false, "raw": raw_payload})
 		return
 
 	callback.call(_normalize_response(resolved_id, parsed if parsed is Dictionary else {"value": parsed}))
+
+## Awaitable wrapper — prefer this over Object.call("call_rpc", ...) so the
+## coroutine is owned by the caller and Gate 8 smoke never orphans awaits.
+func call_rpc_await(rpc_id: String, payload: Variant = {}) -> Dictionary:
+	var done := false
+	var out := {"success": false, "ok": false}
+	call_rpc(rpc_id, payload, func(result: Dictionary):
+		out = result
+		done = true)
+	var deadline := Time.get_ticks_msec() + 12000
+	while not done and Time.get_ticks_msec() < deadline:
+		await get_tree().process_frame
+	if not done:
+		out = {"success": false, "ok": false, "error": "rpc_timeout", "rpc_id": rpc_id}
+	return out
 
 func _normalize_response(rpc_id: String, data: Dictionary) -> Dictionary:
 	var out: Dictionary = data.duplicate(true)

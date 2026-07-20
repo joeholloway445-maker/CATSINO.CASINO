@@ -28,11 +28,13 @@ signal peer_joined(peer_id: String, profile: Dictionary)
 signal peer_updated(peer_id: String, pos: Vector3)
 signal peer_left(peer_id: String)
 signal bot_wants_cast(peer_id: String, skill: Dictionary) # tiered bots "attacking"
+signal peer_cast(peer_id: String, skill: Dictionary, pos: Vector3) # online skill broadcast
 
 enum BotTier { STATIC, REACTIVE, ADAPTIVE }
 const TIER_WEIGHTS := {BotTier.STATIC: 0.6, BotTier.REACTIVE: 0.3, BotTier.ADAPTIVE: 0.1}
 
 const OP_POSITION := 1
+const OP_CAST := 3
 const BROADCAST_HZ := 10.0
 const GHOST_COUNT := 4
 const BOT_AGGRO_RANGE := 16.0
@@ -121,6 +123,27 @@ func _try_connect_socket() -> bool:
 func report_position(pos: Vector3) -> void:
 	_my_pos = pos
 
+## Broadcast a skill cast to the layer match so remote clients can play VFX
+## / apply soft feedback. Ghosts don't need this — they emit bot_wants_cast.
+func report_cast(sk: Dictionary, at: Vector3 = Vector3.ZERO) -> void:
+	if _match_id == "" or _socket == null or not _socket.is_connected_to_host():
+		return
+	var pos := at if at != Vector3.ZERO else _my_pos
+	_socket.send_match_state_async(_match_id, OP_CAST, JSON.stringify({
+		"id": PlayerProfile.username,
+		"skill": {
+			"id": str(sk.get("id", "")),
+			"name": str(sk.get("name", "")),
+			"kind": str(sk.get("kind", "damage")),
+			"shape": str(sk.get("shape", "single")),
+			"radius": float(sk.get("radius", 3.0)),
+			"power": float(sk.get("power", 1.0)),
+			"element": str(sk.get("element", "")),
+			"ult_cost": int(sk.get("ult_cost", 0)),
+		},
+		"pos": [pos.x, pos.y, pos.z],
+	}))
+
 func _physics_process(delta: float) -> void:
 	# Broadcast upstream.
 	if _match_id != "" and _socket != null and _socket.is_connected_to_host():
@@ -208,13 +231,25 @@ func report_bot_hit_landed(peer_id: String) -> void:
 		_ghosts[peer_id].hits_landed = int(_ghosts[peer_id].get("hits_landed", 0)) + 1
 
 func _on_match_state(state) -> void:
-	if int(state.get("op_code", 0)) != OP_POSITION:
-		return
+	var op := int(state.get("op_code", 0))
 	var data = JSON.parse_string(str(state.get("data", "{}")))
 	if not data is Dictionary:
 		return
 	var pid := str(data.get("id", ""))
 	if pid == "" or pid == PlayerProfile.username:
+		return
+	if op == OP_CAST:
+		var sk: Dictionary = data.get("skill", {})
+		var arr: Array = data.get("pos", [0, 0, 0])
+		var pos := Vector3(float(arr[0]) if arr.size() > 0 else 0.0,
+			float(arr[1]) if arr.size() > 1 else 0.0,
+			float(arr[2]) if arr.size() > 2 else 0.0)
+		if not _online_peers.has(pid):
+			_online_peers[pid] = data.get("profile", {})
+			peer_joined.emit(pid, _online_peers[pid])
+		peer_cast.emit(pid, sk, pos)
+		return
+	if op != OP_POSITION:
 		return
 	var arr: Array = data.get("pos", [0, 0, 0])
 	var profile: Dictionary = data.get("profile", {})

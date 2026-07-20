@@ -79,6 +79,14 @@ static func resolve(rpc_id: String, payload: Variant) -> Dictionary:
 			return _get_my_companions_offline()
 		"daily_bonus", "claim_daily_bonus":
 			return await _daily_bonus_offline()
+		"get_world_boss_state":
+			return _world_boss_state_offline()
+		"claim_world_boss_spawn":
+			return {"success": true, "ok": true, "offline": true, "claimed": false,
+				"reason": "offline", "next_spawn_unix": int(Time.get_unix_time_from_system()) + 90}
+		"report_world_boss_kill", "note_zone_boss_kill":
+			return {"success": true, "ok": true, "offline": true, "cleared": true,
+				"next_spawn_unix": int(Time.get_unix_time_from_system()) + 20 * 60}
 		_:
 			return {"success": false, "error": "Offline: %s unavailable" % rpc_id}
 
@@ -161,6 +169,8 @@ static func supports(rpc_id: String) -> bool:
 		"submit_score", "quest_action", "get_quests",
 		"summon_companion", "feed_companion", "evolve_companion", "get_my_companions",
 		"daily_bonus", "claim_daily_bonus",
+		"get_world_boss_state", "claim_world_boss_spawn",
+		"report_world_boss_kill", "note_zone_boss_kill",
 	]
 
 ## Soft offline mirrors for Gate 8 hideout RPCs — local HideoutRegistry
@@ -229,6 +239,20 @@ static func _get_wallet() -> Dictionary:
 		"gems": gems,
 		"chips": chips,
 		"balances": {"coins": coins, "cat_coins": coins, "gems": gems, "chips": chips},
+	}
+
+## Shared Metroplex Titan cadence when Nakama isn't reachable — matches the
+## server default interval so WorldBossScheduler keeps ticking solo.
+static func _world_boss_state_offline() -> Dictionary:
+	var now := int(Time.get_unix_time_from_system())
+	return {
+		"ok": true,
+		"success": true,
+		"offline": true,
+		"next_spawn_unix": now + 90,
+		"interval_sec": 20 * 60,
+		"active": null,
+		"seconds_until_spawn": 90,
 	}
 
 static func _get_leaderboard(data: Dictionary) -> Dictionary:

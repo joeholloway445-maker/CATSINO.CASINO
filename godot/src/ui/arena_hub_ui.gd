@@ -218,6 +218,10 @@ func _launch_arena_mode(mode_id: String, scene_path: String) -> void:
 			_enter_arena_scene(mode_id, scene_path, "")
 			return
 		var mid := str(result.get("match_id", ""))
+		if mid.is_empty() or bool(result.get("practice", false)) or bool(result.get("offline", false)):
+			NotificationUI.notify_info("No live opponents — practice %s (score still syncs when online)." % mode_id)
+			_enter_arena_scene(mode_id, scene_path, "")
+			return
 		NotificationUI.notify_info("Joined arena match %s" % mid.substr(0, 8))
 		_enter_arena_scene(mode_id, scene_path, mid)
 	)

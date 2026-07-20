@@ -2,14 +2,14 @@
 
 You do **not** need the App Store.
 
-## Option A — One click (GitHub Pages) ← updated 2026-07-17
+## Option A — One click (GitHub Pages) ← updated 2026-07-20
 
 1. On your phone open:  
    **https://joeholloway445-maker.github.io/CATSINO.CASINO/**
 2. Tap **Play Offline** → **Play Prototype Spine**.
 
-That’s the current slim Web rebuild of the prototype (boot + layer spine verified).
-Hard-refresh (or clear site data) if you still see the old Jul 15 build.
+That’s the **2026-07-20** Pages rebuild (mobile play fixes from PR #71).
+Hard-refresh (or clear site data) if you still see an older build.
 
 If GitHub Pages is unset on the repo:  
 Settings → Pages → Branch **`gh-pages`** → folder **`/`** → Save → wait 1–2 min.

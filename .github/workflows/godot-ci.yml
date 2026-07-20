@@ -229,6 +229,32 @@ jobs:
               exit 1
             fi
           done
+          # Direct curl probe: auth + double-wrapped RPC body (catches module
+          # load failures before Godot smoke times out on hung HTTP).
+          echo "Probing Nakama RPC get_world_boss_state via curl..."
+          AUTH_JSON=$(curl -sf -X POST "http://127.0.0.1:7350/v2/account/authenticate/device?create=true" \
+            -H "Authorization: Basic $(printf '%s' 'defaultkey:' | base64 -w0 2>/dev/null || printf '%s' 'defaultkey:' | base64)" \
+            -H "Content-Type: application/json" \
+            -d '{"id":"gate8_ci_curl_probe"}' || true)
+          TOKEN=$(python3 -c "import json,sys; print(json.loads(sys.argv[1]).get('token',''))" "$AUTH_JSON" 2>/dev/null || true)
+          if [ -z "$TOKEN" ]; then
+            echo "::warning::curl auth probe failed — continuing to Godot smoke"
+            docker compose -f docker-compose.dev.yml logs --no-color | tail -80 || true
+          else
+            RPC_BODY=$(python3 -c 'import json; print(json.dumps("{}"))')
+            RPC_RESP=$(curl -sS -w "\nHTTP:%{http_code}" -X POST \
+              "http://127.0.0.1:7350/v2/rpc/get_world_boss_state" \
+              -H "Authorization: Bearer $TOKEN" \
+              -H "Content-Type: application/json" \
+              -d "$RPC_BODY" || true)
+            echo "$RPC_RESP" | tail -5
+            if ! echo "$RPC_RESP" | grep -q 'next_spawn_unix'; then
+              echo "::warning::curl RPC probe missing next_spawn_unix — dumping Nakama logs"
+              docker compose -f docker-compose.dev.yml logs --no-color | tail -120 || true
+            else
+              echo "curl RPC probe OK"
+            fi
+          fi
           cd godot
           set +e
           timeout 180 godot --headless --path . -s res://src/dev/gate8_smoke.gd | tee /tmp/gate8_live.txt
@@ -236,6 +262,7 @@ jobs:
           set -e
           if [ "$EXIT" = "124" ]; then
             echo "::error::gate8_smoke hung"
+            docker compose -f ../docker-compose.dev.yml logs --no-color | tail -80 || true
             exit 1
           fi
           if grep -q 'RESULT=SKIP' /tmp/gate8_live.txt; then
@@ -245,6 +272,7 @@ jobs:
           fi
           if ! grep -q 'RESULT=PASS' /tmp/gate8_live.txt; then
             echo "::error::gate8_smoke did not PASS (exit=$EXIT)"
+            docker compose -f ../docker-compose.dev.yml logs --no-color | tail -80 || true
             exit 1
           fi
           if [ "$EXIT" != "0" ]; then
