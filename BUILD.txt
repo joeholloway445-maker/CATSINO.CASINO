@@ -1,1 +1,2 @@
-Published 2026-07-20T07:48Z — mobile #71 export + pending combat PR
+Phone UI scale fix from PR #73 (periliminal-space-html5, 2026-07-20).
+Boosted login/title/touch controls for canvas_items stretch on phones.
