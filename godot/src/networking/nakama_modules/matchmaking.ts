@@ -284,6 +284,19 @@ export function catsinoMatchTerminate(
   return { state };
 };
 
+/** Required by Nakama 3.21+ registerMatch — no-op passthrough for external signals. */
+export function catsinoMatchSignal(
+  _ctx: nkruntime.Context,
+  _logger: nkruntime.Logger,
+  _nk: nkruntime.Nakama,
+  _dispatcher: nkruntime.MatchDispatcher,
+  _tick: number,
+  state: MatchState,
+  _data: string
+): { state: MatchState } {
+  return { state };
+};
+
 // ─── Internal helpers ─────────────────────────────────────────────────────────
 function _startPlaying(
   state: MatchState,
