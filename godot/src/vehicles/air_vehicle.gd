@@ -22,6 +22,9 @@ var seat: VehicleSeat
 
 func _ready() -> void:
 	gravity_scale = 1.0
+	# Stop death spirals on phone — stick input never hits exact zero.
+	angular_damp = 3.2
+	linear_damp = 0.4
 	_build_body()
 	var cam := _build_camera()
 	seat = VehicleSeat.new(self, cam)
@@ -78,7 +81,10 @@ func _physics_process(delta: float) -> void:
 	# Reverse thrust is weaker than forward — planes don't really have
 	# full-power reverse.
 	var throttle := throttle_axis if throttle_axis > 0.0 else throttle_axis * 0.5
-	var roll_input := VehicleSeat.turn_axis()
+	# Stick X = yaw (arcade), roll buttons = bank. Mapping stick to roll was
+	# the phone death-spiral — tiny residual stick never zeroed auto-level.
+	var yaw_input := VehicleSeat.turn_axis()
+	var roll_input := VehicleSeat.roll_axis()
 	var vertical := VehicleSeat.vertical_axis()
 
 	apply_central_force(-global_transform.basis.z * FORWARD_THRUST * throttle)
@@ -88,13 +94,15 @@ func _physics_process(delta: float) -> void:
 	if speed > STALL_SPEED:
 		apply_central_force(Vector3.UP * LIFT_COEFF * (speed - STALL_SPEED))
 
-	apply_torque(-global_transform.basis.z * ROLL_TORQUE * roll_input)
-	apply_torque(Vector3.UP * ROLL_TORQUE * YAW_COUPLING * -roll_input)
+	apply_torque(Vector3.UP * ROLL_TORQUE * 1.1 * -yaw_input)
+	apply_torque(-global_transform.basis.z * ROLL_TORQUE * 0.55 * roll_input)
 
-	# Gentle auto-level on pitch/roll when no input, so the plane doesn't
-	# tumble uncontrollably — an assist, not full stabilization.
-	if is_zero_approx(roll_input):
-		var current_roll := global_transform.basis.get_euler().z
-		apply_torque(-global_transform.basis.z * -current_roll * LEVEL_CORRECT_SPEED)
+	# Always auto-level pitch/roll — assist stays on even with stick noise.
+	var euler := global_transform.basis.get_euler()
+	apply_torque(-global_transform.basis.z * -euler.z * LEVEL_CORRECT_SPEED * 1.8)
+	apply_torque(global_transform.basis.x * -euler.x * LEVEL_CORRECT_SPEED)
 
 	linear_velocity -= linear_velocity * DRAG * delta * 0.2
+	# Soft speed cap so touch full-stick doesn't runaway.
+	if linear_velocity.length() > 42.0:
+		linear_velocity = linear_velocity.limit_length(42.0)

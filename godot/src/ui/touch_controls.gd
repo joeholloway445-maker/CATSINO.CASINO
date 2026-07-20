@@ -82,15 +82,15 @@ func _ready() -> void:
 	_stick_base.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_LEFT)
 	_stick_base.position += Vector2(safe.position.x + 32, -(safe.size.y + STICK_RADIUS * 2 + 60))
 	_stick_home_position = _stick_base.position
-	_stick_base.modulate = Color(1, 1, 1, 0.55)
+	_stick_base.modulate = Color(1, 1, 1, 0.75)
 	add_child(_stick_base)
 	var base_ring := ColorRect.new()
-	base_ring.color = Color(1, 1, 1, 0.14)
+	base_ring.color = Color(1, 1, 1, 0.28)
 	base_ring.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	base_ring.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_stick_base.add_child(base_ring)
 	_stick_knob = ColorRect.new()
-	(_stick_knob as ColorRect).color = Color(1, 1, 1, 0.38)
+	(_stick_knob as ColorRect).color = Color(1, 1, 1, 0.62)
 	_stick_knob.custom_minimum_size = Vector2(76, 76)
 	_stick_knob.size = Vector2(76, 76)
 	_stick_knob.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -106,28 +106,27 @@ func _ready() -> void:
 	col.position += Vector2(-(safe.position.y + BUTTON_SIZE + 28), -(safe.size.y + BUTTON_SIZE * 6 + 72))
 	col.add_theme_constant_override("separation", 16)
 	add_child(col)
-	col.add_child(_dual_button("⤴", func(): TouchControls._jump_queued = true,
+	col.add_child(_dual_button("JUMP", func(): TouchControls._jump_queued = true,
 		func(held: bool): TouchControls.jump_held = held))
 	# Posture: hold to crouch, release to stand.
-	var crouch_btn := _action_button("⤵", func(): pass)
+	var crouch_btn := _action_button("CROUCH", func(): pass)
 	crouch_btn.button_down.connect(func(): TouchControls.crouch_held = true)
 	crouch_btn.button_up.connect(func(): TouchControls.crouch_held = false)
 	col.add_child(crouch_btn)
-	col.add_child(_action_button("E", func(): TouchControls._interact_queued = true))
-	col.add_child(_action_button("⚔", func():
+	col.add_child(_action_button("TALK", func(): TouchControls._interact_queued = true))
+	col.add_child(_action_button("ATK", func():
 		var ev := InputEventKey.new()
 		ev.keycode = KEY_1
 		ev.pressed = true
 		Input.parse_input_event(ev)))
-	col.add_child(_hold_button("»»", func(held: bool): TouchControls.sprint_held = held))
+	col.add_child(_hold_button("SPRINT", func(held: bool): TouchControls.sprint_held = held))
 
-	# Compact roll pair — space-vehicle-only, no on-foot equivalent, so
-	# these get small unobtrusive buttons rather than full-size ones.
+	# Compact roll pair — space/air bank only.
 	var roll_row := HBoxContainer.new()
 	roll_row.add_theme_constant_override("separation", 10)
 	col.add_child(roll_row)
-	roll_row.add_child(_small_hold_button("◀", func(held: bool): TouchControls.roll_left_held = held))
-	roll_row.add_child(_small_hold_button("▶", func(held: bool): TouchControls.roll_right_held = held))
+	roll_row.add_child(_small_hold_button("◀ROLL", func(held: bool): TouchControls.roll_left_held = held))
+	roll_row.add_child(_small_hold_button("ROLL▶", func(held: bool): TouchControls.roll_right_held = held))
 
 func _process(_delta: float) -> void:
 	# Replay touch "E" as a real key event here, on this always-alive
@@ -149,8 +148,8 @@ func _exit_tree() -> void:
 func _action_button(label: String, on_press: Callable) -> Button:
 	var b := Button.new()
 	b.text = label
-	b.custom_minimum_size = Vector2(BUTTON_SIZE, BUTTON_SIZE)
-	b.add_theme_font_size_override("font_size", 48)
+	b.custom_minimum_size = Vector2(BUTTON_SIZE, BUTTON_SIZE * 0.85)
+	b.add_theme_font_size_override("font_size", 26)
 	b.pressed.connect(on_press)
 	return b
 
@@ -159,8 +158,8 @@ func _action_button(label: String, on_press: Callable) -> Button:
 func _hold_button(label: String, on_state: Callable) -> Button:
 	var b := Button.new()
 	b.text = label
-	b.custom_minimum_size = Vector2(BUTTON_SIZE, BUTTON_SIZE)
-	b.add_theme_font_size_override("font_size", 42)
+	b.custom_minimum_size = Vector2(BUTTON_SIZE, BUTTON_SIZE * 0.85)
+	b.add_theme_font_size_override("font_size", 24)
 	b.button_down.connect(func(): on_state.call(true))
 	b.button_up.connect(func(): on_state.call(false))
 	return b
@@ -170,8 +169,8 @@ func _hold_button(label: String, on_state: Callable) -> Button:
 func _small_hold_button(label: String, on_state: Callable) -> Button:
 	var b := Button.new()
 	b.text = label
-	b.custom_minimum_size = Vector2(BUTTON_SIZE * 0.55, BUTTON_SIZE * 0.55)
-	b.add_theme_font_size_override("font_size", 28)
+	b.custom_minimum_size = Vector2(BUTTON_SIZE * 0.55, BUTTON_SIZE * 0.5)
+	b.add_theme_font_size_override("font_size", 18)
 	b.button_down.connect(func(): on_state.call(true))
 	b.button_up.connect(func(): on_state.call(false))
 	return b

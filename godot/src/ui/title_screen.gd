@@ -13,6 +13,14 @@ func _ready() -> void:
 	_build_ui()
 
 func _build_ui() -> void:
+	var vp := get_viewport().get_visible_rect().size
+	var short_side := mini(vp.x, vp.y)
+	var mobile := short_side > 0.0 and short_side < 900.0
+	var emblem_size := 420.0 if mobile else 300.0
+	var title_fs := 72 if mobile else 56
+	var btn_w := 420.0 if mobile else 320.0
+	var btn_h := 72.0 if mobile else 56.0
+
 	var bg := ColorRect.new()
 	bg.color = Color(0.02, 0.01, 0.05)
 	bg.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
@@ -32,7 +40,7 @@ func _build_ui() -> void:
 
 	var root := VBoxContainer.new()
 	root.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	root.add_theme_constant_override("separation", 18)
+	root.add_theme_constant_override("separation", 22 if mobile else 18)
 	add_child(root)
 
 	# ---- upper portion: title/logo ----
@@ -46,13 +54,13 @@ func _build_ui() -> void:
 	var emblem_center := CenterContainer.new()
 	upper.add_child(emblem_center)
 	var emblem := LogoEmblem.new()
-	emblem.custom_minimum_size = Vector2(300, 300)
+	emblem.custom_minimum_size = Vector2(emblem_size, emblem_size)
 	emblem_center.add_child(emblem)
 
 	var title := Label.new()
 	title.text = "PERILIMINAL.SPACE"
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	title.add_theme_font_size_override("font_size", 56)
+	title.add_theme_font_size_override("font_size", title_fs)
 	upper.add_child(title)
 	var title_tw := create_tween()
 	title_tw.set_loops()
@@ -63,6 +71,7 @@ func _build_ui() -> void:
 	tagline.text = "Six realities. One of you."
 	tagline.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	tagline.modulate = Color(0.7, 0.6, 0.9)
+	tagline.add_theme_font_size_override("font_size", 28 if mobile else 16)
 	upper.add_child(tagline)
 
 	# ---- toggle row: Omni Dex / Settings / Info ----
@@ -73,16 +82,22 @@ func _build_ui() -> void:
 
 	var dex_btn := Button.new()
 	dex_btn.text = "📖 Omni Dex"
+	dex_btn.custom_minimum_size = Vector2(0, 52 if mobile else 0)
+	dex_btn.add_theme_font_size_override("font_size", 26 if mobile else 15)
 	dex_btn.pressed.connect(_toggle_omni_dex)
 	toggles.add_child(dex_btn)
 
 	var settings_btn := Button.new()
 	settings_btn.text = "⚙️ Settings"
+	settings_btn.custom_minimum_size = Vector2(0, 52 if mobile else 0)
+	settings_btn.add_theme_font_size_override("font_size", 26 if mobile else 15)
 	settings_btn.pressed.connect(func(): get_tree().change_scene_to_file("res://scenes/ui/settings.tscn"))
 	toggles.add_child(settings_btn)
 
 	var info_btn := Button.new()
 	info_btn.text = "ℹ️ Info"
+	info_btn.custom_minimum_size = Vector2(0, 52 if mobile else 0)
+	info_btn.add_theme_font_size_override("font_size", 26 if mobile else 15)
 	info_btn.pressed.connect(_show_info)
 	toggles.add_child(info_btn)
 
@@ -90,19 +105,21 @@ func _build_ui() -> void:
 	var middle := VBoxContainer.new()
 	middle.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	middle.alignment = BoxContainer.ALIGNMENT_CENTER
-	middle.add_theme_constant_override("separation", 14)
+	middle.add_theme_constant_override("separation", 18 if mobile else 14)
 	root.add_child(middle)
 
 	var new_btn := Button.new()
 	new_btn.text = "⚔️  Start New Venture"
-	new_btn.custom_minimum_size = Vector2(320, 56)
+	new_btn.custom_minimum_size = Vector2(btn_w, btn_h)
+	new_btn.add_theme_font_size_override("font_size", 30 if mobile else 18)
 	new_btn.pressed.connect(func():
 		get_tree().change_scene_to_file("res://scenes/ui/venture_wizard.tscn"))
 	middle.add_child(new_btn)
 
 	var continue_btn := Button.new()
 	continue_btn.text = "🌀  Continue Expedition"
-	continue_btn.custom_minimum_size = Vector2(320, 56)
+	continue_btn.custom_minimum_size = Vector2(btn_w, btn_h)
+	continue_btn.add_theme_font_size_override("font_size", 30 if mobile else 18)
 	continue_btn.disabled = not PlayerProfile.has_expedition
 	if not PlayerProfile.has_expedition:
 		continue_btn.tooltip_text = "No expedition yet — start a new venture first."
@@ -116,7 +133,8 @@ func _build_ui() -> void:
 	# Shortens the Liminal pull; does NOT add pull warnings (design invariant).
 	var proto_btn := Button.new()
 	proto_btn.text = "🧪  Play Prototype Spine"
-	proto_btn.custom_minimum_size = Vector2(320, 48)
+	proto_btn.custom_minimum_size = Vector2(btn_w, btn_h * 0.85)
+	proto_btn.add_theme_font_size_override("font_size", 26 if mobile else 16)
 	proto_btn.tooltip_text = "Dev prototype: shortened Liminal pull + guaranteed Metroplex exit near spawn."
 	proto_btn.pressed.connect(_start_prototype_spine)
 	middle.add_child(proto_btn)
