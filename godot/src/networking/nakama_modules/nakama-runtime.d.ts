@@ -208,7 +208,19 @@ declare namespace nkruntime {
     matchLeave: MatchLeaveFunction;
     matchLoop: MatchLoopFunction;
     matchTerminate: MatchTerminateFunction;
+    /** Required by Nakama 3.21+ — omitting it fatals with "matchSignal not found". */
+    matchSignal: MatchSignalFunction;
   }
+
+  type MatchSignalFunction = (
+    ctx: Context,
+    logger: Logger,
+    nk: Nakama,
+    dispatcher: MatchDispatcher,
+    tick: number,
+    state: MatchState,
+    data: string
+  ) => { state: MatchState };
 
   type RpcFunction = (
     ctx: Context,
