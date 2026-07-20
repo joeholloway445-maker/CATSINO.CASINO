@@ -155,7 +155,8 @@ func _action_button(label: String, on_press: Callable) -> Button:
 	var b := Button.new()
 	b.text = label
 	b.custom_minimum_size = Vector2(_button_size, _button_size * 0.85)
-	b.add_theme_font_size_override("font_size", int(round(26.0 * _boost)))
+	var fs := maxf(_boost * 0.55, 1.0)
+	b.add_theme_font_size_override("font_size", int(round(26.0 * fs)))
 	b.pressed.connect(on_press)
 	return b
 
@@ -165,7 +166,8 @@ func _hold_button(label: String, on_state: Callable) -> Button:
 	var b := Button.new()
 	b.text = label
 	b.custom_minimum_size = Vector2(_button_size, _button_size * 0.85)
-	b.add_theme_font_size_override("font_size", int(round(24.0 * _boost)))
+	var fs := maxf(_boost * 0.55, 1.0)
+	b.add_theme_font_size_override("font_size", int(round(24.0 * fs)))
 	b.button_down.connect(func(): on_state.call(true))
 	b.button_up.connect(func(): on_state.call(false))
 	return b
@@ -176,7 +178,8 @@ func _small_hold_button(label: String, on_state: Callable) -> Button:
 	var b := Button.new()
 	b.text = label
 	b.custom_minimum_size = Vector2(_button_size * 0.55, _button_size * 0.5)
-	b.add_theme_font_size_override("font_size", int(round(18.0 * _boost)))
+	var fs := maxf(_boost * 0.55, 1.0)
+	b.add_theme_font_size_override("font_size", int(round(18.0 * fs)))
 	b.button_down.connect(func(): on_state.call(true))
 	b.button_up.connect(func(): on_state.call(false))
 	return b
