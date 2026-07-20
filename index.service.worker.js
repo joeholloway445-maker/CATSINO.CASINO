@@ -4,7 +4,7 @@
 // Incrementing CACHE_VERSION will kick off the install event and force
 // previously cached resources to be updated from the network.
 /** @type {string} */
-const CACHE_VERSION = '1784288705|18479529';
+const CACHE_VERSION = '1784533556|79664387';
 /** @type {string} */
 const CACHE_PREFIX = 'Periliminal-sw-cache-';
 const CACHE_NAME = CACHE_PREFIX + CACHE_VERSION;

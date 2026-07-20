@@ -1,3 +1,0 @@
-Periliminal.Space — show-off web build (2026-07-17)
-Includes upright ~1.8m PeriHumans + latest base.
-Play Offline → Play Prototype Spine
