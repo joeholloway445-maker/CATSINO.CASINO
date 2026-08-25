@@ -1,5 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getAdminClient } from '@/lib/supabase/admin'
+import { createClient } from '@/lib/supabase/server'
+
+async function requireAdmin() {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return null
+  const { data: profile } = await supabase.from('profiles').select('is_admin').eq('id', user.id).single()
+  return profile?.is_admin ? user : null
+}
 
 export async function GET() {
   const { data, error } = await getAdminClient().from('world_districts').select('*').order('id')
@@ -8,6 +17,7 @@ export async function GET() {
 }
 
 export async function PUT(req: NextRequest) {
+  if (!await requireAdmin()) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
   const body = await req.json()
   const { error } = await getAdminClient().from('world_districts').update({
     display_name: body.display_name, description: body.description,
