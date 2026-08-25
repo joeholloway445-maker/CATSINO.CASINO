@@ -6,6 +6,9 @@ export async function POST(req: Request) {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
+  const { data: profile } = await supabase.from("profiles").select("is_admin").eq("id", user.id).single();
+  if (!profile?.is_admin) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+
   const { arcId, winningChoiceId } = await req.json();
   if (typeof arcId !== "string" || typeof winningChoiceId !== "string") {
     return NextResponse.json({ error: "Invalid request" }, { status: 400 });
