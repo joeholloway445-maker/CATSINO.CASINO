@@ -1,5 +1,6 @@
 import Anthropic from '@anthropic-ai/sdk'
 import { type NextRequest, NextResponse } from 'next/server'
+import { createClient } from '@/lib/supabase/server'
 
 export const runtime = 'nodejs'
 
@@ -37,6 +38,10 @@ Speak as HOPE — wise, warm, slightly mystical, and always present. You never a
 
 export async function POST(request: NextRequest) {
   try {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return NextResponse.json({ error: 'Not authenticated' }, { status: 401 })
+
     const { messages, playerContext } = await request.json()
 
     if (!process.env.ANTHROPIC_API_KEY) {
