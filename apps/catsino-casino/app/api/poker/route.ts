@@ -16,6 +16,9 @@ export async function POST(req: NextRequest) {
     }
 
     const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
     const { data, error } = await supabase.rpc('play_poker', {
       p_bet: bet,
       p_held_indices: held_indices,
