@@ -13,6 +13,7 @@
 
 import { type NextRequest } from "next/server";
 import { request as matrixRequest } from "@/lib/personamatrix/matrix";
+import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import type { PersonaModule } from "@/lib/personamatrix/types";
 
@@ -22,6 +23,15 @@ export const dynamic = "force-dynamic";
 const VALID: PersonaModule[] = ["dream", "hope", "no_one", "vision", "apex"];
 
 export async function GET(req: NextRequest) {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) {
+    return new Response(`data: ${JSON.stringify({ error: "Unauthorized" })}\n\n`, {
+      status: 401,
+      headers: { "content-type": "text/event-stream" },
+    });
+  }
+
   const { searchParams } = new URL(req.url);
   const mod = (searchParams.get("module") ?? "dream") as PersonaModule;
   if (!VALID.includes(mod)) {
