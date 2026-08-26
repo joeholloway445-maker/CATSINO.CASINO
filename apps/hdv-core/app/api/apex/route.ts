@@ -17,6 +17,7 @@
  */
 import { type NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
+import { heuristicRoute, type BudgetTier } from '@/lib/apex-router'
 
 export const runtime = 'nodejs'
 
@@ -26,30 +27,6 @@ const MODEL_ALIASES: Record<string, string> = {
   opus: 'claude-opus-5',
   fable: 'claude-fable-5',
   'sonnet-4': 'claude-sonnet-4-6',
-}
-
-function heuristicRoute(intent: string, category: string, budgetTier: string, preferSpeed: boolean): string {
-  const low = budgetTier === 'low' || preferSpeed
-  const high = budgetTier === 'high'
-  switch (category) {
-    case 'security': case 'audit':
-      return high ? 'claude-opus-5' : 'claude-sonnet-5'
-    case 'code': case 'analysis':
-      return low ? 'claude-haiku-4-5-20251001' : high ? 'claude-opus-5' : 'claude-sonnet-5'
-    case 'creative': case 'simulation':
-      return high ? 'claude-fable-5' : 'claude-sonnet-5'
-    case 'vision': case 'multimodal':
-      return 'claude-sonnet-5'
-    case 'chat': case 'support':
-      return low ? 'claude-haiku-4-5-20251001' : 'claude-sonnet-5'
-    default: {
-      const lower = intent.toLowerCase()
-      if (lower.includes('secur') || lower.includes('audit') || lower.includes('knoll')) return 'claude-opus-5'
-      if (lower.includes('dream') || lower.includes('simulat') || lower.includes('creat')) return 'claude-fable-5'
-      if (lower.includes('cod') || lower.includes('debug') || lower.includes('refactor')) return 'claude-sonnet-5'
-      return low ? 'claude-haiku-4-5-20251001' : 'claude-sonnet-5'
-    }
-  }
 }
 
 export async function POST(request: NextRequest) {
@@ -82,7 +59,7 @@ export async function POST(request: NextRequest) {
 
     const resolvedModel = modelOverride
       ? (MODEL_ALIASES[modelOverride] ?? modelOverride)
-      : heuristicRoute(intent, category, budgetTier, preferSpeed)
+      : heuristicRoute(intent, category, budgetTier as BudgetTier, preferSpeed)
 
     const body: Record<string, unknown> = {
       model: resolvedModel,
@@ -149,6 +126,6 @@ export async function GET(request: NextRequest) {
   const budgetTier = url.searchParams.get('budgetTier') ?? 'medium'
   const preferSpeed = url.searchParams.get('preferSpeed') === 'true'
 
-  const model = heuristicRoute(intent, category, budgetTier, preferSpeed)
+  const model = heuristicRoute(intent, category, budgetTier as BudgetTier, preferSpeed)
   return NextResponse.json({ model, category, budgetTier, routedBy: 'apex-heuristic' })
 }
