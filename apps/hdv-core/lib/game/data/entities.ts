@@ -436,6 +436,10 @@ export const ALL_ENTITIES: Entity[] = [
   },
 ]
 
+export function getEntityById(id: string): Entity | undefined {
+  return ALL_ENTITIES.find((e) => e.id === id)
+}
+
 export function resolveRPS(
   attacker: Entity,
   defender: Entity,

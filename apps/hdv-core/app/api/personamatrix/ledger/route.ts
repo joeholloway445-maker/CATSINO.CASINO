@@ -12,8 +12,8 @@ export async function GET(req: Request) {
   const url = new URL(req.url);
   const tenantId = url.searchParams.get("tenant_id");
 
-  const supabase = createAdminClient();
-  let query = supabase.from("persona_ledger").select("module, cost_usd");
+  const adminSupabase = createAdminClient();
+  let query = adminSupabase.from("persona_ledger").select("module, cost_usd");
   if (tenantId) query = query.eq("tenant_id", tenantId);
 
   const { data, error } = await query;
