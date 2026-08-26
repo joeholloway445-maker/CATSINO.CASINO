@@ -1,5 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getAdminClient } from '@/lib/supabase/admin'
+import { createClient } from '@/lib/supabase/server'
+
+async function requireAdmin() {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return null
+  const { data: profile } = await supabase.from('profiles').select('is_admin').eq('id', user.id).single()
+  return profile?.is_admin ? user : null
+}
 
 export async function GET() {
   const { data, error } = await getAdminClient().from('world_npcs').select('*').order('district')
@@ -8,6 +17,7 @@ export async function GET() {
 }
 
 export async function POST(req: NextRequest) {
+  if (!await requireAdmin()) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
   const body = await req.json()
   const row = {
     id: body.id, name: body.name, district: body.district, role: body.role,
@@ -22,6 +32,7 @@ export async function POST(req: NextRequest) {
 }
 
 export async function PUT(req: NextRequest) {
+  if (!await requireAdmin()) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
   const body = await req.json()
   const { error } = await getAdminClient().from('world_npcs').update({
     name: body.name, district: body.district, role: body.role, faction: body.faction,
@@ -34,6 +45,7 @@ export async function PUT(req: NextRequest) {
 }
 
 export async function DELETE(req: NextRequest) {
+  if (!await requireAdmin()) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
   const id = new URL(req.url).searchParams.get('id')
   if (!id) return NextResponse.json({ error: 'id required' }, { status: 400 })
   const { error } = await getAdminClient().from('world_npcs').delete().eq('id', id)
