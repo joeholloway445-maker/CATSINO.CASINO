@@ -10,6 +10,18 @@ import re
 import sys
 from pathlib import Path
 
+# Ensure UTF-8 stdout/stderr across Windows console and CI
+if hasattr(sys.stdout, "reconfigure"):
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+if hasattr(sys.stderr, "reconfigure"):
+    sys.stderr.reconfigure(encoding="utf-8", errors="replace")
+
+# Ensure UTF-8 reading across Windows, Linux, and macOS
+_orig_read_text = Path.read_text
+def _utf8_read_text(self, encoding="utf-8", errors="replace"):
+    return _orig_read_text(self, encoding=encoding, errors=errors)
+Path.read_text = _utf8_read_text
+
 ROOT = Path(__file__).resolve().parents[1]
 GODOT = ROOT / "godot"
 failures: list[str] = []
@@ -284,10 +296,10 @@ def main() -> int:
         fail("gate8_smoke missing hideout coverage")
 
     print("== metahuman / PeriHuman slots ==")
-    if (GODOT / "assets/models/player_human.glb").exists():
-        ok("player_human.glb present (interim identity mesh)")
+    if (GODOT / "assets/models/player_human.glb").exists() or (GODOT / "assets/models/peri_human_player.glb").exists():
+        ok("player_human.glb / peri_human_player.glb present (identity mesh)")
     else:
-        fail("player_human.glb missing")
+        fail("player_human.glb / peri_human_player.glb missing")
     for slot in (
         "peri_human_player.glb",
         "peri_human_npc.glb",

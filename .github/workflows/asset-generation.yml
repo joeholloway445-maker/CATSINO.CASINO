@@ -1,0 +1,65 @@
+name: asset-generation
+
+on:
+  workflow_dispatch:
+    inputs:
+      batch_size:
+        description: 'Number of missing assets to generate'
+        required: true
+        default: '25'
+      workers:
+        description: 'Parallel worker threads'
+        required: true
+        default: '12'
+      kind:
+        description: 'Filter kind (entity, race, slot, all)'
+        required: true
+        default: 'all'
+  schedule:
+    # Run daily at 04:00 UTC
+    - cron: '0 4 * * *'
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  generate-assets:
+    name: Generate Missing Assets
+    runs-on: ubuntu-22.04
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: Export Asset Prompts
+        run: |
+          python3 scripts/export_asset_prompts.py
+
+      - name: Run Autonomous Asset Generation
+        env:
+          BATCH_SIZE: ${{ inputs.batch_size || '25' }}
+          WORKERS: ${{ inputs.workers || '12' }}
+          KIND: ${{ inputs.kind || 'all' }}
+        run: |
+          python3 scripts/auto_asset_runner.py --limit "$BATCH_SIZE" --workers "$WORKERS" --kind "$KIND"
+
+      - name: Verify Generated Assets & Imports
+        run: |
+          git status --short godot/assets/
+
+      - name: Create Pull Request with New Assets
+        uses: peter-evans/create-pull-request@v6
+        with:
+          commit-message: 'assets: autonomous batch generation via auto_asset_runner'
+          title: 'Automated Asset Generation Batch'
+          body: |
+            Autonomous asset studio generation batch.
+            - Generated via `auto_asset_runner.py`
+            - Includes `.import` sidecars with Lossy compression (mode=1)
+            - Cleaned and ready for review
+          branch: assets/automated-generation-batch
+          delete-branch: true

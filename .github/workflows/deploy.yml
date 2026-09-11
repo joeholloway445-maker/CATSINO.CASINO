@@ -15,11 +15,24 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with: { node-version: 20 }
-      - name: Build web
+      - name: Build Catsino Web
         working-directory: apps/catsino-casino
         run: |
           npm ci
           npm run build
+
+      - name: Build HDV Core Web
+        working-directory: apps/hdv-core
+        run: |
+          npm ci
+          npm run build
+
+      - name: Build Nakama RPC modules
+        working-directory: godot/src/networking/nakama_modules
+        run: |
+          npm ci
+          npm run build
+
       - name: Export Godot HTML5 (best effort)
         continue-on-error: true
         run: |
@@ -27,6 +40,7 @@ jobs:
           unzip -q Godot_v4.3-stable_linux.x86_64.zip
           mkdir -p builds/html5
           ./Godot_v4.3-stable_linux.x86_64 --headless --path godot --export-release "Web" ../builds/html5/index.html || echo "Add a 'Web' export preset in the editor to enable this step."
+
       # Skips cleanly until the VPS secrets are configured in repo settings.
       - name: Deploy over SSH
         if: ${{ env.VPS_HOST != '' }}
@@ -38,7 +52,15 @@ jobs:
           script: |
             cd /opt/periliminal
             git pull
+            npm --prefix godot/src/networking/nakama_modules ci
+            npm --prefix godot/src/networking/nakama_modules run build
             SUPABASE_URL='${{ secrets.SUPABASE_URL }}' \
             SUPABASE_ANON_KEY='${{ secrets.SUPABASE_ANON_KEY }}' \
             NAKAMA_SERVER_KEY='${{ secrets.NAKAMA_SERVER_KEY }}' \
             docker compose up -d --build
+            echo "Verifying service health..."
+            sleep 8
+            curl -sf http://localhost:3000 >/dev/null 2>&1 && echo "  Catsino OK" || echo "  Catsino initializing"
+            curl -sf http://localhost:3001 >/dev/null 2>&1 && echo "  HDV Core OK" || echo "  HDV Core initializing"
+            curl -sf http://localhost:7350/healthcheck >/dev/null 2>&1 && echo "  Nakama OK" || echo "  Nakama initializing"
+            curl -sf http://localhost:80 >/dev/null 2>&1 && echo "  Nginx Proxy OK" || echo "  Nginx Proxy initializing"

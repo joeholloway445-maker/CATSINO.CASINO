@@ -1,0 +1,102 @@
+name: web-release
+
+on:
+  release:
+    types: [published]
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      release_tag:
+        description: 'Target GitHub Release tag for large assets'
+        required: true
+        default: 'prototype_web_v0.4'
+      deploy_pages:
+        description: 'Deploy web shell to GitHub Pages (gh-pages)'
+        type: boolean
+        default: true
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+env:
+  GODOT_VERSION: 4.3.0
+  EXPORT_NAME: periliminal-space
+
+jobs:
+  build-and-release:
+    name: Export Web & Release
+    runs-on: ubuntu-22.04
+    timeout-minutes: 40
+    container:
+      image: barichello/godot-ci:4.3
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          lfs: true
+
+      - name: Locate export templates
+        run: |
+          set -e
+          TEMPLATE_SRC="$(find / -maxdepth 6 -type d -name '*.stable' -path '*/export_templates/*' 2>/dev/null | head -n1 || true)"
+          if [ -z "$TEMPLATE_SRC" ]; then
+            echo "No export templates found in image — cannot Web-export." >&2
+            exit 1
+          fi
+          echo "Templates found at: $TEMPLATE_SRC"
+          mkdir -p ~/.local/share/godot/export_templates
+          ln -sfn "$TEMPLATE_SRC" ~/.local/share/godot/export_templates/"$(basename "$TEMPLATE_SRC")"
+
+      - name: Headless Godot Web Export
+        run: |
+          set -e
+          mkdir -v -p builds/html5
+          cd godot
+          timeout 600 godot --headless --verbose --import || echo "(import finished)"
+          set +e
+          timeout 900 godot --headless --verbose --export-release "Web" ../builds/html5/index.html
+          EXPORT_EXIT=$?
+          set -e
+          if [ "$EXPORT_EXIT" = "124" ]; then
+            echo "::error::godot export timed out"
+            exit 1
+          fi
+          if [ ! -f ../builds/html5/index.html ] && [ -f build/web/index.html ]; then
+            mkdir -p ../builds/html5
+            cp -a build/web/. ../builds/html5/
+          fi
+          if [ ! -f ../builds/html5/index.html ]; then
+            echo "::error::Web export failed — index.html not found"
+            exit 1
+          fi
+          echo "Export completed successfully."
+          ls -lah ../builds/html5
+
+      - name: Package Release Assets & Patch index.html
+        env:
+          RELEASE_TAG: ${{ inputs.release_tag || github.event.release.tag_name || github.ref_name }}
+        run: |
+          python3 scripts/package_web_release.py --tag "$RELEASE_TAG"
+
+      - name: Upload Binaries to GitHub Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RELEASE_TAG: ${{ inputs.release_tag || github.event.release.tag_name || github.ref_name }}
+        run: |
+          set -e
+          CLEAN_TAG="${RELEASE_TAG#refs/tags/}"
+          echo "Uploading binaries to release $CLEAN_TAG..."
+          gh release upload "$CLEAN_TAG" builds/release_assets/* --clobber || \
+            gh release create "$CLEAN_TAG" builds/release_assets/* --title "$CLEAN_TAG" --notes "Godot Web client engine binaries ($CLEAN_TAG)"
+
+      - name: Deploy Web Shell to GitHub Pages
+        if: ${{ inputs.deploy_pages != false }}
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./builds/gh_pages
+          publish_branch: gh-pages
+          force_orphan: true

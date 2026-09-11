@@ -80,6 +80,29 @@ docker-compose pull nakama-db nakama 2>/dev/null || true
 docker-compose up -d --build
 echo -e "  ${GREEN}✓${RESET} Services started"
 
+# ── 6. Health check verification ──────────────────────────────────────────────
+echo -e "${BOLD}[Health Check] Probing services...${RESET}"
+sleep 5
+for endpoint in \
+  "Catsino web:http://localhost:3000" \
+  "HDV Core web:http://localhost:3001" \
+  "Nakama API:http://localhost:7350/healthcheck" \
+  "Nginx proxy:http://localhost:80"; do
+  name="${endpoint%%:*}"
+  url="${endpoint#*:}"
+  if curl -sf "$url" >/dev/null 2>&1; then
+    echo -e "  ${GREEN}✓${RESET} $name ($url) responding"
+  else
+    echo -e "  ${YELLOW}⚠${RESET}  $name ($url) not ready yet (will retry in 5s)"
+    sleep 5
+    if curl -sf "$url" >/dev/null 2>&1; then
+      echo -e "  ${GREEN}✓${RESET} $name ($url) responding"
+    else
+      echo -e "  ${RED}✗${RESET} $name ($url) failed probe — check docker logs"
+    fi
+  fi
+done
+
 echo ""
 echo -e "${BOLD}Deployment complete!${RESET}"
 echo ""
